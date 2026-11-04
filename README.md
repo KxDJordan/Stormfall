@@ -31,10 +31,13 @@ Without a connection (or without the backend) the game works exactly as before a
 
 ## Online play
 
-1. One player taps **Play online → Host a room** and shares the 5-letter room code (or **Copy invite link**).
-2. Friends open the game, tap **Play online**, and enter the code. An invite link joins automatically.
-3. The host picks Solo (8), Duos (4 teams of 2) or Quick (4) and taps **Start match**. AI fills the empty slots.
-   In Duos, players are paired in join order.
+1. One player taps **Play with friends**, picks a mode card (Solo, Duos or Quick) and taps **Create lobby**, then shares
+   the 5-letter room code (or the **Invite** link).
+2. Friends open the game, tap **Play with friends**, and enter the code under **Join** (or **Watch** to spectate).
+   An invite link joins automatically.
+3. In the waiting room the host adds bots and picks their difficulty and the turn timer, then taps **Deploy**.
+   AI fills the empty slots. In Duos, everyone picks a team (**Join** on a team); the host can move players, and bots
+   fill the empty seats.
 
 How it works:
 
