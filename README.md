@@ -13,6 +13,21 @@ It's live in two places:
 - Cloudflare (with cloud saves, the global daily leaderboard and its own matchmaking server), once the deploy below
   is set up: `https://stormfall.<your-subdomain>.workers.dev`
 
+## Modes
+
+| Mode  | Players                | Map   | Notes |
+|-------|------------------------|-------|-------|
+| Solo  | up to 8, free for all  | 40×40 | Second Wind: get back up once |
+| Duos  | up to 4 teams of 2     | 40×40 | revive your partner |
+| Trios | up to 4 teams of 3     | 48×48 | wider storm that shrinks faster, 4 objectives |
+| Quads | up to 4 teams of 4     | 56×56 | extra early storm stage (round 3), 5 supply drops, 4 objectives |
+| Quick | up to 4, free for all  | 40×40 | tight storm, about six minutes |
+
+In the team modes a downed operative bleeds out in 2 turns unless an adjacent teammate revives them; a team is out
+when nobody on it is standing. Empty seats are filled by bots, and team pings / commands steer AI teammates. The map
+size comes from the mode, so it is the same on every client, for spectators and in replays. Classic modes keep
+generating the exact same 40×40 maps for a given seed.
+
 ## Saving your progress
 
 Progress is stored in your browser. Two ways to keep it safe:
@@ -31,13 +46,13 @@ Without a connection (or without the backend) the game works exactly as before a
 
 ## Online play
 
-1. One player taps **Play with friends**, picks a mode card (Solo, Duos or Quick) and taps **Create lobby**, then shares
+1. One player taps **Play with friends**, picks a mode card (Solo, Duos, Trios, Quads or Quick) and taps **Create lobby**, then shares
    the 5-letter room code (or the **Invite** link).
 2. Friends open the game, tap **Play with friends**, and enter the code under **Join** (or **Watch** to spectate).
    An invite link joins automatically.
 3. In the waiting room the host adds bots and picks their difficulty and the turn timer, then taps **Deploy**.
-   AI fills the empty slots. In Duos, everyone picks a team (**Join** on a team); the host can move players, and bots
-   fill the empty seats.
+   AI fills the empty slots. In Duos, Trios and Quads, everyone picks a team (**Join** on a team); the host can move
+   players, and bots fill the empty seats. A room holds up to 8 players (12 in Trios, 16 in Quads).
 
 How it works:
 
