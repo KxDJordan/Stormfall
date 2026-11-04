@@ -177,7 +177,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--signal);outline
 .onroom small{color:var(--muted);font-size:12px}
 .onroom .btn{width:auto;flex:none}
 .oncode{font-family:Teko,sans-serif;font-size:58px;line-height:.9;letter-spacing:.16em;color:var(--signal)}
-.onplayers{list-style:none;margin:10px 0;padding:0;display:grid;gap:6px}
+.mbox .onplayers{list-style:none;margin:10px 0;padding:0;display:grid;gap:6px}
 .mbox .onplayers li{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#0b121a;border:1px solid var(--line);border-radius:3px;color:var(--text)}
 .onplayers .dot{width:10px;height:10px;border-radius:50%;flex:none}
 .onplayers span{color:var(--muted);font-size:13px}
@@ -2492,7 +2492,7 @@ async function netJoin(code){
   peer.on('open',id=>{ if(NET.peer!==peer) return; NET.me=id;
     const conn=peer.connect('stormfall-'+code.toLowerCase(),{reliable:true}); NET.hostConn=conn; NET.hostLast=Date.now();
     const t=setTimeout(()=>{ if(NET.hostConn===conn&&!conn.open){ netLeave(); netStatus('Could not reach room '+code+'. The host may be behind a strict firewall.'); } },15000);
-    conn.on('open',()=>{ clearTimeout(t); NET.hostLast=Date.now(); try{ conn.send({t:'hello',v:PROTO,p:mySpec()}); }catch(_){} netStatus('Connected. Waiting for the host to start.'); updateOnlineBtn(); });
+    conn.on('open',()=>{ clearTimeout(t); NET.hostLast=Date.now(); try{ conn.send({t:'hello',v:PROTO,p:mySpec()}); }catch(_){} netStatus(''); updateOnlineBtn(); });
     conn.on('data',d=>{ if(NET.hostConn===conn) clientData(d); });
     conn.on('close',()=>{ if(NET.hostConn===conn) clientLostHost('Lost connection to the host'); });
     conn.on('error',()=>{ if(NET.hostConn===conn) clientLostHost('Lost connection to the host'); }); });
