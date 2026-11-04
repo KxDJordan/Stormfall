@@ -508,6 +508,40 @@ button.sh,#mLvl{min-height:44px}
 .card .ptag{align-self:flex-start;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:1px 5px;margin-top:4px;border-radius:2px;background:rgba(255,179,64,.12);color:var(--amber)}
 .tier.lockt .card.sel{border-color:var(--line);background:#0d151f}
 .tier.lockt .card.sel::after{display:none}
+/* weapon mastery and attachments */
+.mst{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:var(--muted)}
+.mst b{font-family:Teko,sans-serif;font-size:17px;line-height:1;color:var(--amber);font-weight:600}
+.mst .xpbar{flex:1;height:4px}
+.mst .xpbar i,.mrow .xpbar i,.mprow .xpbar i{background:linear-gradient(90deg,var(--amber),#ffe0a0)}
+.attslot{margin:8px 0 2px;font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+.attrow .card{min-width:132px;max-width:190px}
+.attrow .card .d{font-size:12px}
+.attrow .card .ob{display:block;margin-top:4px;color:var(--signal);font-size:11.5px}
+.fsws{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.fsw{flex:none;width:96px;padding:4px;background:#0d151f;border:1px solid var(--line);border-radius:3px;text-align:center;font-size:11px;position:relative}
+.fsw canvas{display:block;width:88px;height:40px}
+.fsw.sel{border-color:var(--signal);background:linear-gradient(180deg,rgba(63,210,255,.14),rgba(63,210,255,.03))}
+.fsw.lock{opacity:.5}
+.fsw small{display:block;color:var(--amber);font-size:10px}
+.mrow{padding:8px 12px;margin-bottom:6px;background:linear-gradient(90deg,rgba(255,179,64,.10),rgba(255,179,64,0));border-left:3px solid rgba(255,179,64,.5);font-size:13px}
+.mrow.up{border-left-color:var(--amber);background:linear-gradient(90deg,rgba(255,179,64,.2),rgba(255,179,64,0))}
+.mrow .mt{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}
+.mrow .mt b{font-family:Teko,sans-serif;font-size:19px;font-weight:600;color:var(--amber)}
+.mrow small{display:block;margin-top:4px;color:#e8d9b8}
+.mprow{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 10px;background:#0d151f;border:1px solid var(--line);border-radius:3px;font-size:13px;margin-bottom:6px}
+.mprow>b{font-family:Teko,sans-serif;font-size:24px;text-align:center;color:var(--amber);font-weight:600}
+.mprow small{display:block;color:var(--muted);font-size:11.5px}
+.mprow .xpbar{margin-top:4px;height:4px}
+.mprow canvas{width:72px;height:30px}
+/* team pings */
+#bPing.on,#bEmote.on{background:rgba(63,210,255,.25)}
+#pingTray{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 96px);transform:translateX(-50%);width:min(360px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--line2);border-radius:6px;padding:10px;z-index:3}
+#pingTray .pt{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--muted);margin:0 2px 6px}
+#pingTray .pt b{font-family:Teko,sans-serif;font-size:20px;color:var(--text,#e6eef6);font-weight:600}
+#pingTray .pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:6px;margin-bottom:8px}
+#pingTray button{min-height:40px;padding:6px 8px;background:#0d151f;border:1px solid var(--line);border-radius:4px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px;text-align:left}
+#pingTray button i{flex:none;width:10px;height:10px;transform:rotate(45deg);border-radius:1px}
+#pingTray .pn{font-size:11.5px;color:var(--amber);margin:2px 2px 0}
 </style>
 </head>
 <body>
@@ -555,7 +589,9 @@ button.sh,#mLvl{min-height:44px}
     </div>
     <div class="lo-sec"><h3>Class <small>sets what you can carry</small></h3><div class="cards" id="clsRow"></div><p class="clsdesc" id="clsDesc"></p></div>
     <div class="lo-sec"><h3>Primary weapon <small>Mk upgrades unlock with level</small></h3><div class="cards" id="wpRow"></div></div>
+    <div class="lo-sec" id="attSec"><h3>Attachments <small id="attSub"></small></h3><div id="attRows"></div><div class="attslot">Mastery finish</div><div class="fsws" id="mfRow"></div></div>
     <div class="lo-sec"><h3>Secondary <small>melee, throwing or sidearm</small></h3><div class="cards" id="secRow"></div></div>
+    <div class="lo-sec hidden" id="sattSec"><h3>Sidearm attachments <small id="sattSub"></small></h3><div id="sattRows"></div><div class="attslot">Mastery finish</div><div class="fsws" id="smfRow"></div></div>
     <div class="lo-sec"><h3>Armor</h3><div class="cards" id="arRow"></div></div>
     <div class="lo-sec"><h3>Utility <small id="utPick">pick 2</small></h3><div class="cards wrap" id="utRow"></div></div>
     <div class="lo-sec"><h3>Class perks <small id="cpSub">one of two per tier</small></h3><div class="tree" id="cpRow"></div></div>
@@ -596,6 +632,7 @@ button.sh,#mLvl{min-height:44px}
   <div class="lo-scroll"><div class="lo-wrap">
     <div class="pcard"><span class="lvlb" id="pLvl">1</span><div style="flex:1;min-width:0"><div class="pn" id="pName"></div><div class="ps" id="pXpT"></div><span class="xpbar big"><i id="pXp"></i></span></div></div>
     <div class="lo-sec"><h3>Career</h3><div class="endgrid" id="pStats"></div></div>
+    <div class="lo-sec"><h3>Weapon mastery <small>hits, damage and takedowns with a weapon level it up</small></h3><div id="pMast"></div></div>
     <div class="lo-sec"><h3>Level rewards <small>gear unlocks</small></h3><div class="track" id="pTrack"></div></div>
     <div class="lo-sec"><h3>Recent matches</h3><div id="pHist"></div></div>
     <div class="lo-sec"><h3>Settings</h3><div class="settings" id="pSet"></div></div>
@@ -616,11 +653,13 @@ button.sh,#mLvl{min-height:44px}
     <div class="chip pe">Round <b id="hRound">1</b></div>
     <div class="chip"><b id="hAlive">8</b><span id="hAliveL">left</span></div>
     <div class="chip storm" id="hStormChip"><span id="hStorm">Storm</span></div>
+    <button class="topbtn pe hidden" id="bPing" aria-label="Ping or command your team">📍</button>
     <button class="topbtn pe" id="bEmote" aria-label="Quick chat">💬</button>
     <button class="topbtn pe" id="bPause" aria-label="Pause">❚❚</button>
   </div>
   <div id="torder" role="list" aria-label="Turn order"></div>
   <div id="emoteTray" class="pe hidden"></div>
+  <div id="pingTray" class="pe hidden" role="dialog" aria-label="Team ping"></div>
   <canvas id="minimap" width="192" height="192"></canvas>
   <div id="feed"></div>
   <div id="turnTag" style="opacity:0"></div>
@@ -718,6 +757,7 @@ button.sh,#mLvl{min-height:44px}
     <div class="xpbox"><div class="xprow"><span>Level <b id="eLvl">1</b></span><span id="eXpT"></span></div><span class="xpbar big"><i id="eXp"></i></span></div>
     <div class="rewards" id="eRew"></div>
     <div id="eUnl"></div>
+    <div id="eMast"></div>
     <div class="endgrid" id="eGrid"></div>
     <div class="endbtns"><button class="btn primary" id="eAgain">Play again</button><button class="btn" id="eShare">Share</button><button class="btn ghost" id="eMenu">Lobby</button></div>
   </div>
@@ -797,7 +837,7 @@ function bandTxt(b){ return (b.hi>=RANGE_MAX?b.lo+'+':b.lo===b.hi?''+b.lo:b.lo+'
 function rangeTxt(w){ const out=[]; let from=1; for(const s of w.rt){ const to=s[0]; out.push((to>=99?from+'+':from===to?''+from:from+'–'+to)+' '+sgn(s[1]+w.aim)); from=to+1; if(to>=99) break; } if(w.fall) out.push('then −'+w.fall+'/tile'); return out.join(' · '); }
 // average hit chance against an exposed target with no defense across each range band, for a shooter with this aim
 function bandHit(w,aim){ return RANGE_BANDS.map(b=>{ let s=0; for(let d=b[1];d<=b[2];d++) s+=clamp(Math.round(aim+w.aim+w.range(d)),0,100); return [b[0]+' '+b[1]+'–'+b[2],Math.round(s/(b[2]-b[1]+1))]; }); }
-function weaponTraits(w){ const t=[]; if(w.heavy) t.push('Needs both AP: cannot move and fire'); if(w.mob) t.push(sgn(w.mob)+' mobility'); if(w.pierce) t.push('Ignores armor'); return t; }
+function weaponTraits(w){ const t=[]; if(w.heavy) t.push('Needs both AP: cannot move and fire'); if(w.mob||w.amob) t.push(sgn((w.mob||0)+(w.amob||0))+' mobility'); if(w.pierce) t.push('Ignores armor'); return t; }
 const UTILS={
   frag:{name:'Frag Grenade',short:'Frag',charges:2,range:8,radius:1.6,dmg:[3,4],note:'Knocks cover down a stage and sets off explosives.'},
   plasma:{name:'Plasma Grenade',short:'Plasma',charges:1,range:8,radius:2.1,dmg:[5,6],note:'Knocks cover down a stage and sets off explosives. Grenadier only.'},
@@ -870,6 +910,83 @@ CLASSES.ranger.secs=['knife','pistol','tknife','machete','machpistol','katana'];
 CLASSES.sharpshooter.secs=['pistol','knife','silencer','tknife','magnum','katana'];
 CLASSES.grenadier.secs=['pistol','knife','machete','hatchet','magnum','axe'];
 CLASSES.specialist.secs=['pistol','knife','silencer','baton','hatchet','machpistol'];
+/* ================= weapon attachments =================
+   One mod per slot, all modest. Primaries take every slot (minus w.noAtt); pistol sidearms take optic, barrel and magazine.
+   An attachment unlocks at weapon mastery level `m` (pistols: `pm`; no pm = not for pistols). Effect fields:
+   win:[from,to,aim] aim inside a distance window · ext:n widens the optimal band by n tiles · opt:n aim inside the optimal band
+   fall:n falloff per tile past the last range step (never below 0) · aim, crit, critDmg, clip (never below 1): flat changes
+   mob: mobility · silent: shots make no noise (no AI intel, no sound cue) · freeRl: the first reload of the match costs no AP
+   still:n aim when you have not moved this turn · mov:n aim on a shot after moving · rx:n aim on reaction shots.
+   applyAtt() folds them into the weapon object (rt/range/clip/...), so hitInfo, the AI and the loadout text all read one source. */
+const ATT_SLOTS=['optic','barrel','mag','under'], PISTOL_SLOTS=['optic','barrel','mag'];
+const ATT_SLOT_NAME={optic:'Optic',barrel:'Barrel',mag:'Magazine',under:'Underbarrel / stock'};
+const ATTACH={
+  reddot:{slot:'optic',name:'Reflex Sight',win:[1,4,5],m:2,pm:2},
+  acog:{slot:'optic',name:'Combat Scope',ext:2,m:4},
+  scope:{slot:'optic',name:'Long Scope',opt:5,win:[1,3,-10],m:7},
+  comp:{slot:'barrel',name:'Compensator',aim:5,crit:-5,m:3,pm:4},
+  supp:{slot:'barrel',name:'Suppressor',silent:1,crit:-5,m:5,pm:6},
+  longb:{slot:'barrel',name:'Long Barrel',ext:1,fall:-3,mob:-1,m:6},
+  extmag:{slot:'mag',name:'Extended Mag',clip:1,m:2,pm:3},
+  speed:{slot:'mag',name:'Speed Loader',freeRl:1,m:5,pm:7},
+  hollow:{slot:'mag',name:'Hollow Points',critDmg:1,clip:-1,m:6},
+  grip:{slot:'under',name:'Vertical Grip',mov:5,m:3},
+  stock:{slot:'under',name:'Tactical Stock',rx:10,m:4},
+  bipod:{slot:'under',name:'Bipod',still:8,m:7}
+};
+for(const k in ATTACH) ATTACH[k].id=k;
+WEAPONS.volt.noAtt=['barrel']; SECONDARIES.silencer.noAtt=['barrel']; // arc bolts take no barrel; the Whisper is already suppressed
+const isPistol=k=>!!(SECONDARIES[k]&&SECONDARIES[k].type==='pistol');
+// weapons with mastery and attachments: every primary and every pistol sidearm
+const mastTracked=k=>!!WEAPONS[k]||isPistol(k);
+function attSlots(k){ const base=WEAPONS[k]?ATT_SLOTS:isPistol(k)?PISTOL_SLOTS:[], no=(WEAPONS[k]||SECONDARIES[k]||{}).noAtt||[]; return base.filter(s=>!no.includes(s)); }
+// mastery level an attachment needs on weapon k (null: not available for it)
+function attNeed(k,id){ const A=ATTACH[id]; if(!A||!attSlots(k).includes(A.slot)) return null; return WEAPONS[k]?A.m:A.pm!=null?A.pm:null; }
+// a slot->id map for weapon k reduced to valid ids, in slot order (no mastery check: callers gate unlocks)
+function attIds(map,k){ const o=[]; if(!map||typeof map!=='object') return o; for(const s of attSlots(k)){ const id=map[s]; if(typeof id==='string'&&ATTACH[id]&&ATTACH[id].slot===s&&attNeed(k,id)!=null) o.push(id); } return o; }
+// range-table transforms (rt = [[upToTile,aim],...], last step 99 = open-ended, otherwise `fall` per tile past it)
+function rtSeg(rt){ let a=1; return rt.map(s=>{ const g={a,b:s[0],v:s[1]}; a=s[0]+1; return g; }); }
+function rtJoin(sg){ const o=[]; for(const g of sg){ if(g.b<g.a) continue; const l=o[o.length-1]; if(l&&l[1]===g.v) l[0]=g.b; else o.push([g.b,g.v]); } return o; }
+function rtAdd(rt,from,to,v){ const sg=[]; for(const g of rtSeg(rt)){ const lo=Math.max(g.a,from), hi=Math.min(g.b,to); if(lo>hi){ sg.push(g); continue; }
+    if(g.a<lo) sg.push({a:g.a,b:lo-1,v:g.v}); sg.push({a:lo,b:hi,v:g.v+v}); if(hi<g.b) sg.push({a:hi+1,b:g.b,v:g.v}); } return rtJoin(sg); }
+function rtExt(rt,n){ const sg=rtSeg(rt), best=Math.max(...sg.map(g=>g.v)); let i=-1; sg.forEach((g,j)=>{ if(g.v===best) i=j; });
+  if(sg[i].b>=99){ let cut=n; for(let j=i-1;j>=0&&cut>0;j--){ const take=Math.min(cut,sg[j].b-sg[j].a+1); sg[j].b-=take; sg[i].a-=take; cut-=take; } } // open-ended band: starts closer
+  else for(let j=i;j<sg.length;j++) if(sg[j].b<99) sg[j].b+=n;
+  return rtJoin(sg); }
+function rtOpt(rt,n){ const sg=rtSeg(rt), best=Math.max(...sg.map(g=>g.v)); for(const g of sg) if(g.v===best) g.v+=n; return rtJoin(sg); }
+// apply attachment ids to a weapon object copy (from applyMk or a pistol's W); returns it with .att, .am (situational aim) and .amob
+function applyAtt(w,ids){ w.att=[]; w.am=null; w.amob=0; if(!ids||!ids.length) return w;
+  for(const id of ids){ const A=ATTACH[id]; if(!A) continue; w.att.push(id);
+    if(A.ext) w.rt=rtExt(w.rt,A.ext); if(A.opt) w.rt=rtOpt(w.rt,A.opt); if(A.win) w.rt=rtAdd(w.rt,A.win[0],A.win[1],A.win[2]);
+    if(A.fall) w.fall=Math.max(0,(w.fall||0)+A.fall); if(A.aim) w.aim+=A.aim; if(A.crit) w.crit=Math.max(0,w.crit+A.crit); if(A.critDmg) w.critDmg+=A.critDmg;
+    if(A.clip) w.clip=Math.max(1,w.clip+A.clip); if(A.silent) w.silent=true; if(A.freeRl) w.freeRl=true; if(A.mob) w.amob+=A.mob;
+    if(A.still||A.mov||A.rx){ w.am=w.am||{still:0,mov:0,rx:0}; w.am.still+=A.still||0; w.am.mov+=A.mov||0; w.am.rx+=A.rx||0; } }
+  w.range=rangeFn(w.rt,w.fall); return w; }
+// card text generated from the numbers above
+function attDesc(A){ const t=[];
+  if(A.win) t.push(sgn(A.win[2])+' aim at '+A.win[0]+'–'+A.win[1]+' tiles'); if(A.ext) t.push('Optimal range +'+A.ext+' tile'+(A.ext>1?'s':'')); if(A.opt) t.push(sgn(A.opt)+' aim in the optimal band');
+  if(A.aim) t.push(sgn(A.aim)+' aim'); if(A.crit) t.push(sgn(A.crit)+'% crit'); if(A.critDmg) t.push(sgn(A.critDmg)+' crit damage'); if(A.clip) t.push(sgn(A.clip)+' round'+(Math.abs(A.clip)>1?'s':''));
+  if(A.fall) t.push('falloff '+sgn(A.fall)+'/tile past range'); if(A.mob) t.push(sgn(A.mob)+' mobility');
+  if(A.still) t.push(sgn(A.still)+' aim when you have not moved this turn'); if(A.mov) t.push(sgn(A.mov)+' aim on a shot after moving'); if(A.rx) t.push(sgn(A.rx)+' aim on overwatch and return fire');
+  if(A.silent) t.push('Silent: shots make no noise for enemies to track'); if(A.freeRl) t.push('Your first reload of the match costs no AP');
+  return t.join(', ')+'.'; }
+for(const k in ATTACH) ATTACH[k].desc=attDesc(ATTACH[k]);
+
+/* ================= weapon mastery =================
+   Per-weapon XP from your own hits, damage and takedowns with it (counted in the sim only for the local player, like
+   G.stats). Levels 1-10 unlock that weapon's attachments (ATTACH[..].m / pm) and mastery finishes (MFIN[..].m). */
+const MAST_MAX=10, MXP={hit:12,dmg:4,kill:60,use:20};
+const mNeed=l=>200+100*l;
+// mastery finishes: patterned materials painted by the weapon sprite pipeline (paintWeapon); `anim` finishes cycle frames
+const MFIN={
+  m_digi:{name:'Digital',m:2,c:'#59636f',pat:'digi',pc:[[89,99,111],[58,66,76],[140,150,162],[30,34,40]]},
+  m_tiger:{name:'Tiger',m:4,c:'#b8742c',pat:'tiger',pc:[[196,122,46],[34,26,22],[232,170,84]]},
+  m_hex:{name:'Hex Weave',m:6,c:'#26303c',pat:'hex',pc:[[38,48,60],[24,30,38],[96,210,240]]},
+  m_dama:{name:'Damascus',m:8,c:'#7d8590',pat:'dama',pc:[[132,140,150],[72,78,88],[206,212,220]]},
+  m_gold:{name:'Mastery Gold',m:9,c:'#d4ab3e',pat:'gold',pc:[[214,172,62],[138,98,28],[255,234,150]]},
+  m_storm:{name:'Stormcell',m:10,c:'#18202e',pat:'storm',anim:6,pc:[[22,28,42],[12,16,26],[120,220,255]]}
+};
+for(const k in MFIN) MFIN[k].id=k;
 /* Class perk trees: a tier unlocks every 3 levels (unlock ids ct1..ct5); each tier is a choice of two.
    Perk effects are flags on the unit (u.cp[id]) read by the combat code; `act` names an active ability in ACTS. */
 const CP_LVL=[3,6,9,12,15];
@@ -1311,29 +1428,50 @@ function sanitize(lo){
   // secondary (saves from before secondaries existed get the class starter) and class perk picks per class (0/1 per tier)
   o.sec=Cl.secs.includes(lo.sec)&&sOwned(lo.sec)?lo.sec:Cl.secs.find(k=>sOwned(k));
   const tr={}; for(const k in CLASSES){ const a=lo.tree&&Array.isArray(lo.tree[k])?lo.tree[k]:[]; tr[k]=[0,1,2,3,4].map(i=>a[i]===1?1:0); } o.tree=tr;
+  // attachments per weapon ({weapon:{slot:id}}), kept only while that weapon's mastery has unlocked them (old saves: none)
+  const at={}, src=lo.att&&typeof lo.att==='object'?lo.att:{};
+  for(const k in src){ if(!mastTracked(k)) continue; const ml=mastLvl(k), m={}; for(const id of attIds(src[k],k)) if(ml>=attNeed(k,id)) m[ATTACH[id].slot]=id; if(Object.keys(m).length) at[k]=m; }
+  o.att=at;
   return o;
 }
 function randomLoadout(not,lv){ lv=lv||1; const keys=Object.keys(CLASSES).filter(k=>k!==not); const cls=pick(keys),Cl=CLASSES[cls];
   const pool=Cl.utils.filter(u=>!UTILS[u].shop||lvlOwn('u_'+u,lv)), perks=Object.keys(PERKS).filter(k=>lvlOwn(k,lv));
-  return {cls,weapon:pick(Cl.weapons.filter(k=>wOwned(k,lv))),armor:pick(Cl.armors.filter(k=>aOwned(k,lv))),utils:shuffle(pool).slice(0,lvlOwn('pouch',lv)?3:2),perk:perks.length&&RNG()<0.8?pick(perks):null,
-    sec:pick(Cl.secs.filter(k=>sOwned(k,lv))),tree:[0,1,2,3,4].map(()=>RNG()<0.5?0:1),lv}; }
+  const L={cls,weapon:pick(Cl.weapons.filter(k=>wOwned(k,lv))),armor:pick(Cl.armors.filter(k=>aOwned(k,lv))),utils:shuffle(pool).slice(0,lvlOwn('pouch',lv)?3:2),perk:perks.length&&RNG()<0.8?pick(perks):null,
+    sec:pick(Cl.secs.filter(k=>sOwned(k,lv))),tree:[0,1,2,3,4].map(()=>RNG()<0.5?0:1),lv};
+  L.att=aiAtt(lv,L.weapon,L.sec); return L; }
+// AI attachments: a mastery level that grows with the AI's level, sensible picks for the weapon's range (seeded RNG)
+function aiAtt(lv,...ks){ const ml=clamp(Math.floor(lv/2)+1,1,MAST_MAX), out={};
+  for(const k of ks){ if(!mastTracked(k)) continue; const ob=optBand(WEAPONS[k]||SECONDARIES[k].W), close=ob.lo<=2, far=ob.lo>=5, m={};
+    for(const s of attSlots(k)){ const opts=Object.keys(ATTACH).filter(id=>{ const n=attNeed(k,id); if(n==null||n>ml||ATTACH[id].slot!==s) return false;
+        if(close&&(id==='scope'||id==='bipod')) return false; if(far&&(id==='reddot'||id==='grip')) return false; return true; });
+      if(opts.length&&RNG()<0.65) m[s]=pick(opts); }
+    out[k]=m; }
+  return out; }
 function makeUnit(lo,isPlayer,name,color,prof,team){
   // players use their account unlocks; AI uses the same unlock table at its matchmade level (lo.lv)
   const lv=lo.lv||1, has=id=>prof?(prof.own?prof.own.includes(id):own(id)):lvlOwn(id,lv), eq=prof?(prof.own?prof:PROF.equip):null;
-  const mk=has('mk3_'+lo.weapon)?3:has('mk2_'+lo.weapon)?2:1, Cl=CLASSES[lo.cls],Ar=ARMORS[lo.armor],Wp=applyMk(Object.assign({},WEAPONS[lo.weapon]),mk);
+  // attachments were validated by sanitize (local), cleanSpec (online) or picked by aiAtt; here only slot fit is re-checked
+  const attP=attIds(lo.att&&lo.att[lo.weapon],lo.weapon);
+  const mk=has('mk3_'+lo.weapon)?3:has('mk2_'+lo.weapon)?2:1, Cl=CLASSES[lo.cls],Ar=ARMORS[lo.armor],Wp=applyAtt(applyMk(Object.assign({},WEAPONS[lo.weapon]),mk),attP);
   let hpB=0,perk=null;
   if(has('ar_'+lo.armor)) hpB=1; perk=lo.perk&&has(lo.perk)?lo.perk:null; const P=(perk&&PERKS[perk])||{}, aimB=P.aim||0, sh=P.shield||0;
   // secondary and class perks (lo.tree is the 5 picks for this class; the local loadout keeps one array per class)
-  const sOk=k=>UNLOCK_LVL['s_'+k]==null||has('s_'+k), sid=Cl.secs.includes(lo.sec)&&sOk(lo.sec)?lo.sec:Cl.secs.find(sOk), S=SECONDARIES[sid];
+  const sOk=k=>UNLOCK_LVL['s_'+k]==null||has('s_'+k), sid=Cl.secs.includes(lo.sec)&&sOk(lo.sec)?lo.sec:Cl.secs.find(sOk); let S=SECONDARIES[sid];
+  // pistol attachments: a per-unit copy of the secondary with its own weapon object
+  const attS=isPistol(sid)?attIds(lo.att&&lo.att[sid],sid):[]; if(attS.length){ const W2=applyAtt(Object.assign({},S.W),attS); S=Object.assign({},S,{W:W2,clip:W2.clip}); }
+  // mastery finishes (cosmetic): local profile picks, a remote spec's picks; AI none
+  const mf=prof?(prof.own?(prof.mfin||{}):{p:mfinFor(lo.weapon),s:mfinFor(sid)}):{};
   const cp={}; for(const id of cpList(lo.cls,Array.isArray(lo.tree)?lo.tree:lo.tree&&lo.tree[lo.cls],has)) cp[id]=true;
   const u={id:UID++,name,isPlayer,color,col:hexc(color),cls:lo.cls,wid:lo.weapon,aid:lo.armor,W:Wp,mk,perk,team:team||0,
-    sid,S,sAmmo:S.clip||0,sUses:S.uses||0,cp,tk:0,
-    maxHp:Cl.hp+Ar.hp+hpB+(cp.g_bulw?2:0),aim:Cl.aim+aimB,mob:mobOf(lo.cls,lo.armor,lo.weapon,perk),def:Ar.def,armor:Ar.armor+(cp.g_jugg?1:0),sight:9+(Cl.sight||0)+(Ar.sight||0),
+    sid,S,sAmmo:S.clip||0,sUses:S.uses||0,cp,tk:0,pfin:MFIN[mf.p]?mf.p:null,sfin:MFIN[mf.s]&&isPistol(sid)?mf.s:null,patt:attP.join('.'),satt:attS.join('.'),
+    maxHp:Cl.hp+Ar.hp+hpB+(cp.g_bulw?2:0),aim:Cl.aim+aimB,mob:mobOf(lo.cls,lo.armor,lo.weapon,perk,Wp.amob),def:Ar.def,armor:Ar.armor+(cp.g_jugg?1:0),sight:9+(Cl.sight||0)+(Ar.sight||0),
     utils:lo.utils.map(id=>({id,ch:UTILS[id].charges+((lo.cls==='grenadier'&&UTILS[id].dmg)?1:0)+((lo.cls==='specialist'&&id==='medkit')?1:0)+((cp.g_ord&&UTILS[id].dmg)||(cp.p_medic&&id==='medkit')?1:0)})),
     ammo:Wp.clip,shield:sh,ap:0,cd:{},alive:true,downed:false,bleed:0,x:0,y:0,rx:0,ry:0,rz:0,face:1,flash:0,deadT:0,drop:0,overwatch:false,hunker:false,disorient:0,moved:false,kills:0,ph:Math.random()*6,walk:0,
     skin:eq?(SKINS[eq.skin]?eq.skin:'default'):(RNG()<0.35?pick(Object.keys(SKINS)):'default'),finish:eq?(FINISHES[eq.finish]?eq.finish:'default'):(RNG()<0.3?pick(Object.keys(FINISHES)):'default'),trail:eq?(TRAILS[eq.trail]?eq.trail:'default'):'default'};
   u.hp=u.maxHp; return u;
 }
+// per-weapon mastery counters for this match (local player's own actions only; never read by the sim)
+function mstat(k){ G.mstat=G.mstat||{}; return G.mstat[k]||(G.mstat[k]={hits:0,dmg:0,kills:0}); }
 function placeUnit(u,x,y){ u.x=u.rx=x; u.y=u.ry=y; u.rz=ez(x,y); }
 function throwRange(u,U){ return U.range+(U.dev?0:(u.cls==='grenadier'?2:0)+(hasP(u,'g_launch')?3:0)); }
 function faceTo(u,x,y){ const a=iso(u.x,u.y),b=iso(x,y); if(Math.abs(b[0]-a[0])>1) u.face=b[0]>a[0]?1:-1; }
@@ -1348,7 +1486,7 @@ function setupMatch(lo,mk,net,pre){
   // net = online match config from the host: same seed, region, difficulty and roster on every client
   seedRNG(net?net.seed:pre?pre.seed:(Math.random()*4294967296)>>>0); UID=0;
   G.M=MODES[mk]||MODES.solo; G.SC=G.M.storm;
-  G.matchId++; G.timers=[]; G.tweens=[]; G.fx=[]; G.parts=[]; G.texts=[]; G.pings=[]; G.bubbles=[]; G.cmd=null;
+  G.matchId++; G.timers=[]; G.tweens=[]; G.fx=[]; G.parts=[]; G.texts=[]; G.pings=[]; G.bubbles=[]; G.cmd={}; G.tpings=[]; G.mstat={};
   const rp=net?null:pick(REGIONS.filter(r=>r!==G.lastRegion));
   G.region=net?(REG[net.region]?net.region:'city'):pre&&REG[pre.region]?pre.region:rp; G.lastRegion=G.region; G.R=REG[G.region];
   G.diff=DIFFS[net?net.diff:PROF.diff]?(net?net.diff:PROF.diff):'veteran'; const DF=DIFFS[G.diff];
@@ -1917,9 +2055,52 @@ for(const k in WPN){ const D=WPN[k]; let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; const ex
   for(const p of D.parts){ if(p[0]==='r'||p[0]==='R'){ ext(p[1],p[2]); ext(p[1]+p[3],p[2]+p[4]); } else if(p[0]==='c'){ ext(p[1]-p[3],p[2]-p[3]); ext(p[1]+p[3],p[2]+p[3]); } else { const o=p[0]==='l'?3:2; for(let i=o;i<p.length;i+=2) ext(p[i],p[i+1]); } }
   D.box=[x0-1.2,y0-1.2,x1-x0+2.4,y1-y0+2.4]; D.len=x1; if(!D.tip) D.tip=[x1,0]; }
 const WSPR=new Map(); let WSC=1;
-const FINMAT={gold:{sheen:[[255,236,160],[150,104,30]]},crimson:{sheen:[[200,60,72],[80,10,20]]},frost:{sheen:[[214,224,236],[110,124,140]]}};
+const FINMAT={gold:{sheen:[[255,236,160],[150,104,30]]},crimson:{sheen:[[200,60,72],[80,10,20]]},frost:{sheen:[[214,224,236],[110,124,140]]},m_gold:{sheen:[[255,240,170],[160,112,30]]}};
+/* mastery finish material tiles (MFIN[..].pat), rasterised once per finish and animation frame, then used as a fill
+   pattern for the finish-coloured parts when a weapon sprite is painted (so they live inside the sprite cache) */
+const MPAT=new Map();
+function mfinTile(key,fr){
+  const ck=key+'#'+fr; if(MPAT.has(ck)) return MPAT.get(ck); const F=MFIN[key], col=F.pc, N=32, cv2=document.createElement('canvas'); cv2.width=cv2.height=N; const g=cv2.getContext('2d');
+  g.fillStyle=C(col[0]); g.fillRect(0,0,N,N);
+  if(F.pat==='digi'){ for(let y=0;y<N;y+=2) for(let x=0;x<N;x+=2){ const h=hash(x,y,11), h2=hash(x>>2,y>>2,12), c2=h2<.3&&h<.85?col[1]:h2>.72&&h<.8?col[2]:h<.05?col[3]:null; if(c2){ g.fillStyle=C(c2); g.fillRect(x,y,2,2); } } }
+  else if(F.pat==='tiger'){ g.fillStyle=C(col[2],1,.5); g.fillRect(0,0,N,N*.3); g.fillStyle=C(col[1]); for(let i=0;i<5;i++){ const x=i*7+hash(i,3,4)*3; g.beginPath(); g.moveTo(x,-2); g.quadraticCurveTo(x+4,N*.3,x+1,N*.55); g.quadraticCurveTo(x-2,N*.8,x+3,N+2); g.lineTo(x+5,N+2); g.quadraticCurveTo(x+1,N*.75,x+3.4,N*.5); g.quadraticCurveTo(x+6,N*.3,x+2.4,-2); g.fill(); } }
+  else if(F.pat==='hex'){ g.strokeStyle=C(col[1]); g.lineWidth=1.4; for(let y=0;y<N+6;y+=6) for(let x=0;x<N+8;x+=8){ const ox=(y/6)%2?4:0; g.beginPath(); for(let k=0;k<6;k++){ const a=k*Math.PI/3; g.lineTo(x+ox+Math.cos(a)*3.2,y+Math.sin(a)*3.2); } g.closePath(); g.stroke(); }
+    g.fillStyle=C(col[2],1,.7); for(let i=0;i<5;i++){ g.fillRect(Math.floor(hash(i,1,5)*4)*8+3,Math.floor(hash(i,2,5)*5)*6,2,1); } }
+  else if(F.pat==='dama'){ for(let r=0;r<12;r++){ const y0=r*3, c2=r%3===0?col[2]:r%3===1?col[1]:mix(col[0],col[2],.4); g.strokeStyle=C(c2,1,.9); g.lineWidth=1.1; g.beginPath(); for(let x=0;x<=N;x+=2){ const y=y0+Math.sin(x/N*Math.PI*2+r*.7)*2.2+Math.sin(x/N*Math.PI*4+r)*0.8; x?g.lineTo(x,y):g.moveTo(x,y); } g.stroke(); } }
+  else if(F.pat==='gold'){ const gr=g.createLinearGradient(0,0,N,N); gr.addColorStop(0,C(col[2])); gr.addColorStop(.35,C(col[0])); gr.addColorStop(.55,C(col[1])); gr.addColorStop(.75,C(col[0])); gr.addColorStop(1,C(col[2])); g.fillStyle=gr; g.fillRect(0,0,N,N);
+    g.strokeStyle=C(col[1],1,.55); g.lineWidth=.8; for(let i=0;i<4;i++){ const cx=(i%2)*16+8, cy=(i>>1)*16+8; g.beginPath(); g.arc(cx,cy,5,0,Math.PI*1.5); g.arc(cx+2,cy-2,2.5,Math.PI*1.5,Math.PI*3); g.stroke(); } }
+  else if(F.pat==='storm'){ g.fillStyle=C(col[1]); for(let i=0;i<6;i++){ g.beginPath(); g.ellipse(hash(i,1,6)*N,hash(i,2,6)*N,5+hash(i,3,6)*5,3,0,0,Math.PI*2); g.fill(); }
+    const pulse=.55+.45*Math.sin(fr/F.anim*Math.PI*2); g.lineCap='round';
+    for(let b=0;b<3;b++){ const pts=[]; let x=hash(b,fr,7)*N, y=-2; while(y<N+2){ pts.push([x,y]); x+=(hash(b,y|0,fr+9)-.5)*9; y+=3+hash(b,y|0,8)*4; }
+      for(const [lw,a,cc] of [[3,.25*pulse,col[2]],[1,.95*pulse,[230,250,255]]]){ g.strokeStyle=C(cc,1,a); g.lineWidth=lw; g.beginPath(); pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])); g.stroke(); } } }
+  MPAT.set(ck,cv2); return cv2;
+}
+// attachment parts drawn onto a weapon sprite, in the weapon's own space (same part format as WPN)
+const ATT_VIS={barrel:{supp:6,comp:2,longb:4}};
+function attParts(D,att){
+  if(!att) return []; const ids=att.split('.'), S=D.hold==='pistol'?.62:.8, out=[], tx=D.tip[0], ty=D.tip[1];
+  let yT=1e9,yB=-1e9; for(const p of D.parts) if((p[0]==='R'||p[0]==='r')&&p[p.length-1]==='f'){ yT=Math.min(yT,p[2]); yB=Math.max(yB,p[2]+p[4]); } if(yT>1e8){ yT=-2; yB=2; }
+  const scoped=D.parts.some(p=>p[0]==='c'&&p[p.length-1]==='g');
+  for(const id of ids){
+    if(id==='reddot'&&!scoped) out.push(['R',1.4*S,yT-1.7*S,2.8*S,1.8*S,'k'],['r',3.6*S,yT-1.5*S,.5*S,1.3*S,'g'],['r',2.2*S,yT-1.2*S,.6*S,.6*S,'e']);
+    else if(id==='acog'&&!scoped) out.push(['R',.6*S,yT-2.4*S,5.6*S,2.2*S,'k'],['c',6.1*S,yT-1.3*S,1.05*S,'g'],['r',2*S,yT-.4*S,.8*S,.6*S,'k'],['r',4.4*S,yT-.4*S,.8*S,.6*S,'k']);
+    else if(id==='scope'&&!scoped) out.push(['R',-.8*S,yT-2.7*S,9*S,2.2*S,'k'],['R',6.6*S,yT-3.1*S,2.4*S,3*S,'k'],['c',8.9*S,yT-1.6*S,1.25*S,'g'],['r',1*S,yT-.6*S,.9*S,.8*S,'k'],['r',5.4*S,yT-.6*S,.9*S,.8*S,'k']);
+    else if(id==='supp') out.push(['R',tx-.4,ty-1.3*S,6*S,2.6*S,'k'],['r',tx+1.6*S,ty-1.3*S,.5*S,2.6*S,'m'],['r',tx+3.8*S,ty-1.3*S,.5*S,2.6*S,'m']);
+    else if(id==='comp') out.push(['r',tx-.3,ty-1.1*S,2.2*S,2.2*S,'m'],['r',tx+.5*S,ty-1.1*S,.4*S,.7*S,'k'],['r',tx+1.2*S,ty-1.1*S,.4*S,.7*S,'k']);
+    else if(id==='longb') out.push(['r',tx-.3,ty-.55*S,4.2*S,1.1*S,'m'],['r',tx+3.6*S,ty-.8*S,.9*S,1.6*S,'k']);
+    else if(id==='grip'&&D.fg!=null&&D.hold!=='pistol') out.push(['R',D.fg-.7*S,yB-.2,1.5*S,3.4*S,'k']);
+    else if(id==='bipod'&&D.hold!=='pistol'){ const bx=Math.max(D.fg||0,tx*.72); out.push(['l','m',.7*S,bx,yB,bx+2.2*S,yB+4.6*S],['l','m',.7*S,bx,yB,bx-1*S,yB+4.8*S]); }
+    else if(id==='extmag'&&D.hold==='pistol') out.push(['r',-1.5,4.4,2.4,1.6,'k']); }
+  return out;
+}
+// how far a muzzle device pushes the muzzle forward (effects use it so flashes leave the end of the barrel)
+function attMuzzle(D,att){ if(!att) return 0; const S=D.hold==='pistol'?.62:.8; let m=0; for(const id of att.split('.')){ const v=ATT_VIS.barrel[id]; if(v) m=Math.max(m,v*S-.3); } return m; }
 function paintWeapon(g,D,fin,vis){
-  const F=FINISHES[fin]||FINISHES.default, fc=hexc(F.c), M=FINMAT[fin], vc=hexc(vis);
+  // fin: '<finish>' or '<finish>+<attachment ids>' (the attachments are drawn as extra parts); fr: animation frame of a mastery finish
+  const fp=String(fin).split('+'), fk=fp[0], MF=MFIN[fk], fr=+(fp[2]||0);
+  if(fp[1]){ const ex=attParts(D,fp[1]); if(ex.length) D={parts:D.parts.concat(ex),box:D.box}; }
+  const F=FINISHES[fk]||MF||FINISHES.default, fc=hexc(F.c), M=FINMAT[fk], vc=hexc(vis);
+  let pat=null; if(MF){ pat=g.createPattern(mfinTile(fk,fr),'repeat'); try{ pat.setTransform(new DOMMatrix([.2,0,0,.2,0,0])); }catch(e){} }
   const col=k=>k==='f'?C(fc):k==='F'?C(fc,.62):k==='k'?'#1a1c21':k==='m'?'#4d545f':k==='s'?'#cfd8e2':k==='w'?'#5f4129':k==='v'?vis:k==='g'?C(vc,.55):k==='e'?'#b8302c':k==='y'?'#d8a72a':'#000';
   let sheen=null; if(M){ const b=D.box; sheen=g.createLinearGradient(0,b[1],0,b[1]+b[3]); sheen.addColorStop(0,C(M.sheen[0])); sheen.addColorStop(.42,C(mix(M.sheen[0],M.sheen[1],.55))); sheen.addColorStop(.55,C(M.sheen[1])); sheen.addColorStop(1,C(M.sheen[0],.8)); }
   const shape=p=>{ g.beginPath(); if(p[0]==='r') g.rect(p[1],p[2],p[3],p[4]); else if(p[0]==='R') rr(g,p[1],p[2],p[3],p[4],Math.min(1.2,p[4]/2.5)); else if(p[0]==='c') g.arc(p[1],p[2],p[3],0,Math.PI*2); else { g.moveTo(p[2],p[3]); for(let i=4;i<p.length;i+=2) g.lineTo(p[i],p[i+1]); g.closePath(); } };
@@ -1929,7 +2110,8 @@ function paintWeapon(g,D,fin,vis){
   for(const p of D.parts){ if(p[0]==='l'){ g.lineWidth=p[2]+1.1; g.beginPath(); g.moveTo(p[3],p[4]); g.lineTo(p[5],p[6]); g.stroke(); g.lineWidth=1.3; } else { shape(p); g.stroke(); } }
   for(const p of D.parts){ const k=p[0]==='p'?p[1]:p[0]==='l'?p[1]:p[p.length-1];
     if(p[0]==='l'){ g.strokeStyle=col(k); g.lineWidth=p[2]; g.beginPath(); g.moveTo(p[3],p[4]); g.lineTo(p[5],p[6]); g.stroke(); continue; }
-    shape(p); g.fillStyle=(k==='f'&&sheen)?sheen:col(k); g.fill();
+    shape(p); g.fillStyle=(pat&&(k==='f'||k==='F'))?pat:(k==='f'&&sheen)?sheen:col(k); g.fill();
+    if(pat&&k==='F'){ g.fillStyle='rgba(0,0,0,.36)'; g.fill(); } else if(pat&&k==='f'&&M){ g.globalAlpha=.35; g.fillStyle=sheen; g.fill(); g.globalAlpha=1; }
     if(k==='v'){ g.globalCompositeOperation='lighter'; g.fillStyle=C(vc,1,.35); g.fill(); g.globalCompositeOperation='source-over'; }
     if(p[0]==='r'||p[0]==='R'){ const h=p[4]; g.fillStyle='rgba(255,255,255,'+(k==='s'?.45:k==='v'?.5:.2)+')'; g.fillRect(p[1]+.2,p[2]+.15,p[3]-.4,Math.min(.7,h*.28)); g.fillStyle='rgba(0,0,0,.26)'; g.fillRect(p[1],p[2]+h*.72,p[3],h*.28); }
     else if(k==='s'){ g.strokeStyle='rgba(255,255,255,.75)'; g.lineWidth=.45; g.beginPath(); g.moveTo(p[2],p[3]+.2); g.lineTo(p[4],p[5]+.2); g.stroke(); }
@@ -1939,9 +2121,15 @@ function paintWeapon(g,D,fin,vis){
 // weapon sprite for the current transform scale (rounded to half-octave buckets), cached
 function wSprite(c,id,fin,vis){
   const D=WPN[id]; if(!D) return null; const s=WSC;
+  // animated mastery finishes pick one of MFIN.anim cached frames from the clock (a few extra sprites, no per-frame painting)
+  const fk=String(fin).split('+')[0], MF=MFIN[fk]; if(MF&&MF.anim) fin=fk+'+'+(String(fin).split('+')[1]||'')+'+'+(Math.floor(G.time*7)%MF.anim);
   const sc=Math.min(14,Math.max(1,Math.pow(2,Math.ceil(Math.log2(Math.max(.5,s))*2)/2))), k=id+'|'+fin+'|'+vis+'|'+sc;
   let e=WSPR.get(k); if(e) return e; if(WSPR.size>260) WSPR.clear();
-  const b=D.box, cv2=document.createElement('canvas'); cv2.width=Math.ceil(b[2]*sc); cv2.height=Math.ceil(b[3]*sc); const g=cv2.getContext('2d');
+  let b=D.box; const at=String(fin).split('+')[1];
+  if(at){ const ex=attParts(D,at); if(ex.length){ let x0=b[0],y0=b[1],x1=b[0]+b[2],y1=b[1]+b[3]; const E=(x,y)=>{ x0=Math.min(x0,x-1.2); y0=Math.min(y0,y-1.2); x1=Math.max(x1,x+1.2); y1=Math.max(y1,y+1.2); };
+    for(const p of ex){ if(p[0]==='r'||p[0]==='R'){ E(p[1],p[2]); E(p[1]+p[3],p[2]+p[4]); } else if(p[0]==='c'){ E(p[1]-p[3],p[2]-p[3]); E(p[1]+p[3],p[2]+p[3]); } else for(let i=p[0]==='l'?3:2;i<p.length;i+=2) E(p[i],p[i+1]); }
+    b=[x0,y0,x1-x0,y1-y0]; } }
+  const cv2=document.createElement('canvas'); cv2.width=Math.ceil(b[2]*sc); cv2.height=Math.ceil(b[3]*sc); const g=cv2.getContext('2d');
   g.setTransform(sc,0,0,sc,-b[0]*sc,-b[1]*sc); paintWeapon(g,D,fin,vis);
   e={cv:cv2,x:b[0],y:b[1],w:cv2.width/sc,h:cv2.height/sc}; WSPR.set(k,e); return e;
 }
@@ -1950,7 +2138,8 @@ function drawWpn(c,id,fin,vis,x,y,a,fl){ const e=wSprite(c,id,fin,vis); if(!e) r
 function wpt(gx,gy,a,x,y){ const cs=Math.cos(a), sn=Math.sin(a); return [gx+cs*x-sn*y, gy+sn*x+cs*y]; }
 // muzzle position used by effects: the aimed pose at the unit's screen position
 function muzzle(u){ const p=unitScreen(u), id=(u.anim&&u.anim.sec&&WPN[u.sid])?u.sid:u.wid, D=WPN[id]||WPN.rifle, H=HOLDS[D.hold]||HOLDS.rifle, cr=(u.vOw||0)*5.5;
-  return [p[0]+u.face*(H.aim[0]+D.tip[0])*SCL, p[1]+(-15.5+cr+H.aim[1]+D.tip[1])*SCL]; }
+  const mx=attMuzzle(D,id===u.wid?u.patt:id===u.sid?u.satt:'');
+  return [p[0]+u.face*(H.aim[0]+D.tip[0]+mx)*SCL, p[1]+(-15.5+cr+H.aim[1]+D.tip[1])*SCL]; }
 
 /* skin materials: base colours plus an optional cached pattern (digital camo, dune blots, hex weave, tiger stripes, metallic gold) */
 const SKMAT={urban:{pat:'digi',c:[[84,88,98],[58,61,70],[128,133,146],[34,36,42]]},arctic:{pat:'digi',c:[[214,222,232],[176,188,204],[240,244,250],[140,156,178]]},
@@ -1986,7 +2175,7 @@ function drawSoldier(c,o){
   const t=o.time||0, ph=o.ph||0, cls=o.cls, B=(o.skin&&SKINS[o.skin]&&SKINS[o.skin].b)||BODY[cls]||BODY.ranger;
   const AR=ARMLK[o.armor]||ARMLK[(ARMORS[o.armor]&&ARMORS[o.armor].look)||'medium']||ARMLK.medium, SM=SKMAT[o.skin], pat=SM?skinPat(o.skin):null;
   const vis=o.color||'#3fd2ff', vc=hexc(vis), dead=o.dead!=null?o.dead:(o.deadT?o.deadT*0.6:0), A=o.act||null, an=A?A.t:0;
-  const m=c.getTransform(), scr=Math.hypot(m.a,m.b), hd=scr>1, hd2=scr>2.4; WSC=scr*SCL; const rim=RIMC[G.scene==='game'?G.region:'city']||RIMC.city;
+  const m=c.getTransform(), scr=Math.hypot(m.a,m.b), hd=scr>1, hd2=scr>2.4; WSC=scr*SCL; const PF=(o.pfin||o.finish||"default")+(o.patt?"+"+o.patt:""), SF=(o.sfin||o.finish||"default")+(o.satt?"+"+o.satt:""); const rim=RIMC[G.scene==='game'?G.region:'city']||RIMC.city;
   const face=o.face||1, fs=o.faceS!=null?o.faceS:face, L=-Math.sign(fs||1); // light comes from screen-left
   // ---------- pose ----------
   const grn=cls==='grenadier', shp=cls==='sharpshooter';
@@ -2045,7 +2234,7 @@ function drawSoldier(c,o){
   if(!o.noShadow){ const sw=(dead>0?19:15)*(1-.45*(o.drop||0)), sx=bx*fs*.5; c.globalAlpha=.55; c.drawImage(softTex([0,0,0]),sx-sw,1-sw*.42,sw*2,sw*.84); c.globalAlpha=1; c.fillStyle='rgba(0,0,0,.26)'; c.beginPath(); c.ellipse(sx,.3,sw*.55,sw*.22,0,0,Math.PI*2); c.fill(); }
   c.scale(fs*spin,1);
   // dropped primary lies on the ground in front when downed or dead
-  if(dn>.5||dead>.25){ const k=dead>0?sstep((dead-.15)/.45):1; drawWpn(c,wid,o.finish,vis,lerp(4,dead>0?-(o.deadDir||1)*-9:6.5,k),lerp(-10,-1.5,k),lerp(.8,.06,k)); }
+  if(dn>.5||dead>.25){ const k=dead>0?sstep((dead-.15)/.45):1; drawWpn(c,wid,PF,vis,lerp(4,dead>0?-(o.deadDir||1)*-9:6.5,k),lerp(-10,-1.5,k),lerp(.8,.06,k)); }
   c.translate(bx,by); if(rot) c.rotate(rot);
   c.lineCap='round'; c.lineJoin='round';
   const cm=pat||C(B.m), cd=C(B.d), ca=SM&&SM.metal?pat:C(B.a), dkc=C(B.d,.7), boot='#16181d';
@@ -2077,7 +2266,7 @@ function drawSoldier(c,o){
   const sid=o.sec, sty=sid&&SECONDARIES[sid]?SECONDARIES[sid].type:null, secOut=(useSec&&!(A&&A.k==='melee'&&A.s==='blade'))||hid===sid, onBack=useSec||hid!==wid, dropped=dn>.5||dead>.25;
   if(!secOut){ if(sid==='machete'||sid==='katana') drawWpn(c,sid,o.finish,vis,-tw+3.4,-TH-3.4,1.95);
     else if(sid==='hatchet'||sid==='axe') drawWpn(c,sid,o.finish,vis,-tw+.2,3.4,-1.62); }
-  if(onBack&&!dropped) drawWpn(c,wid,o.finish,vis,-tw+3.4,-3,-1.05);
+  if(onBack&&!dropped) drawWpn(c,wid,PF,vis,-tw+3.4,-3,-1.05);
   // far arm reaches the foregrip (or hangs / holds the slung primary low)
   const farT=farH||(useSec?[3.6,-8.6]:primLow?wpt(W[0],W[1],W[2],-.2,1.4):fgHand);
   { const j=ik(shF[0],shF[1],farT[0],farT[1],6.2,6.6,1); c.strokeStyle=dkc; c.lineWidth=aw*.92; c.beginPath(); c.moveTo(shF[0],shF[1]); c.lineTo(j[0],j[1]); c.lineTo(j[2],j[3]); c.stroke(); }
@@ -2100,10 +2289,10 @@ function drawSoldier(c,o){
   // rim light on the lit edge
   if(hd){ c.strokeStyle=C(rim,1,.42); c.lineWidth=.6; c.beginPath(); if(L<0){ c.moveTo(-wb,.2); c.quadraticCurveTo(-tw-.6,-TH*.5,-tw+.6,-TH); } else { c.moveTo(wb+.4,.2); c.quadraticCurveTo(tw+1.3,-TH*.45,tw-.2,-TH+.3); } c.stroke(); }
   // holstered secondaries (big enough to read in a match)
-  if(!secOut&&sid){ if(sty==='pistol'){ drawWpn(c,sid,o.finish,vis,wb-.2,1.6,1.5); c.fillStyle='#202329'; rr(c,wb-2,3.6,3.8,6,1); c.fill(); c.fillStyle=vis; c.fillRect(wb-1.8,4,3.4,.5); }
-    else if(sid==='knife') drawWpn(c,sid,o.finish,vis,-1.6,-TH+3,1.9,true);
-    else if(sid==='tknife'){ for(let i=0;i<3;i++) drawWpn(c,sid,o.finish,vis,-tw+2.6+i*2.2,-TH+3.4+i*1.2,1.75); }
-    else if(sid==='baton'){ drawWpn(c,sid,o.finish,vis,wb-.6,-2,1.28); softDot(c,vc,wb+1.8,8.4,2.6,.5+.3*Math.sin(t*6+ph)); } }
+  if(!secOut&&sid){ if(sty==='pistol'){ drawWpn(c,sid,SF,vis,wb-.2,1.6,1.5); c.fillStyle='#202329'; rr(c,wb-2,3.6,3.8,6,1); c.fill(); c.fillStyle=vis; c.fillRect(wb-1.8,4,3.4,.5); }
+    else if(sid==='knife') drawWpn(c,sid,SF,vis,-1.6,-TH+3,1.9,true);
+    else if(sid==='tknife'){ for(let i=0;i<3;i++) drawWpn(c,sid,SF,vis,-tw+2.6+i*2.2,-TH+3.4+i*1.2,1.75); }
+    else if(sid==='baton'){ drawWpn(c,sid,SF,vis,wb-.6,-2,1.28); softDot(c,vc,wb+1.8,8.4,2.6,.5+.3*Math.sin(t*6+ph)); } }
   if(ghillie){ c.fillStyle=C(gcol[0]); c.beginPath(); c.moveTo(-tw-.5,-TH+.5); for(let i=0;i<6;i++) c.lineTo(-tw+i*2.2,-TH+(i%2?2.6:.9)); c.lineTo(tw-1,-TH+.4); c.lineTo(tw-2,-TH-1.2); c.lineTo(-tw,-TH-1.2); c.closePath(); c.fill(); }
   // head
   const hc=[1+hX,-TH-5+(AR.exo?-.2:0)];
@@ -2111,8 +2300,8 @@ function drawSoldier(c,o){
   drawHead(c,AR,cls,B,cm,ca,vis,vc,visX,t,ph,hd,L,rim,o,gcol);
   c.restore();
   // weapon in hands (or the secondary when it is the one in use)
-  if(!useSec&&!dropped) drawWpn(c,hid,o.finish,vis,W[0],W[1],W[2]);
-  if(useSec&&secH&&held!=='nade'&&!(A&&A.k==='throw'&&!held)){ const sk=A&&A.k==='melee'&&A.s==='blade'?'blade':sid; drawWpn(c,sk,o.finish,vis,secH[0],secH[1],secH[2]); }
+  if(!useSec&&!dropped) drawWpn(c,hid,hid===wid?PF:hid===sid?SF:o.finish,vis,W[0],W[1],W[2]);
+  if(useSec&&secH&&held!=='nade'&&!(A&&A.k==='throw'&&!held)){ const sk=A&&A.k==='melee'&&A.s==='blade'?'blade':sid; drawWpn(c,sk,sk===sid?SF:o.finish,vis,secH[0],secH[1],secH[2]); }
   // muzzle charge (railgun/gauss/volt/rupture) while aiming
   if(o.charge>0){ const tip=wpt(W[0],W[1],W[2],D.tip[0],D.tip[1]), cc=o.chargeC||vc; c.globalCompositeOperation='lighter'; softDot(c,cc,tip[0],tip[1],3+o.charge*7,.5+.5*o.charge); softDot(c,[255,255,255],tip[0],tip[1],1.5+o.charge*2.5,.8*o.charge); c.globalCompositeOperation='source-over'; }
   if(hd&&(hid==='volt'||hid==='gauss')&&!useSec&&!primLow&&!dropped){ const q=hid==='volt'?wpt(W[0],W[1],W[2],14.6,0):wpt(W[0],W[1],W[2],18.9,-.2); c.globalCompositeOperation='lighter'; softDot(c,vc,q[0],q[1],hid==='volt'?3.4:4.6,.35+.25*Math.sin(t*7+ph)); c.globalCompositeOperation='source-over'; }
@@ -2285,7 +2474,7 @@ function soldierOf(u,x,y,ghost){
   let charge=0, chargeC=null;
   if(k==='aim'&&!ghost){ const id=a.sec?u.sid:u.wid, n=clamp(a.t/Math.max(.1,a.pre),0,1);
     if(a.lbl==='RUPTURE'){ charge=n; chargeC=[255,70,50]; } else if(id==='sniper'||id==='gauss'){ charge=n*n; } else if(a.lbl==='DEADEYE'){ charge=n*.6; chargeC=[255,220,120]; } else if(id==='volt') charge=n*.5; if(a.t>a.pre+.05) charge=0; }
-  return {x,y,cls:u.cls,armor:u.aid,weapon:u.wid,sec:u.sid,color:u.alive?u.color:'#555b63',face:u.face,faceS:u.vFace==null?u.face:u.vFace,time:G.time,ph:u.ph,skin:u.skin,finish:u.finish,
+  return {x,y,cls:u.cls,armor:u.aid,weapon:u.wid,sec:u.sid,color:u.alive?u.color:'#555b63',face:u.face,faceS:u.vFace==null?u.face:u.vFace,time:G.time,ph:u.ph,skin:u.skin,finish:u.finish,pfin:u.pfin,sfin:u.sfin,patt:u.patt,satt:u.satt,
     act:ghost?null:a,aim:u.vAim||0,kick:u.vKick||0,kickK:u.vKickK,mv:u.vMove||0,walk:u.walk,climb:u.vClimb,ow:u.vOw||0,crouch:u.vCrouch||0,down:u.vDown||(down?1:0),
     dead:u.alive?null:(u.vDead||0),deadDir:-(u.vDeathS||-u.face)*u.face,flinch:u.flash>0?u.flash/.3:0,flash:u.flash,drop:u.drop>0?u.drop:0,charge,chargeC,zap:u.vZap||0,noShadow:ghost||u.drop>0.05};
 }
@@ -2426,6 +2615,7 @@ function drawWorld(c){
   drawFx(c);
   drawPods(c);
   drawBubbles(c);
+  drawTeamPings(c);
   c.restore();
 }
 function edge(c,x,y,dir){ const z=G.zDraw?ez(x,y):0; let a,b; if(dir===0){a=iso(x+1,y);b=iso(x+1,y+1);} else if(dir===1){a=iso(x,y);b=iso(x,y+1);} else if(dir===2){a=iso(x,y+1);b=iso(x+1,y+1);} else {a=iso(x,y);b=iso(x+1,y);} c.moveTo(a[0],a[1]-z); c.lineTo(b[0],b[1]-z); }
@@ -2813,7 +3003,7 @@ function frame(now){
   const dt=Math.min(0.05,Math.max(0,(now-lastT)/1000)); lastT=now;
   update(dt); updateLKP(); render();
   if(G.scene==='game'){ mmT-=dt; if(mmT<=0){ mmT=0.15; drawMinimap(); updateTurnOrder(); } }
-  if(!$('#loadout').classList.contains('hidden')) drawPreview();
+  if(!$('#loadout').classList.contains('hidden')) { drawPreview(); drawMfAnim(); }
   // menu previews animate: operative card, and the store tiles on screen (every other frame)
   if(!$('#menu').classList.contains('hidden')) drawOpCard();
   if(!$('#store').classList.contains('hidden')&&(pvF=!pvF)) document.querySelectorAll('#stGrid canvas[data-pv]').forEach(cv2=>{ const r=cv2.getBoundingClientRect(); if(r.bottom>0&&r.top<VH) drawCosPreview(cv2); });
@@ -2840,6 +3030,9 @@ function hitInfo(a,t,o){
   if(a.diff&&a.diff.aim){ aim+=a.diff.aim; mods.push([a.diff.name.toLowerCase()+' AI',a.diff.aim]); }
   if(prim&&hasP(a,'r_point')&&d<=3.01){ aim+=15; mods.push(['point blank',15]); }
   if(hasP(a,'s_steady')&&!a.moved&&!o.reaction&&o.fx==null){ aim+=10; mods.push(['steady aim',10]); }
+  // situational attachment aim (W.am from applyAtt): bipod when stationary, grip after moving (o.fx: AI scoring a tile it would move to), stock on reactions
+  const am=W.am; if(am){ if(am.still&&!a.moved&&!o.reaction&&o.fx==null){ aim+=am.still; mods.push(['bipod',am.still]); }
+    if(am.mov&&(a.moved||o.fx!=null)&&!o.reaction){ aim+=am.mov; mods.push(['grip',am.mov]); } if(am.rx&&o.reaction){ aim+=am.rx; mods.push(['stock',am.rx]); } }
   if(hasP(a,'s_mark')&&!t.downed&&t.hp*2<t.maxHp){ aim+=25; mods.push(['executioner',25]); }
   if(t.holo&&t.holo.team===a.team&&G.round<=t.holo.until){ aim+=15; mods.push(['holo-targeted',15]); }
   let cov=coverFrom(t.x,t.y,ax,ay), over=false; let def=t.def; if(t.def) mods.push(['defense',-t.def]);
@@ -2864,12 +3057,15 @@ function feedLine(text,you){
 function mine(u){ return !!(u&&G.player&&u.team===G.player.team); }
 function applyDamage(t,d,src,o){
   o=o||{}; if(!t.alive) return;
-  if(t.downed){ if(o.anim) floatText(t,'FINISHED',[255,77,94],20); kill(t,src,o.anim,o.how); return; }
+  // weapon mastery (local player only, like G.stats): damage and takedowns (downs and eliminations) with that weapon
+  const ms=o.wid&&src&&src.isPlayer&&isEnemy(src,t)&&mastTracked(o.wid)?mstat(o.wid):null;
+  if(t.downed){ if(o.anim) floatText(t,'FINISHED',[255,77,94],20); if(ms) ms.kills++; kill(t,src,o.anim,o.how); return; }
   if(t.rupt&&src&&src!==t) d+=t.rupt; // Rupture (Grenadier perk): +1 damage from every hit
   let dmg=o.pierce?d:Math.max(1,d-t.armor); const total=dmg; let abs=0;
   if(t.shield>0){ abs=Math.min(t.shield,dmg); t.shield-=abs; dmg-=abs; }
   t.hp-=dmg; t.flash=0.3;
   if(src&&src.isPlayer&&isEnemy(src,t)) G.stats.dmg+=total;
+  if(ms){ ms.dmg+=total; if(t.hp<=0) ms.kills++; }
   if(t.isPlayer) buzz(o.crit?[30,30,50]:35);
   if(o.anim){ hitFx(t,abs); floatText(t,(o.graze?'GRAZE ':o.crit?'CRIT ':'')+'−'+total,o.graze?[190,215,255]:o.crit?[255,180,60]:[255,255,255],o.crit?24:o.graze?18:20); SFX.hit(); if(o.crit) G.cam.shake=Math.max(G.cam.shake,6); }
   if(t.hp<=0){ t.hp=0; if(G.M.team>1&&G.units.some(m=>m!==t&&m.team===t.team&&standing(m))) down(t,src,o.anim,o.how); else kill(t,src,o.anim,o.how); }
@@ -2918,14 +3114,14 @@ async function fireShot(a,t,o){
   // o.W fires a secondary (pistol or throw); its ammo is u.sAmmo (pistol clip) or u.sUses (throws left), named by o.ammoKey
   const W=o.W||a.W, prim=!o.W, ak=o.ammoKey||'ammo';
   a[ak]=Math.max(0,a[ak]-(o.ammoCost||1)); faceTo(a,t.x,t.y);
-  if(a.isPlayer){ G.stats.shots++; if(hit) G.stats.hits++; if(res==='graze') G.stats.grazes++; if(hit&&info.elevAdv) G.stats.highHits++; if(hit&&o.reaction) G.stats.owHits++; }
+  if(a.isPlayer){ G.stats.shots++; if(hit) G.stats.hits++; if(res==='graze') G.stats.grazes++; if(hit&&info.elevAdv) G.stats.highHits++; if(hit&&o.reaction) G.stats.owHits++; if(hit&&mastTracked(W.id)) mstat(W.id).hits++; }
   const anim=shouldShow(a)||shouldShow(t); const kind=o.fxk||W.fx;
   if(anim){ animShot(a,o.reaction?.26:.48,kind,!prim,o.label); focusMid(a,t); if(o.reaction) floatText(a,o.rf?'RETURN FIRE':'OVERWATCH',o.rf?[255,214,90]:[127,232,255],18); else if(o.label) floatText(a,o.label,[255,190,80],18); await wait(o.reaction?260:480); if(!a.alive||!t.alive) return false; shotFX(a,t,hit,kind); await wait(FXDUR[kind]||150); }
-  else if(G.player&&!G.fullVis&&viewers().some(v=>Math.hypot(a.x-v.x,a.y-v.y)<17)) ping(a.x,a.y);
+  else if(!W.silent&&G.player&&!G.fullVis&&viewers().some(v=>Math.hypot(a.x-v.x,a.y-v.y)<17)) ping(a.x,a.y); // a suppressed shot out of sight gives no ripple
   if(!W.silent) makeNoise(a);
   if(hit){ let d=rollDmg(W.dmg)+(o.bonus||0)+(prim&&hasP(a,'r_point')&&info.d<=3.01?1:0); if(crit) d+=W.critDmg+(prim&&hasP(a,'s_vital')?1:0); if(o.deadeye) d=Math.ceil(d*1.5); if(res==='graze') d=Math.max(1,Math.ceil(d/2));
     if(prim&&!o.reaction&&hasP(a,'g_holo')) t.holo={team:a.team,until:G.round+1};
-    applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how,pierce:!!W.pierce||(prim&&hasP(a,'g_shred'))}); }
+    applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how,pierce:!!W.pierce||(prim&&hasP(a,'g_shred')),wid:W.id}); }
   else if(anim) floatText(t,'MISSED',[200,210,220],20);
   // a miss at a target behind destructible cover hits the cover instead (thrown blades excepted)
   if(!hit&&info.cov>0&&!info.over&&W.fx!=='throw') await shotCover(a,t,W,anim);
@@ -3000,7 +3196,8 @@ function pickup(u){
   u.ammo=u.W.clip; if(u.S&&u.S.clip) u.sAmmo=u.S.clip; if(q.drop&&u.S&&u.S.uses) u.sUses++;
   if(shouldShow(u)){ floatText(u,msg,[255,200,90],q.drop?18:20); const p=chest(u); for(let k=0;k<(q.drop?30:14);k++) part({x:p[0],y:p[1]+10,vx:frand(-40,40),vy:frand(-20,10),vz:frand(30,90),life:frand(.5,1),size:2,col:[255,200,90],type:'ember',grav:-20}); SFX.heal(); }
 }
-async function doReload(u){ u.ap-=1; u.ammo=u.W.clip; if(u.S&&u.S.clip) u.sAmmo=u.S.clip; if(shouldShow(u)){ vAnim(u,'reload',.5); const p=unitScreen(u); part({x:p[0]+u.face*5,y:p[1],z:20,vx:u.face*frand(5,25),vy:frand(-5,5),vz:frand(10,40),life:1,size:2,col:[34,36,42],type:'casing',grav:400}); floatText(u,'RELOADED',[200,220,240],18); SFX.click(); await wait(500);} }
+async function doReload(u){ const free=u.W.freeRl&&!u.frl; if(free) u.frl=true; else u.ap-=1; u.ammo=u.W.clip; // Speed Loader: first reload of the match is free
+  if(free&&shouldShow(u)) floatText(u,'SPEED RELOAD',[127,232,255],16); if(u.S&&u.S.clip) u.sAmmo=u.S.clip; if(shouldShow(u)){ vAnim(u,'reload',.5); const p=unitScreen(u); part({x:p[0]+u.face*5,y:p[1],z:20,vx:u.face*frand(5,25),vy:frand(-5,5),vz:frand(10,40),life:1,size:2,col:[34,36,42],type:'casing',grav:400}); floatText(u,'RELOADED',[200,220,240],18); SFX.click(); await wait(500);} }
 async function doMedkit(u,util){ util.ch--; u.ap-=1; const amt=u.cls==='specialist'?UTILS.medkit.healSpec:UTILS.medkit.heal; const h=Math.min(amt,u.maxHp-u.hp); u.hp+=h; const sh=hasP(u,'p_medic')?2:0; u.shield+=sh;
   if(shouldShow(u)){ focusOn(u.x,u.y); vAnim(u,'heal',.65); floatText(u,'+'+h+' HP'+(sh?' +'+sh+' SHIELD':''),[93,255,154],22); healFx(u); if(sh) shieldFx(u,true); SFX.heal(); await wait(650); } }
 function droneAt(u){ const p=unitScreen(u); return [p[0]-u.face*15,p[1]-50]; }
@@ -3307,7 +3504,7 @@ async function runMatch(){
     for(const u of G.units){ if(G.over||G.matchId!==mid) break; if(!u.alive) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); }
     G.turnU=null;
     G.smoke=G.smoke.filter(s=>s.until>G.round);
-    if(G.cmd&&G.cmd.until<=G.round) G.cmd=null;
+    for(const t in G.cmd) if(G.cmd[t].until<=G.round) delete G.cmd[t]; // team orders (pings / quick chat) expire
   }
 }
 async function intro(){
@@ -3469,6 +3666,7 @@ async function execCmd(u,c){
   else if(c.k==='ow'){ u.overwatch=true; u.ap=0; if(shouldShow(u)) floatText(u,'OVERWATCH',mine(u)?[127,232,255]:[255,140,120],20); }
   else if(c.k==='hunker'){ u.hunker=true; u.ap=0; if(hasP(u,'g_bulw')) u.shield+=2; if(shouldShow(u)) floatText(u,'HUNKER DOWN'+(hasP(u,'g_bulw')?' +2 SHIELD':''),[159,215,255],20); }
   else if(c.k==='reload') await doReload(u);
+  else if(c.k==='ping') applyPing(u,c.p,c.x,c.y);           // team order for an AI teammate: {k:'ping',p,x,y} (no AP)
   else u.ap=0;
 }
 async function pFire(){
@@ -3538,7 +3736,7 @@ function actionList(){
   A.push({id:'ow',label:'Overwatch',sub:'Ends turn',icon:'overwatch',off:!ap||!u.ammo,why:!u.ammo?'Out of ammo':''});
   A.push({id:'hunker',label:'Hunker',sub:'Ends turn',icon:'hunker',off:!ap});
   const full=u.ammo>=u.W.clip&&!(S&&S.clip&&u.sAmmo<S.clip);
-  A.push({id:'reload',label:'Reload',sub:'1 AP',icon:'reload',off:!ap||full,why:full?'Magazine full':''});
+  A.push({id:'reload',label:'Reload',sub:u.W.freeRl&&!u.frl?'Free':'1 AP',icon:'reload',off:!ap||full,why:full?'Magazine full':''});
   if(u.shot) for(const a of A) if(a.id!=='move'&&!a.free){ a.off=true; a.why='After shooting you can only move'; }
   A.push({id:'end',label:'End turn',sub:'',icon:'end',off:false,end:true});
   return A;
@@ -3600,13 +3798,18 @@ function aiScoreTile(u,x,y,threats,cost){
   const q=G.crates.find(q=>q.x===x&&q.y===y); if(q) s+=q.drop?45:14;
   if(inSmoke(x,y)) s+=6;
   if(threats.length) for(const d of DIRS8){ const o=cell(x+d[0],y+d[1]); if(o&&TERR[o.kind]&&TERR[o.kind].boom){ s-=8; break; } } // don't hide behind a fuel barrel
-  const L=leaderOf(u); if(L){ const d=Math.hypot(L.x-x,L.y-y), lim=G.cmd&&!u.human&&L.human?2.5:4.5; if(d>lim) s-=(d-lim)*(G.cmd?9:4); }
+  // stay near the team leader; a human leader's orders (G.cmd[team], from pings / quick chat) tighten or loosen the leash
+  const C=!u.human&&G.cmd&&G.cmd[u.team];
+  const L=leaderOf(u); if(L){ const d=Math.hypot(L.x-x,L.y-y); let lim=4.5, w=4;
+    if(C&&L.human){ if(C.k==='regroup'||C.k==='fallback'||C.k==='revive'){ lim=2.5; w=9; } else if(C.k!=='hold'&&C.k!=='danger'){ lim=8; w=3; } }
+    if(d>lim) s-=(d-lim)*w; }
+  if(C) s+=cmdScore(u,C,x,y,threats);
   return s+RNG()*D.noise;
 }
 function aiChooseMove(u,maxAp){
   maxAp=maxAp||u.ap; if(maxAp<=0) return null;
   const R=computeReach(u,u.mob*maxAp);
-  const threats=knownThreats(u); u._goal=threats.length?null:goalFor(u);
+  const threats=knownThreats(u); u._goal=threats.length?null:(cmdGoal(u)||goalFor(u));
   const cur=aiScoreTile(u,u.x,u.y,threats,0); let best=null, bs=cur+3;
   for(let i=0;i<MW*MH;i++){ const d=R.dist[i]; if(!isFinite(d)||d===0) continue; const x=i%MW,y=(i/MW)|0;
     let s=aiScoreTile(u,x,y,threats,d); if(d>u.mob+1e-6) s-=threats.length?20:0; if(u.W.heavy&&threats.length) s-=6;
@@ -3834,6 +4037,7 @@ function updateTimer(){
   el.classList.toggle('warn',left<=5);
 }
 function updateHUD(){
+  updatePingBtn();
   if(G.scene!=='game'||!G.player) return; updateTop(); updateTimer();
   const u=G.player, up=$('#unitp');
   if(G.playerDead){ up.classList.add('hidden'); $('#actions').classList.add('hidden'); $('#tgt').classList.add('hidden'); $('#spec').classList.toggle('hidden',!!G.over||!G.spec); fillSpec(); return; }
@@ -3920,6 +4124,8 @@ function drawMinimap(){
   for(const q of G.sensors){ if(q.team!==myT||G.round>q.until) continue; c.strokeStyle='rgba(127,232,255,.35)'; c.lineWidth=1; c.beginPath(); c.arc((q.x+.5)*s,(q.y+.5)*s,q.r*s,0,Math.PI*2); c.stroke(); c.fillStyle='#7fe8ff'; c.fillRect((q.x+.3)*s,(q.y+.3)*s,s*.4,s*.4); }
   for(const q of G.cues){ const k=(G.time-q.t)/4; if(k<0||k>1) continue; const col=CUE_COL[q.kind]||CUE_COL.shot; c.strokeStyle=C(col,1,1-k); c.lineWidth=2; c.beginPath(); c.arc((q.x+.5)*s,(q.y+.5)*s,s*(1+k*3),0,Math.PI*2); c.stroke(); }
   for(const L of lkpMarks()){ c.strokeStyle=C(L.e.col,1,L.a); c.lineWidth=1.5; c.setLineDash([2,2]); c.beginPath(); c.arc((L.m.x+.5)*s,(L.m.y+.5)*s,s*0.8,0,Math.PI*2); c.stroke(); c.setLineDash([]); c.fillStyle=C([255,255,255],1,L.a); c.font='700 '+Math.round(s*1.6)+'px sans-serif'; c.textAlign='center'; c.fillText('?',(L.m.x+.5)*s,(L.m.y+.5)*s+s*0.55); }
+  for(const q of (G.tpings||[])){ if(!pingAlive(q)) continue; const P=PINGS[q.k], v=G.units.find(z=>z.id===q.by), px=((P.tile?q.x:v.x)+.5)*s, py=((P.tile?q.y:v.y)+.5)*s, r=s*1.3+Math.sin(G.time*5)*s*.25;
+    c.fillStyle=C(P.col); c.strokeStyle='#fff'; c.lineWidth=1; c.beginPath(); c.moveTo(px,py-r); c.lineTo(px+r,py); c.lineTo(px,py+r); c.lineTo(px-r,py); c.closePath(); c.fill(); c.stroke(); }
   for(const u of G.units){ if(!u.alive||!shouldShow(u)) continue; c.fillStyle=u.isPlayer?'#3fd2ff':mine(u)?'#5dff9a':u.color; c.beginPath(); c.arc((u.x+.5)*s,(u.y+.5)*s,u.isPlayer?s*0.75:s*0.55,0,Math.PI*2); c.fill(); if(u.downed){ c.strokeStyle='#ff4d5e'; c.lineWidth=1.5; c.stroke(); } }
   const tl=screenToTileF(0,0), br=screenToTileF(VW,VH), tr=screenToTileF(VW,0), bl=screenToTileF(0,VH); c.strokeStyle='rgba(255,255,255,.35)'; c.lineWidth=1; c.beginPath(); c.moveTo(tl[0]*s,tl[1]*s); c.lineTo(tr[0]*s,tr[1]*s); c.lineTo(br[0]*s,br[1]*s); c.lineTo(bl[0]*s,bl[1]*s); c.closePath(); c.stroke();
 }
@@ -3934,7 +4140,9 @@ function screenToTile(sx,sy){
 }
 function unitAtScreen(sx,sy){ let best=null,bd=1e9; for(const u of G.units){ if(!u.alive||u.isPlayer||!shouldShow(u)) continue; const p=unitScreen(u); const s=[(p[0]-G.cam.x)*G.cam.z+VW/2,(p[1]-18-G.cam.y)*G.cam.z+VH/2]; const d=Math.hypot(s[0]-sx,s[1]-sy); if(d<Math.max(26,26*G.cam.z)&&d<bd){ bd=d; best=u; } } return best; }
 function onTap(sx,sy){
-  SFX.init(); closeEmotes(); if(!inputOpen()) return; const u=G.player;
+  SFX.init(); closeEmotes();
+  if(G.pingMode){ G.pingMode=false; const tt=screenToTile(sx,sy); updatePingBtn(); if(inMap(tt[0],tt[1])) openPingTray(tt[0],tt[1]); return; }
+  closePingTray(); if(!inputOpen()) return; const u=G.player;
   const hu=unitAtScreen(sx,sy);
   if(G.mode==='target'){ if(hu){ const i=G.targets.indexOf(hu); if(i>=0){ G.tIdx=i; focusMid(u,hu); updateHUD(); SFX.click(); } } return; }
   if(G.mode==='move'&&hu&&isEnemy(u,hu)){ if(u.ap>0&&!u.shot&&u.ammo>0&&!(u.W.heavy&&u.ap<2)&&canSee(u,hu)){ enterTarget('shoot',hu); SFX.click(); return; } }
@@ -3957,14 +4165,111 @@ function sendEmote(k){
   bubble(u,e.t); SFX.click(); buzz(8); netSendEmote(k);
   const pt=G.M.team>1?G.units.find(m=>m!==u&&m.team===u.team&&standing(m)&&!m.human):null;
   if(pt&&NET.on){ const rep={nice:'Thanks!',onme:'Moving to you.',help:'On my way!',gg:'GG.',taunt:'Ha. Tell them.'}[k]; later(900,()=>{ if(standing(pt)) bubble(pt,rep); }); }
-  else if(pt){ const rep={nice:'Thanks!',onme:'Moving to you.',help:'On my way!',gg:'GG.',taunt:'Ha. Tell them.'}[k]; later(900,()=>{ if(standing(pt)) bubble(pt,rep); }); if(k==='onme'||k==='help') G.cmd={k,until:G.round+2}; }
+  else if(pt){ const rep={nice:'Thanks!',onme:'Moving to you.',help:'On my way!',gg:'GG.',taunt:'Ha. Tell them.'}[k]; later(900,()=>{ if(standing(pt)) bubble(pt,rep); }); if(k==='onme'||k==='help') G.cmd[u.team]={k:'regroup',x:u.x,y:u.y,until:G.round+2,by:u.id}; }
   if(k==='taunt'||k==='gg'){ const foe=G.units.filter(m=>standing(m)&&isEnemy(u,m)&&shouldShow(m)&&!m.human).sort((a,b)=>tdist(u,a)-tdist(u,b))[0]; if(foe) later(1300,()=>{ if(standing(foe)) bubble(foe,k==='gg'?'Not over yet.':fpick(['Big talk.','Come and find out.','You first.'])); }); }
+}
+
+/* ================= team pings and commands =================
+   Social messages between teammates (team modes only), shown to your team: a world marker with icon and label, a minimap
+   marker, a short sound and a feed line; one per player, fading after 2 rounds. They are NOT lockstep state:
+   - a human teammate gets them as network messages (netSendPing, host relays to that team only), any time;
+   - an AI teammate (offline partner, or a dropped human now played by AI) obeys `ai` pings, which change sim state
+     (G.cmd[team], read by aiScoreTile/aiChooseMove). Online those go through playCmd as {k:'ping',p,x,y} during your own
+     turn only, so every client applies them at the same point; outside your turn they stay visual. Offline they apply at once. */
+const PINGS={
+  enemy:{t:'Enemy here',col:[255,77,94],tile:1,ai:1,ack:'I see it.'},
+  move:{t:'Move here',col:[63,210,255],tile:1,ai:1,ack:'Moving.'},
+  watch:{t:'Watch this area',col:[255,214,90],tile:1,ai:1,ack:'Eyes on it.'},
+  loot:{t:'Loot here',col:[255,179,64],tile:1,ai:1,ack:'Grabbing it.'},
+  danger:{t:'Danger',col:[255,120,40],tile:1,ai:1,ack:'Copy, steering clear.'},
+  hold:{t:'Hold',col:[159,215,255],ai:1,ack:'Holding here.'},
+  regroup:{t:'Regroup',col:[93,255,154],ai:1,ack:'On my way.'},
+  push:{t:'Push',col:[255,90,60],ai:1,ack:'Pushing up!'},
+  fallback:{t:'Fall back',col:[190,160,255],ai:1,ack:'Falling back.'},
+  revive:{t:'Revive me',col:[255,120,150],ack:'Hang on!'}
+};
+const PING_LIFE=2; // rounds a ping stays up
+let pingCd=0, pingAt=null;
+function teamMode(){ return G.scene==='game'&&G.M&&G.M.team>1&&!!G.player; }
+function aiMate(u){ return G.units.find(m=>m!==u&&m.team===u.team&&standing(m)&&!m.human)||null; }
+function updatePingBtn(){ const b=$('#bPing'); if(!b) return; b.classList.toggle('hidden',!teamMode()||G.over); b.classList.toggle('on',!!G.pingMode); }
+function closePingTray(){ const t=$('#pingTray'); if(t) t.classList.add('hidden'); pingAt=null; }
+function openPingTray(x,y){
+  if(!teamMode()||!G.player.alive) return; pingAt=[x,y]; closeEmotes();
+  const pt=aiMate(G.player), mine2=G.player.ap>0&&inputOpen(), live=!NET.on||mine2;
+  const btn=k=>'<button data-ping="'+k+'"><i style="background:'+C(PINGS[k].col)+'"></i>'+PINGS[k].t+'</button>';
+  const T=$('#pingTray'); T.innerHTML='<div class="pt"><b>Ping</b><span>tile '+x+','+y+'</span></div><div class="pg">'+['enemy','move','watch','loot','danger'].map(btn).join('')+'</div>'
+    +'<div class="pt"><b>Command</b><span>at your position</span></div><div class="pg">'+['hold','regroup','push','fallback','revive'].map(btn).join('')+'</div>'
+    +(pt?'<div class="pn">'+(live?esc(pt.name)+' (AI) follows these orders.':esc(pt.name)+' (AI) takes orders on your turn; now they only mark the map.')+'</div>':'');
+  T.classList.remove('hidden'); SFX.click(); buzz(8); }
+// local player places a ping (UI). Returns how it was delivered: 'cmd' (lockstep command), 'local' (offline order), 'visual'
+function placePing(k,x,y){
+  const u=G.player, P=PINGS[k]; if(!P||!teamMode()||!u.alive||G.over||G.time<pingCd) return null; pingCd=G.time+0.8;
+  if(!P.tile){ x=u.x; y=u.y; } if(!inMap(x,y)) return null;
+  const ai=P.ai&&aiMate(u)&&!u.downed;
+  if(ai&&NET.on&&inputOpen()){ G.busy=true; G.mode='idle'; updateHUD(); playCmd({k:'ping',p:k,x,y}); return 'cmd'; }
+  if(ai&&!NET.on){ applyPing(u,k,x,y); return 'local'; }
+  showTeamPing(u,k,x,y); netSendPing(k,x,y); return 'visual';
+}
+// sim side of an AI-affecting ping: team-scoped order read by the AI (also the offline path, where nothing is shared)
+function applyPing(u,k,x,y){ const P=PINGS[k]; if(!P||!P.ai) return; x=clamp(x|0,0,MW-1); y=clamp(y|0,0,MH-1);
+  G.cmd[u.team]={k,x,y,until:G.round+PING_LIFE,by:u.id};
+  if(mine(u)&&G.player){ showTeamPing(u,k,x,y); const pt=aiMate(u); if(pt) later(700,()=>{ if(standing(pt)) bubble(pt,P.ack); }); } }
+// visual only: marker, minimap, sound, feed line (never touches sim state or seeded RNG)
+function showTeamPing(u,k,x,y){ const P=PINGS[k]; if(!P||!u||!G.player||!mine(u)) return;
+  G.tpings=(G.tpings||[]).filter(q=>q.by!==u.id); G.tpings.push({by:u.id,k,x,y,t0:G.time,r:G.round});
+  feedLine(u.name+': '+P.t+(P.tile?'':''),true); ping(x,y,P.col); SFX.tone(k==='danger'||k==='enemy'?880:660,k==='danger'||k==='enemy'?660:990,.12,.06,'triangle'); if(u!==G.player) buzz(10);
+  if(!P.tile&&u!==G.player) bubble(u,P.t); }
+function netSendPing(k,x,y){ if(!NET.on||!G.player) return; const m={t:'tping',m:NET.m,u:G.player.id,k,x,y};
+  if(NET.host) netRelayTeam(m,G.player.team); else if(NET.hostConn){ try{ NET.hostConn.send({t:'tping',k,x,y}); }catch(e){} } }
+// host: send a team message only to guests whose operative is on that team
+function netRelayTeam(msg,team,except){ for(const [pid,c] of NET.conns){ if(pid===except) continue; const v=G.units.find(z=>z.net===pid); if(!v||v.team!==team) continue; try{ c.conn.send(msg); }catch(e){} } }
+// inbound ping from the network: validated, shown only to the pinger's team
+function recvPing(u,k,x,y){ if(!u||!PINGS[k]||!u.alive||typeof x!=='number'||typeof y!=='number') return; x=clamp(x|0,0,MW-1); y=clamp(y|0,0,MH-1); showTeamPing(u,k,x,y); }
+// AI side: how a team order shifts move scoring (called per candidate tile for AI units on that team)
+function cmdScore(u,C,x,y,threats){
+  const d=Math.hypot(C.x-x,C.y-y);
+  if(C.k==='move'||C.k==='loot') return -d*2.5+(d<=1.5?8:0);
+  if(C.k==='hold') return -Math.hypot(x-u.x,y-u.y)*6;
+  if(C.k==='enemy'||C.k==='push'){ let tx=C.x,ty=C.y; if(C.k==='push'&&threats.length){ let bd=1e9; for(const t of threats){ const e=Math.hypot(t.x-u.x,t.y-u.y); if(e<bd){ bd=e; tx=t.x; ty=t.y; } } } return -Math.hypot(tx-x,ty-y)*1.2; }
+  if(C.k==='fallback'){ let m=10; for(const t of threats) m=Math.min(m,Math.hypot(t.x-x,t.y-y)); return threats.length?m*1.5:0; }
+  if(C.k==='watch') return (d<=u.sight&&hasLOS(x,y,C.x,C.y)?8:0)-d*0.3;
+  if(C.k==='danger') return d<=2.5?-30:0;
+  return 0; }
+// with nothing in sight, an order with a place in it becomes the AI's goal
+function cmdGoal(u){ const C=!u.human&&G.cmd&&G.cmd[u.team]; return C&&(C.k==='move'||C.k==='loot'||C.k==='enemy'||C.k==='push'||C.k==='watch')?[C.x,C.y]:null; }
+// small vector glyphs for ping markers
+function pingGlyph(c,k,x,y,s){ c.save(); c.translate(x,y); c.scale(s,s); c.strokeStyle='#fff'; c.fillStyle='#fff'; c.lineWidth=1.6; c.lineCap='round'; c.lineJoin='round'; c.beginPath();
+  if(k==='enemy'){ c.arc(0,0,4,0,Math.PI*2); c.moveTo(-6.5,0); c.lineTo(-2,0); c.moveTo(2,0); c.lineTo(6.5,0); c.moveTo(0,-6.5); c.lineTo(0,-2); c.moveTo(0,2); c.lineTo(0,6.5); c.stroke(); }
+  else if(k==='move'){ c.moveTo(-4,-3); c.lineTo(0,2); c.lineTo(4,-3); c.moveTo(-4,1); c.lineTo(0,6); c.lineTo(4,1); c.stroke(); }
+  else if(k==='watch'){ c.ellipse(0,0,6,3.5,0,0,Math.PI*2); c.stroke(); c.beginPath(); c.arc(0,0,1.8,0,Math.PI*2); c.fill(); }
+  else if(k==='loot'){ c.rect(-4.5,-3.5,9,7); c.moveTo(-4.5,-.5); c.lineTo(4.5,-.5); c.stroke(); }
+  else if(k==='danger'){ c.moveTo(0,-5.5); c.lineTo(0,1.5); c.stroke(); c.beginPath(); c.arc(0,4.6,1.1,0,Math.PI*2); c.fill(); }
+  else if(k==='hold'){ c.moveTo(-2.5,-4.5); c.lineTo(-2.5,4.5); c.moveTo(2.5,-4.5); c.lineTo(2.5,4.5); c.stroke(); }
+  else if(k==='regroup'){ c.arc(0,0,4.5,.4,Math.PI*1.7); c.stroke(); c.beginPath(); c.moveTo(4.6,-4.4); c.lineTo(4.4,-.6); c.lineTo(1,-2); c.stroke(); }
+  else if(k==='push'){ c.moveTo(-4,3); c.lineTo(0,-1); c.lineTo(4,3); c.moveTo(-4,-1); c.lineTo(0,-5); c.lineTo(4,-1); c.stroke(); }
+  else if(k==='fallback'){ c.moveTo(-4,-3); c.lineTo(0,1); c.lineTo(4,-3); c.moveTo(-4,1.5); c.lineTo(0,5.5); c.lineTo(4,1.5); c.globalAlpha=.6; c.stroke(); }
+  else if(k==='revive'){ c.rect(-1.6,-5,3.2,10); c.rect(-5,-1.6,10,3.2); c.fill(); }
+  c.restore(); }
+function pingAlive(q){ return G.round<=q.r+PING_LIFE&&G.units.some(v=>v.id===q.by&&v.alive); }
+// world markers: beam + diamond icon + label at the tile (commands ride above the pinger)
+function drawTeamPings(c){
+  if(!G.tpings||!G.tpings.length) return; G.tpings=G.tpings.filter(pingAlive); c.textAlign='center';
+  for(const q of G.tpings){ const P=PINGS[q.k], age=G.time-q.t0, last=G.round>=q.r+PING_LIFE, a=Math.min(1,age*4)*(last?.55:1), pop=1+.35*Math.max(0,1-age*3);
+    let gx,gy; if(!P.tile){ const v=G.units.find(z=>z.id===q.by); const p=unitScreen(v); gx=p[0]; gy=p[1]-60; } else { const p=iso(q.x+.5,q.y+.5); gx=p[0]; gy=p[1]-ez(q.x,q.y); }
+    if(P.tile){ const pr=(age*1.2)%1; c.strokeStyle=C(P.col,1,.8*a*(1-pr)); c.lineWidth=2; c.beginPath(); c.ellipse(gx,gy,8+pr*16,(8+pr*16)*.5,0,0,Math.PI*2); c.stroke();
+      c.strokeStyle=C(P.col,1,.5*a); c.lineWidth=1.5; c.beginPath(); c.moveTo(gx,gy); c.lineTo(gx,gy-34); c.stroke(); gy-=46; }
+    const bob=Math.sin(G.time*3+q.by)*2, r=11*pop, y=gy+bob;
+    c.globalAlpha=a; c.fillStyle='rgba(8,14,22,.9)'; c.beginPath(); c.moveTo(gx,y-r); c.lineTo(gx+r,y); c.lineTo(gx,y+r); c.lineTo(gx-r,y); c.closePath(); c.fill();
+    c.strokeStyle=C(P.col); c.lineWidth=2; c.stroke(); pingGlyph(c,q.k,gx,y,pop*.95);
+    const v=G.units.find(z=>z.id===q.by), lb=P.t+(v&&v!==G.player?' · '+v.name:'');
+    c.font='700 10px "Chakra Petch",sans-serif'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,.7)'; c.strokeText(lb,gx,y+r+12); c.fillStyle=C(P.col); c.fillText(lb,gx,y+r+12); c.globalAlpha=1; }
 }
 
 /* ================= input ================= */
 const ptrs=new Map(); let drag=null, pinch=null;
 cv.addEventListener('pointerdown',e=>{ try{cv.setPointerCapture(e.pointerId);}catch(_){} ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY});
-  if(ptrs.size===1) drag={moved:false}; else if(ptrs.size===2){ const v=[...ptrs.values()]; pinch={d:Math.hypot(v[0].x-v[1].x,v[0].y-v[1].y)||1,z:G.cam.z}; if(drag) drag.moved=true; } });
+  if(ptrs.size===1){ drag={moved:false}; const d0=drag, x0=e.clientX, y0=e.clientY; if(teamMode()&&G.player.alive) setTimeout(()=>{ if(drag===d0&&!d0.moved&&ptrs.size===1){ d0.moved=true; const tt=screenToTile(x0,y0); if(inMap(tt[0],tt[1])) openPingTray(tt[0],tt[1]); } },480); } else if(ptrs.size===2){ const v=[...ptrs.values()]; pinch={d:Math.hypot(v[0].x-v[1].x,v[0].y-v[1].y)||1,z:G.cam.z}; if(drag) drag.moved=true; } });
 cv.addEventListener('pointermove',e=>{ const p=ptrs.get(e.pointerId); if(!p) return; const dx=e.clientX-p.x, dy=e.clientY-p.y; p.x=e.clientX; p.y=e.clientY;
   if(ptrs.size>=2&&pinch){ const v=[...ptrs.values()]; const d=Math.hypot(v[0].x-v[1].x,v[0].y-v[1].y); G.cam.z=G.cam.tz=clamp(pinch.z*d/pinch.d,ZMIN,ZMAX); return; }
   if(drag){ if(!drag.moved&&Math.hypot(p.x-p.sx,p.y-p.sy)>11) drag.moved=true; if(drag.moved&&G.scene==='game'){ G.cam.x-=dx/G.cam.z; G.cam.y-=dy/G.cam.z; G.cam.tx=G.cam.x; G.cam.ty=G.cam.y; } } });
@@ -4033,7 +4338,15 @@ function wOwned(k,lv){ const id='w_'+k; return UNLOCK_LVL[id]==null||(lv!=null?l
 function aOwned(k,lv){ const id='a_'+k; return UNLOCK_LVL[id]==null||(lv!=null?lvlOwn(id,lv):own(id)); }
 function sOwned(k,lv){ const id='s_'+k; return UNLOCK_LVL[id]==null||(lv!=null?lvlOwn(id,lv):own(id)); }
 const MIN_MOB=4;
-function mobOf(cls,ar,wp,perk){ return Math.max(MIN_MOB,CLASSES[cls].mob+ARMORS[ar].mob+(WEAPONS[wp].mob||0)+((PERKS[perk]&&PERKS[perk].mob)||0)); }
+function mobOf(cls,ar,wp,perk,amob){ return Math.max(MIN_MOB,CLASSES[cls].mob+ARMORS[ar].mob+(WEAPONS[wp].mob||0)+((PERKS[perk]&&PERKS[perk].mob)||0)+(amob||0)); }
+// weapon mastery from the local profile (PROF.mast: weapon id -> total mastery XP)
+function mastInfo(k,xp){ let x=xp!=null?xp:((PROF.mast&&PROF.mast[k])||0), l=1; while(l<MAST_MAX&&x>=mNeed(l)){ x-=mNeed(l); l++; } return {l,cur:l<MAST_MAX?x:0,need:l<MAST_MAX?mNeed(l):0,max:l>=MAST_MAX}; }
+function mastLvl(k){ return mastInfo(k).l; }
+// the mastery finish picked for weapon k, if it is still unlocked
+function mfinFor(k){ const f=PROF.mfin&&PROF.mfin[k]; return f&&MFIN[f]&&mastTracked(k)&&mastLvl(k)>=MFIN[f].m?f:null; }
+// what reaching mastery level l on weapon k unlocks: attachments and finishes
+function mastUnlocks(k,l){ const o=[]; for(const id in ATTACH) if(attNeed(k,id)===l) o.push(ATTACH[id].name); for(const f in MFIN) if(MFIN[f].m===l) o.push(MFIN[f].name+' finish'); return o; }
+function wName(k){ return (WEAPONS[k]||SECONDARIES[k]||{short:k}).short; }
 function aiLevel(off){ return Math.max(1,level()+ri(-2,1)+(off||0)); }
 function utilSlots(){ return own('pouch')?3:2; }
 function utilOwned(id){ return !UTILS[id].shop||own('u_'+id); }
@@ -4066,7 +4379,7 @@ let PROF=loadProf();
 function loadProf(){
   let s=null; try{ s=JSON.parse(localStorage.getItem('stormfall_profile')||'null'); }catch(e){}
   const p={v:3,credits:250,shards:0,xp:0,owned:[],cos:['skin:default','visor:cyan','finish:default','trail:default'],equip:{skin:'default',visor:'cyan',finish:'default',trail:'default'},
-    q:{dk:'',daily:[],wk:'',weekly:[]},settings:{sound:true,haptics:true,timer:30,shake:true,oneTap:false},career:{matches:0,wins:0,kills:0,dmg:0,top3:0},history:[],mode:'solo',diff:'veteran',seenBrief:false};
+    q:{dk:'',daily:[],wk:'',weekly:[]},settings:{sound:true,haptics:true,timer:30,shake:true,oneTap:false},career:{matches:0,wins:0,kills:0,dmg:0,top3:0},history:[],mode:'solo',diff:'veteran',seenBrief:false,mast:{},mfin:{}};
   if(s&&typeof s==='object'){
     if(typeof s.credits==='number') p.credits=Math.max(0,s.credits|0);
     if(typeof s.shards==='number') p.shards=Math.max(0,s.shards|0);
@@ -4081,6 +4394,9 @@ function loadProf(){
     if(MODES[s.mode]) p.mode=s.mode;
     if(DIFFS[s.diff]) p.diff=s.diff;
     p.seenBrief=!!s.seenBrief;
+    // weapon mastery XP and per-weapon mastery finish picks (profiles from before mastery start empty)
+    if(s.mast&&typeof s.mast==='object') for(const k in s.mast) if(mastTracked(k)&&typeof s.mast[k]==='number') p.mast[k]=Math.max(0,s.mast[k]|0);
+    if(s.mfin&&typeof s.mfin==='object') for(const k in s.mfin) if(mastTracked(k)&&MFIN[s.mfin[k]]) p.mfin[k]=s.mfin[k];
     if(!s.v||s.v<3){ // migrate v2 armory purchases: colors became visors, matches count as XP
       for(const id of p.owned){ if(id.startsWith('col_')){ const k=id.slice(4)==='cyan'?'cyan':id.slice(4); if(VISORS[k]) p.cos.push('visor:'+k); } }
       if(s.color){ const k=Object.keys(VISORS).find(k=>VISORS[k].c===s.color); if(k){ p.equip.visor=k; p.cos.push('visor:'+k); } }
@@ -4105,6 +4421,11 @@ function grantRewards(){
   const after=lvlInfo(); const unl=[]; let shards=0;
   for(let l=before.l+1;l<=after.l;l++){ shards+=10; (UNLOCKS[l]||[]).forEach(id=>unl.push([l,unlockName(id)])); }
   PROF.shards+=shards;
+  // weapon mastery: XP for every weapon you landed hits with (plus a small bonus for the primary you carried)
+  const mast=[], ms=G.mstat||{}, ws=new Set(Object.keys(ms)); if(G.player&&mastTracked(G.player.wid)) ws.add(G.player.wid);
+  for(const k of ws){ if(!mastTracked(k)) continue; const m=ms[k]||{hits:0,dmg:0,kills:0}, gain=m.hits*MXP.hit+m.dmg*MXP.dmg+m.kills*MXP.kill+(k===G.player.wid?MXP.use:0); if(!gain) continue;
+    const b=mastInfo(k); PROF.mast[k]=(PROF.mast[k]||0)+gain; const a2=mastInfo(k), un=[]; for(let l=b.l+1;l<=a2.l;l++) un.push(...mastUnlocks(k,l));
+    mast.push({k,gain,b,a:a2,unl:un,s:m}); }
   const c=PROF.career; c.matches++; c.kills+=s.kills; c.dmg+=s.dmg; if(r.win) c.wins++; if(r.place<=3) c.top3++;
   PROF.history.unshift({m:M.key,r:G.region,p:r.place,of:r.of,k:s.kills,d:s.dmg,w:r.win,t:Date.now()}); PROF.history=PROF.history.slice(0,10);
   // quests
@@ -4114,7 +4435,7 @@ function grantRewards(){
   const done=[];
   for(const q of PROF.q.daily.concat(PROF.q.weekly)){ const d=qDef(q.id); if(!d||q.c) continue; const was=q.p>=d.g; q.p=Math.min(d.g,q.p+(st[d.s]||0)); if(!was&&q.p>=d.g) done.push(d.t); }
   saveProf();
-  G.rewarded={lines,total,xp,before,after,unl,shards,done};
+  G.rewarded={lines,total,xp,before,after,unl,shards,done,mast};
   return G.rewarded;
 }
 function showEnd(){
@@ -4128,6 +4449,11 @@ function showEnd(){
   setTimeout(()=>{ bar.style.width=(a.l>rw.before.l?100:a.cur/a.need*100)+'%'; if(a.l>rw.before.l) setTimeout(()=>{ bar.style.transition='none'; bar.style.width='0%'; void bar.offsetWidth; bar.style.transition=''; bar.style.width=(a.cur/a.need*100)+'%'; },950); },120);
   $('#eRew').innerHTML=rw.lines.map(l=>'<div><span>'+l[0]+'</span><span>+'+l[1]+'</span></div>').join('')+'<div class="tot"><span>Credits earned</span><span>+'+rw.total+' CR</span></div>'+(rw.shards?'<div><span>Level-up bonus</span><span>+'+rw.shards+' shards</span></div>':'');
   $('#eUnl').innerHTML=(a.l>rw.before.l?'<div class="unl"><b>Level '+a.l+'</b><span>'+(rw.unl.length?'Unlocked '+rw.unl.map(x=>x[1]).join(', '):'Level up')+'</span></div>':'')+rw.done.map(t=>'<div class="unl" style="border-left-color:var(--amber);background:linear-gradient(90deg,rgba(255,179,64,.14),rgba(255,179,64,0))"><b style="color:var(--amber)">Quest</b><span>'+t+' — claim it in Quests</span></div>').join('');
+  // weapon mastery progress: "Shotgun mastery 3 → 4" with what it unlocked
+  $('#eMast').innerHTML=(rw.mast||[]).map(m=>{ const up=m.a.l>m.b.l, w=m.a.max?100:m.a.cur/m.a.need*100;
+    return '<div class="mrow'+(up?' up':'')+'"><div class="mt"><b>'+esc(wName(m.k))+' mastery '+(up?m.b.l+' → '+m.a.l:m.a.l)+'</b><span>+'+m.gain+' XP'+(m.a.max?' · max':' · '+m.a.cur+'/'+m.a.need)+'</span></div><span class="xpbar"><i style="width:'+w.toFixed(1)+'%"></i></span>'
+      +(m.unl.length?'<small>Unlocked: '+esc(m.unl.join(', '))+'</small>':'')+'</div>'; }).join('');
+  for(const m of rw.mast||[]) if(m.a.l>m.b.l) setTimeout(()=>toast(wName(m.k)+' mastery '+m.a.l,m.unl.length?'Unlocked '+m.unl.join(', '):'','lvl'),700);
   const acc=s.shots?Math.round(s.hits/s.shots*100)+'%':'—';
   $('#eGrid').innerHTML='<div><b>'+s.kills+'</b>eliminations</div><div><b>'+s.dmg+'</b>damage dealt</div><div><b>'+acc+'</b>accuracy, '+s.grazes+' graze'+(s.grazes===1?'':'s')+'</div><div><b>'+s.rounds+'</b>rounds survived</div>';
   $('#eAgain').textContent=NET.on?'Back to room':'Play again';
@@ -4175,11 +4501,11 @@ $('#modes').addEventListener('click',e=>{ const b=e.target.closest('[data-mode]'
 $('#diffs').addEventListener('click',e=>{ const b=e.target.closest('[data-diff]'); if(!b||!DIFFS[b.dataset.diff]) return; PROF.diff=b.dataset.diff; saveProf(); SFX.click(); buzz(6); refreshMenu(); });
 function drawOpCard(){ const c=$('#opc').getContext('2d'); c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,128,152);
   c.drawImage(pvBg('opc',128,152,g=>{ const gr=g.createRadialGradient(64,120,4,64,120,70); gr.addColorStop(0,'rgba(63,210,255,.35)'); gr.addColorStop(1,'rgba(63,210,255,0)'); g.fillStyle=gr; g.fillRect(0,0,128,152); }),0,0);
-  const o=demoPose({x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:visorCol(),face:1,time:G.time,ph:1.3,skin:PROF.equip.skin,finish:PROF.equip.finish},G.time,1.3);
+  const o=demoPose(Object.assign({x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:visorCol(),face:1,time:G.time,ph:1.3,skin:PROF.equip.skin,finish:PROF.equip.finish},gearLook(LO)),G.time,1.3);
   c.save(); c.translate(54,136); c.scale(2.5,2.5); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,54,136,2.5); }
 async function startMatch(){
   if(NET.on){ if(!confirm('Leave the online room and play offline?')) return; netLeave(); }
-  SFX.init(); applySettings(); LO=sanitize(LO); saveLO(); for(const m of META) show('#'+m,false); show('#nav',false); show('#end',false); show('#hud',false); $('#feed').innerHTML=''; closeEmotes();
+  SFX.init(); applySettings(); LO=sanitize(LO); saveLO(); for(const m of META) show('#'+m,false); show('#nav',false); show('#end',false); show('#hud',false); $('#feed').innerHTML=''; closeEmotes(); closePingTray(); G.pingMode=false;
   // the region is picked (seeded) before the roulette; setupMatch then builds that exact match, and the roulette lands on it
   const pre=pickOffline(); setupMatch(LO,PROF.mode,null,pre); const mid=G.matchId;
   await mapRoulette(G.region); if(G.matchId!==mid) return;
@@ -4261,18 +4587,30 @@ function peerReady(){
     .then(()=>{ if(!window.Peer) throw new Error('missing'); }).catch(()=>{ throw new Error('Could not load the networking library. Check your connection.'); });
 }
 function mySpec(){ LO=sanitize(LO); const o=[]; for(const id of ['mk2_'+LO.weapon,'mk3_'+LO.weapon,'ar_'+LO.armor,'w_'+LO.weapon,'a_'+LO.armor,LO.perk,'s_'+LO.sec,'ct1','ct2','ct3','ct4','ct5']) if(id&&own(id)) o.push(id);
-  return {name:LO.name,lo:{cls:LO.cls,weapon:LO.weapon,armor:LO.armor,utils:LO.utils.slice(),perk:LO.perk,sec:LO.sec,tree:LO.tree[LO.cls].slice()},own:o,color:visorCol(),skin:PROF.equip.skin,finish:PROF.equip.finish,trail:PROF.equip.trail,lv:level()}; }
+  return {name:LO.name,lo:{cls:LO.cls,weapon:LO.weapon,armor:LO.armor,utils:LO.utils.slice(),perk:LO.perk,sec:LO.sec,tree:LO.tree[LO.cls].slice(),att:specAtt()},own:o,color:visorCol(),skin:PROF.equip.skin,finish:PROF.equip.finish,trail:PROF.equip.trail,
+    mfin:{p:mfinFor(LO.weapon),s:isPistol(LO.sec)?mfinFor(LO.sec):null},lv:level()}; }
+// the attachments of the two weapons you carry, as {weapon:{slot:id}} (sanitize already checked your mastery)
+function specAtt(){ const o={}; for(const k of [LO.weapon,LO.sec]) if(LO.att&&LO.att[k]) o[k]=Object.assign({},LO.att[k]); return o; }
+/* A remote spec's attachments: known ids that fit the weapon's slots, one per slot, only for the weapons it carries.
+   Mastery cannot be verified, so the claimed account level bounds it: an attachment needs level >= its mastery level - 2,
+   and at most `level` attachments in total. Every attachment is a modest, slot-exclusive mod, so a spoofed spec gets at
+   most one of each slot (no stacking, no unknown ids, clip never below 1). Mastery finishes are cosmetic: known ids only. */
+function cleanAtt(src,lv,ks){ const o={}; let n=0; src=src&&typeof src==='object'?src:{};
+  for(const k of ks){ if(!mastTracked(k)||o[k]) continue; const m=src[k], out={}; if(m&&typeof m==='object') for(const id of attIds(m,k)){ if(n>=lv||lv<attNeed(k,id)-2) continue; out[ATTACH[id].slot]=id; n++; } o[k]=out; }
+  return o; }
 function cleanSpec(sp,pid){ sp=sp&&typeof sp==='object'?sp:{}; const lo=sp.lo&&typeof sp.lo==='object'?sp.lo:{}; const cls=CLASSES[lo.cls]?lo.cls:'ranger', Cl=CLASSES[cls];
   const utils=(Array.isArray(lo.utils)?lo.utils:[]).filter((u,i,a)=>Cl.utils.includes(u)&&a.indexOf(u)===i).slice(0,3); if(!utils.length) utils.push(Cl.utils[0]);
   const lv=clamp(sp.lv|0,1,40);
   // perk tiers (ct1..ct5) and secondaries (s_*) must match the claimed level; other ids keep the old rule (level or owned)
   const own=(Array.isArray(sp.own)?sp.own:[]).filter(x=>typeof x==='string'&&(!/^(ct\d|s_\w+)$/.test(x)||lv>=(UNLOCK_LVL[x]||99))).slice(0,16), gear=id=>UNLOCK_LVL[id]==null||lv>=UNLOCK_LVL[id]||own.includes(id);
   const tree=[0,1,2,3,4].map(i=>Array.isArray(lo.tree)&&lo.tree[i]===1?1:0);
-  return {pid,name:String(sp.name||'GUEST').replace(/[^\w \-]/g,'').slice(0,12).toUpperCase()||'GUEST',
+  const r={pid,name:String(sp.name||'GUEST').replace(/[^\w \-]/g,'').slice(0,12).toUpperCase()||'GUEST',
     lo:{cls,weapon:Cl.weapons.includes(lo.weapon)&&gear('w_'+lo.weapon)?lo.weapon:Cl.weapons[0],armor:Cl.armors.includes(lo.armor)&&gear('a_'+lo.armor)?lo.armor:Cl.armors[0],utils,perk:PERKS[lo.perk]?lo.perk:null,
       sec:Cl.secs.includes(lo.sec)&&gear('s_'+lo.sec)?lo.sec:Cl.secs[0],tree},
     own,
-    color:/^#[0-9a-f]{6}$/i.test(sp.color)?sp.color:'#eef4fa',skin:String(sp.skin||'default'),finish:String(sp.finish||'default'),trail:String(sp.trail||'default'),lv}; }
+    color:/^#[0-9a-f]{6}$/i.test(sp.color)?sp.color:'#eef4fa',skin:String(sp.skin||'default'),finish:String(sp.finish||'default'),trail:String(sp.trail||'default'),lv,
+    mfin:{p:sp.mfin&&MFIN[sp.mfin.p]&&lv>=MFIN[sp.mfin.p].m-2?sp.mfin.p:null,s:sp.mfin&&MFIN[sp.mfin.s]&&lv>=MFIN[sp.mfin.s].m-2?sp.mfin.s:null}};
+  r.lo.att=cleanAtt(lo.att,lv,[r.lo.weapon,r.lo.sec]); return r; }
 
 /* per-unit command queues: a remote unit's turn waits on its queue */
 function netNext(id){ const q=NET.q.get(id); if(q&&q.length) return Promise.resolve(q.shift()); return new Promise(r=>NET.w.set(id,r)); }
@@ -4320,6 +4658,8 @@ function hostData(conn,d){
   if(d.t==='pong') return;
   if(d.t==='cmd'&&d.m===NET.m&&d.c&&typeof d.c==='object'){ const u=G.units.find(x=>x.net===pid); if(!u) return; netRelay({t:'cmd',m:NET.m,u:u.id,c:d.c},pid); netPush(u.id,d.c); return; }
   if(d.t==='emo'){ const u=G.units.find(x=>x.net===pid); if(!u) return; netRelay({t:'emo',m:NET.m,u:u.id,k:d.k},pid); showEmote(u,d.k); }
+  if(d.t==='tping'){ const u=G.units.find(x=>x.net===pid); if(!u||!PINGS[d.k]||(rec.pingT&&Date.now()-rec.pingT<400)) return; rec.pingT=Date.now(); // team-only relay, rate limited
+    netRelayTeam({t:'tping',m:NET.m,u:u.id,k:d.k,x:d.x,y:d.y},u.team,pid); recvPing(u,d.k,d.x,d.y); }
 }
 function hostDrop(pid){
   if(!NET.host||!NET.conns.has(pid)) return; const rec=NET.conns.get(pid); NET.conns.delete(pid); try{ rec.conn.close(); }catch(_){}
@@ -4340,7 +4680,7 @@ function startNetMatch(cfg){
   cfg.region=REG[cfg.region]?cfg.region:'city'; cfg.diff=DIFFS[cfg.diff]?cfg.diff:'veteran'; NET.diff=cfg.diff;
   cfg.players=cfg.players.map(p=>cleanSpec(p,p&&p.pid)); if(!cfg.players.some(p=>p.pid===NET.me)) return; // joined after this match started
   NET.m=cfg.m; NET.mode=cfg.mode; NET.q=new Map(); NET.w=new Map(); NET.status='';
-  SFX.init(); applySettings(); for(const m of META) show('#'+m,false); show('#nav',false); show('#end',false); show('#pause',false); show('#online',false); show('#hud',true); $('#feed').innerHTML=''; closeEmotes();
+  SFX.init(); applySettings(); for(const m of META) show('#'+m,false); show('#nav',false); show('#end',false); show('#pause',false); show('#online',false); show('#hud',true); $('#feed').innerHTML=''; closeEmotes(); closePingTray(); G.pingMode=false;
   G.paused=false; if(draft){ draft=null; }
   setupMatch(null,cfg.mode,Object.assign({},cfg,{me:NET.me})); show('#hud',false);
   // every client lands its roulette on the host's region; commands that arrive meanwhile queue on the new units
@@ -4373,6 +4713,7 @@ function clientData(d){
   if(d.t==='start'){ startNetMatch(d.cfg); return; }
   if(d.t==='cmd'&&d.m===NET.m&&d.c&&typeof d.c==='object'){ const u=G.units.find(x=>x.id===d.u&&x.net); if(u) netPush(u.id,d.c); return; }
   if(d.t==='emo'&&d.m===NET.m){ showEmote(G.units.find(x=>x.id===d.u&&x.human),d.k); }
+  if(d.t==='tping'&&d.m===NET.m){ recvPing(G.units.find(x=>x.id===d.u&&x.human),d.k,d.x,d.y); }
 }
 function clientLostHost(why){
   if(!NET.on||NET.host) return; const live=G.scene==='game'&&!G.over;
@@ -4463,24 +4804,26 @@ function renderLoadout(){
   $('#clsRow').innerHTML=Object.keys(CLASSES).map(k=>{ const c=CLASSES[k]; return '<button class="card'+(k===draft.cls?' sel':'')+'" data-cls="'+k+'"><div class="t">'+c.name+'</div><div class="d">'+c.tag+'<br>'+ABIL[c.ability].name+'</div>'+bars([['Aim',(c.aim-55)*4],['HP',(c.hp-4)*16],['Move',(c.mob-3)*25]])+'</button>'; }).join('');
   $('#clsDesc').textContent=Cl.desc;
   const aimNow=Cl.aim+((PERKS[draft.perk]&&PERKS[draft.perk].aim)||0);
-  $('#wpRow').innerHTML=Cl.weapons.map(k=>{ const ok=wOwned(k), w=ok?effWeapon(k):Object.assign({},WEAPONS[k]), mk=ok?weaponMk(k):1, nx=mk<3?UNLOCK_LVL[(mk===1?'mk2_':'mk3_')+k]:0, ob=optBand(w), tr=weaponTraits(w);
-    return '<button class="card'+(k===draft.weapon?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-wp="'+k+'"':'data-lock="'+UNLOCK_LVL['w_'+k]+'"')+'><div class="t">'+w.name+(mk>1?' Mk '+(mk===2?'II':'III'):'')+gearTag('w_'+k,ok)+'</div><div class="d">'+w.dmg[0]+'–'+w.dmg[1]+' dmg (crit +'+w.critDmg+'), '+w.clip+' rounds, '+w.crit+'% crit<br><b class="opt">Optimal '+bandTxt(ob)+' ('+sgn(ob.mod)+' aim)</b><br>Aim by range: '+rangeTxt(w)+(tr.length?'<br>'+tr.join('. ')+'.':'')+'<br>'+w.desc+'</div>'+bars(bandHit(w,aimNow),true)
-      +(ok?(nx?'<div class="lk">Mk '+(mk===1?'II':'III')+' at level '+nx+'</div>':''):'<div class="lk">Unlocks at level '+UNLOCK_LVL['w_'+k]+'</div>')+'</button>'; }).join('');
+  $('#wpRow').innerHTML=Cl.weapons.map(k=>{ const ok=wOwned(k), w=ok?applyAtt(effWeapon(k),attIds(draft.att&&draft.att[k],k)):Object.assign({},WEAPONS[k]), mk=ok?weaponMk(k):1, nx=mk<3?UNLOCK_LVL[(mk===1?'mk2_':'mk3_')+k]:0, ob=optBand(w), tr=weaponTraits(w);
+    return '<button class="card'+(k===draft.weapon?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-wp="'+k+'"':'data-lock="'+UNLOCK_LVL['w_'+k]+'"')+'><div class="t">'+w.name+(mk>1?' Mk '+(mk===2?'II':'III'):'')+gearTag('w_'+k,ok)+'</div><div class="d">'+w.dmg[0]+'–'+w.dmg[1]+' dmg (crit +'+w.critDmg+'), '+w.clip+' rounds, '+w.crit+'% crit<br><b class="opt">Optimal '+bandTxt(ob)+' ('+sgn(ob.mod)+' aim)</b><br>Aim by range: '+rangeTxt(w)+(tr.length?'<br>'+tr.join('. ')+'.':'')+(w.att&&w.att.length?'<br>With '+w.att.map(id=>ATTACH[id].name).join(', ')+'.':'')+'<br>'+w.desc+'</div>'+bars(bandHit(w,aimNow),true)
+      +(ok?(nx?'<div class="lk">Mk '+(mk===1?'II':'III')+' at level '+nx+'</div>':''):'<div class="lk">Unlocks at level '+UNLOCK_LVL['w_'+k]+'</div>')+mastHtml(k)+'</button>'; }).join('');
+  attSection(draft.weapon,aimNow,'#attRows','#mfRow','#attSub');
   $('#arRow').innerHTML=Cl.armors.map(k=>{ const a=ARMORS[k], ok=aOwned(k), ln=ok&&own('ar_'+k); return '<button class="card'+(k===draft.armor?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-ar="'+k+'"':'data-lock="'+UNLOCK_LVL['a_'+k]+'"')+'><div class="t">'+a.name+gearTag('a_'+k,ok)+'</div><div class="d">'+a.short+' armor: '+a.desc+(ln?', +1 HP lining':'')+'<br>'+a.note+'</div>'+(ok?(ln?'':'<div class="lk">Lining (+1 HP) at level '+UNLOCK_LVL['ar_'+k]+'</div>'):'<div class="lk">Unlocks at level '+UNLOCK_LVL['a_'+k]+'</div>')+'</button>'; }).join('');
   $('#utPick').textContent='pick '+utilSlots()+(own('pouch')?'':' · third slot at level '+UNLOCK_LVL.pouch);
   $('#utRow').innerHTML=Cl.utils.map(k=>{ const u=UTILS[k], ok=utilOwned(k); const ch=u.charges+((draft.cls==='grenadier'&&u.dmg)?1:0)+((draft.cls==='specialist'&&k==='medkit')?1:0); return '<button class="card'+(draft.utils.includes(k)?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-ut="'+k+'"':'data-lock="1"')+'><div class="t">'+u.name+' ×'+ch+'</div><div class="d">'+u.desc+'</div>'+(ok?'':'<div class="lk">Unlocks at level '+UNLOCK_LVL['u_'+k]+'</div>')+'</button>'; }).join('');
   $('#pkRow').innerHTML='<button class="card'+(!draft.perk?' sel':'')+'" data-pk=""><div class="t">No perk</div><div class="d">Run without a perk.</div></button>'+Object.keys(PERKS).map(k=>{ const ok=own(k); return '<button class="card'+(draft.perk===k?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-pk="'+k+'"':'data-lock="1"')+'><div class="t">'+PERKS[k].name+'</div><div class="d">'+PERKS[k].desc+'</div>'+(ok?'':'<div class="lk">Unlocks at level '+UNLOCK_LVL[k]+'</div>')+'</button>'; }).join('');
   // secondary cards: stats and range text are generated from the same data hitInfo/meleeInfo use
-  $('#secRow').innerHTML=Cl.secs.map(k=>{ const S=SECONDARIES[k], ok=sOwned(k);
+  $('#secRow').innerHTML=Cl.secs.map(k=>{ const ok=sOwned(k), S=pistolWith(k,ok?attIds(draft.att&&draft.att[k],k):[]);
     return '<button class="card'+(k===draft.sec?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-sec="'+k+'"':'data-lock="'+UNLOCK_LVL['s_'+k]+'"')+'><div class="t">'+S.name+gearTag('s_'+k,ok)+'</div><div class="d">'+secDesc(S)+'<br>'+S.desc+'</div>'+bars(secBars(S,aimNow),true)
-      +(ok?'':'<div class="lk">Unlocks at level '+UNLOCK_LVL['s_'+k]+'</div>')+'</button>'; }).join('');
+      +(ok?'':'<div class="lk">Unlocks at level '+UNLOCK_LVL['s_'+k]+'</div>')+(isPistol(k)?mastHtml(k):'')+'</button>'; }).join('');
+  $('#sattSec').classList.toggle('hidden',!isPistol(draft.sec)); if(isPistol(draft.sec)) attSection(draft.sec,aimNow,'#sattRows','#smfRow','#sattSub');
   // class perk tree: 5 tiers, two options each; locked tiers show their level
   const tr=draft.tree&&draft.tree[draft.cls]||[0,0,0,0,0], nOwn=CP_LVL.filter((l,i)=>own('ct'+(i+1))).length;
   $('#cpSub').textContent=nOwn?nOwn+' of 5 tiers unlocked · one of two per tier':'first tier at level '+CP_LVL[0];
   $('#cpRow').innerHTML=CPERKS[draft.cls].map((T,i)=>{ const ok=own('ct'+(i+1));
     return '<div class="tier'+(ok?'':' lockt')+'"><div class="tl"><small>LV</small>'+CP_LVL[i]+'<small>'+(ok?'OPEN':'LOCKED')+'</small></div>'+T.map((p,j)=>'<button class="card'+(tr[i]===j?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-cp="'+i+':'+j+'"':'data-lock="'+CP_LVL[i]+'"')+'><div class="t">'+p.name+'</div>'+(p.act?'<span class="ptag">Active · cd '+ACTS[p.act].cd+'</span>':'<span class="ptag" style="background:rgba(93,255,154,.1);color:var(--ok)">Passive</span>')+'<div class="d">'+cap1(p.desc.replace(/^Active: /,''))+'</div></button>').join('')+'</div>'; }).join('');
   const W=effWeapon(draft.weapon),A=ARMORS[draft.armor],pk=draft.perk, cps=cpList(draft.cls,tr,own);
-  const stats=[['Health',Cl.hp+A.hp+(own('ar_'+draft.armor)?1:0)+(cps.includes('g_bulw')?2:0)],['Aim',aimNow],['Mobility',mobOf(draft.cls,draft.armor,draft.weapon,pk)],['Defense',A.def],['Sight',9+Cl.sight+(A.sight||0)],['Armor',A.armor+(cps.includes('g_jugg')?1:0)]];
+  const stats=[['Health',Cl.hp+A.hp+(own('ar_'+draft.armor)?1:0)+(cps.includes('g_bulw')?2:0)],['Aim',aimNow],['Mobility',mobOf(draft.cls,draft.armor,draft.weapon,pk,applyAtt(effWeapon(draft.weapon),attIds(draft.att&&draft.att[draft.weapon],draft.weapon)).amob)],['Defense',A.def],['Sight',9+Cl.sight+(A.sight||0)],['Armor',A.armor+(cps.includes('g_jugg')?1:0)]];
   $('#statGrid').innerHTML=stats.map(s=>'<div class="stat"><b>'+s[1]+'</b>'+s[0]+'</div>').join('');
 }
 $('#loadout').addEventListener('click',e=>{ const b=e.target.closest('.card'); if(!b||!draft) return; SFX.click(); buzz(6);
@@ -4492,6 +4835,38 @@ $('#loadout').addEventListener('click',e=>{ const b=e.target.closest('.card'); i
   else if(b.dataset.ut){ const k=b.dataset.ut; if(draft.utils.includes(k)){ if(draft.utils.length>1) draft.utils=draft.utils.filter(x=>x!==k); } else { draft.utils.push(k); if(draft.utils.length>utilSlots()) draft.utils.shift(); } }
   renderLoadout(); });
 function hintMeta(t){ toast(t,''); }
+/* ---------- loadout: mastery, attachments and mastery finishes ---------- */
+// a secondary with pistol attachments applied (cards show the numbers the match will use)
+// how a loadout's weapons look in previews: mastery finishes and attachment parts (same fields soldierOf passes in a match)
+function gearLook(lo){ const at=k=>attIds(lo.att&&lo.att[k],k).join('.'); return {pfin:mfinFor(lo.weapon),sfin:isPistol(lo.sec)?mfinFor(lo.sec):null,patt:at(lo.weapon),satt:isPistol(lo.sec)?at(lo.sec):''}; }
+function pistolWith(k,ids){ const S=SECONDARIES[k]; if(!isPistol(k)||!ids.length) return S; const W=applyAtt(Object.assign({},S.W),ids); return Object.assign({},S,{W,clip:W.clip}); }
+function mastHtml(k){ const m=mastInfo(k), nx=m.max?[]:mastUnlocks(k,m.l+1);
+  return '<div class="mst"><b>M'+m.l+'</b><span class="xpbar"><i style="width:'+(m.max?100:(m.cur/m.need*100).toFixed(1))+'%"></i></span><span>'+(m.max?'Mastered':m.cur+'/'+m.need+' XP')+'</span></div>'+(nx.length?'<div class="lk" style="color:var(--muted);font-size:11px">Mastery '+(m.l+1)+': '+nx.join(', ')+'</div>':''); }
+function attSection(k,aimNow,rowsSel,mfSel,subSel){
+  const ml=mastLvl(k), cur=(draft.att&&draft.att[k])||{}, base=WEAPONS[k]?effWeapon(k):Object.assign({},SECONDARIES[k].W), n=Object.keys(cur).length;
+  $(subSel).textContent=wName(k)+' mastery '+ml+' · '+n+' of '+attSlots(k).length+' slots';
+  $(rowsSel).innerHTML=attSlots(k).map(s=>{ const ids=Object.keys(ATTACH).filter(id=>ATTACH[id].slot===s&&attNeed(k,id)!=null).sort((a,b)=>attNeed(k,a)-attNeed(k,b));
+    return '<div class="attslot">'+ATT_SLOT_NAME[s]+'</div><div class="cards attrow"><button class="card'+(!cur[s]?' sel':'')+'" data-att="'+k+':'+s+':"><div class="t">None</div><div class="d">Standard '+ATT_SLOT_NAME[s].toLowerCase()+'.</div></button>'+
+      ids.map(id=>{ const A=ATTACH[id], need=attNeed(k,id), ok=ml>=need, ob=optBand(applyAtt(Object.assign({},base),[id]));
+        return '<button class="card'+(cur[s]===id?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-att="'+k+':'+s+':'+id+'"':'data-mlock="'+need+'" data-mw="'+k+'"')+'><div class="t">'+A.name+'</div><div class="d">'+A.desc
+          +(A.win||A.ext||A.opt?'<span class="ob">Optimal '+bandTxt(ob)+' ('+sgn(ob.mod)+' aim)</span>':'')+'</div>'+(ok?'':'<div class="lk">'+esc(wName(k))+' mastery '+need+'</div>')+'</button>'; }).join('')+'</div>'; }).join('');
+  const curF=(PROF.mfin&&PROF.mfin[k])||'';
+  $(mfSel).innerHTML=[''].concat(Object.keys(MFIN)).map(f=>{ const F=MFIN[f], ok=!F||ml>=F.m;
+    return '<button class="fsw'+(curF===f?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-mf="'+k+':'+f+'"':'data-mlock="'+F.m+'" data-mw="'+k+'"')+'><canvas data-mfpv="'+k+':'+f+'" width="176" height="80"></canvas>'+(F?F.name:'Store finish')+(ok?'':'<small>Mastery '+F.m+'</small>')+'</button>'; }).join('');
+  document.querySelectorAll(mfSel+' canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,true));
+}
+// a weapon on a swatch canvas with a finish ('' = the equipped store finish) and the draft's attachments; animated ones redraw each frame
+function drawMfSwatch(cv2,force){ const [k,f]=cv2.dataset.mfpv.split(':'); if(!force&&!(MFIN[f]&&MFIN[f].anim)) return; const D=WPN[k]; if(!D) return;
+  const at=draft&&draft.att&&draft.att[k]?attIds(draft.att[k],k).join('.'):''; wpnOn(cv2,k,(f||PROF.equip.finish)+(at?'+'+at:'')); }
+// a weapon sprite fitted into a small canvas (loadout swatches, profile mastery rows)
+function wpnOn(cv2,k,fin){ const D=WPN[k]; if(!D) return; const c=cv2.getContext('2d'), W=cv2.width, H=cv2.height; c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,W,H);
+  const b=D.box, s=Math.min(W*.85/(b[2]+8),H*.7/(b[3]+5)); c.translate(W/2-(b[0]+b[2]/2+2)*s,H/2-(b[1]+b[3]/2)*s); c.scale(s,s); WSC=s; drawWpn(c,k,fin,visorCol(),0,0,0); }
+function drawMfAnim(){ if(!draft) return; document.querySelectorAll('#loadout canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,false)); }
+$('#loadout').addEventListener('click',e=>{ if(!draft) return;
+  const lk=e.target.closest('[data-mlock]'); if(lk){ e.stopPropagation(); SFX.click(); hintMeta(wName(lk.dataset.mw)+' mastery '+lk.dataset.mlock+' unlocks this. Land hits, deal damage and take enemies down with it.'); return; }
+  const a=e.target.closest('[data-att]'); if(a){ e.stopPropagation(); const [k,s,id]=a.dataset.att.split(':'); SFX.click(); buzz(6); draft.att=draft.att||{}; const m=draft.att[k]=Object.assign({},draft.att[k]);
+    if(id) m[s]=id; else delete m[s]; renderLoadout(); return; }
+  const f=e.target.closest('[data-mf]'); if(f){ e.stopPropagation(); const [k,key]=f.dataset.mf.split(':'); SFX.click(); buzz(6); PROF.mfin=PROF.mfin||{}; if(key) PROF.mfin[k]=key; else delete PROF.mfin[k]; saveProf(); renderLoadout(); } },true);
 // loadout text for a secondary, generated from the numbers the game uses
 function secDesc(S){ const t=[S.dmg[0]+'–'+S.dmg[1]+' dmg'+(S.critDmg?' (crit +'+S.critDmg+')':'')+', '+S.crit+'% crit'];
   if(S.type==='pistol'){ const ob=optBand(S.W); t.push(S.clip+' rounds (reload refills it)'); return t.join(', ')+'<br><b class="opt">Optimal '+bandTxt(ob)+' ('+sgn(ob.mod)+' aim)</b><br>Aim by range: '+rangeTxt(S.W)+(S.silent?'<br>Silent: no noise.':''); }
@@ -4522,7 +4897,7 @@ function drawPreview(){
     const rg=g.createRadialGradient(140,290,5,140,290,120); rg.addColorStop(0,'rgba(63,210,255,.45)'); rg.addColorStop(1,'rgba(63,210,255,0)'); g.fillStyle=rg; g.fillRect(0,170,w,170); }),0,0,w,h);
   c.strokeStyle='rgba(63,210,255,.7)'; c.lineWidth=2; c.beginPath(); c.ellipse(140,292,70,18,0,0,Math.PI*2); c.stroke();
   c.strokeStyle='rgba(63,210,255,.35)'; c.setLineDash([10,8]); c.lineDashOffset=-t*20; c.beginPath(); c.ellipse(140,292,90,24,0,0,Math.PI*2); c.stroke(); c.setLineDash([]);
-  const o=demoPose({x:0,y:0,cls:draft.cls,armor:draft.armor,weapon:draft.weapon,sec:draft.sec,color:visorCol(),face:1,time:t,ph:0,skin:PROF.equip.skin,finish:PROF.equip.finish},t,0);
+  const o=demoPose(Object.assign({x:0,y:0,cls:draft.cls,armor:draft.armor,weapon:draft.weapon,sec:draft.sec,color:visorCol(),face:1,time:t,ph:0,skin:PROF.equip.skin,finish:PROF.equip.finish},gearLook(draft)),t,0);
   c.save(); c.translate(124,290); c.scale(4.9,4.9); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,124,290,4.9);
 }
 
@@ -4549,7 +4924,8 @@ function renderStore(){
 function drawCosPreview(cv2){
   const [cat,key]=cv2.dataset.pv.split(':'); const c=cv2.getContext('2d'); c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,320,192);
   const eq=Object.assign({},PROF.equip); eq[cat]=key; const t=G.time, ph=(hash(cat.length,key.length,5)*6), vis=(VISORS[eq.visor]||VISORS.cyan).c;
-  const o={x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:vis,face:1,time:t,ph,skin:eq.skin,finish:eq.finish};
+  const o=Object.assign({x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:vis,face:1,time:t,ph,skin:eq.skin,finish:eq.finish},gearLook(LO));
+  if(cat==='finish'){ o.pfin=o.sfin=null; } // previewing a store finish: show it, not the weapon's mastery finish
   if(cat==='trail'){ const tc=TRAILS[key].c?hexc(TRAILS[key].c):hexc(vis), y=172+Math.sin(t*2.2+ph)*5; drawTrailFx(c,160,y,tc,key,t+ph,1); o.drop=.75; o.noShadow=true;
     c.save(); c.translate(160,y); c.scale(2.3,2.3); drawSoldier(c,o); c.restore(); return; }
   if(cat==='finish'){ o.aim=1; o.act={k:'aim',t:1,d:9,pre:.1}; c.save(); c.translate(82,178); c.scale(3.1,3.1); drawSoldier(c,o); c.restore();
@@ -4597,6 +4973,11 @@ function renderProfile(){
   const lv=Object.keys(UNLOCKS).map(Number).sort((a,b)=>a-b); let nextShown=false;
   $('#pTrack').innerHTML=lv.map(l=>{ const got=li.l>=l; let cls=got?'got':''; if(!got&&!nextShown){ cls='next'; nextShown=true; } return '<div class="trow '+cls+'"><b>'+l+'</b><span>'+UNLOCKS[l].map(unlockName).join(', ')+'</span></div>'; }).join('');
   $('#pHist').innerHTML=PROF.history.length?PROF.history.map(h=>'<div class="hrow"><b class="'+(h.w?'w':'')+'">#'+h.p+'</b><div>'+MODES[h.m].name+' · '+REG[h.r].name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase())+'<br><small>'+h.k+' eliminations · '+h.d+' damage</small></div><small>'+new Date(h.t).toLocaleDateString(undefined,{month:'short',day:'numeric'})+'</small></div>').join(''):'<p class="clsdesc">No matches yet. Deploy from the Play tab.</p>';
+  // weapon mastery: every primary and sidearm you have used, most mastered first
+  const mw=Object.keys(WEAPONS).concat(Object.keys(SECONDARIES).filter(isPistol)).sort((a,b)=>((PROF.mast[b]||0)-(PROF.mast[a]||0)));
+  $('#pMast').innerHTML=mw.map(k=>{ const m=mastInfo(k), nx=m.max?[]:mastUnlocks(k,m.l+1);
+    return '<div class="mprow"><b>'+m.l+'</b><div><div>'+esc((WEAPONS[k]||SECONDARIES[k]).name)+(mfinFor(k)?' · '+MFIN[mfinFor(k)].name:'')+'</div><span class="xpbar"><i style="width:'+(m.max?100:(m.cur/m.need*100).toFixed(1))+'%"></i></span><small>'+(m.max?'Mastered':m.cur+'/'+m.need+' XP · next: '+nx.join(', '))+'</small></div><canvas data-pm="'+k+'" width="144" height="60"></canvas></div>'; }).join('');
+  document.querySelectorAll('#pMast canvas[data-pm]').forEach(cv2=>{ const k=cv2.dataset.pm; wpnOn(cv2,k,(mfinFor(k)||PROF.equip.finish)+((LO.att&&LO.att[k])?'+'+attIds(LO.att[k],k).join('.'):'')); });
   $('#pSet').innerHTML=setRows(false);
 }
 $('#pSet').addEventListener('click',e=>onSetClick(e,renderProfile));
@@ -4608,6 +4989,9 @@ $('#pResume').addEventListener('click',()=>{ G.paused=false; $('#pause').classLi
 $('#pQuit').addEventListener('click',()=>{ $('#pause').classList.add('hidden'); G.paused=false; if(NET.on&&!G.over) netLeave(); toMenu(); });
 $('#bEmote').addEventListener('click',()=>{ if($('#emoteTray').classList.contains('hidden')) openEmotes(); else closeEmotes(); });
 $('#emoteTray').addEventListener('click',e=>{ const b=e.target.closest('[data-em]'); if(!b) return; sendEmote(b.dataset.em); closeEmotes(); });
+// team pings: the 📍 button arms ping mode (next map tap opens the ping menu there); a long press on the map does the same
+$('#bPing').addEventListener('click',()=>{ SFX.init(); if(!teamMode()) return; closePingTray(); G.pingMode=!G.pingMode; if(G.pingMode) hint('Tap the map to ping'); SFX.click(); updatePingBtn(); });
+$('#pingTray').addEventListener('click',e=>{ const b=e.target.closest('[data-ping]'); if(!b||!pingAt) return; const at=pingAt; closePingTray(); placePing(b.dataset.ping,at[0],at[1]); });
 function fillSpec(){ if(!G.spec) return; const f=G.spec.follow, live=f&&f.alive; $('#spName').textContent=live?'Following '+f.name:'Spectating'; $('#spSub').textContent=teamsLeft()+(G.M.team>1?' teams':'')+' left, round '+G.round+(live?', '+CLASSES[f.cls].name+(f.downed?' (down)':' '+f.hp+'/'+f.maxHp+' HP'):', auto camera'); }
 function cycleSpec(dir){ if(!G.spec||G.over) return; const list=[null].concat(G.units.filter(u=>u.alive)); let i=list.indexOf(G.spec.follow); if(i<0) i=0; i=(i+dir+list.length)%list.length; G.spec.follow=list[i]; if(list[i]) G.cam.tz=defaultZ(); SFX.click(); fillSpec(); }
 $('#spPrev').addEventListener('click',()=>cycleSpec(-1));
