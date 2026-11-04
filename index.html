@@ -3316,8 +3316,8 @@ function drawTrailPreview(c,key,a,o,x,gy,fs){
    silhouettes, gradients) are drawn once into canvases (ktex); per frame only drawImage, fills and short paths. */
 const KSS=4; // ktex resolution: canvas px per world px (sharp at preview scale on 2x screens)
 const KTX=new Map();
-function ktex(key,w,h,fn,txt,ss){ let s=KTX.get(key); if(s) return s; ss=ss||KSS; s=document.createElement('canvas'); s.width=Math.ceil(w*ss); s.height=Math.ceil(h*ss); const g=s.getContext('2d'); g.scale(ss,ss); fn(g,w,h);
-  if(!txt||!document.fonts||document.fonts.status==='loaded') KTX.set(key,s); return s; } // text sprites wait for the webfonts
+function ktex(key,w,h,fn,txt,ss){ if(txt&&document.fonts&&document.fonts.status==='loaded') key+='~f'; let s=KTX.get(key); if(s) return s; ss=ss||KSS; s=document.createElement('canvas'); s.width=Math.ceil(w*ss); s.height=Math.ceil(h*ss); const g=s.getContext('2d'); g.scale(ss,ss); fn(g,w,h);
+  KTX.set(key,s); return s; } // text sprites are rebuilt once when the webfonts finish loading (key suffix)
 const kClip=(c,x0,y0,x1,y1)=>{ c.beginPath(); c.rect(x0,y0,x1-x0,y1-y0); c.clip(); };
 const kEnv=(t,a,b,c2,d)=>clamp((t-a)/(b-a),0,1)*(1-clamp((t-c2)/(d-c2),0,1)); // fade in a..b, out c..d
 // a standing operative's outline (feet at 0,0), for the wireframe and spirit sprites
@@ -3339,7 +3339,7 @@ function kTomb(){ return ktex('tomb',32,44,(g)=>{ g.beginPath(); g.moveTo(3,44);
   g.fillStyle='rgba(255,255,255,.18)'; g.fillRect(5,14,2,28); g.font=kFont(15); g.textAlign='center'; g.fillStyle='#363a41'; g.fillText('RIP',16,26); g.fillStyle='rgba(255,255,255,.22)'; g.fillText('RIP',16.6,26.6);
   g.strokeStyle='#363a41'; g.lineWidth=.9; g.beginPath(); g.moveTo(22,6); g.lineTo(19,11); g.lineTo(21,14); g.moveTo(8,34); g.lineTo(11,37); g.stroke();
   g.fillStyle='#4f7a3a'; for(let i=0;i<9;i++){ g.beginPath(); g.ellipse(4+i*3.1,43,2.4,1.6+(i%3)*.5,0,0,Math.PI*2); g.fill(); } },true); }
-function kWord(w){ return ktex('kp'+w,84,56,(g)=>{ g.save(); g.translate(42,28); const n=12; g.beginPath(); for(let i=0;i<n*2;i++){ const an=i*Math.PI/n, r=i%2?17+hash(i,3,1)*5:26+hash(i,4,2)*13; g.lineTo(Math.cos(an)*r*1.45,Math.sin(an)*r); } g.closePath();
+function kWord(w){ return ktex('kp'+w,84,56,(g)=>{ g.save(); g.translate(42,28); g.rotate(w.length%2?-.1:.08); g.scale(.92,.92); const n=12; g.beginPath(); for(let i=0;i<n*2;i++){ const an=i*Math.PI/n, r=i%2?17+hash(i,3,1)*5:26+hash(i,4,2)*13; g.lineTo(Math.cos(an)*r*1.45,Math.sin(an)*r); } g.closePath();
     g.fillStyle='#ffd83a'; g.fill(); g.lineWidth=2.2; g.strokeStyle='#111'; g.stroke(); g.save(); g.clip(); g.fillStyle='rgba(255,90,60,.55)'; for(let yy=-30;yy<30;yy+=3.4) for(let xx=-44;xx<44;xx+=3.4){ const r=.35+.9*Math.hypot(xx,yy)/50; g.beginPath(); g.arc(xx+((yy/3.4)&1?1.7:0),yy,r,0,Math.PI*2); g.fill(); } g.restore();
     kStar(g,0,0,9,20,12,.2); g.fillStyle='#ff4a2a'; g.globalAlpha=.85; g.fill(); g.globalAlpha=1;
     g.rotate(-.1); g.font=kFont(w.length>5?22:25); g.textAlign='center'; g.textBaseline='middle'; g.lineJoin='round'; g.lineWidth=5; g.strokeStyle='#111'; g.strokeText(w,0,1.5); g.fillStyle='#fff6d0'; g.fillText(w,0,1.5); g.fillStyle='#ffe14a'; g.save(); g.beginPath(); g.rect(-40,1.5,80,12); g.clip(); g.fillText(w,0,1.5); g.restore(); g.restore(); },true,3); }
@@ -3479,7 +3479,7 @@ const KFX={
     draw(c,x,y,k,t,sd){ const words=['KAPOW!','BLAM!','WHAM!','POW!'], w=words[Math.floor(hash(sd,1,2)*4)], T=kWord(w), cy=y-28;
       if(t<.4){ const q=t/.4; c.strokeStyle=C([255,255,255],1,.9*(1-q)); c.lineWidth=1.8; c.beginPath(); for(let i=0;i<14;i++){ const an=i/14*Math.PI*2+hash(i,sd,3)*.2, r0=10+q*30, r1=r0+10+hash(i,sd,4)*20; c.moveTo(x+Math.cos(an)*r0,cy+Math.sin(an)*r0*.8); c.lineTo(x+Math.cos(an)*r1,cy+Math.sin(an)*r1*.8); } c.stroke(); sdot(c,[255,240,200],x,cy,22*(1-q),1-q); }
       const s=t<.1?ease(t/.1)*1.35:1+.35*Math.exp(-(t-.1)*12)*Math.cos((t-.1)*34), a=Math.min(1,(1.6-t)/.25); if(a<=0) return;
-      c.globalCompositeOperation='source-over'; c.globalAlpha=a; c.translate(x+4,cy-36); c.rotate(-.14+hash(sd,2,3)*.28); c.scale(s,s); c.drawImage(T,-42,-28,84,56); },
+      c.globalCompositeOperation='source-over'; c.globalAlpha=a; c.drawImage(T,x+4-42*s,cy-36-28*s,84*s,56*s); }, // tilt is baked into the word sprite (no per-frame rotated blit)
     snd(){ SFX.noise(.16,'lowpass',900,1); SFX.tone(190,50,.2,.55,'sine'); SFX.tone(320,960,.22,.06,'triangle',.07); SFX.noise(.08,'highpass',3000,.3,.02); },
     fx(p){ G.cam.shake=Math.max(G.cam.shake,12); }},
   derez:{dur:1.7,stand:9,
