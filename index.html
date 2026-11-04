@@ -727,8 +727,8 @@ function rangeTxt(w){ const out=[]; let from=1; for(const s of w.rt){ const to=s
 function bandHit(w,aim){ return RANGE_BANDS.map(b=>{ let s=0; for(let d=b[1];d<=b[2];d++) s+=clamp(Math.round(aim+w.aim+w.range(d)),0,100); return [b[0]+' '+b[1]+'–'+b[2],Math.round(s/(b[2]-b[1]+1))]; }); }
 function weaponTraits(w){ const t=[]; if(w.heavy) t.push('Needs both AP: cannot move and fire'); if(w.mob) t.push(sgn(w.mob)+' mobility'); if(w.pierce) t.push('Ignores armor'); return t; }
 const UTILS={
-  frag:{name:'Frag Grenade',short:'Frag',charges:2,range:8,radius:1.6,dmg:[3,4],note:'Destroys cover.'},
-  plasma:{name:'Plasma Grenade',short:'Plasma',charges:1,range:8,radius:2.1,dmg:[5,6],note:'Destroys cover. Grenadier only.'},
+  frag:{name:'Frag Grenade',short:'Frag',charges:2,range:8,radius:1.6,dmg:[3,4],note:'Knocks cover down a stage and sets off explosives.'},
+  plasma:{name:'Plasma Grenade',short:'Plasma',charges:1,range:8,radius:2.1,dmg:[5,6],note:'Knocks cover down a stage and sets off explosives. Grenadier only.'},
   smoke:{name:'Smoke Grenade',short:'Smoke',charges:1,range:8,radius:1.6,smokeDef:20,rounds:2},
   flash:{name:'Flashbang',short:'Flash',charges:1,range:8,radius:1.6,disAim:20,turns:2},
   medkit:{name:'Medkit',short:'Medkit',charges:1,heal:2,healSpec:4},
@@ -3116,6 +3116,7 @@ function fillThrowPanel(){
   const u=G.player, util=G.throwUtil, U=UTILS[util.id];
   $('#tName').textContent=U.name; $('#tSub').textContent=U.desc+' Range '+throwRange(u,U)+'.';
   if(U.dev){ // never count units in the area: that would leak what fog hides
+    $('#tSub').textContent=U.info+'. Range '+throwRange(u,U)+' tiles.';
     $('#tHit').textContent=String(U.radius); $('#tHitL').textContent=util.id==='drone'?'tile reveal radius':'tile detection radius';
     $('#tRow').innerHTML=G.throwTile<0?'<span>Tap a tile in range'+(U.blind?' (sight not needed)':'')+'</span>':'<span>Tap '+(util.id==='drone'?'Launch':'Place')+', or the tile again, to confirm</span>';
     $('#tMods').textContent='Costs 1 AP and keeps your turn going.'; $('#tChips').innerHTML='';
