@@ -475,12 +475,12 @@ button.sh,#mLvl{min-height:44px}
 #roul.out{opacity:0}
 .rlbox{width:min(100%,560px);padding:0 16px;text-align:center}
 .rlkick{font:700 12px/1 'Chakra Petch',sans-serif;letter-spacing:.24em;text-transform:uppercase;color:var(--signal);margin-bottom:14px}
-.rlwin{position:relative;height:178px;overflow:hidden;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);background:rgba(4,8,12,.6);
+.rlwin{position:relative;height:190px;overflow:hidden;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);background:rgba(4,8,12,.6);
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)}
 .rltrack{position:absolute;left:0;top:12px;display:flex;gap:12px;will-change:transform}
-.rlcard{flex:none;width:150px;border:1px solid var(--line2);border-radius:4px;background:#0c131c;overflow:hidden;transition:transform .25s,border-color .25s,box-shadow .25s}
-.rlcard canvas{display:block;width:150px;height:94px}
-.rlcard b{display:block;padding:7px 6px 8px;font:400 19px/1 Teko,sans-serif;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rlcard{flex:none;width:170px;border:1px solid var(--line2);border-radius:4px;background:#0c131c;overflow:hidden;transition:transform .25s,border-color .25s,box-shadow .25s}
+.rlcard canvas{display:block;width:170px;height:106px}
+.rlcard b{display:block;padding:8px 5px 8px;font:400 17px/1 Teko,sans-serif;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rlmark{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--amber);box-shadow:0 0 12px var(--amber)}
 .rlmark::before,.rlmark::after{content:"";position:absolute;left:50%;margin-left:-7px;border:7px solid transparent}
 .rlmark::before{top:0;border-top-color:var(--amber)}
@@ -3408,14 +3408,15 @@ function mapRoulette(rk){
   $('#rlName').textContent=G.R.name; $('#rlSub').textContent=G.R.sub+' · '+G.M.name+' · '+DIFFS[G.diff||'veteran'].name+' AI';
   el.classList.remove('hidden','out','landed');
   const c0=iso(MW/2,MH/2); G.cam.x=G.cam.tx=c0[0]; G.cam.y=G.cam.ty=c0[1]; G.cam.z=G.cam.tz=VW<600?0.42:0.6;
-  const CW=162, ww=win.clientWidth||360, x0=ww/2-75, x1=ww/2-((n-1)*CW+75), DUR=reduce?0:2200, HOLD=reduce?1400:950, t0=performance.now();
+  el.querySelector('.rlkick').textContent=reduce?'Drop zone':'Selecting drop zone';
+  const CW=182, ww=win.clientWidth||360, x0=ww/2-85, x1=ww/2-((n-1)*CW+85), DUR=reduce?0:1900, HOLD=reduce?1400:800, t0=performance.now();
   let landed=false, lastI=0, done=false, holdT=null;
   return new Promise(res=>{
     const finish=cancel=>{ if(done) return; done=true; RL.fin=null; clearTimeout(holdT); clearTimeout(guard); el.onpointerdown=null; el.classList.add('out'); setTimeout(()=>{ if(RL.tok===tok) el.classList.add('hidden'); res(); },cancel?0:260); };
     RL.fin=finish;
     const land=()=>{ if(landed) return; landed=true; tr.style.transform='translateX('+x1+'px)'; el.classList.add('landed'); if(!reduce){ SFX.tone(520,1040,.22,.08,'triangle'); SFX.tone(780,1560,.3,.05,'sine',.06); buzz([20,30,40]); } holdT=setTimeout(()=>finish(),HOLD); };
     const step=now=>{ if(done||landed) return; const k=Math.min(1,(now-t0)/DUR), e=1-Math.pow(1-k,4), x=lerp(x0,x1,e); tr.style.transform='translateX('+x+'px)';
-      const ci=Math.round((ww/2-75-x)/CW); if(ci!==lastI){ lastI=ci; SFX.tone(1500,1400,.03,.03,'square'); }
+      const ci=Math.round((ww/2-85-x)/CW); if(ci!==lastI){ lastI=ci; SFX.tone(1500,1400,.03,.03,'square'); }
       if(k>=1) land(); else requestAnimationFrame(step); };
     const guard=setTimeout(()=>{ land(); finish(); },DUR+HOLD+1500);
     el.onpointerdown=e=>{ e.preventDefault(); if(!landed) land(); else finish(); };
