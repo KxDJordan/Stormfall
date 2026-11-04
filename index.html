@@ -28,7 +28,7 @@
   --signal:#3fd2ff; --signal-ink:#03202a; --signal-bg:rgba(63,210,255,.12); --signal-line:rgba(63,210,255,.55);
   --amber:#ffb340; --amber-ink:#2a1700; --amber-bg:rgba(255,179,64,.12); --hostile:#ff4d5e; --ok:#5dff9a; --shard:#c79bff;
   --d-recruit:#7fe3a4; --d-veteran:#3fd2ff; --d-elite:#ff7a86;
-  --r-standard:#7d91a4; --r-common:#c3d0dc; --r-rare:#3fd2ff; --r-epic:#c79bff; --r-legendary:#ffb340;
+  --r-standard:#7d91a4; --r-common:#c3d0dc; --r-rare:#3fd2ff; --r-epic:#c79bff; --r-legendary:#ffb340; --r-mythic:#ff4d6d;
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px;
   --r1:3px; --r2:6px; --r3:10px;
   --fs-xs:11px; --fs-sm:12.5px; --fs-md:14px; --fs-lg:16px;
@@ -370,7 +370,8 @@ body.sheet-open .nav{display:none}
 .shopgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(156px,100%),1fr));gap:var(--s2);align-items:stretch}
 @media (min-width:900px){ .shopgrid{grid-template-columns:repeat(auto-fill,minmax(186px,1fr));gap:var(--s3)} }
 .item{--rc:var(--r-standard);position:relative;display:flex;flex-direction:column;min-width:0;background:var(--surf);border:1px solid var(--line);border-top:2px solid var(--rc);border-radius:var(--r2);overflow:hidden}
-.r-common{--rc:var(--r-common)} .r-rare{--rc:var(--r-rare)} .r-epic{--rc:var(--r-epic)} .r-legendary{--rc:var(--r-legendary)}
+.item .how{font-size:11.5px;color:var(--muted);margin:-2px 0 6px}
+.r-common{--rc:var(--r-common)} .r-rare{--rc:var(--r-rare)} .r-epic{--rc:var(--r-epic)} .r-legendary{--rc:var(--r-legendary)} .r-mythic{--rc:var(--r-mythic)}
 .item.eqd{border-color:rgba(93,255,154,.45);border-top-color:var(--rc)}
 .ipv{position:relative;background:radial-gradient(ellipse at 50% 92%,color-mix(in srgb,var(--rc) 22%,transparent),transparent 62%),#0a1018}
 .ipv canvas{display:block;width:100%;height:auto;aspect-ratio:5/3}
@@ -3811,7 +3812,7 @@ function frame(now){
   if(!$('#loadout').classList.contains('hidden')) { drawPreview(); drawMfAnim(); }
   // menu previews animate: operative card, and the store tiles on screen (every other frame)
   if(!$('#menu').classList.contains('hidden')) drawOpCard();
-  if(!$('#store').classList.contains('hidden')&&(pvF=!pvF)) document.querySelectorAll('#stGrid canvas[data-pv]').forEach(cv2=>{ const r=cv2.getBoundingClientRect(); if(r.bottom>0&&r.top<VH) drawCosPreview(cv2); });
+  if(!$('#store').classList.contains('hidden')&&(pvF=!pvF)) document.querySelectorAll('#stGrid canvas[data-pv],#stGrid canvas[data-set]').forEach(cv2=>{ const r=cv2.getBoundingClientRect(); if(r.bottom>0&&r.top<VH) (cv2.dataset.set?drawSetPreview(cv2):drawCosPreview(cv2)); });
   requestAnimationFrame(frame);
 }
 
@@ -5476,7 +5477,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=8, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=9, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 // matchmaking defaults to the free public PeerJS server; set window.STORMFALL_PEER={host,port,path,secure} before this script to use your own
 const peerOpts=()=>Object.assign({debug:0},window.STORMFALL_PEER||{});
 function peerReady(){
@@ -5928,8 +5929,8 @@ function drawPreview(){
 
 /* ================= store ================= */
 let stTab='Featured';
-const ST_TABS=['Featured','Skins','Visors','Finishes','Trails','Shards'];
-const ST_DESC={Featured:'Today’s rotation. 25% off, refreshes daily.',Skins:'Armor colorways for every class.',Visors:'Visor, chest stripe and ground ring color.',Finishes:'Weapon paint.',Trails:'The beam you leave behind on drop-in.',Shards:'Premium currency for rare cosmetics. You also earn shards from level-ups and weekly quests.'};
+const ST_TABS=['Featured','Sets','Skins','Visors','Finishes','Trails','Shards'];
+const ST_DESC={Sets:'Matching skin, visor, drop trail and weapon finish. 25% off whatever you don’t own yet.',Featured:'Today’s rotation. 25% off, refreshes daily.',Skins:'Armor colorways for every class.',Visors:'Visor, chest stripe and ground ring color.',Finishes:'Weapon paint.',Trails:'The beam you leave behind on drop-in.',Shards:'Premium currency for rare cosmetics. You also earn shards from level-ups and weekly quests.'};
 // store rows; r/rar/rc = rarity key, name and colour, how = free-unlock text ('' when only sold)
 function baseItems(cat){ const T=COS[cat]; return Object.keys(T).map(k=>{ const r=T[k].r||'c'; return {id:cat+':'+k,cat,key:k,name:T[k].name,price:T[k].price,cur:T[k].cur||'cr',r,rar:RARITY[r].name,rc:RARITY[r].col,how:cosHow(cat,k)}; }); }
 // category tabs show today's featured discount too, so an item costs the same wherever you buy it
@@ -5939,8 +5940,8 @@ function featured(){ const all=['skin','visor','finish','trail'].flatMap(baseIte
    preview cards built for 30+ items per tab. Rarity reads an item's own `rarity` field when the cosmetic data has one,
    otherwise it is derived from price and currency. Previews come from drawCosPreview (only on-screen tiles animate). */
 let stFilter='all', stSort='rarity';
-const RARITY=['standard','common','rare','epic','legendary'], RAR_NAME={standard:'Standard',common:'Common',rare:'Rare',epic:'Epic',legendary:'Legendary'};
-function rarityOf(it){ const T=COS[it.cat]&&COS[it.cat][it.key], r=T&&String(T.rarity||T.rar||'').toLowerCase(); if(RAR_NAME[r]) return r;
+const RAR_ORDER=['standard','common','rare','epic','legendary','mythic'], RAR_NAME={standard:'Standard',common:'Common',rare:'Rare',epic:'Epic',legendary:'Legendary',mythic:'Mythic'}, RAR_KEY={c:'common',r:'rare',e:'epic',l:'legendary',m:'mythic'};
+function rarityOf(it){ const T=COS[it.cat]&&COS[it.cat][it.key]; if(T&&RAR_KEY[T.r]) return RAR_KEY[T.r]; const r=T&&String(T.rarity||T.rar||'').toLowerCase(); if(RAR_NAME[r]) return r;
   const p=it.old||it.price; if(!p) return 'standard'; if(it.cur==='sh') return p>=200?'legendary':'epic'; return p>=500?'epic':p>=300?'rare':'common'; }
 function stOwned(it){ return PROF.cos.includes(it.id)||it.price===0&&!it.old; }
 function renderStore(){
@@ -5949,12 +5950,19 @@ function renderStore(){
   const tb=$('#stTools');
   if(stTab==='Shards'){ tb.classList.add('hidden'); $('#stDesc').textContent=ST_DESC.Shards;
     $('#stGrid').className='shopgrid packs'; $('#stGrid').innerHTML=PACKS.map(p=>'<div class="item pack"><div class="gem"></div><div class="t">'+p.sh+' shards</div><div class="d">'+p.name+(p.tag?' · <b>'+p.tag+'</b>':'')+'</div><div class="p"><button class="buy shb" data-pack="'+p.id+'">'+p.price+'</button></div></div>').join(''); return; }
+  if(stTab==='Sets'){ tb.classList.add('hidden'); $('#stDesc').textContent=ST_DESC.Sets; $('#stGrid').className='shopgrid';
+    $('#stGrid').innerHTML=Object.keys(SETS).map(k=>{ const S=SETS[k], q=setQuote(k), r=RAR_KEY[S.r]||'common', eq=q.ids.every(id=>{ const [c,key]=id.split(':'); return PROF.equip[c]===key; });
+      const parts=q.ids.map(id=>{ const [c,key]=id.split(':'); return COS[c][key].name; }).join(' · '); let btn;
+      if(q.owned) btn=eq?'<span class="own">Equipped</span>':'<button class="buy eq" data-seteq="'+k+'">Equip set</button>';
+      else { const have=q.cur==='sh'?PROF.shards:PROF.credits; btn='<button class="buy'+(q.cur==='sh'?' shb':'')+(have<q.price?' no':'')+'" data-setbuy="'+k+'" aria-label="Buy the '+esc(S.name)+' set for '+q.price+(q.cur==='sh'?' shards':' credits')+'"><span class="cur '+(q.cur==='sh'?'s':'c')+'"></span>'+q.price+'<s>'+q.full+'</s></button>'; }
+      return '<div class="item r-'+r+(q.owned?' own':'')+(eq?' eqd':'')+'"><div class="ipv"><canvas data-set="'+k+'" width="320" height="192"></canvas><span class="rar">'+RAR_NAME[r]+'</span>'+(q.owned?'':'<span class="deal">'+(q.miss.length<q.ids.length?q.miss.length+' left':'Set')+'</span>')+'</div><div class="ib"><span class="tag">'+esc(parts)+'</span><div class="t">'+esc(S.name)+'</div><div class="p">'+btn+'</div></div></div>'; }).join('');
+    document.querySelectorAll('#stGrid canvas[data-set]').forEach(cv2=>drawSetPreview(cv2)); return; }
   let list=stTab==='Featured'?featured():cosItems({Skins:'skin',Visors:'visor',Finishes:'finish',Trails:'trail'}[stTab]);
   const total=list.length, nOwn=list.filter(stOwned).length;
   if(stTab==='Featured'){ tb.classList.add('hidden'); const mid=new Date(); mid.setHours(24,0,0,0); $('#stDesc').textContent=ST_DESC.Featured+' New deals in '+fmtLeft(mid-Date.now())+'.'; }
   else { tb.classList.remove('hidden'); $('#stDesc').textContent=ST_DESC[stTab];
     if(stFilter==='owned') list=list.filter(stOwned); else if(stFilter==='new') list=list.filter(it=>!stOwned(it));
-    const R=it=>RARITY.indexOf(rarityOf(it)), V=it=>(it.cur==='sh'?10:1)*it.price;
+    const R=it=>RAR_ORDER.indexOf(rarityOf(it)), V=it=>(it.cur==='sh'?10:1)*it.price;
     if(stSort==='rarity') list=list.slice().sort((a,b)=>R(b)-R(a)||V(a)-V(b)); else if(stSort==='price') list=list.slice().sort((a,b)=>V(a)-V(b)); else if(stSort==='name') list=list.slice().sort((a,b)=>a.name.localeCompare(b.name));
     $('#stFilt').innerHTML=[['all','All',total],['owned','Owned',nOwn],['new','To unlock',total-nOwn]].map(f=>'<button role="radio" aria-checked="'+(stFilter===f[0])+'" class="'+(stFilter===f[0]?'sel':'')+'" data-stf="'+f[0]+'">'+f[1]+' <i>'+f[2]+'</i></button>').join('');
     $('#stSort').value=stSort; }
@@ -5962,7 +5970,7 @@ function renderStore(){
   $('#stGrid').innerHTML=list.length?list.map(it=>{ const owned=stOwned(it), eq=PROF.equip[it.cat]===it.key, r=rarityOf(it); let btn;
     if(eq) btn='<span class="own">Equipped</span>'; else if(owned) btn='<button class="buy eq" data-eq="'+it.id+'">Equip</button>';
     else { const have=it.cur==='sh'?PROF.shards:PROF.credits; btn='<button class="buy'+(it.cur==='sh'?' shb':'')+(have<it.price?' no':'')+'" data-buy="'+it.id+'" data-price="'+it.price+'" data-cur="'+it.cur+'" aria-label="Buy '+esc(it.name)+' for '+it.price+(it.cur==='sh'?' shards':' credits')+'"><span class="cur '+(it.cur==='sh'?'s':'c')+'"></span>'+it.price+(it.old?'<s>'+it.old+'</s>':'')+'</button>'; }
-    return '<div class="item r-'+r+(owned?' own':'')+(eq?' eqd':'')+'"><div class="ipv"><canvas data-pv="'+it.id+'" width="320" height="192"></canvas><span class="rar">'+RAR_NAME[r]+'</span>'+(it.old?'<span class="deal">−25%</span>':'')+'</div><div class="ib"><span class="tag">'+COS_LABEL[it.cat]+'</span><div class="t">'+esc(it.name)+'</div><div class="p">'+btn+'</div></div></div>'; }).join('')
+    return '<div class="item r-'+r+(owned?' own':'')+(eq?' eqd':'')+'"><div class="ipv"><canvas data-pv="'+it.id+'" width="320" height="192"></canvas><span class="rar">'+RAR_NAME[r]+'</span>'+(it.old?'<span class="deal">−25%</span>':'')+'</div><div class="ib"><span class="tag">'+COS_LABEL[it.cat]+'</span><div class="t">'+esc(it.name)+'</div>'+(!owned&&cosHow(it.cat,it.key)?'<div class="how">'+esc(cosHow(it.cat,it.key))+'</div>':'')+'<div class="p">'+btn+'</div></div></div>'; }).join('')
     :'<p class="empty">'+(stFilter==='owned'?'Nothing owned in this category yet.':'You own everything here.')+'</p>';
   document.querySelectorAll('#stGrid canvas[data-pv]').forEach(drawCosPreview);
 }
@@ -6004,6 +6012,10 @@ $('#store').addEventListener('click',e=>{
   const b=e.target.closest('[data-buy]'); if(b){ const id=b.dataset.buy, price=+b.dataset.price, cur=b.dataset.cur; const have=cur==='sh'?PROF.shards:PROF.credits;
     if(have<price){ SFX.tone(200,140,.15,.06,'square'); toast('Not enough '+(cur==='sh'?'shards':'credits'),cur==='sh'?'Earn shards from level-ups and weekly quests.':'Play matches and finish quests to earn credits.'); return; }
     if(cur==='sh') PROF.shards-=price; else PROF.credits-=price; PROF.cos.push(id); const [cat,key]=id.split(':'); PROF.equip[cat]=key; saveProf(); SFX.heal(); buzz([20,30,20]); toast('Unlocked '+COS[cat][key].name,'Equipped'); renderStore(); return; }
+  const sb=e.target.closest('[data-setbuy]'); if(sb){ const k=sb.dataset.setbuy, q=setQuote(k);
+    if(!buySet(k)){ SFX.tone(200,140,.15,.06,'square'); toast('Not enough '+(q.cur==='sh'?'shards':'credits'),'Set price: '+q.price+(q.cur==='sh'?' shards':' credits')); return; }
+    SFX.heal(); buzz([20,30,20]); toast('Unlocked the '+SETS[k].name+' set','Equipped'); renderStore(); return; }
+  const se=e.target.closest('[data-seteq]'); if(se){ for(const id of setIds(se.dataset.seteq)){ const [c,key]=id.split(':'); PROF.equip[c]=key; } saveProf(); SFX.click(); renderStore(); return; }
   const q=e.target.closest('[data-eq]'); if(q){ const [cat,key]=q.dataset.eq.split(':'); PROF.equip[cat]=key; saveProf(); SFX.click(); renderStore(); } });
 
 $('#stSort').addEventListener('change',e=>{ stSort=e.target.value; renderStore(); });
