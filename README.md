@@ -37,6 +37,27 @@ generating the exact same 40×40 maps for a given seed.
 ledge), Explosive everything (destroyed objects explode like oil drums), One-shot, Double storm speed, Melee only and
 Perma-smoke. They travel in the match config, so guests, spectators and replays play with the same set.
 
+## Classes
+
+Seven classes, all available from level 1. Each has a class ability, a five-tier perk tree (a choice of two perks at
+levels 3, 6, 9, 12 and 15, some of them new actions) and its own weapons, armor and utilities.
+
+| Class | Role | Kit |
+|-------|------|-----|
+| Ranger | close assault | Blade Strike: dash to an enemy and slash |
+| Sharpshooter | long range, +2 sight | Deadeye: −15 aim, +50% damage |
+| Grenadier | heavy weapons | Hail of Bullets: a guaranteed hit; extra grenade charges, longer throws |
+| Specialist | drone support | a deployable combat drone with its own AP and model actions |
+| Engineer | fortification | **Deploy Turret** (1 AP, cooldown 4): a sentry up to 3 tiles away, 5 HP, 3 shots over 3 rounds, one reaction shot at each enemy that moves in its sight · **Build Cover** (1 AP, cooldown 2): half cover (6 HP) or full cover (4 HP) on an adjacent tile · **Repair** (1 AP, cooldown 2): +3 shield to you or an ally, or 3 HP to a turret or drone. SMG, shotgun, slug gun or carbine |
+| Medic | combat support | **Heal Field** (1 AP, cooldown 4): allies starting a turn in it heal 1 HP for 2 rounds · **Revive Beam** (1 AP, cooldown 3): revive from 3 tiles · **Adrenaline** (1 AP, cooldown 5): +1 AP next turn for you or an ally. Passive: revives cost 1 AP and give 4 HP; regenerates 1 HP a turn. Carbine (or SMG / rifle), pistol sidearm |
+| Recon | intel and traps, +2 sight | **Wall Scan** (free, cooldown 4): reveals everything within 6 tiles through walls for the team until the end of next round · **Trip Mine** (1 AP, cooldown 2, two out): hidden from other teams; 3–4 damage, stops the move and costs the victim 1 AP next turn · **Mark Target** (free, cooldown 2): the team gets +15 aim against it until the end of next round. Marksman DMR or the suppressed Hush SMG |
+
+Engineer, Medic and Recon abilities are lockstep commands like every other action (`{k:'kit',...}`, perk actions
+`{k:'act',...}`), validated again when they run. Turrets are drone-like entities (they can be shot, blown up, zapped
+and jammed, and see for their team); walls are ordinary breakable cover; mines are drawn only for their own team (and
+for spectators and replays). AI operatives use every ability from their team's knowledge only, and the AI loadout pool
+includes all seven classes. An Infected operative loses its class abilities; Melee only switches turrets off.
+
 ## Saving your progress
 
 Progress is stored in your browser. Two ways to keep it safe:
