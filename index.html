@@ -93,6 +93,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--signal);outline
 .card .bars{display:grid;grid-template-columns:auto 1fr;gap:3px 6px;align-items:center;margin-top:7px;font-size:11px;color:var(--muted)}
 .card .bar{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
 .card .bar i{display:block;height:100%;background:var(--signal)}
+.card .bars.b3{grid-template-columns:auto 1fr auto}
+.card .gt{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:1px 5px;margin-left:6px;vertical-align:2px;border-radius:2px;background:rgba(93,255,154,.12);color:var(--ok)}
+.card .gt.lv{background:rgba(255,179,64,.12);color:var(--amber)}
+.card .d .opt{color:var(--text);font-weight:600}
 .clsdesc{color:#b7c6d4;font-size:13.5px;line-height:1.45;margin:8px 0 0;max-width:62ch}
 .lo-foot{margin-top:22px}
 
@@ -603,7 +607,9 @@ button.sh,#mLvl{min-height:44px}
       <li>Full cover blocks 40 aim, half cover 20. Shots inside the graze band deal half damage instead of missing outright.</li>
       <li>High ground (raised platforms) gives +15 aim, +2 sight, and lets you shoot over half cover. Climbing costs 1 extra move.</li>
       <li>Buildings with interiors have doors and windows. Windows are half cover you can see through.</li>
-      <li>Shooting before you move leaves 1 AP for a move. Shooting after a move, overwatch and hunker end your turn. Railguns need both AP.</li>
+      <li>Shooting before you move leaves 1 AP for a move. Shooting after a move, overwatch and hunker end your turn. The railgun and gauss rifle need both AP.</li>
+      <li id="howRange">Every weapon has an optimal range where its aim is best.</li>
+      <li>Starter gear is ready at level 1; new weapons, armor, Mk upgrades and perks unlock as you level (see Loadout and Progress).</li>
       <li>The storm shrinks every other round. Supply drops are announced a round early; the pod holds the best loot in the match.</li>
       <li>Duos: you drop with an AI partner. A downed operative bleeds out in 2 turns unless an adjacent teammate revives them.</li>
       <li>AI opponents carry gear matched to your level and only know what they can see or hear.</li>
@@ -654,37 +660,72 @@ const ease=t=>1-Math.pow(1-t,3);
 
 /* ================= game data ================= */
 const CLASSES={
-  ranger:{name:'Ranger',tag:'Close assault',aim:70,hp:8,mob:7,sight:0,weapons:['shotgun','rifle'],armors:['light','medium'],utils:['frag','smoke','flash','medkit'],ability:'slash',
+  ranger:{name:'Ranger',tag:'Close assault',aim:70,hp:8,mob:6,sight:0,weapons:['shotgun','rifle','smg','slug'],armors:['light','medium','stalker'],utils:['frag','smoke','flash','medkit'],ability:'slash',
     desc:'Fast flanker. Blade Strike dashes to any enemy you can reach and cuts them down. Pairs best with a shotgun up close.'},
-  sharpshooter:{name:'Sharpshooter',tag:'Long-range precision',aim:82,hp:7,mob:6,sight:2,weapons:['sniper','dmr'],armors:['light','medium'],utils:['frag','smoke','flash','medkit'],ability:'deadeye',
-    desc:'Sees 2 tiles farther than anyone. Deadeye trades 15 aim for 50% more damage. The railgun cannot fire after moving.'},
-  grenadier:{name:'Grenadier',tag:'Heavy weapons',aim:66,hp:8,mob:6,sight:0,weapons:['cannon','rifle'],armors:['medium','heavy'],utils:['frag','plasma','smoke','flash','medkit'],ability:'hail',
-    desc:'Carries an extra charge on damaging grenades and throws 2 tiles farther. Hail of Bullets never misses. Only class that can wear the EXO Rig and carry plasma.'},
-  specialist:{name:'Specialist',tag:'Drone support',aim:72,hp:8,mob:7,sight:0,weapons:['rifle','smg'],armors:['light','medium'],utils:['frag','smoke','flash','medkit'],ability:'zap',
+  sharpshooter:{name:'Sharpshooter',tag:'Long-range precision',aim:82,hp:7,mob:5,sight:2,weapons:['sniper','dmr','carbine','gauss'],armors:['light','medium','ghillie'],utils:['frag','smoke','flash','medkit'],ability:'deadeye',
+    desc:'Sees 2 tiles farther than anyone. Deadeye trades 15 aim for 50% more damage. The railgun and gauss rifle need both action points, so they cannot fire after moving.'},
+  grenadier:{name:'Grenadier',tag:'Heavy weapons',aim:66,hp:8,mob:5,sight:0,weapons:['cannon','rifle','slug','minigun'],armors:['medium','heavy','bastion'],utils:['frag','plasma','smoke','flash','medkit'],ability:'hail',
+    desc:'Carries an extra charge on damaging grenades and throws 2 tiles farther. Hail of Bullets never misses. Only class that can wear the EXO Rig or Bastion Frame and carry plasma.'},
+  specialist:{name:'Specialist',tag:'Drone support',aim:72,hp:8,mob:6,sight:0,weapons:['rifle','smg','carbine','volt'],armors:['light','medium','stalker'],utils:['frag','smoke','flash','medkit'],ability:'zap',
     desc:'Flies a combat drone. Combat Protocol zaps any visible enemy for 3 armor-piercing damage and keeps your turn going. Medkits carry an extra charge and heal 4.'}
 };
+/* Weapon accuracy by range: rt=[[upToTile,aimMod],...] in ascending tiles; past the last entry the modifier keeps
+   dropping by `fall` per tile. range(d) is built from rt, and the loadout text, optimal band and bars are all derived
+   from range(), so they cannot drift from what hitInfo uses. */
 const WEAPONS={
-  rifle:{name:'M-17 Pulse Rifle',short:'Rifle',dmg:[3,5],clip:4,crit:10,critDmg:2,aim:0,fx:'burst',range:d=>d<=4?5:d<=9?0:-10,desc:'Steady at every range.',rng:[60,60,50]},
-  shotgun:{name:'Breacher Shotgun',short:'Shotgun',dmg:[4,6],clip:4,crit:20,critDmg:2,aim:0,fx:'pellet',range:d=>d<=2?25:d<=4?10:d<=6?-5:-5-(d-6)*10,desc:'Brutal up close, falls off fast past 4 tiles.',rng:[100,40,5]},
-  sniper:{name:'Longshot Railgun',short:'Railgun',dmg:[5,7],clip:3,crit:20,critDmg:3,aim:0,fx:'beam',heavy:true,range:d=>d<=3?-30:d<=6?-5:5,desc:'Hardest-hitting gun, best at 7+ tiles. Needs both action points.',rng:[10,60,100]},
-  dmr:{name:'Marksman DMR',short:'DMR',dmg:[3,5],clip:4,crit:15,critDmg:2,aim:5,fx:'single',range:d=>d<=2?-10:d<=4?-5:d>=7?5:0,desc:'Precise at mid to long range; you can move and shoot.',rng:[30,70,80]},
-  cannon:{name:'Hailstorm Cannon',short:'Cannon',dmg:[4,7],clip:3,crit:10,critDmg:2,aim:-5,fx:'heavy',range:d=>d<=7?0:-10,desc:'Hits hard out to 7 tiles; small magazine.',rng:[70,70,40]},
-  smg:{name:'Wasp SMG',short:'SMG',dmg:[3,4],clip:5,crit:15,critDmg:2,aim:5,mob:1,fx:'burst',range:d=>d<=4?10:d<=7?0:-15,desc:'+1 mobility. Accurate on the move inside 7 tiles.',rng:[85,55,15]}
+  rifle:{name:'M-17 Pulse Rifle',short:'Rifle',dmg:[3,5],clip:4,crit:10,critDmg:2,aim:0,fx:'burst',rt:[[4,5],[9,0],[10,-10]],fall:5,desc:'All-rounder that stays steady out to 9 tiles.'},
+  shotgun:{name:'Breacher Shotgun',short:'Shotgun',dmg:[4,6],clip:4,crit:20,critDmg:2,aim:0,fx:'pellet',rt:[[4,20],[5,0]],fall:15,desc:'Brutal up close, falls off hard past 4 tiles.'},
+  sniper:{name:'Longshot Railgun',short:'Railgun',dmg:[5,7],clip:3,crit:20,critDmg:3,aim:0,fx:'beam',heavy:true,rt:[[3,-30],[6,-5],[99,5]],desc:'Hard-hitting long gun; clumsy up close.'},
+  dmr:{name:'Marksman DMR',short:'DMR',dmg:[3,5],clip:4,crit:15,critDmg:2,aim:5,fx:'single',rt:[[2,-10],[4,-5],[6,0],[99,5]],desc:'Precise at mid to long range, and you can move and shoot.'},
+  cannon:{name:'Hailstorm Cannon',short:'Cannon',dmg:[4,7],clip:3,crit:10,critDmg:2,aim:-5,fx:'heavy',rt:[[7,0],[8,-10]],fall:5,desc:'Hits hard anywhere inside 7 tiles; small magazine.'},
+  smg:{name:'Wasp SMG',short:'SMG',dmg:[3,4],clip:5,crit:15,critDmg:2,aim:5,mob:1,fx:'burst',rt:[[4,10],[7,0]],fall:7,desc:'Light and quick: accurate on the move up close.'},
+  carbine:{name:'Lynx Carbine',short:'Carbine',dmg:[3,4],clip:5,crit:10,critDmg:2,aim:5,fx:'burst',rt:[[2,0],[7,5],[10,0]],fall:5,desc:'Mid-range accuracy and a deep magazine for lighter hits.'},
+  slug:{name:'Bulldog Slug Gun',short:'Slug Gun',dmg:[4,6],clip:3,crit:10,critDmg:2,aim:-5,fx:'single',rt:[[6,10],[7,0]],fall:10,desc:'A shotgun that reaches: even accuracy out to 6 tiles.'},
+  minigun:{name:'Tempest Minigun',short:'Minigun',dmg:[4,5],clip:6,crit:5,critDmg:2,aim:-5,mob:-1,fx:'heavy',rt:[[6,10],[9,0]],fall:5,desc:'Huge drum and steady damage, but it slows you down. Feeds Hail of Bullets.'},
+  gauss:{name:'Specter Gauss Rifle',short:'Gauss',dmg:[6,8],clip:2,crit:25,critDmg:3,aim:-5,fx:'beam',heavy:true,rt:[[4,-35],[7,-5],[99,10]],desc:'Heaviest hitter at long range; two-round magazine.'},
+  volt:{name:'Volt Caster',short:'Volt',dmg:[3,5],clip:3,crit:0,critDmg:2,aim:10,pierce:true,fx:'beam',rt:[[3,10],[6,0]],fall:15,desc:'Arc bolts that ignore armor, with very short reach.'}
 };
+function rangeFn(rt,fall){ return d=>{ for(const s of rt) if(d<=s[0]) return s[1]; const l=rt[rt.length-1]; return l[1]-(fall||0)*(d-l[0]); }; }
+for(const k in WEAPONS){ WEAPONS[k].id=k; WEAPONS[k].range=rangeFn(WEAPONS[k].rt,WEAPONS[k].fall); }
 const ARMORS={
-  light:{name:'Spider Suit',short:'Light',hp:1,mob:1,def:10,armor:0,desc:'+1 HP, +1 mobility, +10 defense'},
-  medium:{name:'Predator Armor',short:'Medium',hp:3,mob:0,def:0,armor:0,desc:'+3 HP'},
-  heavy:{name:'EXO Rig',short:'Heavy',hp:5,mob:-1,def:0,armor:1,desc:'+5 HP, blocks 1 damage per hit, −1 mobility'}
+  light:{name:'Spider Suit',short:'Light',look:'light',hp:1,mob:1,def:10,armor:0,note:'Quick and hard to pin down.'},
+  medium:{name:'Predator Armor',short:'Medium',look:'medium',hp:3,mob:0,def:0,armor:0,note:'Plain, dependable plating.'},
+  heavy:{name:'EXO Rig',short:'Heavy',look:'heavy',hp:5,mob:-1,def:0,armor:1,note:'A walking bunker.'},
+  stalker:{name:'Stalker Weave',short:'Light',look:'light',hp:0,mob:1,def:20,armor:0,note:'Refractive mesh: no padding, very hard to hit.'},
+  ghillie:{name:'Ghillie Shroud',short:'Light',look:'light',hp:2,mob:-1,def:15,armor:0,sight:1,note:'Camouflage for holding a perch.'},
+  bastion:{name:'Bastion Frame',short:'Heavy',look:'heavy',hp:2,mob:0,def:0,armor:1,note:'Keeps the EXO plating, loses the bulk.'}
 };
+const sgn=n=>n>0?'+'+n:n<0?'−'+(-n):'±0';
+function armorDesc(a){ const t=[]; if(a.hp) t.push('+'+a.hp+' HP'); if(a.mob) t.push(sgn(a.mob)+' mobility'); if(a.def) t.push('+'+a.def+' defense'); if(a.armor) t.push('blocks '+a.armor+' damage per hit'); if(a.sight) t.push('+'+a.sight+' sight'); return t.join(', ')||'No modifiers'; }
+for(const k in ARMORS) ARMORS[k].desc=armorDesc(ARMORS[k]);
+/* range helpers (all derived from WEAPONS[k].range, which is exactly what hitInfo uses) */
+const RANGE_MAX=20, RANGE_BANDS=[['Close',1,4],['Mid',5,8],['Long',9,12]];
+// the tiles where the weapon's range modifier is at its best (its optimal band)
+function optBand(w){ let best=-1e9,lo=0,hi=0; for(let d=1;d<=RANGE_MAX;d++) best=Math.max(best,w.range(d)); for(let d=1;d<=RANGE_MAX;d++) if(w.range(d)===best){ if(!lo) lo=d; hi=d; } return {lo,hi,mod:best+w.aim}; }
+function bandTxt(b){ return (b.hi>=RANGE_MAX?b.lo+'+':b.lo===b.hi?''+b.lo:b.lo+'–'+b.hi)+' tiles'; }
+// "1–4 +20 · 5 ±0 · then −15/tile": net weapon aim (base aim + range modifier) by distance
+function rangeTxt(w){ const out=[]; let from=1; for(const s of w.rt){ const to=s[0]; out.push((to>=99?from+'+':from===to?''+from:from+'–'+to)+' '+sgn(s[1]+w.aim)); from=to+1; if(to>=99) break; } if(w.fall) out.push('then −'+w.fall+'/tile'); return out.join(' · '); }
+// average hit chance against an exposed target with no defense across each range band, for a shooter with this aim
+function bandHit(w,aim){ return RANGE_BANDS.map(b=>{ let s=0; for(let d=b[1];d<=b[2];d++) s+=clamp(Math.round(aim+w.aim+w.range(d)),0,100); return [b[0]+' '+b[1]+'–'+b[2],Math.round(s/(b[2]-b[1]+1))]; }); }
+function weaponTraits(w){ const t=[]; if(w.heavy) t.push('Needs both AP: cannot move and fire'); if(w.mob) t.push(sgn(w.mob)+' mobility'); if(w.pierce) t.push('Ignores armor'); return t; }
 const UTILS={
-  frag:{name:'Frag Grenade',short:'Frag',charges:2,range:8,radius:1.6,dmg:[3,4],endTurn:true,desc:'3–4 damage in a blast. Destroys cover.'},
-  plasma:{name:'Plasma Grenade',short:'Plasma',charges:1,range:8,radius:2.1,dmg:[5,6],endTurn:true,desc:'5–6 damage, wide blast. Grenadier only.'},
-  smoke:{name:'Smoke Grenade',short:'Smoke',charges:1,range:8,radius:1.6,desc:'+20 defense inside the cloud for 2 rounds.'},
-  flash:{name:'Flashbang',short:'Flash',charges:1,range:8,radius:1.6,desc:'Disorients (−20 aim) and breaks overwatch.'},
-  medkit:{name:'Medkit',short:'Medkit',charges:1,desc:'Heal 2 HP (Specialist heals 4).'},
-  shieldcell:{name:'Shield Cell',short:'Shield',charges:1,shop:true,desc:'+3 shield. Costs 1 AP and keeps your turn going.'},
-  arc:{name:'Arc Grenade',short:'Arc',charges:1,range:8,radius:1.6,dmg:[2,3],arc:true,endTurn:true,shop:true,desc:'2–3 armor-piercing damage and disorients. Leaves cover standing.'}
+  frag:{name:'Frag Grenade',short:'Frag',charges:2,range:8,radius:1.6,dmg:[3,4],endTurn:true,note:'Destroys cover.'},
+  plasma:{name:'Plasma Grenade',short:'Plasma',charges:1,range:8,radius:2.1,dmg:[5,6],endTurn:true,note:'Destroys cover. Grenadier only.'},
+  smoke:{name:'Smoke Grenade',short:'Smoke',charges:1,range:8,radius:1.6,smokeDef:20,rounds:2},
+  flash:{name:'Flashbang',short:'Flash',charges:1,range:8,radius:1.6,disAim:20,turns:2},
+  medkit:{name:'Medkit',short:'Medkit',charges:1,heal:2,healSpec:4},
+  shieldcell:{name:'Shield Cell',short:'Shield',charges:1,shield:3,shop:true},
+  arc:{name:'Arc Grenade',short:'Arc',charges:1,range:8,radius:1.6,dmg:[2,3],arc:true,disAim:20,turns:2,endTurn:true,shop:true,note:'Leaves cover standing.'}
 };
+// utility descriptions are generated from the numbers above
+for(const k in UTILS){ const U=UTILS[k], t=[];
+  if(U.dmg) t.push(U.dmg[0]+'–'+U.dmg[1]+(U.arc?' armor-piercing':'')+' damage in a '+U.radius+'-tile radius');
+  if(U.smokeDef) t.push('+'+U.smokeDef+' defense inside a '+U.radius+'-tile cloud for '+U.rounds+' rounds');
+  if(U.disAim) t.push((U.dmg?'Disorients':'Disorients everyone within '+U.radius+' tiles')+' (−'+U.disAim+' aim for '+U.turns+' turns) and breaks overwatch');
+  if(U.heal) t.push('Heal '+U.heal+' HP (Specialist heals '+U.healSpec+'). Costs 1 AP');
+  if(U.shield) t.push('+'+U.shield+' shield. Costs 1 AP and keeps your turn going');
+  if(U.range) t.push('Range '+U.range+' tiles (Grenadier +2)');
+  U.desc=t.join('. ')+'.'+(U.note?' '+U.note:''); }
 for(const k in CLASSES) CLASSES[k].utils.push('arc','shieldcell');
 const ABIL={
   slash:{name:'Blade Strike',short:'Blade',cd:3,desc:'Dash to an enemy you can reach and slash: 95% hit, 4–6 damage. Ends turn.'},
@@ -695,7 +736,7 @@ const ABIL={
 const RIVALS=[['VIPER','#ff4d5e'],['JACKAL','#ff9f1c'],['RAVEN','#c77dff'],['MANTIS','#a6ff3c'],['COBRA','#ffd23c'],['WRAITH','#ff6bd6'],['GHOUL','#ff7a5c'],['HYDRA','#5cffc4'],['SPECTRE','#ff9fb0']];
 const PLAYER_COL='#3fd2ff';
 const BODY={ranger:{m:[62,88,58],d:[34,48,30],a:[112,142,86]},sharpshooter:{m:[58,70,90],d:[33,40,53],a:[125,144,173]},grenadier:{m:[92,76,54],d:[52,42,29],a:[154,128,88]},specialist:{m:[46,82,88],d:[26,48,52],a:[95,154,160]}};
-const GUNLEN={rifle:16,shotgun:15,sniper:24,dmr:19,cannon:20,smg:11};
+const GUNLEN={rifle:16,shotgun:15,sniper:24,dmr:19,cannon:20,smg:11,carbine:14,slug:16,minigun:20,gauss:27,volt:13};
 const STORM={rounds:[4,6,8,10,12,14,16],radii:[14,10.5,7.5,5,3,1.4,0],dmg:[0,1,1,2,2,3,4,6]};
 
 const REG={
@@ -929,8 +970,8 @@ function buildPath(R,i){ const p=[]; let k=i; while(k>=0){ p.push([k%MW,(k/MW)|0
 function sanitize(lo){
   lo=lo||{}; const c=CLASSES[lo.cls]?lo.cls:'ranger', Cl=CLASSES[c];
   const o={name:String(lo.name||'NOMAD').replace(/[^\w \-]/g,'').slice(0,12).toUpperCase()||'NOMAD',cls:c};
-  o.weapon=Cl.weapons.includes(lo.weapon)?lo.weapon:Cl.weapons[0];
-  o.armor=Cl.armors.includes(lo.armor)?lo.armor:Cl.armors[0];
+  o.weapon=Cl.weapons.includes(lo.weapon)&&wOwned(lo.weapon)?lo.weapon:Cl.weapons.find(k=>wOwned(k));
+  o.armor=Cl.armors.includes(lo.armor)&&aOwned(lo.armor)?lo.armor:Cl.armors.find(k=>aOwned(k));
   const n=utilSlots();
   const us=(Array.isArray(lo.utils)?lo.utils:[]).filter((u,i,a)=>Cl.utils.includes(u)&&utilOwned(u)&&a.indexOf(u)===i).slice(0,n);
   for(const u of Cl.utils){ if(us.length>=n) break; if(!us.includes(u)&&utilOwned(u)) us.push(u); }
@@ -938,15 +979,15 @@ function sanitize(lo){
 }
 function randomLoadout(not,lv){ lv=lv||1; const keys=Object.keys(CLASSES).filter(k=>k!==not); const cls=pick(keys),Cl=CLASSES[cls];
   const pool=Cl.utils.filter(u=>!UTILS[u].shop||lvlOwn('u_'+u,lv)), perks=Object.keys(PERKS).filter(k=>lvlOwn(k,lv));
-  return {cls,weapon:pick(Cl.weapons),armor:pick(Cl.armors),utils:shuffle(pool).slice(0,lvlOwn('pouch',lv)?3:2),perk:perks.length&&RNG()<0.8?pick(perks):null,lv}; }
+  return {cls,weapon:pick(Cl.weapons.filter(k=>wOwned(k,lv))),armor:pick(Cl.armors.filter(k=>aOwned(k,lv))),utils:shuffle(pool).slice(0,lvlOwn('pouch',lv)?3:2),perk:perks.length&&RNG()<0.8?pick(perks):null,lv}; }
 function makeUnit(lo,isPlayer,name,color,prof,team){
   // players use their account unlocks; AI uses the same unlock table at its matchmade level (lo.lv)
   const lv=lo.lv||1, has=id=>prof?(prof.own?prof.own.includes(id):own(id)):lvlOwn(id,lv), eq=prof?(prof.own?prof:PROF.equip):null;
-  const Cl=CLASSES[lo.cls],Ar=ARMORS[lo.armor],Wp=applyMk(Object.assign({},WEAPONS[lo.weapon]),has('mk3_'+lo.weapon)?3:has('mk2_'+lo.weapon)?2:1);
-  let hpB=0,aimB=0,mobB=0,sh=0,perk=null;
-  if(has('ar_'+lo.armor)) hpB=1; perk=lo.perk&&has(lo.perk)?lo.perk:null; if(perk==='pk_aim') aimB=6; if(perk==='pk_mob') mobB=1; if(perk==='pk_plate') sh=2;
-  const u={id:UID++,name,isPlayer,color,col:hexc(color),cls:lo.cls,wid:lo.weapon,aid:lo.armor,W:Wp,perk,team:team||0,
-    maxHp:Cl.hp+Ar.hp+hpB,aim:Cl.aim+aimB,mob:Cl.mob+Ar.mob+(Wp.mob||0)+mobB,def:Ar.def,armor:Ar.armor,sight:9+(Cl.sight||0),
+  const mk=has('mk3_'+lo.weapon)?3:has('mk2_'+lo.weapon)?2:1, Cl=CLASSES[lo.cls],Ar=ARMORS[lo.armor],Wp=applyMk(Object.assign({},WEAPONS[lo.weapon]),mk);
+  let hpB=0,perk=null;
+  if(has('ar_'+lo.armor)) hpB=1; perk=lo.perk&&has(lo.perk)?lo.perk:null; const P=(perk&&PERKS[perk])||{}, aimB=P.aim||0, sh=P.shield||0;
+  const u={id:UID++,name,isPlayer,color,col:hexc(color),cls:lo.cls,wid:lo.weapon,aid:lo.armor,W:Wp,mk,perk,team:team||0,
+    maxHp:Cl.hp+Ar.hp+hpB,aim:Cl.aim+aimB,mob:mobOf(lo.cls,lo.armor,lo.weapon,perk),def:Ar.def,armor:Ar.armor,sight:9+(Cl.sight||0)+(Ar.sight||0),
     utils:lo.utils.map(id=>({id,ch:UTILS[id].charges+((lo.cls==='grenadier'&&UTILS[id].dmg)?1:0)+((lo.cls==='specialist'&&id==='medkit')?1:0)})),
     ammo:Wp.clip,shield:sh,ap:0,cd:{},alive:true,downed:false,bleed:0,x:0,y:0,rx:0,ry:0,rz:0,face:1,flash:0,deadT:0,drop:0,overwatch:false,hunker:false,disorient:0,moved:false,kills:0,ph:Math.random()*6,walk:0,
     skin:eq?(SKINS[eq.skin]?eq.skin:'default'):(RNG()<0.35?pick(Object.keys(SKINS)):'default'),finish:eq?(FINISHES[eq.finish]?eq.finish:'default'):(RNG()<0.3?pick(Object.keys(FINISHES)):'default'),trail:eq?(TRAILS[eq.trail]?eq.trail:'default'):'default'};
@@ -1214,7 +1255,7 @@ function drawObj(c,o,x,y,s,al){
 /* ================= rendering: units ================= */
 function rr(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.lineTo(x+w-r,y); c.quadraticCurveTo(x+w,y,x+w,y+r); c.lineTo(x+w,y+h-r); c.quadraticCurveTo(x+w,y+h,x+w-r,y+h); c.lineTo(x+r,y+h); c.quadraticCurveTo(x,y+h,x,y+h-r); c.lineTo(x,y+r); c.quadraticCurveTo(x,y,x+r,y); c.closePath(); }
 function drawSoldier(c,o){
-  const B=(o.skin&&SKINS[o.skin]&&SKINS[o.skin].b)||BODY[o.cls]; const heavy=o.armor==='heavy',light=o.armor==='light'; const tw=heavy?7.5:light?5.6:6.5;
+  const B=(o.skin&&SKINS[o.skin]&&SKINS[o.skin].b)||BODY[o.cls]; const look=(ARMORS[o.armor]&&ARMORS[o.armor].look)||o.armor, heavy=look==='heavy',light=look==='light'; const tw=heavy?7.5:light?5.6:6.5;
   const bob=o.bob||0, step=o.step||0;
   c.save(); c.translate(o.x,o.y);
   if(!o.noShadow){ c.fillStyle='rgba(0,0,0,.38)'; c.beginPath(); c.ellipse(0,0,13,5.5,0,0,Math.PI*2); c.fill(); }
@@ -1246,6 +1287,11 @@ function drawSoldier(c,o){
   else if(w==='sniper'){ c.fillRect(0,-1.5,24,2.6); c.fillStyle='#2c323c'; c.fillRect(5,-4.8,8,2.6); c.fillStyle=o.color; c.fillRect(14,-0.6,8,0.9); }
   else if(w==='dmr'){ c.fillRect(0,-1.8,19,3.1); c.fillStyle='#2c323c'; c.fillRect(5,-4.2,6,2.2); c.fillRect(4,1.3,2.6,4); }
   else if(w==='cannon'){ c.fillRect(-2,-3.2,18,6.4); c.fillStyle='#3b414c'; c.beginPath(); c.arc(4,4.5,3.4,0,Math.PI*2); c.fill(); c.fillStyle='#14161a'; c.fillRect(15,-2,5,4); }
+  else if(w==='carbine'){ c.fillRect(0,-1.8,14,3.2); c.fillRect(3.5,1,2.6,4.2); c.fillStyle='#3e4552'; c.fillRect(3,-3.4,5,1.6); c.fillStyle=o.color; c.fillRect(10,-0.8,2.5,0.9); }
+  else if(w==='slug'){ c.fillRect(0,-3,16,5.4); c.fillStyle='#4a3a2a'; c.fillRect(5,2,6,2.4); c.fillStyle='#3b414c'; c.fillRect(12,-4.2,3,1.4); }
+  else if(w==='minigun'){ c.fillRect(-2,-3.4,14,6.8); c.fillStyle='#3b414c'; c.fillRect(11,-3,9,1.6); c.fillRect(11,-0.8,9,1.6); c.fillRect(11,1.4,9,1.6); c.fillStyle='#14161a'; c.fillRect(1,3.2,6,4.2); }
+  else if(w==='gauss'){ c.fillRect(0,-1.6,27,2.8); c.fillStyle='#2c323c'; c.fillRect(4,-5,9,2.8); c.fillRect(4,1.2,2.6,3.6); c.fillStyle=o.color; c.fillRect(15,-2.4,1.3,4.4); c.fillRect(18.5,-2.4,1.3,4.4); c.fillRect(22,-2.4,1.3,4.4); }
+  else if(w==='volt'){ c.fillRect(0,-2.4,10,4.6); c.fillRect(3,1.5,2.6,4); c.fillStyle='#3b414c'; c.fillRect(2,-4,5,1.6); c.fillStyle=o.color; c.fillRect(10,-1.8,3,3.4); }
   else { c.fillRect(0,-2,11,3.6); c.fillRect(4,1,2.6,5); }
   c.restore();
   c.fillStyle=C(B.m,.92); rr(c,-1.5,-24+bob,8.5,4.2,2); c.fill();
@@ -1651,7 +1697,7 @@ async function fireShot(a,t,o){
   if(anim){ focusMid(a,t); if(o.reaction) floatText(a,'OVERWATCH',[127,232,255],18); else if(o.label) floatText(a,o.label,[255,190,80],18); await wait(o.reaction?260:480); if(!a.alive||!t.alive) return false; shotFX(a,t,hit,kind); await wait(FXDUR[kind]||150); }
   else if(G.player&&!G.fullVis&&viewers().some(v=>Math.hypot(a.x-v.x,a.y-v.y)<17)) ping(a.x,a.y);
   makeNoise(a);
-  if(hit){ let d=rollDmg(a.W.dmg); if(crit) d+=a.W.critDmg; if(o.deadeye) d=Math.ceil(d*1.5); if(res==='graze') d=Math.max(1,Math.ceil(d/2)); applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how}); }
+  if(hit){ let d=rollDmg(a.W.dmg); if(crit) d+=a.W.critDmg; if(o.deadeye) d=Math.ceil(d*1.5); if(res==='graze') d=Math.max(1,Math.ceil(d/2)); applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how,pierce:!!a.W.pierce}); }
   else if(anim) floatText(t,'MISSED',[200,210,220],20);
   if(anim) await wait(t.alive?650:1000);
   return hit;
@@ -1706,7 +1752,7 @@ function pickup(u){
   if(shouldShow(u)){ floatText(u,msg,[255,200,90],q.drop?18:20); const p=chest(u); for(let k=0;k<(q.drop?30:14);k++) part({x:p[0],y:p[1]+10,vx:frand(-40,40),vy:frand(-20,10),vz:frand(30,90),life:frand(.5,1),size:2,col:[255,200,90],type:'ember',grav:-20}); SFX.heal(); }
 }
 async function doReload(u){ u.ap-=1; u.ammo=u.W.clip; if(shouldShow(u)){ floatText(u,'RELOADED',[200,220,240],18); SFX.click(); await wait(500);} }
-async function doMedkit(u,util){ util.ch--; u.ap-=1; const amt=u.cls==='specialist'?4:2; const h=Math.min(amt,u.maxHp-u.hp); u.hp+=h;
+async function doMedkit(u,util){ util.ch--; u.ap-=1; const amt=u.cls==='specialist'?UTILS.medkit.healSpec:UTILS.medkit.heal; const h=Math.min(amt,u.maxHp-u.hp); u.hp+=h;
   if(shouldShow(u)){ focusOn(u.x,u.y); floatText(u,'+'+h+' HP',[93,255,154],22); const p=chest(u); for(let k=0;k<16;k++) part({x:p[0]+frand(-10,10),y:p[1]+12,vz:frand(30,80),vx:frand(-10,10),life:frand(.6,1.1),size:2,col:[93,255,154],type:'ember',grav:-10}); SFX.heal(); await wait(650); } }
 async function doZap(u,t){
   const anim=shouldShow(u)||shouldShow(t);
@@ -1922,7 +1968,7 @@ function actionList(){
   if(G.pending>=0){ const cost=G.reach.dist[G.pending]; A.push({id:'move',label:'Move',sub:(cost<=u.mob+1e-6?1:2)+' AP',icon:'move',hot:true}); }
   const dn=adjDowned(u); if(dn) A.push({id:'revive',label:'Revive',sub:dn.name,icon:'revive',hot:true,off:!ap});
   const sniperBlock=u.W.heavy&&ap<2;
-  A.push({id:'shoot',label:'Shoot',sub:u.ammo+'/'+u.W.clip,icon:'shoot',off:!ap||!u.ammo||!vis.length||sniperBlock,why:!u.ammo?'Out of ammo: reload':!vis.length?'No enemies in sight':sniperBlock?'Railgun needs 2 AP':''});
+  A.push({id:'shoot',label:'Shoot',sub:u.ammo+'/'+u.W.clip,icon:'shoot',off:!ap||!u.ammo||!vis.length||sniperBlock,why:!u.ammo?'Out of ammo: reload':!vis.length?'No enemies in sight':sniperBlock?u.W.name+' needs 2 AP':''});
   const ab=CLASSES[u.cls].ability, A2=ABIL[ab], cd=u.cd[ab]||0;
   let abOff=!ap||cd>0, why=cd>0?'Ready in '+cd+' turn'+(cd>1?'s':''):'';
   if(!abOff){ if(ab==='slash'&&!slashTargets(u).length){ abOff=true; why='No enemy in reach'; }
@@ -2138,7 +2184,7 @@ function updateHUD(){
   acts.style.visibility='visible';
   acts.innerHTML=actionList().map(a=>'<button class="act'+(a.off?' off':'')+(a.hot?' hot':'')+(a.abil?' abil':'')+(a.end?' end':'')+'" data-act="'+a.id+'" data-why="'+(a.why||'')+'" aria-label="'+a.label+'">'+(ICON[a.icon]||'')+'<span>'+a.label+'</span><span class="sub">'+a.sub+'</span></button>').join('');
 }
-function weaponMkU(u){ return u.isPlayer?weaponMk(u.wid):1; }
+function weaponMkU(u){ return u.mk||1; }
 function fillTargetPanel(){
   const u=G.player, t=G.targets[G.tIdx], k=G.tKind; if(!t) return;
   $('#tName').textContent=t.name; $('#tSub').textContent=CLASSES[t.cls].name+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(u,t).toFixed(1)+' tiles'+(hi(t.x,t.y)?' · high ground':'');
@@ -2248,16 +2294,20 @@ const TRAILS={default:{name:'Standard',c:null,price:0},ember:{name:'Ember',c:'#f
 const COS={skin:SKINS,visor:VISORS,finish:FINISHES,trail:TRAILS};
 const COS_LABEL={skin:'Armor skin',visor:'Visor',finish:'Weapon finish',trail:'Drop trail'};
 const PACKS=[{id:'p1',sh:100,price:'$0.99',name:'Pouch'},{id:'p2',sh:550,price:'$4.99',name:'Crate',tag:'+10% bonus'},{id:'p3',sh:1200,price:'$9.99',name:'Vault',tag:'Best value'}];
-const PERKS={pk_aim:{name:'Steady Hands',desc:'+6 aim.'},pk_mob:{name:'Fleet Foot',desc:'+1 mobility.'},pk_plate:{name:'Drop Plating',desc:'Start every match with 2 shield.'},pk_scav:{name:'Scavenger',desc:'Supply crates also give +2 shield.'},pk_bounty:{name:'Bounty Hunter',desc:'+50% credits per elimination.'}};
+const PERKS={pk_aim:{name:'Steady Hands',aim:6},pk_mob:{name:'Fleet Foot',mob:1},pk_plate:{name:'Drop Plating',shield:2},pk_scav:{name:'Scavenger',desc:'Supply crates also give +2 shield.'},pk_bounty:{name:'Bounty Hunter',desc:'+50% credits per elimination.'}};
+PERKS.pk_aim.desc='+'+PERKS.pk_aim.aim+' aim on every shot.'; PERKS.pk_mob.desc='+'+PERKS.pk_mob.mob+' mobility (tiles per action point).'; PERKS.pk_plate.desc='Start every match with '+PERKS.pk_plate.shield+' shield.';
 
 /* ================= progression ================= */
-const UNLOCKS={2:['u_shieldcell'],3:['mk2_rifle','mk2_shotgun','mk2_smg'],4:['u_arc','pk_scav'],5:['mk2_sniper','mk2_dmr','mk2_cannon'],6:['ar_light','ar_medium','ar_heavy','pk_aim'],7:['pk_plate'],8:['mk3_rifle','mk3_shotgun','mk3_smg'],9:['pk_mob'],10:['mk3_sniper','mk3_dmr','mk3_cannon','pouch'],12:['pk_bounty']};
+// w_<weapon> / a_<armor>: gear that is locked until that level. Gear without one is starter gear (level 1).
+const UNLOCKS={2:['u_shieldcell','w_carbine'],3:['mk2_rifle','mk2_shotgun','mk2_smg'],4:['u_arc','pk_scav','a_ghillie'],5:['mk2_sniper','mk2_dmr','mk2_cannon','w_slug'],6:['ar_light','ar_medium','ar_heavy','pk_aim','mk2_carbine'],7:['pk_plate','w_volt','a_stalker'],8:['mk3_rifle','mk3_shotgun','mk3_smg','ar_ghillie'],9:['pk_mob','w_minigun','mk2_slug'],10:['mk3_sniper','mk3_dmr','mk3_cannon','pouch','a_bastion'],11:['mk3_carbine','mk2_volt','ar_stalker'],12:['pk_bounty','w_gauss','mk2_minigun'],13:['mk3_slug','ar_bastion'],14:['mk2_gauss','mk3_minigun','mk3_volt'],15:['mk3_gauss']};
 const UNLOCK_LVL={}; for(const l in UNLOCKS) for(const id of UNLOCKS[l]) UNLOCK_LVL[id]=+l;
 function unlockName(id){
   if(id.startsWith('mk2_')) return WEAPONS[id.slice(4)].name+' Mk II';
   if(id.startsWith('mk3_')) return WEAPONS[id.slice(4)].name+' Mk III';
   if(id.startsWith('ar_')) return ARMORS[id.slice(3)].name+' lining (+1 HP)';
   if(id.startsWith('u_')) return UTILS[id.slice(2)].name;
+  if(id.startsWith('w_')) return WEAPONS[id.slice(2)].name;
+  if(id.startsWith('a_')) return ARMORS[id.slice(2)].name;
   if(id==='pouch') return 'Third utility slot';
   if(PERKS[id]) return PERKS[id].name+' perk';
   return id;
@@ -2270,6 +2320,12 @@ function weaponMk(w){ return own('mk3_'+w)?3:own('mk2_'+w)?2:1; }
 function applyMk(w,mk){ if(mk>=2){ w.clip+=1; w.aim+=5; } if(mk>=3){ w.dmg=[w.dmg[0]+1,w.dmg[1]+1]; w.crit+=10; } return w; }
 function effWeapon(k){ return applyMk(Object.assign({},WEAPONS[k]),weaponMk(k)); }
 function lvlOwn(id,lv){ return UNLOCK_LVL[id]!=null&&lv>=UNLOCK_LVL[id]; }
+// gear gating: starter gear has no w_/a_ unlock id. Pass lv to check against a level instead of the local profile.
+function gearLvl(id){ return UNLOCK_LVL[id]||1; }
+function wOwned(k,lv){ const id='w_'+k; return UNLOCK_LVL[id]==null||(lv!=null?lvlOwn(id,lv):own(id)); }
+function aOwned(k,lv){ const id='a_'+k; return UNLOCK_LVL[id]==null||(lv!=null?lvlOwn(id,lv):own(id)); }
+const MIN_MOB=4;
+function mobOf(cls,ar,wp,perk){ return Math.max(MIN_MOB,CLASSES[cls].mob+ARMORS[ar].mob+(WEAPONS[wp].mob||0)+((PERKS[perk]&&PERKS[perk].mob)||0)); }
 function aiLevel(){ return Math.max(1,level()+ri(-2,1)); }
 function utilSlots(){ return own('pouch')?3:2; }
 function utilOwned(id){ return !UTILS[id].shop||own('u_'+id); }
@@ -2389,6 +2445,7 @@ function updateNavDot(){ const d=$('#qDot'); if(d) d.classList.toggle('hidden',!
 $('#nav').addEventListener('click',e=>{ const b=e.target.closest('[data-nav]'); if(!b) return; SFX.init(); SFX.click(); buzz(6); go(b.dataset.nav); });
 
 /* ================= lobby ================= */
+$('#howRange').textContent='Every weapon has an optimal range where its aim is best and falls off outside it: '+Object.keys(WEAPONS).map(k=>WEAPONS[k].short+' '+bandTxt(optBand(WEAPONS[k]))).join(', ')+'. Each loadout card lists aim by range.';
 let LO=loadLO();
 function loadLO(){ try{ const s=JSON.parse(localStorage.getItem('stormfall_loadout')||'null'); if(s) return sanitize(s); }catch(e){} return sanitize({name:'NOMAD',cls:'ranger',weapon:'shotgun',armor:'light',utils:['frag','medkit']}); }
 function saveLO(){ try{ localStorage.setItem('stormfall_loadout',JSON.stringify(LO)); }catch(e){} }
@@ -2425,14 +2482,15 @@ function peerReady(){
   return load('vendor/peerjs.min.js').catch(()=>load('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'))
     .then(()=>{ if(!window.Peer) throw new Error('missing'); }).catch(()=>{ throw new Error('Could not load the networking library. Check your connection.'); });
 }
-function mySpec(){ LO=sanitize(LO); const o=[]; for(const id of ['mk2_'+LO.weapon,'mk3_'+LO.weapon,'ar_'+LO.armor,LO.perk]) if(id&&own(id)) o.push(id);
+function mySpec(){ LO=sanitize(LO); const o=[]; for(const id of ['mk2_'+LO.weapon,'mk3_'+LO.weapon,'ar_'+LO.armor,'w_'+LO.weapon,'a_'+LO.armor,LO.perk]) if(id&&own(id)) o.push(id);
   return {name:LO.name,lo:{cls:LO.cls,weapon:LO.weapon,armor:LO.armor,utils:LO.utils.slice(),perk:LO.perk},own:o,color:visorCol(),skin:PROF.equip.skin,finish:PROF.equip.finish,trail:PROF.equip.trail,lv:level()}; }
 function cleanSpec(sp,pid){ sp=sp&&typeof sp==='object'?sp:{}; const lo=sp.lo&&typeof sp.lo==='object'?sp.lo:{}; const cls=CLASSES[lo.cls]?lo.cls:'ranger', Cl=CLASSES[cls];
   const utils=(Array.isArray(lo.utils)?lo.utils:[]).filter((u,i,a)=>Cl.utils.includes(u)&&a.indexOf(u)===i).slice(0,3); if(!utils.length) utils.push(Cl.utils[0]);
+  const own=(Array.isArray(sp.own)?sp.own:[]).filter(x=>typeof x==='string').slice(0,8), lv=clamp(sp.lv|0,1,40), gear=id=>UNLOCK_LVL[id]==null||lv>=UNLOCK_LVL[id]||own.includes(id);
   return {pid,name:String(sp.name||'GUEST').replace(/[^\w \-]/g,'').slice(0,12).toUpperCase()||'GUEST',
-    lo:{cls,weapon:Cl.weapons.includes(lo.weapon)?lo.weapon:Cl.weapons[0],armor:Cl.armors.includes(lo.armor)?lo.armor:Cl.armors[0],utils,perk:PERKS[lo.perk]?lo.perk:null},
-    own:(Array.isArray(sp.own)?sp.own:[]).filter(x=>typeof x==='string').slice(0,8),
-    color:/^#[0-9a-f]{6}$/i.test(sp.color)?sp.color:'#eef4fa',skin:String(sp.skin||'default'),finish:String(sp.finish||'default'),trail:String(sp.trail||'default'),lv:clamp(sp.lv|0,1,40)}; }
+    lo:{cls,weapon:Cl.weapons.includes(lo.weapon)&&gear('w_'+lo.weapon)?lo.weapon:Cl.weapons[0],armor:Cl.armors.includes(lo.armor)&&gear('a_'+lo.armor)?lo.armor:Cl.armors[0],utils,perk:PERKS[lo.perk]?lo.perk:null},
+    own,
+    color:/^#[0-9a-f]{6}$/i.test(sp.color)?sp.color:'#eef4fa',skin:String(sp.skin||'default'),finish:String(sp.finish||'default'),trail:String(sp.trail||'default'),lv}; }
 
 /* per-unit command queues: a remote unit's turn waits on its queue */
 function netNext(id){ const q=NET.q.get(id); if(q&&q.length) return Promise.resolve(q.shift()); return new Promise(r=>NET.w.set(id,r)); }
@@ -2610,22 +2668,27 @@ $('#loBack').addEventListener('click',()=>closeLoadout(false));
 $('#loSave').addEventListener('click',()=>closeLoadout(true));
 $('#loDeploy').addEventListener('click',()=>{ draft.name=($('#callsign').value||'NOMAD'); LO=sanitize(draft); saveLO(); draft=null; startMatch(); });
 $('#callsign').addEventListener('input',e=>{ if(draft) draft.name=e.target.value; });
-function bars(rows){ return '<div class="bars">'+rows.map(r=>'<span>'+r[0]+'</span><div class="bar"><i style="width:'+clamp(r[1],0,100)+'%"></i></div>').join('')+'</div>'; }
+function bars(rows,pct){ return '<div class="bars'+(pct?' b3':'')+'">'+rows.map(r=>'<span>'+r[0]+'</span><div class="bar"><i style="width:'+clamp(r[1],0,100)+'%"></i></div>'+(pct?'<span>'+r[1]+'%</span>':'')).join('')+'</div>'; }
+// starter / unlock-level tag for weapons (w_) and armors (a_)
+function gearTag(id,ok){ return UNLOCK_LVL[id]==null?'<span class="gt">Starter</span>':'<span class="gt lv">'+(ok?'Lv ':'Locked · Lv ')+UNLOCK_LVL[id]+'</span>'; }
 function renderLoadout(){
   const Cl=CLASSES[draft.cls];
-  $('#clsRow').innerHTML=Object.keys(CLASSES).map(k=>{ const c=CLASSES[k]; return '<button class="card'+(k===draft.cls?' sel':'')+'" data-cls="'+k+'"><div class="t">'+c.name+'</div><div class="d">'+c.tag+'<br>'+ABIL[c.ability].name+'</div>'+bars([['Aim',(c.aim-55)*4],['HP',(c.hp-4)*16],['Move',(c.mob-4)*25]])+'</button>'; }).join('');
+  $('#clsRow').innerHTML=Object.keys(CLASSES).map(k=>{ const c=CLASSES[k]; return '<button class="card'+(k===draft.cls?' sel':'')+'" data-cls="'+k+'"><div class="t">'+c.name+'</div><div class="d">'+c.tag+'<br>'+ABIL[c.ability].name+'</div>'+bars([['Aim',(c.aim-55)*4],['HP',(c.hp-4)*16],['Move',(c.mob-3)*25]])+'</button>'; }).join('');
   $('#clsDesc').textContent=Cl.desc;
-  $('#wpRow').innerHTML=Cl.weapons.map(k=>{ const w=effWeapon(k), mk=weaponMk(k), nx=mk<3?UNLOCK_LVL[(mk===1?'mk2_':'mk3_')+k]:0; return '<button class="card'+(k===draft.weapon?' sel':'')+'" data-wp="'+k+'"><div class="t">'+w.name+(mk>1?' Mk '+(mk===2?'II':'III'):'')+'</div><div class="d">'+w.dmg[0]+'–'+w.dmg[1]+' dmg, '+w.clip+' rounds, '+w.crit+'% crit<br>'+w.desc+'</div>'+bars([['Close',w.rng[0]],['Mid',w.rng[1]],['Long',w.rng[2]]])+(nx?'<div class="lk">Mk '+(mk===1?'II':'III')+' at level '+nx+'</div>':'')+'</button>'; }).join('');
-  $('#arRow').innerHTML=Cl.armors.map(k=>{ const a=ARMORS[k], ln=own('ar_'+k); return '<button class="card'+(k===draft.armor?' sel':'')+'" data-ar="'+k+'"><div class="t">'+a.name+'</div><div class="d">'+a.short+' armor<br>'+a.desc+(ln?'<br>Lining: +1 HP':'')+'</div>'+(ln?'':'<div class="lk">Lining at level '+UNLOCK_LVL['ar_'+k]+'</div>')+'</button>'; }).join('');
+  const aimNow=Cl.aim+((PERKS[draft.perk]&&PERKS[draft.perk].aim)||0);
+  $('#wpRow').innerHTML=Cl.weapons.map(k=>{ const ok=wOwned(k), w=ok?effWeapon(k):Object.assign({},WEAPONS[k]), mk=ok?weaponMk(k):1, nx=mk<3?UNLOCK_LVL[(mk===1?'mk2_':'mk3_')+k]:0, ob=optBand(w), tr=weaponTraits(w);
+    return '<button class="card'+(k===draft.weapon?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-wp="'+k+'"':'data-lock="'+UNLOCK_LVL['w_'+k]+'"')+'><div class="t">'+w.name+(mk>1?' Mk '+(mk===2?'II':'III'):'')+gearTag('w_'+k,ok)+'</div><div class="d">'+w.dmg[0]+'–'+w.dmg[1]+' dmg (crit +'+w.critDmg+'), '+w.clip+' rounds, '+w.crit+'% crit<br><b class="opt">Optimal '+bandTxt(ob)+' ('+sgn(ob.mod)+' aim)</b><br>Aim by range: '+rangeTxt(w)+(tr.length?'<br>'+tr.join('. ')+'.':'')+'<br>'+w.desc+'</div>'+bars(bandHit(w,aimNow),true)
+      +(ok?(nx?'<div class="lk">Mk '+(mk===1?'II':'III')+' at level '+nx+'</div>':''):'<div class="lk">Unlocks at level '+UNLOCK_LVL['w_'+k]+'</div>')+'</button>'; }).join('');
+  $('#arRow').innerHTML=Cl.armors.map(k=>{ const a=ARMORS[k], ok=aOwned(k), ln=ok&&own('ar_'+k); return '<button class="card'+(k===draft.armor?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-ar="'+k+'"':'data-lock="'+UNLOCK_LVL['a_'+k]+'"')+'><div class="t">'+a.name+gearTag('a_'+k,ok)+'</div><div class="d">'+a.short+' armor: '+a.desc+(ln?', +1 HP lining':'')+'<br>'+a.note+'</div>'+(ok?(ln?'':'<div class="lk">Lining (+1 HP) at level '+UNLOCK_LVL['ar_'+k]+'</div>'):'<div class="lk">Unlocks at level '+UNLOCK_LVL['a_'+k]+'</div>')+'</button>'; }).join('');
   $('#utPick').textContent='pick '+utilSlots()+(own('pouch')?'':' · third slot at level '+UNLOCK_LVL.pouch);
   $('#utRow').innerHTML=Cl.utils.map(k=>{ const u=UTILS[k], ok=utilOwned(k); const ch=u.charges+((draft.cls==='grenadier'&&u.dmg)?1:0)+((draft.cls==='specialist'&&k==='medkit')?1:0); return '<button class="card'+(draft.utils.includes(k)?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-ut="'+k+'"':'data-lock="1"')+'><div class="t">'+u.name+' ×'+ch+'</div><div class="d">'+u.desc+'</div>'+(ok?'':'<div class="lk">Unlocks at level '+UNLOCK_LVL['u_'+k]+'</div>')+'</button>'; }).join('');
   $('#pkRow').innerHTML='<button class="card'+(!draft.perk?' sel':'')+'" data-pk=""><div class="t">No perk</div><div class="d">Run without a perk.</div></button>'+Object.keys(PERKS).map(k=>{ const ok=own(k); return '<button class="card'+(draft.perk===k?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-pk="'+k+'"':'data-lock="1"')+'><div class="t">'+PERKS[k].name+'</div><div class="d">'+PERKS[k].desc+'</div>'+(ok?'':'<div class="lk">Unlocks at level '+UNLOCK_LVL[k]+'</div>')+'</button>'; }).join('');
   const W=effWeapon(draft.weapon),A=ARMORS[draft.armor],pk=draft.perk;
-  const stats=[['Health',Cl.hp+A.hp+(own('ar_'+draft.armor)?1:0)],['Aim',Cl.aim+(pk==='pk_aim'?6:0)],['Mobility',Cl.mob+A.mob+(W.mob||0)+(pk==='pk_mob'?1:0)],['Defense',A.def],['Sight',9+Cl.sight],['Armor',A.armor]];
+  const stats=[['Health',Cl.hp+A.hp+(own('ar_'+draft.armor)?1:0)],['Aim',aimNow],['Mobility',mobOf(draft.cls,draft.armor,draft.weapon,pk)],['Defense',A.def],['Sight',9+Cl.sight+(A.sight||0)],['Armor',A.armor]];
   $('#statGrid').innerHTML=stats.map(s=>'<div class="stat"><b>'+s[1]+'</b>'+s[0]+'</div>').join('');
 }
 $('#loadout').addEventListener('click',e=>{ const b=e.target.closest('.card'); if(!b||!draft) return; SFX.click(); buzz(6);
-  if(b.dataset.lock){ hintMeta('Keep leveling to unlock this.'); return; }
+  if(b.dataset.lock){ hintMeta(+b.dataset.lock>1?'Unlocks at level '+b.dataset.lock+'. Keep leveling.':'Keep leveling to unlock this.'); return; }
   if(b.dataset.cls){ draft.cls=b.dataset.cls; const n=sanitize(draft); draft.weapon=n.weapon; draft.armor=n.armor; draft.utils=n.utils; }
   else if(b.dataset.pk!==undefined) draft.perk=b.dataset.pk||null; else if(b.dataset.wp) draft.weapon=b.dataset.wp; else if(b.dataset.ar) draft.armor=b.dataset.ar;
   else if(b.dataset.ut){ const k=b.dataset.ut; if(draft.utils.includes(k)){ if(draft.utils.length>1) draft.utils=draft.utils.filter(x=>x!==k); } else { draft.utils.push(k); if(draft.utils.length>utilSlots()) draft.utils.shift(); } }
