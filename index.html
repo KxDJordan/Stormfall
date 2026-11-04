@@ -2529,6 +2529,22 @@ function computeReach(u,maxCost){
   return {dist,prev};
 }
 function buildPath(R,i){ const p=[]; let k=i; while(k>=0){ p.push([k%MW,(k/MW)|0]); k=R.prev[k]; } return p.reverse(); }
+/* walking distance from a set of source tiles to every tile (same step costs as computeReach, other units ignored), for AI
+   scoring: straight-line distance makes a rooftop next to the goal look closer than the ladder behind it, so units froze up
+   there. Deterministic (binary heap, ties broken by tile index), computed fresh per decision, never cached across commands. */
+function walkField(src){
+  const N=MW*MH, dist=new Float32Array(N).fill(Infinity), H=[], push=(d,i)=>{ H.push([d,i]); let k=H.length-1; while(k){ const p=(k-1)>>1; if(H[p][0]<d||(H[p][0]===d&&H[p][1]<i)) break; H[k]=H[p]; k=p; } H[k]=[d,i]; },
+    pop=()=>{ const top=H[0], last=H.pop(); if(H.length){ let k=0; for(;;){ const l=2*k+1, r=l+1; let m=k, mv=last;
+      if(l<H.length&&(H[l][0]<mv[0]||(H[l][0]===mv[0]&&H[l][1]<mv[1]))){ m=l; mv=H[l]; } if(r<H.length&&(H[r][0]<mv[0]||(H[r][0]===mv[0]&&H[r][1]<mv[1]))){ m=r; mv=H[r]; }
+      if(m===k) break; H[k]=H[m]; k=m; } H[k]=last; } return top; };
+  for(const i of src) if(dist[i]>0){ dist[i]=0; push(0,i); }
+  while(H.length){ const [cd,cur]=pop(); if(cd>dist[cur]) continue; const cx=cur%MW, cy=(cur/MW)|0, lc=G.lvl[cur];
+    for(const d of DIRS8){ const nx=cx+d[0], ny=cy+d[1]; if(!inMap(nx,ny)) continue; const j=idx(nx,ny), o=G.grid[j]; if(o&&!o.pass&&!o.roof) continue;
+      const diag=d[0]&&d[1]; let climb=0;
+      if(diag){ if(G.lvl[j]!==lc) continue; const a=idx(cx+d[0],cy), b=idx(cx,cy+d[1]); if(lc>=2?(G.lvl[a]!==lc||G.lvl[b]!==lc):(!clearT(a)||!clearT(b))) continue; }
+      else { climb=climbCost(cx,cy,nx,ny); if(climb<0) continue; }
+      const nd=cd+(diag?1.5:1)+climb+(o&&o.kind==='door'&&o.t===2?1:0)+(G.surf[j]===1?1:0); if(nd<dist[j]){ dist[j]=nd; push(nd,j); } } }
+  return dist; }
 
 /* ================= units ================= */
 function sanitize(lo){
@@ -7054,14 +7070,18 @@ function goalFor(u){
 function leaderOf(u){ if(G.M.team<2) return null; let f=null;
   for(const m of G.units){ if(m===u||m.team!==u.team||!standing(m)||!(m.human||!u.human)) continue; if(m.human) return m; if(!f) f=m; }
   return f; }
-function aiScoreTile(u,x,y,threats,cost){
-  const st=G.storm, mv=stormMoving(), D=u.diff||DIFFS.veteran; let s=0;
-  // safe zone: the current circle, or the announced one when it takes over before this unit's next turn.
-  // A relocating storm: stay inside the current circle but lean toward the next one until the round before it moves.
-  let zx=st.cx, zy=st.cy, safeR=st.r;
+// safe zone: the current circle, or the announced one when it takes over before this unit's next turn.
+// A relocating storm: stay inside the current circle but lean toward the next one until the round before it moves.
+function aiZone(){ const st=G.storm, mv=stormMoving(); let zx=st.cx, zy=st.cy, safeR=st.r;
   if(stormIdxAt(G.round+1)>=0||(!mv&&stormIdxAt(G.round)>=0)){ zx=st.ncx; zy=st.ncy; safeR=mv?st.nextR+0.6:Math.min(st.r,st.nextR+0.6); }
+  return {zx,zy,safeR}; }
+// walking distance from field F (aiChooseMove's fields), falling back to straight-line distance where F cannot reach
+function aiWalk(F,x,y,eu){ const w=F?F[idx(x,y)]:Infinity; return isFinite(w)?w:eu; }
+function aiScoreTile(u,x,y,threats,cost){
+  const st=G.storm, mv=stormMoving(), D=u.diff||DIFFS.veteran, F=u._wf||{}; let s=0;
+  const {zx,zy,safeR}=aiZone();
   const dC=Math.hypot(x+.5-zx,y+.5-zy);
-  if(dC>safeR-0.4) s-=45+(dC-safeR)*14;
+  if(dC>safeR-0.4) s-=45+(F.zone?aiWalk(F.zone,x,y,dC-safeR):dC-safeR)*14; // by walking distance: a rooftop outside the zone is left by its ladder
   s-=dC*0.35;
   if(mv&&zx===st.cx&&zy===st.cy) s-=Math.max(0,Math.hypot(x+.5-st.ncx,y+.5-st.ncy)-st.nextR)*0.8;
   let best=0, seen=0;
@@ -7073,9 +7093,9 @@ function aiScoreTile(u,x,y,threats,cost){
     if(D.owAvoid&&los&&t.overwatch&&threats.fresh&&threats.fresh.has(t.id)&&d<=sightOf(t)+0.5) s-=D.owAvoid;
   }
   s+=best*0.3;
-  if(!threats.length&&u._goal) s-=Math.hypot(u._goal[0]-x,u._goal[1]-y)*0.45;
+  const gw=!threats.length&&u._goal?aiWalk(F.goal,x,y,Math.hypot(u._goal[0]-x,u._goal[1]-y)):0; s-=gw*0.45;
   if(seen>=3) s-=10;
-  { const lv=G.lvl[idx(x,y)]; if(lv) s+=lv>=2?(threats.length?15:9):7; } // high ground; rooftops (by ladder) mostly once there is someone to watch
+  { const lv=G.lvl[idx(x,y)]; if(lv) s+=threats.length?(lv>=2?15:7):gw>6?0:lv>=2?9:7; } // high ground; rooftops (by ladder) mostly once there is someone to watch. On the way somewhere a roof is only a detour
   const q=G.crates.find(q=>q.x===x&&q.y===y); if(q) s+=q.drop?45:14;
   const ob=siteAt(x,y); if(ob) s+=siteVal(u,ob); // objectives are public
   if(threats.length&&u._site) s-=Math.hypot(u._site[0]-x,u._site[1]-y)*0.9; // keep working toward a contested site while fighting
@@ -7083,7 +7103,7 @@ function aiScoreTile(u,x,y,threats,cost){
   if(threats.length) for(const d of DIRS8){ const o=cell(x+d[0],y+d[1]); if(o&&TERR[o.kind]&&TERR[o.kind].boom){ s-=8; break; } } // don't hide behind a fuel barrel
   // stay near the team leader; a human leader's orders (G.cmd[team], from pings / quick chat) tighten or loosen the leash
   const C=!u.human&&G.cmd&&G.cmd[u.team];
-  const L=leaderOf(u); if(L){ const d=Math.hypot(L.x-x,L.y-y); let lim=4.5, w=4;
+  const L=leaderOf(u); if(L){ const d=aiWalk(F.lead,x,y,Math.hypot(L.x-x,L.y-y)); let lim=4.5, w=4;
     if(C&&L.human){ if(C.k==='regroup'||C.k==='fallback'||C.k==='revive'){ lim=2.5; w=9; } else if(C.k!=='hold'&&C.k!=='danger'){ lim=8; w=3; } }
     if(d>lim) s-=(d-lim)*w; }
   if(C) s+=cmdScore(u,C,x,y,threats);
@@ -7106,10 +7126,15 @@ function aiChooseMove(u,maxAp){
   maxAp=maxAp||u.ap; if(maxAp<=0) return null;
   const R=computeReach(u,u.mob*maxAp);
   const threats=knownThreats(u); u._site=siteGoal(u); u._goal=threats.length?null:(cmdGoal(u)||u._site||goalFor(u));
-  const cur=aiScoreTile(u,u.x,u.y,threats,0); let best=null, bs=cur+3;
+  // walking-distance fields (goal, safe zone, squad leader) so ladders and stairs count: see walkField
+  { const Z=aiZone(), zs=[]; for(let i=0;i<MW*MH;i++) if(Math.hypot(i%MW+.5-Z.zx,((i/MW)|0)+.5-Z.zy)<=Z.safeR-0.4) zs.push(i);
+    const L=leaderOf(u), gx=u._goal?Math.floor(u._goal[0]):-1, gy=u._goal?Math.floor(u._goal[1]):-1, g=inMap(gx,gy)?idx(gx,gy):-1;
+    u._wf={zone:zs.length?walkField(zs):null, goal:g>=0?walkField([g]):null, lead:L?walkField([idx(L.x,L.y)]):null}; }
+  const cur=aiScoreTile(u,u.x,u.y,threats,0); let best=null, bs=cur+(threats.length?3:1); // nobody to fight: any real progress toward the goal is worth the move
   for(let i=0;i<MW*MH;i++){ const d=R.dist[i]; if(!isFinite(d)||d===0) continue; const x=i%MW,y=(i/MW)|0;
     let s=aiScoreTile(u,x,y,threats,d); if(d>u.mob+1e-6) s-=threats.length?20:0; if(u.W.heavy&&threats.length) s-=6;
     if(s>bs){ bs=s; best={i,cost:d}; } }
+  u._wf=null;
   if(!best) return null;
   return {cost:best.cost,path:buildPath(R,best.i)};
 }
