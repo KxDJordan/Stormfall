@@ -889,7 +889,9 @@ body.sheet-open .nav{display:none}
 <ul class="howlist">
       <li>Two action points a turn, on a turn timer. Blue tiles cost 1 AP, yellow dash tiles cost 2. Tap a tile to preview cover, tap again to move.</li>
       <li>Full cover blocks 40 aim, half cover 20. Shots inside the graze band deal half damage instead of missing outright.</li>
-      <li>High ground (raised platforms) gives +15 aim, +2 sight, and lets you shoot over half cover. Climbing costs 1 extra move.</li>
+      <li>High ground (raised platforms and rooftops) gives +15 aim and +2 sight (+3 on a two-story roof). From above, half cover gives no protection and full cover only counts as half. Climbing onto a platform costs 1 extra move.</li>
+      <li>Many buildings, bunkers, temples, mesas, containers and huts have walkable rooftops, some with a second story. Climb the yellow ladders: +1 move per level climbed or descended. On the ground, walls and buildings block sight; from a rooftop you see and shoot over anything lower than you, except someone hugging the far side of a wall or building as tall as your roof. Grenades don’t reach from a rooftop down to the street, or up.</li>
+      <li>A platform or building edge right next to you is full cover against attackers below its top, but none against anyone standing on it or higher. Rooftops themselves give no cover: you trade protection for aim and sight.</li>
       <li>Buildings with interiors have doors and windows. Windows are half cover you can see through. A closed door is full cover and blocks sight; walking through one opens it (+1 move). Next to a door you can open or close it (free, once a turn) or Breach it (1 AP: smashes it and stuns enemies right behind it).</li>
       <li>Cover breaks. A missed shot at someone behind crates, cars, fences, windows or sandbags hits the cover instead (half the weapon’s minimum damage), and you can shoot objects directly (never misses, 1 ammo). At 0 HP full cover drops to half cover and half cover to rubble. Grenades knock everything in the blast down a stage.</li>
       <li>Red fuel barrels and white fuel tanks explode when destroyed, hurting everyone nearby and setting off other explosives in the blast. Shoot them when an enemy hides next to one.</li>
@@ -1319,7 +1321,7 @@ function rosterTxt(slots,mk){ const M=MODES[mk]||MODES.solo, b=slots.filter(s=>!
   return (M.team>1?slots.length/M.team+' teams':slots.length+' operatives')+(b.length?' · '+(u.length===1?DIFFS[u[0]].name:'Mixed')+' AI':''); }
 const G={scene:'menu',region:'city',R:REG.city,grid:null,lanes:{x:[],y:[]},units:[],player:null,crates:[],smoke:[],decals:[],
   fx:[],parts:[],texts:[],pings:[],timers:[],tweens:[],time:0,cam:{x:0,y:0,z:1,tx:0,ty:0,tz:1,shake:0},
-  vis:new Uint8Array(MW*MH),seen:new Uint8Array(MW*MH),losCache:new Int8Array(MW*MH*MW*MH),elev:new Uint8Array(MW*MH),floorT:new Uint8Array(MW*MH),
+  vis:new Uint8Array(MW*MH),seen:new Uint8Array(MW*MH),losCache:new Int8Array(MW*MH*MW*MH),elev:new Uint8Array(MW*MH),floorT:new Uint8Array(MW*MH),lvl:new Uint8Array(MW*MH),lad:new Uint8Array(MW*MH),
   mode:'idle',busy:false,paused:false,over:true,matchId:0,round:0,storm:null,reach:null,pending:-1,pendingPath:null,
   targets:[],tIdx:0,tKind:null,slashPaths:null,throwUtil:null,throwTile:-1,turnRes:null,flashA:0,stats:null,
   ground:null,gScale:1,bg:null,weather:[],autoPlayer:false,lastRegion:null,M:MODES.solo,SC:STORM,drop:null,bubbles:[],
@@ -1336,8 +1338,30 @@ const coverT=(x,y)=>{const c=cell(x,y);return c?c.t:0;};
 const isFull=(x,y)=>coverT(x,y)===2;
 const unitAt=(x,y)=>G.units.find(u=>u.alive&&u.x===x&&u.y===y);
 const tdist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-const hi=(x,y)=>inMap(x,y)&&G.elev[idx(x,y)]?1:0;
-const ez=(x,y)=>hi(x,y)?EZ:0;
+/* Verticality: a heightfield of surface levels. G.lvl[i] is the level a unit standing on tile i is at: 0 ground,
+   1 raised platform (G.elev), 2 one-story rooftop, 3 two-story rooftop. A rooftop is the top of a solid structure marked
+   o.roof (its level); the tile stays full cover at ground level and is walkable on top. Ladders are edges between
+   orthogonal neighbours: G.lad[i] bit k = a ladder from tile i toward DIRS4[k] (set on both ends). Levels are fixed for
+   the match (roofed structures are indestructible), so LOS between two tiles stays a pure function of the pair. */
+const LZ=[0,EZ,46,84];                                    // surface height in px of each level (visual)
+const lvAt=(x,y)=>inMap(x,y)?G.lvl[idx(x,y)]:0;
+const hi=(x,y)=>lvAt(x,y);                                 // 0..3 (truthy = high ground)
+const ez=(x,y)=>LZ[lvAt(x,y)];                             // where a unit / marker on the tile stands
+const bz=(x,y)=>inMap(x,y)&&G.elev[idx(x,y)]?EZ:0;         // base of the object on a tile (platform props)
+const isPlat=(x,y)=>inMap(x,y)&&G.elev[idx(x,y)]===1;
+const isRoof=(x,y)=>{ const c=cell(x,y); return !!c&&!!c.roof; };
+const solidT=(x,y)=>{ const c=cell(x,y); return !!c&&c.t===2&&!c.roof; }; // full cover nobody can stand on
+// height (in levels) of the top of whatever occupies a tile: a rooftop's level, a full-cover object one story above its
+// base (two for very tall ones: trees, cranes, tall blocks), half cover half that; empty tiles their own surface
+function topAt(x,y){ if(!inMap(x,y)) return 0; const i=idx(x,y), o=G.grid[i], b=G.elev[i]?1:0; if(!o||o.flat) return b; if(o.roof) return o.roof;
+  return o.t===2?Math.min(3,b+((o.h||0)>=64?3:2)):o.t===1?b+1:b; }
+const ladAt=(x,y,k)=>inMap(x,y)&&!!(G.lad[idx(x,y)]&(1<<k));
+// extra move cost of stepping between two orthogonal neighbours a -> b, or -1 if the level change is impossible:
+// platforms are climbed anywhere (+1); rooftops only by ladder (+1 per level climbed or descended)
+function climbCost(ax,ay,bx,by){ const la=lvAt(ax,ay), lb=lvAt(bx,by); if(la===lb) return 0; if(la<=1&&lb<=1) return 1;
+  const k=DIRS4.findIndex(d=>d[0]===bx-ax&&d[1]===by-ay); return k>=0&&ladAt(ax,ay,k)?Math.abs(lb-la):-1; }
+// grenade blasts and explosions reach one level up or down, not from a rooftop to the street (or back)
+function inBlast(v,x,y,r){ return Math.hypot(v.x-x,v.y-y)<=r+0.01&&Math.abs(lvAt(v.x,v.y)-lvAt(x,y))<=1; }
 const standing=u=>u.alive&&!u.downed;
 const isEnemy=(a,b)=>a.team!==b.team;
 function teamStanding(team){ return G.units.some(u=>u.team===team&&standing(u)); }
@@ -1433,6 +1457,8 @@ function genMap(rk){
     n=0;tries=0;
     while(n<N(10)&&tries++<800){ const hz=RNG()<.5,len=ri(3,6),x=ri(2,MW-3-len),y=ri(2,MH-3-len); let good=true; for(let k=0;k<len;k++){ if(!rectFree(hz?x+k:x,hz?y:y+k,1,1,k===0?1:0)) good=false; } if(!good) continue; const gap=ri(1,len-2);
       for(let k=0;k<len;k++){ if(k===gap) continue; put(hz?x+k:x,hz?y:y+k,1,'pipes',0,{dir:hz?0:1}); } n++; }
+    n=0;tries=0; // control cabins: solid blocks that placeRoofs gives rooftops and ladders
+    while(n<N(5)&&tries++<800){ const w=ri(2,3),h=ri(2,3),x=ri(3,MW-3-w),y=ri(3,MH-3-h); if(!rectFree(x,y,w,h,1)) continue; fillRect(x,y,w,h,2,'hut',RNG()<0.45?LZ[3]:LZ[2],{g:3500+n,tint:RNG()}); n++; }
     n=0;tries=0;
     while(n<N(2)&&tries++<400){ const x=ri(4,MW-5),y=ri(4,MH-5); if(!rectFree(x,y,1,1,2)) continue; put(x,y,2,'flare',96); n++; }
     n=0;tries=0; // concrete blast walls: short full-cover runs
@@ -1473,7 +1499,8 @@ function genMap(rk){
     if(w*h>=6&&RNG()<0.7) put(x+ri(0,w-1),y+ri(0,h-1),1,REG[rk].platProp||'crates');
     np++; }
   placeInteractives(g,elev,floorT,rk);
-  return {grid:g,lanes,elev,floorT};
+  const V=placeRoofs(g,elev,floorT,rk);
+  return {grid:g,lanes,elev,floorT,lvl:V.lvl,lad:V.lad};
 }
 /* Region-agnostic pass run at the end of genMap: doors in building doorways, explosive fuel barrels and tanks, fences,
    and hit points on every destructible object. Everything new is placed with a free ring of tiles around it, so it can
@@ -1493,12 +1520,79 @@ function placeInteractives(g,elev,floorT,rk){
     for(let k=0;k<len;k++) g[idx(hz?x+k:x,hz?y:y+k)]={t:1,kind:'fence',h:0,v:RNG(),ax:hz?1:0,end:k===0?-1:k===len-1?1:0}; return true; });
   for(const o of g) if(o&&TERR[o.kind]&&o.hp==null) o.hp=TERR[o.kind].hp;
 }
+/* Rooftops and ladders: region-agnostic pass run last in genMap (seeded RNG only, so every client builds the same map).
+   1. Service huts: small solid blocks with a free ring of tiles around them (so they can never cut the map in two), mostly
+      in the refinery, whose own structures (round tanks, pipe racks) have no usable tops.
+   2. Solid structures (city buildings, arctic bunkers, jungle temples, desert mesas, dock containers, huts) may get a
+      walkable roof: level 2 (one story) or 3 (two stories, from tall structures). Large two-story blocks may be stepped:
+      a one-story front and a two-story back joined by a ladder.
+   3. Every roof part is reached by ladder: from a free ground (or platform) tile, or from a lower roof part. Ladders sit
+      only on the +x / +y faces (the faces the camera sees); a structure that cannot get one keeps a plain top.
+   Roofed structures are indestructible (stageNext / shootable skip them), so levels never change mid-match. */
+const ROOFK={building:0.8,bunker:0.65,temple:0.8,mesa:0.6,container:0.4,hut:1};
+function placeRoofs(g,elev,floorT,rk){
+  const K=MW*MH/900, N=n=>Math.round(n*K), lvl=new Uint8Array(MW*MH), lad=new Uint8Array(MW*MH);
+  for(let i=0;i<MW*MH;i++) if(elev[i]) lvl[i]=1;
+  const blank=(x,y)=>inMap(x,y)&&!g[idx(x,y)]&&!floorT[idx(x,y)];
+  // 1. huts
+  let n=0,tries=0; const want=rk==='docks'?N(1):N(2);
+  while(n<want&&tries++<600*K){ const w=ri(2,3),h=ri(2,3),x0=ri(3,MW-3-w),y0=ri(3,MH-3-h); let ok=true;
+    for(let y=y0-1;y<=y0+h&&ok;y++) for(let x=x0-1;x<=x0+w;x++){ const i=idx(x,y), inner=x>=x0&&x<x0+w&&y>=y0&&y<y0+h; if(g[i]||floorT[i]||(inner&&elev[i])){ ok=false; break; } }
+    if(!ok) continue; const H=RNG()<0.45?LZ[3]:LZ[2], ex={g:3000+n,tint:RNG()};
+    for(let y=y0;y<y0+h;y++) for(let x=x0;x<x0+w;x++) g[idx(x,y)]=Object.assign({t:2,kind:'hut',h:H,v:RNG()},ex); n++; }
+  // 2. structure groups: orthogonally connected tiles of one kind and group id
+  const seen=new Uint8Array(MW*MH), groups=[];
+  for(let i=0;i<MW*MH;i++){ const o=g[i]; if(!o||seen[i]||ROOFK[o.kind]==null||o.t!==2) continue; const tiles=[], st=[i]; seen[i]=1;
+    while(st.length){ const k=st.pop(); tiles.push(k); const x=k%MW,y=(k/MW)|0;
+      for(const d of DIRS4){ const nx=x+d[0],ny=y+d[1]; if(!inMap(nx,ny)) continue; const j=idx(nx,ny), q=g[j]; if(seen[j]||!q||q.kind!==o.kind||q.g!==o.g||q.t!==2) continue; seen[j]=1; st.push(j); } }
+    tiles.sort((a,b)=>a-b); groups.push({o,tiles}); }
+  const FW=[[1,0,0],[0,1,2]]; // visible faces: +x (DIRS4[0]) and +y (DIRS4[2])
+  // ladder plan for a level assignment, or null: every same-level part needs a ladder from the ground or a lower part
+  const plan=(tiles,lv)=>{ const set=new Map(tiles.map(i=>[i,lv.get(i)])), comp=new Map(), parts=[];
+    for(const i of tiles){ if(comp.has(i)) continue; const id=parts.length, P=[], st=[i]; comp.set(i,id);
+      while(st.length){ const k=st.pop(); P.push(k); const x=k%MW,y=(k/MW)|0; for(const d of DIRS4){ const j=idx(x+d[0],y+d[1]); if(inMap(x+d[0],y+d[1])&&set.get(j)===set.get(k)&&!comp.has(j)){ comp.set(j,id); st.push(j); } } }
+      parts.push(P); }
+    const out=[], linked=new Set(), used=new Set();
+    const ground=p=>{ const c=[]; for(const i of parts[p]){ const x=i%MW,y=(i/MW)|0; for(const f of FW){ const fx=x+f[0],fy=y+f[1], j=idx(fx,fy); if(fx<1||fy<1||fx>MW-2||fy>MH-2||!blank(fx,fy)||used.has(j)) continue; c.push([i,j,f[2]]); } } return c; };
+    for(let p=0;p<parts.length;p++){ const c=ground(p); if(!c.length) continue; const L=pick(c); out.push(L); used.add(L[1]); linked.add(p); break; }
+    if(!linked.size) return null;
+    for(let pass=0;pass<parts.length;pass++) for(let p=0;p<parts.length;p++){ if(linked.has(p)) continue; const c=[];
+      for(const i of parts[p]){ const x=i%MW,y=(i/MW)|0;
+        // a ladder on the +x/+y face of the taller tile, down to its lower neighbour; one end must already be linked
+        for(const f of FW){ const j=idx(x+f[0],y+f[1]); if(set.has(j)&&linked.has(comp.get(j))&&set.get(i)>set.get(j)) c.push([i,j,f[2]]); }
+        for(const f of FW){ const j=idx(x-f[0],y-f[1]); if(inMap(x-f[0],y-f[1])&&set.has(j)&&linked.has(comp.get(j))&&set.get(j)>set.get(i)) c.push([j,i,f[2]]); } }
+      if(c.length){ out.push(pick(c)); linked.add(p); } }
+    if(linked.size<parts.length) return null;
+    // a second ground ladder on bigger structures, for a choice of approach
+    if(tiles.length>=6&&RNG()<0.6){ const c=[]; for(let p=0;p<parts.length;p++) for(const q of ground(p)) if(!out.some(o=>Math.abs(o[1]%MW-q[1]%MW)+Math.abs(((o[1]/MW)|0)-((q[1]/MW)|0))<3)) c.push(q); if(c.length){ const L=pick(c); out.push(L); used.add(L[1]); } }
+    return out; };
+  let made=0; const cap=N(11);
+  for(const G0 of shuffle(groups)){
+    if(made>=cap) break; if(RNG()>=ROOFK[G0.o.kind]) continue;
+    const T=G0.tiles, H=Math.max(...T.map(i=>g[i].h||0)), top=H>=60?3:2, lv=new Map(T.map(i=>[i,top]));
+    let L=null;
+    // stepped: the front half (larger x or y) one story lower, the back half keeps both stories
+    if(top===3&&T.length>=4&&RNG()<0.6){ const xs=T.map(i=>i%MW), ys=T.map(i=>(i/MW)|0), ax=RNG()<0.5?0:1, v=ax?ys:xs, lo=Math.min(...v), hi2=Math.max(...v);
+      if(hi2>lo){ const cut=lo+Math.ceil((hi2-lo+1)/2), lv2=new Map(T.map((i,k)=>[i,v[k]>=cut?2:3])); L=plan(T,lv2); if(L) for(const [i,l] of lv2) lv.set(i,l); } }
+    if(!L) L=plan(T,lv);
+    if(!L) continue;
+    for(const i of T){ const o=g[i], l=lv.get(i); o.roof=l; o.h=LZ[l]; lvl[i]=l; }
+    for(const [a,b,k] of L){ lad[a]|=1<<k; lad[b]|=1<<(k^1); }
+    made++; }
+  return {lvl,lad};
+}
 
 /* ================= line of sight & cover ================= */
 // Walks every grid cell the sight line crosses (Amanatides-Woo). Sampling missed thin wall corners and let
 // lines squeeze through the seam between two diagonal walls. Grazing a single wall corner is still allowed.
+// Heights: a full-cover cell blocks only if it is taller (topAt) than the higher end of the line, so two ground units
+// cannot see across a wall but a unit on a rooftop sees over it. Dead ground: a cell as tall as the higher end still
+// hides the lower end when it stands right next to it (someone hugging the far side of a wall or building is hidden
+// from a rooftop at the wall's own height; step to the roof edge above them to see down).
 function rayClear(x0,y0,x1,y1,sx,sy,tx,ty){
-  const blk=(x,y)=>!((x===sx&&y===sy)||(x===tx&&y===ty))&&isFull(x,y);
+  const la=lvAt(sx,sy), lb=lvAt(tx,ty), hm=Math.max(la,lb), lo=Math.min(la,lb), lx=la<=lb?sx:tx, ly=la<=lb?sy:ty;
+  const blk=(x,y)=>{ if((x===sx&&y===sy)||(x===tx&&y===ty)||!isFull(x,y)) return false; const T=topAt(x,y);
+    return T>hm||(hm>lo&&T>=hm&&Math.abs(x-lx)<=1&&Math.abs(y-ly)<=1); };
   let cx=Math.floor(x0), cy=Math.floor(y0); const ex=Math.floor(x1), ey=Math.floor(y1);
   if(blk(cx,cy)) return false;
   const dx=x1-x0, dy=y1-y0, stx=Math.sign(dx), sty=Math.sign(dy);
@@ -1511,31 +1605,51 @@ function rayClear(x0,y0,x1,y1,sx,sy,tx,ty){
   }
   return true;
 }
-function stepOffs(x,y){ const o=[[0,0]]; for(const d of DIRS4){ if(inMap(x+d[0],y+d[1])&&!isFull(x+d[0],y+d[1])) o.push([d[0]*0.42,d[1]*0.42]); } return o; }
+// peeking: lean toward each orthogonal neighbour that does not rise above the unit's own level (a roof edge counts)
+function stepOffs(x,y){ const o=[[0,0]], L=lvAt(x,y); for(const d of DIRS4){ const nx=x+d[0],ny=y+d[1]; if(inMap(nx,ny)&&!(isFull(nx,ny)&&topAt(nx,ny)>L)) o.push([d[0]*0.42,d[1]*0.42]); } return o; }
 function hasLOS(ax,ay,bx,by){
   if(ax===bx&&ay===by) return true;
   const k=((ax*MH+ay)*MW+bx)*MH+by, c=G.losCache[k]; if(c) return c===1;
-  let r=false; const oa=stepOffs(ax,ay), ob=isFull(bx,by)?[[0,0]]:stepOffs(bx,by);
+  let r=false; const oa=stepOffs(ax,ay), ob=solidT(bx,by)?[[0,0]]:stepOffs(bx,by);
   outer: for(const p of oa) for(const q of ob){ if(rayClear(ax+.5+p[0],ay+.5+p[1],bx+.5+q[0],by+.5+q[1],ax,ay,bx,by)){ r=true; break outer; } }
-  G.losCache[k]=r?1:2; if(!isFull(bx,by)&&!isFull(ax,ay)) G.losCache[((bx*MH+by)*MW+ax)*MH+ay]=r?1:2;
+  G.losCache[k]=r?1:2; if(!solidT(bx,by)&&!solidT(ax,ay)) G.losCache[((bx*MH+by)*MW+ax)*MH+ay]=r?1:2;
   return r;
 }
 // walkable: empty, or a walkable object (doors, debris). clearT: also not a closed door (for diagonal corner cuts)
-const walkable=i=>{ const o=G.grid[i]; return !o||!!o.pass; };
+const walkable=i=>{ const o=G.grid[i]; return !o||!!o.pass||!!o.roof; };
 const clearT=i=>{ const o=G.grid[i]; return !o||(!!o.pass&&o.t<2); };
+/* Cover with heights. edgeCover: what neighbour tile (nx,ny) gives a unit on (dx,dy) against an attacker standing at
+   level la (0 ground .. 3 upper roof).
+   - A raised neighbour (platform or rooftop whose surface is above the defender) is a ledge: full cover against
+     attackers below its top, none against attackers at or above it (they look down past the edge).
+   - An object counts only if its top rises above the defender's feet. Seen from at or above its top, full cover drops
+     to half and half cover to none (the old "shoot over half cover from high ground" rule, generalised).
+   coverFrom keeps its directional neighbour test; elevCover adds whether height took cover away (crit bonus). Flanking or
+   other directional rules can wrap coverFrom/elevCover without touching the height logic. */
+function edgeCover(dx,dy,nx,ny,la){
+  if(!inMap(nx,ny)) return 0;
+  const ld=lvAt(dx,dy), ls=lvAt(nx,ny);
+  if(ls>ld) return la<ls?2:0;
+  const o=G.grid[idx(nx,ny)], ct=o&&!o.flat?o.t:0; if(!ct) return 0;
+  const T=topAt(nx,ny); if(T<=ld) return 0;
+  return la<T?ct:ct===2?1:0;
+}
 // the cell that gives the cover coverFrom reports (ties go to the x-axis neighbour), or null
 function coverCell(dx,dy,ax,ay){
-  const vx=ax-dx,vy=ay-dy,adx=Math.abs(vx),ady=Math.abs(vy); let best=0,bc=null;
-  if(adx>0&&adx>=ady*0.5){ const c=coverT(dx+Math.sign(vx),dy); if(c>best){ best=c; bc=[dx+Math.sign(vx),dy]; } }
-  if(ady>0&&ady>=adx*0.5){ const c=coverT(dx,dy+Math.sign(vy)); if(c>best){ best=c; bc=[dx,dy+Math.sign(vy)]; } }
+  const vx=ax-dx,vy=ay-dy,adx=Math.abs(vx),ady=Math.abs(vy), la=lvAt(ax,ay); let best=0,bc=null;
+  if(adx>0&&adx>=ady*0.5){ const c=edgeCover(dx,dy,dx+Math.sign(vx),dy,la); if(c>best){ best=c; bc=[dx+Math.sign(vx),dy]; } }
+  if(ady>0&&ady>=adx*0.5){ const c=edgeCover(dx,dy,dx,dy+Math.sign(vy),la); if(c>best){ best=c; bc=[dx,dy+Math.sign(vy)]; } }
   return bc;
 }
-function coverFrom(dx,dy,ax,ay){
-  const vx=ax-dx,vy=ay-dy,adx=Math.abs(vx),ady=Math.abs(vy); let best=0;
-  if(adx>0&&adx>=ady*0.5) best=Math.max(best,coverT(dx+Math.sign(vx),dy));
-  if(ady>0&&ady>=adx*0.5) best=Math.max(best,coverT(dx,dy+Math.sign(vy)));
+// la: the attacker's level (default: the level of the attacker's tile)
+function coverFrom(dx,dy,ax,ay,la){
+  const vx=ax-dx,vy=ay-dy,adx=Math.abs(vx),ady=Math.abs(vy); let best=0; if(la==null) la=lvAt(ax,ay);
+  if(adx>0&&adx>=ady*0.5) best=Math.max(best,edgeCover(dx,dy,dx+Math.sign(vx),dy,la));
+  if(ady>0&&ady>=adx*0.5) best=Math.max(best,edgeCover(dx,dy,dx,dy+Math.sign(vy),la));
   return best;
 }
+// {cov, over}: over = the defender would have cover against a shooter at its own height, but the shooter's height removes it
+function elevCover(tx,ty,ax,ay){ const cov=coverFrom(tx,ty,ax,ay); return {cov,over:cov===0&&coverFrom(tx,ty,ax,ay,lvAt(tx,ty))>0}; }
 function inSmoke(x,y){ return G.smoke.some(s=>Math.hypot(x-s.x,y-s.y)<=s.r+0.01); }
 function outsideStorm(x,y){ const s=G.storm; return Math.hypot(x+.5-s.cx,y+.5-s.cy)>s.r; }
 // storm schedule (sim): stage i -> {round, r, move}; endless relocation stages follow the listed ones
@@ -1558,7 +1672,9 @@ function pickStormCenter(cx,cy,curR,nr){
     if(n>=need) cand.push(i); }
   if(!cand.length) return [cx,cy];
   const c=pick(cand); return [c%MW+.5,((c/MW)|0)+.5]; }
-function sightOf(u){ return u.sight+(hi(u.x,u.y)?(hasP(u,'s_eagle')?3:2):0); }
+// high ground: +2 sight on a platform or one-story roof, +3 on a two-story roof (Eagle Eye: +1 more)
+function sightBonus(u,lv){ return lv?(lv>=3?3:2)+(hasP(u,'s_eagle')?1:0):0; }
+function sightOf(u){ return u.sight+sightBonus(u,lvAt(u.x,u.y)); }
 // Phantom (Ranger perk): the unit can only be spotted within 7 tiles
 function canSee(a,b){ return Math.hypot(a.x-b.x,a.y-b.y)<=(hasP(b,'r_ghost')?Math.min(7,sightOf(a)):sightOf(a))+0.01&&hasLOS(a.x,a.y,b.x,b.y); }
 // Scout Drone reveals (sim state, per team): consulted by computeVis for the local team and by updateIntel for AI teams
@@ -1591,11 +1707,13 @@ function computeReach(u,maxCost){
     const cx=cur%MW,cy=(cur/MW)|0;
     for(const d of DIRS8){
       const nx=cx+d[0],ny=cy+d[1]; if(!inMap(nx,ny)) continue; const j=idx(nx,ny);
-      const o=G.grid[j]; if((o&&!o.pass)||occ[j]) continue; // doors and debris are walkable
-      const diag=d[0]&&d[1];
-      const climb=G.elev[j]!==G.elev[cur];
-      if(diag&&(climb||!clearT(idx(cx+d[0],cy))||!clearT(idx(cx,cy+d[1])))) continue;
-      const nd=dist[cur]+(diag?1.5:1)+(climb?1:0)+(o&&o.kind==='door'&&o.t===2?1:0); if(nd>maxCost+1e-6||nd>=dist[j]) continue; // opening a closed door on the way costs 1 move
+      const o=G.grid[j]; if((o&&!o.pass&&!o.roof)||occ[j]) continue; // doors, debris and rooftops are walkable
+      const diag=d[0]&&d[1], lc=G.lvl[cur];
+      let climb=0;
+      if(diag){ if(G.lvl[j]!==lc) continue; // no diagonal level changes; on a roof both corner tiles must be roof at that level
+        const a=idx(cx+d[0],cy), b=idx(cx,cy+d[1]); if(lc>=2?(G.lvl[a]!==lc||G.lvl[b]!==lc):(!clearT(a)||!clearT(b))) continue; }
+      else { climb=climbCost(cx,cy,nx,ny); if(climb<0) continue; } // platforms: +1; ladders: +1 per level
+      const nd=dist[cur]+(diag?1.5:1)+climb+(o&&o.kind==='door'&&o.t===2?1:0); if(nd>maxCost+1e-6||nd>=dist[j]) continue; // opening a closed door on the way costs 1 move
       dist[j]=nd; prev[j]=cur; open.push(j);
     }
   }
@@ -1685,7 +1803,7 @@ function setupMatch(lo,mk,net,pre){
   const rp=net?null:pick(REGIONS.filter(r=>r!==G.lastRegion));
   G.region=net?(REG[net.region]?net.region:'city'):pre&&REG[pre.region]?pre.region:rp; G.lastRegion=G.region; G.R=REG[G.region];
   G.rosterTxt=rosterTxt(slots,M0.key);
-  const m=genMap(G.region); G.grid=m.grid; G.lanes=m.lanes; G.elev=m.elev; G.floorT=m.floorT; G.losCache.fill(0);
+  const m=genMap(G.region); G.grid=m.grid; G.lanes=m.lanes; G.elev=m.elev; G.floorT=m.floorT; G.lvl=m.lvl; G.lad=m.lad; G.losCache.fill(0);
   G.decals=[]; G.smoke=[]; G.crates=[]; G.units=[]; G.seen.fill(0); G.drop=null;
   const floors=[]; for(let i=0;i<MW*MH;i++) if(!G.grid[i]) floors.push(i);
   const near=floors.filter(i=>Math.hypot(i%MW-CX,((i/MW)|0)-CX)<=(G.M.key==='quick'?3:5));
@@ -1722,7 +1840,9 @@ function setupMatch(lo,mk,net,pre){
     mem.forEach((u,k)=>{ let x=ax,y=ay; if(k>0||taken.has(idx(x,y))){ let found=false; for(let r=1;r<4&&!found;r++) for(const d of DIRS8){ const nx=ax+d[0]*r,ny=ay+d[1]*r; if(inMap(nx,ny)&&!G.grid[idx(nx,ny)]&&!taken.has(idx(nx,ny))){ x=nx;y=ny;found=true;break; } } }
       taken.add(idx(x,y)); placeUnit(u,x,y); u.face=RNG()<.5?1:-1; }); }
   const crateN=Math.round((G.M.key==='quick'?7:11)*MW*MH/900*(G.M.fill>=1?1:0.45+0.55*G.M.fill)), inR=i=>Math.hypot(i%MW+.5-G.storm.cx,((i/MW)|0)+.5-G.storm.cy)<=G.M.startR-1;
-  for(let k=0;k<crateN;k++){ let best=-1,bd=-1; for(let t=0;t<50;t++){ const c=pick(floors); if(!inR(c)||taken.has(c)||G.crates.some(q=>idx(q.x,q.y)===c)) continue; let md=99; for(const s of [...taken].concat(G.crates.map(q=>idx(q.x,q.y)))) md=Math.min(md,Math.hypot(c%MW-s%MW,((c/MW)|0)-((s/MW)|0))); if(md>bd){bd=md;best=c;} } if(best>=0) G.crates.push({x:best%MW,y:(best/MW)|0,ph:RNG()*6}); }
+  // supply crates can also sit on rooftops (a reason to climb)
+  const cpool=floors.concat(G.lvl.reduce((a,l,i)=>(l>=2&&a.push(i),a),[]));
+  for(let k=0;k<crateN;k++){ let best=-1,bd=-1; for(let t=0;t<50;t++){ const c=pick(cpool); if(!inR(c)||taken.has(c)||G.crates.some(q=>idx(q.x,q.y)===c)) continue; let md=99; for(const s of [...taken].concat(G.crates.map(q=>idx(q.x,q.y)))) md=Math.min(md,Math.hypot(c%MW-s%MW,((c/MW)|0)-((s/MW)|0))); if(md>bd){bd=md;best=c;} } if(best>=0) G.crates.push({x:best%MW,y:(best/MW)|0,ph:RNG()*6}); }
   G.intel={}; G.noise=[]; G.round=0; G.over=false; G.playerDead=false; G.spec=null; G.speed=1; G.rewarded=null; G.result=null; G.place=0; G.busy=true; G.mode='idle'; G.reach=null; G.pending=-1; G.turnRes=null; G.paused=false; G.turnMax=0;
   G.stats={shots:0,hits:0,grazes:0,dmg:0,kills:0,rounds:0,crates:0,drops:0,owHits:0,highHits:0,nadeHits:0,revives:0};
   G.reveals=[]; G.sensors=[]; G.lkp=new Map(); G.cues=[]; G.groundDirty=false;
@@ -1733,7 +1853,7 @@ function setupMatch(lo,mk,net,pre){
 function setupMenuScene(){
   G.scene='menu'; G.matchId++; G.timers=[]; G.tweens=[]; G.fx=[]; G.parts=[]; G.texts=[]; G.pings=[]; G.bubbles=[]; G.drop=null;
   G.region=pick(REGIONS); G.lastRegion=G.region; G.R=REG[G.region];
-  const m=genMap(G.region); G.grid=m.grid; G.lanes=m.lanes; G.elev=m.elev; G.floorT=m.floorT; G.losCache.fill(0); G.decals=[]; G.smoke=[]; G.crates=[];
+  const m=genMap(G.region); G.grid=m.grid; G.lanes=m.lanes; G.elev=m.elev; G.floorT=m.floorT; G.lvl=m.lvl; G.lad=m.lad; G.losCache.fill(0); G.decals=[]; G.smoke=[]; G.crates=[];
   G.storm={cx:MW/2,cy:MH/2,r:11,nextR:8,stage:1,anim:null,ncx:MW/2,ncy:MH/2};
   G.units=[]; G.player=null; G.M=MODES.solo; G.SC=STORM;
   const floors=[]; for(let i=0;i<MW*MH;i++) if(!G.grid[i]) floors.push(i);
@@ -1788,7 +1908,7 @@ function sprite(key,x0,y0,w,h,draw){
 }
 function objId(o){ let id=RC.ids.get(o); if(!id){ id=++RC.nid; RC.ids.set(o,id); } return id; }
 // tight world-space bounds of an object's drawing (less transparent padding = cheaper blits)
-function objBox(o,x,y){ const k=o.kind, top=k==='window'?48:o.h?o.h+(k==='ruin'?20:k==='building'?12:k==='tree'?22:k==='crane'?10:6):32, m=k==='building'?5:k==='tree'?12:3; return [iso(x,y+1)[0]-m,iso(x,y)[1]-top,TW+m*2,TH+top+4]; }
+function objBox(o,x,y){ const k=o.kind, top=(k==='window'?48:o.h?o.h+(k==='ruin'?20:k==='building'?12:k==='tree'?22:k==='crane'?10:6):32)+(o.roof?10:0), m=k==='building'?5:k==='tree'?12:3; return [iso(x,y+1)[0]-m,iso(x,y)[1]-top,TW+m*2,TH+top+4]; }
 // soft round glow texture (replaces per-frame radial gradients for smoke, flashes, glows)
 function softTex(col,kind){
   const k=col[0]+','+col[1]+','+col[2]+(kind||''); let s=RC.soft.get(k); if(s) return s;
@@ -1975,7 +2095,7 @@ function drawObj(c,o,x,y,s,al){
     for(const [lw,a] of [[6,.16],[1.8,.95]]){ c.lineWidth=lw; c.strokeStyle=C(nc,s,a*al); if(exL) edgeLine(c,P.L,P.B,o.h); if(exR) edgeLine(c,P.B,P.R,o.h); }
     if(exL&&hash(x,y,77)<0.35){ c.fillStyle=C(nc,s,.85*al); faceQuad(c,P.L,P.B,0.3,0.7,o.h*0.45,o.h*0.45+5); c.fill(); }
     c.globalCompositeOperation='source-over';
-    if(hash(x,y,9)<0.3) drawBox(c,x,y,0.28,0.3,6,C([96,100,116],s),C([50,52,62],s),C([72,74,88],s),o.h);
+    if(!o.roof&&hash(x,y,9)<0.3) drawBox(c,x,y,0.28,0.3,6,C([96,100,116],s),C([50,52,62],s),C([72,74,88],s),o.h);
   } else if(k==='container'){
     const b=o.col, two=o.h>50, h1=two?o.h/2:o.h; const P=drawBox(c,x,y,0.04,0.04,h1,C(b,1.15*s),C(b,.6*s),C(b,.85*s));
     const ribs=(P,b,z0,h)=>{ c.strokeStyle=C(b,.42*s); c.lineWidth=1; for(let t=0.1;t<1;t+=0.13){ c.beginPath(); let a=[lerp(P.L[0],P.B[0],t),lerp(P.L[1],P.B[1],t)]; c.moveTo(a[0],a[1]-z0-2); c.lineTo(a[0],a[1]-z0-h+2); a=[lerp(P.B[0],P.R[0],t),lerp(P.B[1],P.R[1],t)]; c.moveTo(a[0],a[1]-z0-2); c.lineTo(a[0],a[1]-z0-h+2); c.stroke(); } };
@@ -2027,7 +2147,7 @@ function drawObj(c,o,x,y,s,al){
     const base=mix([182,92,52],[160,80,46],o.v); const P=drawBox(c,x,y,0.0,0.0,o.h,C(base,1.18*s),C(base,.58*s),C(base,.85*s));
     const exL=!sameG(x,y+1,o),exR=!sameG(x+1,y,o);
     for(let z=8;z<o.h-4;z+=9){ c.fillStyle=C(base,(z%18?0.5:0.7)*s); if(exL){ faceQuad(c,P.L,P.B,0,1,z,z+2.5); c.fill(); } if(exR){ faceQuad(c,P.B,P.R,0,1,z,z+2.5); c.fill(); } }
-    if(hash(x,y,8)<0.4){ const p=iso(x+.5,y+.5); c.fillStyle=C([90,100,50],s); c.beginPath(); c.ellipse(p[0],p[1]-o.h,7,3,0,0,Math.PI*2); c.fill(); }
+    if(!o.roof&&hash(x,y,8)<0.4){ const p=iso(x+.5,y+.5); c.fillStyle=C([90,100,50],s); c.beginPath(); c.ellipse(p[0],p[1]-o.h,7,3,0,0,Math.PI*2); c.fill(); }
   } else if(k==='ruin'){
     const base=[200,166,118]; const P=drawBox(c,x,y,0.06,0.08,o.h,C(base,1.12*s),C(base,.6*s),C(base,.84*s));
     c.strokeStyle=C(base,.42*s); c.lineWidth=1; for(let z=8;z<o.h;z+=8){ edgeLine(c,P.L,P.B,z); edgeLine(c,P.B,P.R,z); }
@@ -2139,6 +2259,15 @@ function drawObj(c,o,x,y,s,al){
     const base=[124,72,44]; const P=drawBox(c,x,y,o.part?0.0:0.08,0.14,12,C([50,36,30],s),C(base,.6*s),C(base,.85*s));
     c.fillStyle=C([160,90,50],s,.7*al); faceQuad(c,P.L,P.B,0.3,0.5,3,8); c.fill();
     if(!o.part) drawBox(c,x,y,0.25,0.26,8,C([40,32,28],s),C(base,.55*s),C(base,.75*s),12);
+  } else if(k==='hut'){
+    // service hut / control cabin (placeRoofs): region wall material, a story line, window slits, hazard-striped roof edge
+    const base=mix(G.R.wall,[118,122,130],0.4), P=drawBox(c,x,y,0.02,0.02,o.h,C(base,1.2*s),C(base,.6*s),C(base,.85*s));
+    const exL=!sameG(x,y+1,o),exR=!sameG(x+1,y,o);
+    c.strokeStyle=C(base,.42*s); c.lineWidth=1.2; if(o.h>LZ[2]+4){ if(exL) edgeLine(c,P.L,P.B,LZ[2]); if(exR) edgeLine(c,P.B,P.R,LZ[2]); }
+    for(let z=14,q=0;z<o.h-12;z+=LZ[2]-8,q++){ c.fillStyle=hash(x,y,q+40)<0.3?C([255,206,120],s):C([28,34,44],s);
+      if(exL&&hash(x,y,q+20)<0.7){ faceQuad(c,P.L,P.B,0.28,0.72,z,z+9); c.fill(); } if(exR&&hash(x,y,q+30)<0.7){ faceQuad(c,P.B,P.R,0.28,0.72,z,z+9); c.fill(); } }
+    for(let q=0;q<4;q++){ c.fillStyle=q%2?C([30,30,30],s):C([230,180,40],s); if(exL){ faceQuad(c,P.L,P.B,q*.25,q*.25+.25,o.h-4,o.h); c.fill(); } if(exR){ faceQuad(c,P.B,P.R,q*.25,q*.25+.25,o.h-4,o.h); c.fill(); } }
+    if(G.region==='arctic') snowCap(c,P,s,al);
   } else if(k==='door'){
     // door in a wall gap; ax=1: the wall runs along x. Closed: a panel filling the gap. Open: jambs and a swung leaf.
     const base=G.region==='city'?[132,78,66]:G.region==='arctic'?[120,136,152]:[198,160,114], wood=G.region==='arctic'?[200,94,40]:G.region==='city'?[38,128,138]:[136,86,46];
@@ -2184,6 +2313,7 @@ function drawObj(c,o,x,y,s,al){
     for(let q=0;q<6;q++){ const u2=0.18+hash(x,y,300+q)*0.64, v2=0.18+hash(x,y,310+q)*0.64, w2=0.06+hash(x,y,320+q)*0.08, h2=2+hash(x,y,330+q)*4;
       prism(c,x+u2-w2,y+v2-w2,x+u2+w2,y+v2+w2,h2,0,C(base,1.15*s),C(base,.55*s),C(base,.8*s)); }
   }
+  if(o.roof) roofDeco(c,x,y,o.h,s);
   // gunfire damage on destructible objects: cracks that grow as HP drops
   { const T=TERR[k]; if(T&&o.hp!=null&&o.hp<T.hp&&!o.flat&&k!=='door'){ const dmg=1-o.hp/T.hp, p=iso(x+.5,y+.5), top=o.h||14;
     c.strokeStyle='rgba(18,12,8,'+(0.45+dmg*0.4)+')'; c.lineWidth=1.3; for(let q=0;q<1+dmg*5;q++){ const hx=p[0]+(hash(x,y,200+q)-.5)*26, hy=p[1]-3-hash(x,y,210+q)*top*0.8; c.beginPath(); c.moveTo(hx,hy); c.lineTo(hx+4,hy+3); c.lineTo(hx+2,hy+7); c.stroke(); } }
@@ -2191,6 +2321,21 @@ function drawObj(c,o,x,y,s,al){
   c.globalAlpha=1;
 }
 
+// rooftop details, baked into the structure's sprite: a faint seam around the walkable top, and the ladders on its
+// visible faces (+x / +y; placeRoofs only puts them there), from the neighbour's level up to the roof with grab rails
+function roofDeco(c,x,y,z,s){
+  const T=iso(x,y),R=iso(x+1,y),B=iso(x+1,y+1),L=iso(x,y+1);
+  c.strokeStyle='rgba(0,0,0,'+(0.2*s)+')'; c.lineWidth=1; c.beginPath(); c.moveTo(T[0],T[1]-z); c.lineTo(R[0],R[1]-z); c.lineTo(B[0],B[1]-z); c.lineTo(L[0],L[1]-z); c.closePath(); c.stroke();
+  for(const [k,P1,P2] of [[0,B,R],[2,L,B]]){ if(!ladAt(x,y,k)) continue;
+    const d=DIRS4[k], z0=ez(x+d[0],y+d[1]), ox=(d[0]-d[1])*1.4, oy=(d[0]+d[1])*0.7, at=t=>[lerp(P1[0],P2[0],t)+ox,lerp(P1[1],P2[1],t)+oy], a=at(.33), b=at(.67);
+    c.fillStyle='rgba(0,0,0,'+(0.18*s)+')'; poly(c,[[a[0],a[1]-z0],[b[0],b[1]-z0],[b[0],b[1]-z],[a[0],a[1]-z]]); c.fill(); // shadow strip on the wall
+    c.lineCap='round';
+    for(const [w,col] of [[3,C([24,24,28],s)],[1.4,C([236,196,64],s)]]){ c.strokeStyle=col; c.lineWidth=w; c.beginPath();
+      for(const q of [a,b]){ c.moveTo(q[0],q[1]-z0); c.lineTo(q[0],q[1]-z-8); }
+      for(let zz=z0+5;zz<z-1;zz+=6){ c.moveTo(a[0],a[1]-zz); c.lineTo(b[0],b[1]-zz); }
+      c.stroke(); }
+    c.lineCap='butt'; }
+}
 // animated parts of an object, drawn every frame on top of its cached sprite
 function objLive(c,o,x,y,al){
   if(o.kind==='flare'){ const p=iso(x+.5,y+.5), t=G.time, top=p[1]-o.h-4; c.globalCompositeOperation='lighter';
@@ -3335,8 +3480,8 @@ function drawPlatform(c,x,y,s){
   else if(rk==='docks'){ for(let q=0;q<6;q++){ c.fillStyle=q%2?C([30,30,30],s):C([230,180,40],s); faceQuad(c,P.L,P.B,q/6,(q+1)/6,EZ-5,EZ-1); c.fill(); faceQuad(c,P.B,P.R,q/6,(q+1)/6,EZ-5,EZ-1); c.fill(); } }
   else if(rk==='refinery'){ c.strokeStyle=C([30,28,26],s,.6); c.lineWidth=1; for(let k=1;k<5;k++){ const a=iso(x+k/5,y),b=iso(x+k/5,y+1); c.beginPath(); c.moveTo(a[0],a[1]-EZ); c.lineTo(b[0],b[1]-EZ); c.stroke(); } c.fillStyle=C([200,60,30],s,.8); faceQuad(c,P.L,P.B,0,1,EZ-3,EZ-1); c.fill(); faceQuad(c,P.B,P.R,0,1,EZ-3,EZ-1); c.fill(); }
   c.strokeStyle=rk==='city'||rk==='docks'?'rgba(255,200,70,'+(0.8*s)+')':'rgba(255,255,255,'+(0.45*s)+')'; c.lineWidth=1.6;
-  if(!hi(x,y+1)) edgeLine(c,P.L,P.B,EZ); if(!hi(x+1,y)) edgeLine(c,P.B,P.R,EZ); if(!hi(x-1,y)) edgeLine(c,P.T,P.L,EZ); if(!hi(x,y-1)) edgeLine(c,P.T,P.R,EZ);
-  if(!hi(x,y+1)&&hash(x,y,31)<0.35){ c.strokeStyle=C([200,205,215],s,.85); c.lineWidth=1.3; const a0=.4,a1=.6; c.beginPath(); for(const tt of [a0,a1]){ const q=[lerp(P.L[0],P.B[0],tt),lerp(P.L[1],P.B[1],tt)]; c.moveTo(q[0],q[1]); c.lineTo(q[0],q[1]-EZ); } for(let z=5;z<EZ;z+=5){ const q0=[lerp(P.L[0],P.B[0],a0),lerp(P.L[1],P.B[1],a0)],q1=[lerp(P.L[0],P.B[0],a1),lerp(P.L[1],P.B[1],a1)]; c.moveTo(q0[0],q0[1]-z); c.lineTo(q1[0],q1[1]-z); } c.stroke(); }
+  if(!isPlat(x,y+1)) edgeLine(c,P.L,P.B,EZ); if(!isPlat(x+1,y)) edgeLine(c,P.B,P.R,EZ); if(!isPlat(x-1,y)) edgeLine(c,P.T,P.L,EZ); if(!isPlat(x,y-1)) edgeLine(c,P.T,P.R,EZ);
+  if(!isPlat(x,y+1)&&hash(x,y,31)<0.35){ c.strokeStyle=C([200,205,215],s,.85); c.lineWidth=1.3; const a0=.4,a1=.6; c.beginPath(); for(const tt of [a0,a1]){ const q=[lerp(P.L[0],P.B[0],tt),lerp(P.L[1],P.B[1],tt)]; c.moveTo(q[0],q[1]); c.lineTo(q[0],q[1]-EZ); } for(let z=5;z<EZ;z+=5){ const q0=[lerp(P.L[0],P.B[0],a0),lerp(P.L[1],P.B[1],a0)],q1=[lerp(P.L[0],P.B[0],a1),lerp(P.L[1],P.B[1],a1)]; c.moveTo(q0[0],q0[1]-z); c.lineTo(q1[0],q1[1]-z); } c.stroke(); }
 }
 function drawBubbles(c){
   c.textAlign='center'; c.font='600 12px "Chakra Petch",sans-serif';
@@ -3360,10 +3505,13 @@ function updateFade(focus){
   const rm=RC.reachM, fm=RC.focusM; rm.fill(0); fm.fill(0);
   if(moveActive()){ const d=G.reach.dist, mob=G.player.mob+1e-6; for(let i=0;i<MW*MH;i++) if(d[i]<Infinity) rm[i]=d[i]<=mob?2:1; }
   for(const f of focus){ const fx=Math.round(f.x), fy=Math.round(f.y); if(inMap(fx,fy)) fm[idx(fx,fy)]=1; }
+  // the structure the local player stands on stays solid (fading the roof under your own feet reads as falling through)
+  const pu=G.scene==='game'&&G.player&&G.player.alive?G.player:null, own=pu&&lvAt(pu.x,pu.y)>=2?cell(pu.x,pu.y):null;
   for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const i=idx(x,y), o=G.grid[i]; if(!o){ RC.fade[i]=1; continue; }
-    let tg=1; const H=tallH(o);
+    let tg=1; const H=own&&o.roof&&o.roof<=own.roof&&o.kind===own.kind&&o.g===own.g?0:tallH(o);
     if(H){ const n=Math.min(4,Math.max(1,Math.ceil((H-12)/20)));
       for(let a=0;a<=n&&tg>0.3;a++) for(let b=0;b<=n-a;b++){ if(a+b===0||Math.abs(a-b)>1) continue; const tx=x-a,ty=y-b; if(tx<0||ty<0) continue; const j=idx(tx,ty);
+        if(H<=LZ[G.lvl[j]]+8) continue; // a unit / tile up on a roof at (or above) this object's top is not hidden by it
         if(fm[j]){ tg=0.3; break; } if(rm[j]===2) tg=0.42; else if(rm[j]&&tg>0.72) tg=0.72; } }
     const f=RC.fade[i]; RC.fade[i]=Math.abs(tg-f)<0.004?tg:f+(tg-f)*k; }
 }
@@ -3398,7 +3546,7 @@ function drawWorld(c){
   const ents=[]; const focus=G.units.filter(u=>u.alive&&(u.team===(G.player&&G.player.team)||shouldShow(u)||G.scene==='menu'));
   if(G.pending>=0) focus.push({x:G.pending%MW,y:(G.pending/MW)|0});
   updateFade(focus);
-  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const o=G.grid[idx(x,y)]; if(!o) continue; const b=objBox(o,x,y), z=ez(x,y); if(onScreen(b[0],b[1]-z,b[2],b[3])) ents.push({d:x+y,k:0,x,y,o,b,z}); }
+  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const o=G.grid[idx(x,y)]; if(!o) continue; const b=objBox(o,x,y), z=bz(x,y); if(onScreen(b[0],b[1]-z,b[2],b[3])) ents.push({d:x+y,k:0,x,y,o,b,z}); }
   for(const q of G.crates) ents.push({d:q.x+q.y+0.3,k:1,q});
   for(const u of G.units){ if(G.scene==='game'&&!shouldShow(u)) continue; ents.push({d:u.rx+u.ry+0.5+(u.alive?0.01:0),k:2,u}); }
   ents.sort((a,b)=>a.d-b.d);
@@ -3406,10 +3554,12 @@ function drawWorld(c){
     if(e.k===0){ const i=idx(e.x,e.y), sh=shadeAt(i), al=RC.fade[i], o=e.o, b=e.b;
       const spr=sprite('o'+objId(o)+'.'+(o.rv||0)+'_'+sh,b[0],b[1],b[2],b[3],g=>drawObj(g,o,e.x,e.y,sh,1));
       c.globalAlpha=al; c.drawImage(spr.cv,spr.x,spr.y-e.z,spr.w,spr.h); c.globalAlpha=1;
+      if(o.roof&&RC.reachM[i]) roofHL(c,e.x,e.y,i);
       if(o.kind==='bunker'||o.kind==='flare'){ c.save(); c.translate(0,-e.z); objLive(c,o,e.x,e.y,al*sh); c.restore(); } }
     else if(e.k===1){ drawCrate(c,e.q,shadeAt(idx(e.q.x,e.q.y))<1?0.55:1); }
     else { const q=unitScreen(e.u); if(e.u.drop>0||onScreen(q[0]-60,q[1]-90,120,120)) drawUnit(c,e.u); }
   }
+  if(moveActive()&&G.pending>=0&&pendHigh()) drawPending(c);
   G.zDraw=false;
   drawSmoke(c);
   drawIntel(c);
@@ -3420,6 +3570,14 @@ function drawWorld(c){
   drawBubbles(c);
   drawTeamPings(c);
   c.restore();
+}
+// move range on a rooftop tile, painted right after that structure's sprite (the shared reach area is drawn before the
+// objects, so the roof itself would cover it); same colours and borders as regionDraw
+function roofHL(c,x,y,i){
+  const m=RC.reachM[i], p=G.player; if(!G.reach||G.reach.dist[i]===0||(m===1&&p.ap<2)) return;
+  c.beginPath(); tilePath(c,x,y); c.fillStyle=m===2?'rgba(60,190,255,.18)':'rgba(255,200,60,.12)'; c.fill();
+  c.beginPath(); DIRS4.forEach((d,k)=>{ const nx=x+d[0],ny=y+d[1]; if(!inMap(nx,ny)||RC.reachM[idx(nx,ny)]!==m||hi(nx,ny)!==hi(x,y)) edge(c,x,y,k); });
+  c.lineJoin='round'; c.strokeStyle='rgba(0,10,20,.35)'; c.lineWidth=4; c.stroke(); c.strokeStyle=m===2?'rgba(90,210,255,.8)':'rgba(255,200,70,.6)'; c.lineWidth=2.2; c.stroke(); c.lineJoin='miter';
 }
 function edge(c,x,y,dir){ const z=G.zDraw?ez(x,y):0; let a,b; if(dir===0){a=iso(x+1,y);b=iso(x+1,y+1);} else if(dir===1){a=iso(x,y);b=iso(x,y+1);} else if(dir===2){a=iso(x,y+1);b=iso(x+1,y+1);} else {a=iso(x,y);b=iso(x+1,y);} c.moveTo(a[0],a[1]-z); c.lineTo(b[0],b[1]-z); }
 function regionDraw(c,inSet,fill,stroke,key){
@@ -3451,7 +3609,8 @@ function shieldIcon(full){
 function drawCoverIcons(c){
   if(!moveActive()||G.pending<0||!G.pendingPath) return;
   const x=G.pending%MW,y=(G.pending/MW)|0, z=ez(x,y), t=G.time, k=clamp(1/G.cam.z,0.9,1.8)*0.95;
-  DIRS4.forEach((d,n)=>{ const ct=coverT(x+d[0],y+d[1]); if(!ct||ez(x+d[0],y+d[1])!==z) return;
+  // cover against attackers at this tile's own height (ledges of platforms and rooftops count; lower objects don't)
+  DIRS4.forEach((d,n)=>{ const ct=edgeCover(x,y,x+d[0],y+d[1],lvAt(x,y)); if(!ct) return;
     const s=iso(x+.5+d[0]*.5,y+.5+d[1]*.5), gy=s[1]-z, back=d[0]<0||d[1]<0, iy=gy-(back?36:14)*Math.min(k,1.3)-Math.sin(t*4+n)*1.5; // back-edge icons float higher so pairs on one side never overlap
     c.strokeStyle='rgba(2,10,18,.7)'; c.lineWidth=3; c.beginPath(); c.moveTo(s[0],gy-2); c.lineTo(s[0],iy+10*k); c.stroke();
     c.strokeStyle=ct===2?'#bff4ff':'#7fe8ff'; c.lineWidth=1.2; c.stroke();
@@ -3521,14 +3680,11 @@ function drawCueArrows(c){
     c.font='700 10px "Chakra Petch",sans-serif'; c.textAlign='center'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,'+(.7*a)+')'; const lb=q.kind==='blast'?'BLAST':q.kind==='sensor'?'SENSOR':'SHOTS', ly=ay-Math.sin(an)*16+4, lx=ax-Math.cos(an)*20; c.strokeText(lb,lx,ly); c.fillStyle=C(col,1,a); c.fillText(lb,lx,ly); }
 }
 function tileC(x,y){ const s=iso(x+.5,y+.5); s[1]-=ez(x,y); return s; }
-function drawHighlights(c){
-  if(G.scene!=='game'||!G.player) return; const p=G.player, t=G.time;
-  if(G.mode==='move'&&G.reach&&!G.busy&&G.turnRes){
-    const R=G.reach;
-    const rk=objId(R)+':'+p.mob+':'+RC.gen;
-    regionDraw(c,i=>R.dist[i]>0&&R.dist[i]<=p.mob+1e-6,'rgba(60,190,255,.12)','rgba(90,210,255,.75)','m'+rk);
-    if(p.ap>=2) regionDraw(c,i=>isFinite(R.dist[i])&&R.dist[i]>p.mob+1e-6,'rgba(255,200,60,.08)','rgba(255,200,70,.55)','d'+rk);
-    if(G.pending>=0&&G.pendingPath){ const pts=G.pendingPath.map(q=>tileC(q[0],q[1]));
+// the previewed move: dashed path, target tile with breathing brackets, and its label. Drawn under the objects like the
+// reach area, or (pendHigh) as an overlay after them when the path climbs onto a rooftop, so roofs cannot hide it.
+function pendHigh(){ return !!G.pendingPath&&G.pendingPath.some(q=>lvAt(q[0],q[1])>=2); }
+function drawPending(c){
+  const t=G.time, pts=G.pendingPath.map(q=>tileC(q[0],q[1]));
       c.lineJoin='round'; c.lineCap='round'; c.strokeStyle='rgba(0,12,24,.45)'; c.lineWidth=5; c.beginPath(); pts.forEach((s,k)=>k?c.lineTo(s[0],s[1]):c.moveTo(s[0],s[1])); c.stroke();
       c.strokeStyle='rgba(140,230,255,.95)'; c.lineWidth=2.5; c.setLineDash([5,5]); c.lineDashOffset=-t*20; c.stroke(); c.setLineDash([]); c.lineCap='butt';
       c.fillStyle='#bff1ff'; for(let k=1;k<pts.length-1;k++){ c.beginPath(); c.ellipse(pts[k][0],pts[k][1],2.6,1.4,0,0,Math.PI*2); c.fill(); }
@@ -3538,8 +3694,17 @@ function drawHighlights(c){
         for(const q of cs){ const a=iso(q[0]+q[2]*0.22,q[1]),b=iso(q[0],q[1]),d=iso(q[0],q[1]+q[3]*0.22); c.moveTo(a[0],a[1]-z); c.lineTo(b[0],b[1]-z); c.lineTo(d[0],d[1]-z); } c.stroke(); }
       c.lineJoin='miter';
       const s=tileC(x,y); c.font='700 11px "Chakra Petch",sans-serif'; c.textAlign='center'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,.6)';
-      if(hi(x,y)){ c.strokeText('HIGH GROUND',s[0],s[1]+22); c.fillStyle='#ffe08a'; c.fillText('HIGH GROUND',s[0],s[1]+22); }
-      else if(outsideStorm(x,y)){ c.strokeText('STORM',s[0],s[1]+22); c.fillStyle='#ffb340'; c.fillText('STORM',s[0],s[1]+22); } }
+      if(hi(x,y)){ const lb=hi(x,y)>=2?'ROOFTOP':'HIGH GROUND'; c.strokeText(lb,s[0],s[1]+22); c.fillStyle='#ffe08a'; c.fillText(lb,s[0],s[1]+22); }
+      else if(outsideStorm(x,y)){ c.strokeText('STORM',s[0],s[1]+22); c.fillStyle='#ffb340'; c.fillText('STORM',s[0],s[1]+22); }
+}
+function drawHighlights(c){
+  if(G.scene!=='game'||!G.player) return; const p=G.player, t=G.time;
+  if(G.mode==='move'&&G.reach&&!G.busy&&G.turnRes){
+    const R=G.reach;
+    const rk=objId(R)+':'+p.mob+':'+RC.gen;
+    regionDraw(c,i=>R.dist[i]>0&&R.dist[i]<=p.mob+1e-6,'rgba(60,190,255,.12)','rgba(90,210,255,.75)','m'+rk);
+    if(p.ap>=2) regionDraw(c,i=>isFinite(R.dist[i])&&R.dist[i]>p.mob+1e-6,'rgba(255,200,60,.08)','rgba(255,200,70,.55)','d'+rk);
+    if(G.pending>=0&&G.pendingPath&&!pendHigh()) drawPending(c);
   }
   if(G.mode==='throw'&&G.throwUtil){ const U=UTILS[G.throwUtil.id], rg=throwRange(p,U);
     regionDraw(c,i=>{const x=i%MW,y=(i/MW)|0; return Math.hypot(x-p.x,y-p.y)<=rg&&(G.vis[i]||U.blind);},'rgba(255,170,60,.05)','rgba(255,170,60,.45)');
@@ -3612,10 +3777,10 @@ function muzzleFlash(m,col,kind,wid,ang){
 function casing(u,kind){ const id=u.anim&&u.anim.sec?u.sid:u.wid; if(kind==='beam'||id==='volt'||id==='cannon'||kind==='throw') return; const p=unitScreen(u), f=u.face;
   part({x:p[0]+f*6,y:p[1],z:27,vx:-f*frand(30,70),vy:frand(-10,10),vz:frand(50,90),life:frand(.8,1.2),size:kind==='pellet'?2.2:1.5,col:kind==='pellet'?[200,50,44]:[222,178,86],type:'casing',grav:420}); }
 // which cover tile (if any) stopped a missed shot: the same neighbour test as coverFrom (a pure read)
-function coverTile(t,a){ const vx=a.x-t.x,vy=a.y-t.y,ax=Math.abs(vx),ay=Math.abs(vy); let b=null,bt=0;
-  if(ax>0&&ax>=ay*.5){ const ct=coverT(t.x+Math.sign(vx),t.y); if(ct>bt){ bt=ct; b=[t.x+Math.sign(vx),t.y]; } }
-  if(ay>0&&ay>=ax*.5){ const ct=coverT(t.x,t.y+Math.sign(vy)); if(ct>bt){ bt=ct; b=[t.x,t.y+Math.sign(vy)]; } }
-  return b?{x:b[0],y:b[1],full:bt===2}:null; }
+function coverTile(t,a){ const vx=a.x-t.x,vy=a.y-t.y,ax=Math.abs(vx),ay=Math.abs(vy), la=lvAt(a.x,a.y); let b=null,bt=0;
+  if(ax>0&&ax>=ay*.5){ const ct=edgeCover(t.x,t.y,t.x+Math.sign(vx),t.y,la); if(ct>bt){ bt=ct; b=[t.x+Math.sign(vx),t.y]; } }
+  if(ay>0&&ay>=ax*.5){ const ct=edgeCover(t.x,t.y,t.x,t.y+Math.sign(vy),la); if(ct>bt){ bt=ct; b=[t.x,t.y+Math.sign(vy)]; } }
+  return b?{x:b[0],y:b[1],full:bt===2,ledge:lvAt(b[0],b[1])>lvAt(t.x,t.y)}:null; }
 const GROUNDC={city:[110,110,124],arctic:[226,232,242],desert:[200,156,104]};
 // impact: o.m = 'flesh' | 'cover' | 'ground'
 function impact(p,hit,col,m){
@@ -3777,7 +3942,10 @@ function update(dt){
   const gdt=G.paused?0:dt*(G.playerDead&&!G.over?(G.speed||1):1);
   if(gdt>0){ const due=[]; G.timers=G.timers.filter(t=>{ t.t-=gdt; if(t.t<=0){ due.push(t.fn); return false; } return true; }); due.forEach(f=>f()); }
   for(let i=G.tweens.length-1;i>=0;i--){ const tw=G.tweens[i]; tw.t+=gdt; const k=Math.min(1,tw.t/tw.dur);
-    if(tw.u){ tw.u.rx=lerp(tw.fx,tw.tx,k); tw.u.ry=lerp(tw.fy,tw.ty,k); tw.u.walk+=gdt; if(tw.tz!=null) tw.u.rz=lerp(tw.fz,tw.tz,k)+(tw.fz!==tw.tz?Math.sin(k*Math.PI)*10:0); }
+    if(tw.u&&tw.lad){ // ladder: step to the foot of the ladder (just outside the wall), climb, step off
+      const m=tw.lad, q=k<0.22?m*k/0.22:k<0.78?m:m+(1-m)*(k-0.78)/0.22, z=k<0.22?0:k<0.78?(k-0.22)/0.56:1;
+      tw.u.rx=lerp(tw.fx,tw.tx,q); tw.u.ry=lerp(tw.fy,tw.ty,q); tw.u.rz=lerp(tw.fz,tw.tz,z); tw.u.walk+=gdt*(k<0.22||k>=0.78?1:0.4); }
+    else if(tw.u){ tw.u.rx=lerp(tw.fx,tw.tx,k); tw.u.ry=lerp(tw.fy,tw.ty,k); tw.u.walk+=gdt; if(tw.tz!=null) tw.u.rz=lerp(tw.fz,tw.tz,k)+(tw.fz!==tw.tz?Math.sin(k*Math.PI)*10:0); }
     if(tw.fn) tw.fn(k);
     if(k>=1){ G.tweens.splice(i,1); tw.res&&tw.res(); } }
   for(let i=G.fx.length-1;i>=0;i--){ const f=G.fx[i]; f.t+=gdt; if(f.t>=f.life){ G.fx.splice(i,1); f.res&&f.res(); } }
@@ -3845,9 +4013,9 @@ function hitInfo(a,t,o){
     if(am.mov&&(a.moved||o.fx!=null)&&!o.reaction){ aim+=am.mov; mods.push(['grip',am.mov]); } if(am.rx&&o.reaction){ aim+=am.rx; mods.push(['stock',am.rx]); } }
   if(hasP(a,'s_mark')&&!t.downed&&t.hp*2<t.maxHp){ aim+=25; mods.push(['executioner',25]); }
   if(t.holo&&t.holo.team===a.team&&G.round<=t.holo.until){ aim+=15; mods.push(['holo-targeted',15]); }
-  let cov=coverFrom(t.x,t.y,ax,ay), over=false; let def=t.def; if(t.def) mods.push(['defense',-t.def]);
+  // cover with heights (elevCover): ledges, and shooting over cover from above (half -> none, full -> half)
+  const ec=elevCover(t.x,t.y,ax,ay); let cov=ec.cov, over=ec.over; let def=t.def; if(t.def) mods.push(['defense',-t.def]);
   if(t.slip){ def+=15; mods.push(['slippery',-15]); }
-  if(ha>ht&&cov===1){ cov=0; over=true; }
   const lowpro=cov===1&&hasP(t,'s_lowpro'); if(lowpro) cov=2;
   if(cov===1){ def+=20; mods.push(['half cover',-20]); } else if(cov===2){ def+=40; mods.push([lowpro?'low profile (full cover)':'full cover',-40]); }
   if(t.hunker&&cov){ def+=20; mods.push(['hunkered',-20]); }
@@ -3945,7 +4113,8 @@ function shotFX(a,t,hit,kind){
   // misses end on the cover that stopped them, or kick up the ground past the target
   let end=tp, mat='flesh';
   if(!hit){ const ct=coverTile(t,a);
-    if(ct){ const q=tileC(ct.x,ct.y); end=[lerp(q[0],tp[0],.25)+frand(-6,6),q[1]-(ct.full?frand(14,30):frand(5,12))]; mat='cover'; }
+    if(ct&&ct.ledge){ const q=iso((t.x+ct.x)/2+.5,(t.y+ct.y)/2+.5), z0=ez(t.x,t.y), z1=ez(ct.x,ct.y); end=[q[0]+frand(-8,8),q[1]-frand(z0+4,Math.max(z0+6,z1-3))]; mat='cover'; } // the side wall of the ledge
+    else if(ct){ const q=tileC(ct.x,ct.y); end=[lerp(q[0],tp[0],.25)+frand(-6,6),q[1]-(ct.full?frand(14,30):frand(5,12))]; mat='cover'; }
     else { const an=Math.random()*Math.PI*2, g=unitScreen(t); end=[g[0]+Math.cos(an)*16+(tp[0]-m[0])*0.2,g[1]+Math.sin(an)*6+3]; mat='ground'; } }
   const ang=Math.atan2(end[1]-m[1],end[0]-m[0]);
   // thrown secondary: a spinning blade on a shallow arc, then a cut on impact
@@ -3969,7 +4138,8 @@ async function moveUnit(u,path){
     const dc=cell(nx,ny); if(dc&&dc.kind==='door'&&dc.t===2) setDoor(nx,ny,true,u); // walking into a closed door opens it
     const anim=shouldShow(u)||tileShown(nx,ny);
     faceTo(u,nx,ny);
-    if(anim){ if(!(G.spec&&G.spec.follow)) focusOn(nx,ny); const diag=nx!==u.x&&ny!==u.y, climb=hi(nx,ny)!==hi(u.x,u.y); await new Promise(res=>G.tweens.push({u,fx:u.rx,fy:u.ry,tx:nx,ty:ny,fz:u.rz,tz:ez(nx,ny),t:0,dur:climb?0.32:diag?0.2:0.15,res})); }
+    if(anim){ if(!(G.spec&&G.spec.follow)) focusOn(nx,ny); const diag=nx!==u.x&&ny!==u.y, l0=lvAt(u.x,u.y), l1=lvAt(nx,ny), climb=l0!==l1, lad=climb&&Math.max(l0,l1)>=2;
+      await new Promise(res=>G.tweens.push({u,fx:u.rx,fy:u.ry,tx:nx,ty:ny,fz:u.rz,tz:ez(nx,ny),t:0,dur:lad?0.28+Math.abs(l1-l0)*0.16:climb?0.32:diag?0.2:0.15,lad:lad?(l1>l0?0.4:0.6):0,res})); }
     placeUnit(u,nx,ny); if(hasP(u,'r_slip')) u.slip=true;
     if(u.team===(G.player&&G.player.team)) computeVis();
     pickup(u);
@@ -4041,7 +4211,10 @@ async function doBlade(u,t,path){ const tk0=u.tk||0; u.ap=0; u.cd.slash=abilCd(u
 
 /* ---------- secondaries & melee ---------- */
 // adjacent and not cutting a full-cover corner (same rule as Blade Strike)
-function canMelee(ax,ay,tx,ty){ const dx=ax-tx, dy=ay-ty; if(Math.max(Math.abs(dx),Math.abs(dy))!==1) return false; return !(dx&&dy&&(isFull(ax,ty)||isFull(tx,ay))); }
+// heights: no melee more than one level up or down; a diagonal corner blocks if it rises above the lower of the two
+function cornerBlk(x,y,L){ return isFull(x,y)&&topAt(x,y)>L; }
+function canMelee(ax,ay,tx,ty){ const dx=ax-tx, dy=ay-ty; if(Math.max(Math.abs(dx),Math.abs(dy))!==1) return false; const la=lvAt(ax,ay), lt=lvAt(tx,ty); if(Math.abs(la-lt)>1) return false;
+  const L=Math.min(la,lt); return !(dx&&dy&&(cornerBlk(ax,ty,L)||cornerBlk(tx,ay,L))); }
 // melee hit: the weapon's base accuracy minus target defense; cover does not help at arm's length
 function meleeInfo(a,t,S){ const mods=[]; let hit=S.acc;
   if(a.diff&&a.diff.aim){ hit+=a.diff.aim; mods.push([a.diff.name.toLowerCase()+' AI',a.diff.aim]); }
@@ -4149,7 +4322,7 @@ async function doThrow(u,util,tx,ty){
     const a=muzzle(u); await new Promise(res=>addFx({type:'nade',a,b:b0,h:60+Math.hypot(tx-u.x,ty-u.y)*10,col:util.id==='smoke'?'#ddd':util.id==='flash'?'#fff':util.id==='plasma'||util.id==='arc'||U.dev?'#7fe8ff':'#ff6a3d',life:U.dev?.7:.55,res})); }
   if(U.dev){ await deployDevice(u,util,tx,ty,anim); return; }
   if(U.dmg){ makeNoise(u); G.noise.push({id:u.id,team:u.team,x:tx,y:ty,r:G.round,blast:true}); soundCue(tx,ty,'blast',null); }
-  const hitU=G.units.filter(v=>v.alive&&Math.hypot(v.x-tx,v.y-ty)<=(U.radius||0)+0.01);
+  const hitU=G.units.filter(v=>v.alive&&inBlast(v,tx,ty,U.radius||0));
   if(U.dmg){
     if(anim) explode(tx,ty,U.radius,util.id==='plasma'||!!U.arc,util.id); else if(G.player&&!G.fullVis) ping(tx,ty,[255,120,40]);
     G.decals.push({x:tx+.5,y:ty+.5,r:U.radius}); terrChanged(true,tx,ty,U.radius);
@@ -4183,7 +4356,7 @@ async function doRevive(u,t){
   else if(u.isPlayer) bubble(t,'Thanks, I owe you.');
   updateHUD();
 }
-function adjDowned(u){ return G.units.find(m=>m!==u&&m.team===u.team&&m.alive&&m.downed&&Math.max(Math.abs(m.x-u.x),Math.abs(m.y-u.y))<=1); }
+function adjDowned(u){ return G.units.find(m=>m!==u&&m.team===u.team&&m.alive&&m.downed&&Math.max(Math.abs(m.x-u.x),Math.abs(m.y-u.y))<=1&&Math.abs(lvAt(m.x,m.y)-lvAt(u.x,u.y))<=1); }
 
 /* ================= interactive & destructible terrain (sim) =================
    Everything here runs inside the command / turn flow, identically on every client: only seeded RNG (damage rolls),
@@ -4198,10 +4371,10 @@ function terrChanged(ground,x,y,r){ G.losCache.fill(0);
   if(G.scene==='game') computeVis(); }
 function mkTerr(kind,from){ const o=Object.assign({kind,h:0,v:from?from.v:0.5},TKIND[kind]||{t:1}); if(TERR[kind]) o.hp=TERR[kind].hp; return o; }
 // one stage of destruction: door -> gone, `next`, full -> rubble, half -> debris; debris stays
-function stageNext(o){ if(o.kind==='door') return null; const T=TERR[o.kind]; if(T&&T.next) return mkTerr(T.next,o); if(o.flat) return o; return mkTerr(o.t===2?'rubble':'debris',o); }
+function stageNext(o){ if(o.roof) return o; if(o.kind==='door') return null; const T=TERR[o.kind]; if(T&&T.next) return mkTerr(T.next,o); if(o.flat) return o; return mkTerr(o.t===2?'rubble':'debris',o); }
 function terrBits(x,y,col,n){ const p=tileC(x,y); for(let i=0;i<(n||14);i++) part({x:p[0]+frand(-12,12),y:p[1]-frand(4,16),z:frand(4,20),vx:frand(-90,90),vy:frand(-50,30),vz:frand(60,200),life:frand(.6,1.2),size:frand(2,3.5),col:col||[90,80,70],type:'debris',grav:600}); }
 // can this object be damaged by gunfire? (open doors and debris cannot)
-function shootable(o){ return !!o&&!!TERR[o.kind]&&!o.flat&&!(o.kind==='door'&&o.t!==2); }
+function shootable(o){ return !!o&&!!TERR[o.kind]&&!o.flat&&!o.roof&&!(o.kind==='door'&&o.t!==2); }
 async function damageTerr(x,y,d,src,anim){
   const o=cell(x,y); if(!shootable(o)) return false; const T=TERR[o.kind];
   if(o.hp==null) o.hp=T.hp; o.hp-=d; o.rv=(o.rv||0)+1;
@@ -4220,7 +4393,7 @@ async function breakTerr(x,y,src,anim){
 async function detonate(x,y,src){
   const o=cell(x,y), B=o&&TERR[o.kind]&&TERR[o.kind].boom; if(!B) return;
   G.grid[idx(x,y)]=Object.assign(mkTerr('debris',o),{scorch:1}); G.decals.push({x:x+.5,y:y+.5,r:B.r*0.8}); terrChanged(true,x,y,B.r);
-  const hitU=G.units.filter(v=>v.alive&&Math.hypot(v.x-x,v.y-y)<=B.r+0.01);
+  const hitU=G.units.filter(v=>v.alive&&inBlast(v,x,y,B.r));
   const anim=tileShown(x,y)||hitU.some(shouldShow);
   if(anim){ const p=tileC(x,y); G.cam.tx=p[0]; G.cam.ty=p[1]; explode(x,y,B.r,false); floatText(tileDummy(x,y),TERR[o.kind].name.toUpperCase()+' EXPLODES',[255,150,60],18); }
   else if(G.player&&!G.fullVis) ping(x,y,[255,120,40]);
@@ -4234,7 +4407,7 @@ async function detonate(x,y,src){
 async function terrBlast(cx,cy,r,src){
   const boom=[]; let ch=false;
   for(let y=Math.floor(cy-r);y<=Math.ceil(cy+r);y++) for(let x=Math.floor(cx-r);x<=Math.ceil(cx+r);x++){
-    if(!inMap(x,y)||Math.hypot(x-cx,y-cy)>r+0.01) continue; const o=G.grid[idx(x,y)]; if(!o) continue;
+    if(!inMap(x,y)||Math.hypot(x-cx,y-cy)>r+0.01) continue; const o=G.grid[idx(x,y)]; if(!o||Math.abs((G.elev[idx(x,y)]?1:0)-lvAt(cx,cy))>1) continue; // not from a rooftop down to the street
     if(TERR[o.kind]&&TERR[o.kind].boom){ boom.push([x,y]); continue; }
     const n=stageNext(o); if(n!==o){ G.grid[idx(x,y)]=n; ch=true; } }
   const lost=(G.sensors||[]).filter(s=>Math.hypot(s.x-cx,s.y-cy)<=r+0.01);
@@ -4243,7 +4416,7 @@ async function terrBlast(cx,cy,r,src){
   for(const b of boom) await detonate(b[0],b[1],src);
 }
 // doors: {k:'door',x,y} opens or closes an adjacent door (free, once per turn); walking through a closed door opens it
-function adjDoor(u){ for(const d of DIRS4){ const o=cell(u.x+d[0],u.y+d[1]); if(o&&o.kind==='door') return {x:u.x+d[0],y:u.y+d[1],o}; } return null; }
+function adjDoor(u){ if(lvAt(u.x,u.y)>=2) return null; for(const d of DIRS4){ const o=cell(u.x+d[0],u.y+d[1]); if(o&&o.kind==='door') return {x:u.x+d[0],y:u.y+d[1],o}; } return null; }
 function doorBlocked(x,y){ return !!unitAt(x,y)||G.crates.some(q=>q.x===x&&q.y===y); }
 function setDoor(x,y,open,who){
   const o=cell(x,y); if(!o||o.kind!=='door'||(o.t<2)===open) return;
@@ -4416,7 +4589,7 @@ function slashTargets(u,maxCost){
   for(const t of visibleEnemies(u)){ let best=null,bc=Infinity;
     for(const d of DIRS8){ const x=t.x+d[0],y=t.y+d[1]; if(!inMap(x,y)) continue; const i=idx(x,y); let c;
       if(x===u.x&&y===u.y) c=0; else { if(!walkable(i)||unitAt(x,y)) continue; c=R.dist[i]; }
-      if(d[0]&&d[1]&&(isFull(t.x+d[0],t.y)||isFull(t.x,t.y+d[1]))) continue;
+      if(!canMelee(x,y,t.x,t.y)) continue; // same corner and height rules as any melee
       if(c<bc){ bc=c; best=i; } }
     if(best!=null&&isFinite(bc)) out.push({t,path:bc===0?[[u.x,u.y]]:buildPath(R,best)}); }
   return out;
@@ -4441,7 +4614,7 @@ function enterObj(){ const u=G.player, list=objTargets(u); if(!list.length){ hin
 function fillObjPanel(){
   const u=G.player, q=G.objT&&G.objT[G.oIdx]; if(!q) return; const o=cell(q[0],q[1]); if(!o){ G.mode='move'; updateHUD(); return; } const T=TERR[o.kind]||{name:o.kind}, B=T.boom;
   $('#tName').textContent=T.name; $('#tSub').textContent=(o.hp!=null?o.hp+' HP':'')+' · '+Math.hypot(q[0]-u.x,q[1]-u.y).toFixed(1)+' tiles'+(o.kind==='door'?' · closed door':o.t===2?' · full cover':o.t===1?' · half cover':'');
-  let foes=0,ally=false,self=false; if(B) for(const v of G.units){ if(!v.alive||Math.hypot(v.x-q[0],v.y-q[1])>B.r+0.01) continue; if(v===u) self=true; else if(!isEnemy(u,v)) ally=true; else if(shouldShow(v)) foes++; }
+  let foes=0,ally=false,self=false; if(B) for(const v of G.units){ if(!v.alive||!inBlast(v,q[0],q[1],B.r)) continue; if(v===u) self=true; else if(!isEnemy(u,v)) ally=true; else if(shouldShow(v)) foes++; }
   $('#tHit').textContent=B?String(foes):u.W.dmg[0]+'–'+u.W.dmg[1]; $('#tHitL').textContent=B?'enemies in blast':'damage (never misses)';
   $('#tRow').innerHTML=B?'<span>Explodes: '+B.dmg[0]+'–'+B.dmg[1]+' dmg, '+B.r+'-tile radius</span>'+(self?'<span class="warn">You are inside the blast</span>':ally?'<span class="warn">Your partner is inside the blast</span>':''):'<span>'+(o.kind==='door'?'Breaks the door open':o.t===2?'Full → half cover at 0 HP':'Destroyed at 0 HP')+'</span>';
   $('#tMods').textContent='Costs 1 ammo and follows the shooting AP rules.'+(B?' Chain reaction: other explosives in the blast go off too.':'');
@@ -4466,7 +4639,7 @@ async function execCmd(u,c){
   else if(c.k==='sec'){ await secAttack(u,byId(c.t),c); }   // secondary weapon: {k:'sec',t,path?,free?}
   else if(c.k==='act'){ await doActive(u,c); }              // class perk active: {k:'act',a,t?}
   else if(c.k==='throw'){ const util=u.utils[c.i]; if(!util||util.ch<=0) return; const U=UTILS[util.id];
-    if(U.dev&&(u.ap<=0||!inMap(c.x,c.y)||Math.hypot(c.x-u.x,c.y-u.y)>throwRange(u,U)+0.01||isFull(c.x,c.y))) return; // drone / sensor target checks
+    if(U.dev&&(u.ap<=0||!inMap(c.x,c.y)||Math.hypot(c.x-u.x,c.y-u.y)>throwRange(u,U)+0.01||solidT(c.x,c.y))) return; // drone / sensor target checks (rooftops are fine)
     u.ap=Math.max(0,u.ap-1); if(U.dmg&&!u.moved&&u.ap>0) u.shot=true; await doThrow(u,util,c.x,c.y); }
   else if(c.k==='door'){ await doDoor(u,c.x,c.y); }       // open / close an adjacent door: {k:'door',x,y}
   else if(c.k==='breach'){ await doBreach(u,c.x,c.y); }   // smash an adjacent closed door: {k:'breach',x,y}
@@ -4598,15 +4771,15 @@ function aiScoreTile(u,x,y,threats,cost){
   let best=0, seen=0;
   for(const t of threats){
     const d=Math.hypot(t.x-x,t.y-y), los=hasLOS(t.x,t.y,x,y);
-    const cov=hi(t.x,t.y)>hi(x,y)&&coverFrom(x,y,t.x,t.y)===1?0:coverFrom(x,y,t.x,t.y);
+    const cov=coverFrom(x,y,t.x,t.y); // height-aware: ledges, shooting over cover from above
     if(los&&d<=sightOf(t)+0.5){ seen++; s+=cov===2?16:cov===1?7:-24; if(d<=2.2&&t.cls==='ranger') s-=8; }
-    if(los&&d<=u.sight+(G.elev[idx(x,y)]?2:0)){ const h=hitInfo(u,t,{fx:x,fy:y}).any; best=Math.max(best,h); if(D.flank&&!t.downed&&coverFrom(t.x,t.y,x,y)===0) s+=D.flank; }
+    if(los&&d<=u.sight+sightBonus(u,G.lvl[idx(x,y)])){ const h=hitInfo(u,t,{fx:x,fy:y}).any; best=Math.max(best,h); if(D.flank&&!t.downed&&coverFrom(t.x,t.y,x,y)===0) s+=D.flank; }
     if(D.owAvoid&&los&&t.overwatch&&threats.fresh&&threats.fresh.has(t.id)&&d<=sightOf(t)+0.5) s-=D.owAvoid;
   }
   s+=best*0.3;
   if(!threats.length&&u._goal) s-=Math.hypot(u._goal[0]-x,u._goal[1]-y)*0.45;
   if(seen>=3) s-=10;
-  if(G.elev[idx(x,y)]) s+=7;
+  { const lv=G.lvl[idx(x,y)]; if(lv) s+=lv>=2?(threats.length?10:5):7; } // high ground; rooftops (by ladder) mostly once there is someone to watch
   const q=G.crates.find(q=>q.x===x&&q.y===y); if(q) s+=q.drop?45:14;
   if(inSmoke(x,y)) s+=6;
   if(threats.length) for(const d of DIRS8){ const o=cell(x+d[0],y+d[1]); if(o&&TERR[o.kind]&&TERR[o.kind].boom){ s-=8; break; } } // don't hide behind a fuel barrel
@@ -4651,11 +4824,11 @@ function aiBestAttack(u){
   if(u.cls==='ranger'&&!u.cd.slash) for(const s of slashTargets(u)){ const eff=s.t.hp+s.t.shield, rb=hasP(u,'r_reaper')?2:0; res.push({k:'slash',t:s.t,path:s.path,hit:95,score:50+(5.5+rb>=eff?15:0)-(s.path.length>1?4:0)}); }
   for(const util of u.utils){ const U=UTILS[util.id]; if(!U.dmg||util.ch<=0) continue; const rg=throwRange(u,U), ag=(U.dmg[0]+U.dmg[1])/2;
     for(const c of vis){ if(c.downed||tdist(u,c)>rg) continue;
-      const inR=G.units.filter(v=>v.alive&&Math.hypot(v.x-c.x,v.y-c.y)<=U.radius+0.01&&(!isEnemy(u,v)||vis.includes(v))); if(inR.some(v=>!isEnemy(u,v))) continue;
+      const inR=G.units.filter(v=>v.alive&&inBlast(v,c.x,c.y,U.radius)&&(!isEnemy(u,v)||vis.includes(v))); if(inR.some(v=>!isEnemy(u,v))) continue;
       const n=inR.length; const h=canFire?hitInfo(u,c).any:0;
       const sc=n*ag*10*(n>1?1:(h<45?0.85:0.45)); res.push({k:'throw',util,x:c.x,y:c.y,t:c,hit:100,score:sc}); } }
   // shoot an explosive next to enemies it can see (never with a teammate or itself in the blast)
-  if(canFire&&!u.shot) for(const q of objTargets(u)){ if(!q.boom) continue; const B=q.boom, near=G.units.filter(v=>v.alive&&Math.hypot(v.x-q.x,v.y-q.y)<=B.r+0.01);
+  if(canFire&&!u.shot) for(const q of objTargets(u)){ if(!q.boom) continue; const B=q.boom, near=G.units.filter(v=>v.alive&&inBlast(v,q.x,q.y,B.r));
     if(near.some(v=>!isEnemy(u,v))) continue; const foes=near.filter(v=>vis.includes(v)&&!v.downed); if(!foes.length) continue;
     const ag=(B.dmg[0]+B.dmg[1])/2, p=Math.min(1,avg/Math.max(1,q.o.hp)); res.push({k:'obj',x:q.x,y:q.y,t:foes[0],hit:100,score:foes.length*ag*10*p*(foes.length>1?1:0.6)}); }
   // return fire: shooting at an enemy in full cover invites a reaction shot back
@@ -4737,7 +4910,7 @@ async function aiUtilPre(u){
     if(!tgt&&RNG()<0.3){ const g=goalFor(u), d=Math.hypot(g[0]-u.x,g[1]-u.y); if(d>4) tgt=[g[0],g[1]]; }
     if(tgt){ let dx=tgt[0]-u.x, dy=tgt[1]-u.y; const d=Math.hypot(dx,dy); if(d>rg-0.5){ dx*=(rg-0.5)/d; dy*=(rg-0.5)/d; }
       const x=clamp(Math.round(u.x+dx),0,MW-1), y=clamp(Math.round(u.y+dy),0,MH-1);
-      if(!isFull(x,y)&&Math.hypot(x-u.x,y-u.y)<=rg+0.01){ await execCmd(u,{k:'throw',i:di,x,y}); return; } } }
+      if(!solidT(x,y)&&Math.hypot(x-u.x,y-u.y)<=rg+0.01){ await execCmd(u,{k:'throw',i:di,x,y}); return; } } }
   if(si>=0&&!(G.sensors||[]).some(s=>s.team===u.team&&s.until>=G.round)&&RNG()<0.35) await execCmd(u,{k:'throw',i:si,x:u.x,y:u.y});
 }
 // free or cheap class-perk actions the AI takes before its main decision: Combat Stims, Aid Protocol, Lightning Hands
@@ -4921,7 +5094,8 @@ function drawMinimap(){
   c.fillStyle='rgba(20,30,40,.9)'; c.fillRect(0,0,W,W);
   for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const i=idx(x,y), o=G.grid[i];
     if(G.elev[i]){ c.fillStyle='rgba(255,220,140,.18)'; c.fillRect(x*s,y*s,s,s); }
-    if(o&&!o.flat){ c.fillStyle=TERR[o.kind]&&TERR[o.kind].boom&&(G.fullVis||G.seen[i])?'rgba(255,120,60,.85)':o.t===2?'rgba(150,170,190,.75)':o.t===1?'rgba(120,135,150,.45)':'rgba(120,135,150,.22)'; c.fillRect(x*s,y*s,s,s); }
+    if(o&&!o.flat){ c.fillStyle=TERR[o.kind]&&TERR[o.kind].boom&&(G.fullVis||G.seen[i])?'rgba(255,120,60,.85)':o.roof?(o.roof>=3?'rgba(214,226,240,.9)':'rgba(180,196,214,.82)'):o.t===2?'rgba(150,170,190,.75)':o.t===1?'rgba(120,135,150,.45)':'rgba(120,135,150,.22)'; c.fillRect(x*s,y*s,s,s); }
+    if(G.lad[i]&&G.lvl[i]<=1){ c.fillStyle='rgba(255,210,70,.95)'; c.fillRect(x*s+s*.2,y*s+s*.2,s*.6,s*.6); } // ladder foot
     if(!G.fullVis&&!G.vis[i]){ c.fillStyle='rgba(0,0,0,.35)'; c.fillRect(x*s,y*s,s,s); } }
   const st=G.storm; c.save(); c.beginPath(); c.rect(0,0,W,W); c.arc(st.cx*s,st.cy*s,Math.max(0,st.r*s),0,Math.PI*2,true); c.fillStyle=C(G.R.storm,1,.35); c.fill('evenodd'); c.restore();
   c.strokeStyle=C(G.R.storm,1,.9); c.lineWidth=2; c.beginPath(); c.arc(st.cx*s,st.cy*s,Math.max(0.5,st.r*s),0,Math.PI*2); c.stroke();
@@ -4944,10 +5118,10 @@ function drawMinimap(){
 function screenToWorld(sx,sy){ return [(sx-VW/2)/G.cam.z+G.cam.x,(sy-VH/2)/G.cam.z+G.cam.y]; }
 function screenToTileF(sx,sy){ const w=screenToWorld(sx,sy); return [(w[0]/(TW/2)+w[1]/(TH/2))/2,(w[1]/(TH/2)-w[0]/(TW/2))/2]; }
 function screenToTile(sx,sy){
-  // check raised tiles first so taps on a platform top select the platform
+  // check raised tiles first (upper roofs, roofs, platforms) so taps on a raised top select it
   const w=screenToWorld(sx,sy);
-  const f2=[(w[0]/(TW/2)+(w[1]+EZ)/(TH/2))/2,((w[1]+EZ)/(TH/2)-w[0]/(TW/2))/2], ex=Math.floor(f2[0]), ey=Math.floor(f2[1]);
-  if(hi(ex,ey)) return [ex,ey];
+  for(let L=3;L>=1;L--){ const z=LZ[L], f2=[(w[0]/(TW/2)+(w[1]+z)/(TH/2))/2,((w[1]+z)/(TH/2)-w[0]/(TW/2))/2], ex=Math.floor(f2[0]), ey=Math.floor(f2[1]);
+    if(hi(ex,ey)===L) return [ex,ey]; }
   const f=screenToTileF(sx,sy); return [Math.floor(f[0]),Math.floor(f[1])];
 }
 function unitAtScreen(sx,sy){ let best=null,bd=1e9; for(const u of G.units){ if(!u.alive||u.isPlayer||!shouldShow(u)) continue; const p=unitScreen(u); const s=[(p[0]-G.cam.x)*G.cam.z+VW/2,(p[1]-18-G.cam.y)*G.cam.z+VH/2]; const d=Math.hypot(s[0]-sx,s[1]-sy); if(d<Math.max(26,26*G.cam.z)&&d<bd){ bd=d; best=u; } } return best; }
@@ -4960,7 +5134,7 @@ function onTap(sx,sy){
   if(G.mode==='move'&&hu&&isEnemy(u,hu)){ if(u.ap>0&&!u.shot&&u.ammo>0&&!(u.W.heavy&&u.ap<2)&&canSee(u,hu)){ enterTarget('shoot',hu); SFX.click(); return; } }
   const tt=screenToTile(sx,sy), tx=tt[0], ty=tt[1];
   if(G.mode==='obj'){ const i=(G.objT||[]).findIndex(q=>q[0]===tx&&q[1]===ty); if(i>=0){ if(i===G.oIdx){ pObj(); return; } G.oIdx=i; SFX.click(); updateHUD(); } return; }
-  if(G.mode==='throw'){ if(!inMap(tx,ty)) return; const U=UTILS[G.throwUtil.id]; if(Math.hypot(tx-u.x,ty-u.y)<=throwRange(u,U)&&(G.vis[idx(tx,ty)]||U.blind)&&!(U.dev&&isFull(tx,ty))){ const i=idx(tx,ty); if(G.throwTile===i){ pThrow(); return; } G.throwTile=i; SFX.click(); updateHUD(); } else hint('Out of range'); return; }
+  if(G.mode==='throw'){ if(!inMap(tx,ty)) return; const U=UTILS[G.throwUtil.id]; if(Math.hypot(tx-u.x,ty-u.y)<=throwRange(u,U)&&(G.vis[idx(tx,ty)]||U.blind)&&!(U.dev&&solidT(tx,ty))){ const i=idx(tx,ty); if(G.throwTile===i){ pThrow(); return; } G.throwTile=i; SFX.click(); updateHUD(); } else hint('Out of range'); return; }
   if(G.mode==='move'){ if(!inMap(tx,ty)||!G.reach){ return; } const i=idx(tx,ty), d=G.reach.dist[i];
     if(isFinite(d)&&d>0){ if(G.pending===i){ pMove(); return; } G.pending=i; G.pendingPath=buildPath(G.reach,i); SFX.click(); buzz(8);
       if(PROF.settings.oneTap){ pMove(); return; } hint('Tap again to move'); updateHUD(); }
