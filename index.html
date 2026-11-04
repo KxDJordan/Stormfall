@@ -4544,7 +4544,7 @@ async function runMatch(){
     await stormPhase(); if(G.over||G.matchId!==mid) break;
     await supplyPhase(); if(G.over||G.matchId!==mid) break;
     await objectivePhase(); if(G.over||G.matchId!==mid) break;
-    for(const u of G.units){ if(G.over||G.matchId!==mid) break; if(!u.alive) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); const b=bountyOn(); if(b&&b.t===u.id) bountyPing(b); }
+    for(const u of G.units){ if(G.over||G.matchId!==mid) break; if(!u.alive) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); const b=!G.over&&bountyOn(); if(b&&b.t===u.id) bountyPing(b); }
     G.turnU=null;
     G.smoke=G.smoke.filter(s=>s.until>G.round);
     for(const t in G.cmd) if(G.cmd[t].until<=G.round) delete G.cmd[t]; // team orders (pings / quick chat) expire
