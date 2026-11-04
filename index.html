@@ -143,6 +143,20 @@ body.sheet-open .nav{display:none}
 .lvlinfo{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
 .lvlinfo b{font:600 21px/.9 Teko,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.03em}
 .lvlinfo small{font-size:11px;color:var(--muted)}
+/* Home header card: operative portrait, callsign plate with the account level inline, XP bar under the banner */
+.lvlcard.hc{padding:3px 12px 3px 3px;gap:8px;max-width:min(62vw,340px)}
+.lvlcard.hc canvas{flex:none;width:44px;height:52px;border-radius:var(--r1);background:rgba(63,210,255,.06)}
+.hc-row{display:flex;align-items:center;gap:6px;min-width:0}
+.hc-row .np{flex:0 1 auto;padding:2px 8px 2px 7px}
+.hc-row .np>b{font-size:20px}
+.lvlb.sm{width:28px;height:28px;font-size:19px}
+.hc-xp{display:flex;align-items:center;gap:6px;min-width:0}
+.hc-xp .xpbar{flex:1;min-width:40px}
+.hc-xp small{flex:none;white-space:nowrap}
+.lvlcard.hc{flex:1 1 auto}
+.hc-xp .xpbar{overflow:hidden}
+@media (max-width:430px){ .lvlcard.hc{max-width:none} .hc-xp small{display:none} .lvlcard.hc canvas{width:40px;height:48px} .hc-row .np>b{font-size:19px}
+  .mtop .wallet{flex-direction:column;align-items:stretch;gap:3px} .mtop .wallet .cr,.mtop .wallet .sh{min-height:26px;font-size:18px;padding:2px 8px 0;justify-content:flex-end} }
 .menu-col{display:flex;flex-direction:column;flex:1;min-height:0;width:100%;max-width:460px}
 .brand .kick{color:var(--amber);font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase}
 .brand h1{margin:4px 0 0;font-size:clamp(60px,18vw,118px);text-shadow:0 4px 30px rgba(0,0,0,.5)}
@@ -1047,7 +1061,7 @@ body.sheet-open #sfInv{display:none}
 <!-- PLAY -->
 <section id="menu" class="screen mscreen">
   <div class="mtop">
-    <button class="lvlcard" id="mLvl" aria-label="Open profile"><span class="lvlb" id="mLvlN">1</span><span class="lvlinfo"><b id="mName">NOMAD</b><span class="xpbar"><i id="mXp"></i></span><small id="mXpT"></small></span></button>
+    <button class="lvlcard hc" id="mLvl" aria-label="Open profile"><canvas id="opc" width="128" height="152" aria-hidden="true"></canvas><span class="lvlinfo"><span class="hc-row"><span class="np" id="opPlate"><b id="opName">NOMAD</b><small id="opTitle"></small></span><span class="lvlb sm" id="mLvlN" title="Account level">1</span></span><span class="hc-xp"><span class="xpbar"><i id="mXp"></i></span><small id="mXpT"></small></span></span></button>
     <div class="wallet"><span class="cr" id="mCr" aria-label="Credits">0</span><button class="sh" id="mSh" aria-label="Shards: get more">0</button></div>
     <button class="iconbtn frbtn" id="bFriends" aria-label="Friends"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.3c2.1.7 3.5 2.8 3.5 5.7"/></svg></button><!-- socials hook: Friends -->
   </div>
@@ -1059,11 +1073,6 @@ body.sheet-open #sfInv{display:none}
     <div class="spacer"></div>
     <div class="playpanel">
       <button class="passchip" id="mPass" aria-label="Open the season pass"><span class="pc-t"><small id="mPassS">Season</small><b id="mPassN">Tier 0</b></span><span class="pc-b"><span class="xpbar"><i id="mPassX"></i></span><small id="mPassL"></small></span><em class="pc-c hidden" id="mPassC">0</em></button>
-      <button class="opcard" id="opcard" aria-label="Edit loadout">
-        <canvas id="opc" width="128" height="152"></canvas>
-        <span class="opinfo"><small>Operative</small><span class="np" id="opPlate"><b id="opName">NOMAD</b><small id="opTitle"></small></span><span class="s" id="opSub"></span></span>
-        <span class="opedit">Edit</span>
-      </button>
       <button class="btn primary deploy" id="bDeploy">Play</button>
       <button class="btn deploy alt friends" id="bOnline">Play with friends<small>Host a room or join with a code</small></button>
       <button class="dailyb" id="bDaily" aria-label="Daily challenge"><span class="dk">Daily</span><span class="dm"><b id="dyTitle">Daily challenge</b><small id="dySub"></small></span><span class="ds" id="dyStat"></span></button>
@@ -6187,7 +6196,9 @@ function actionList(){
   A.push({id:'reload',label:'Reload',sub:freeReload(u)?'Free':'1 AP',icon:'reload',off:!ap||full,why:full?'Magazine full':''});
   if(u.shot) for(const a of A) if(a.id!=='move'&&!a.free){ a.off=true; a.why='After shooting you can only move'; }
   A.push({id:'end',label:'End turn',sub:'',icon:'end',off:false,end:true});
-  return A;
+  // fixed order: main weapon, secondary, overwatch first; everything else after in its usual order; End turn last
+  const PRI={shoot:0,sec:1,ow:2}, rk=a=>a.id in PRI?PRI[a.id]:a.end?99:10;
+  return A.map((a,i)=>[a,i]).sort((x,y)=>rk(x[0])-rk(y[0])||x[1]-y[1]).map(x=>x[0]);
 }
 
 /* ================= AI ================= */
@@ -7406,10 +7417,9 @@ function saveLO(){ try{ localStorage.setItem('stormfall_loadout',JSON.stringify(
 function toMenu(){ ffStop(); if(TUT.on) tutStop(); show('#tutEnd',false); show('#hud',false); show('#end',false); show('#wend',false); G.over=true; G.turnRes=null; G.watch=null; G.paused=false; setupMenuScene(); go('menu'); }
 function refreshMenu(){
   LO=sanitize(LO);
-  const li=lvlInfo(); $('#mLvlN').textContent=li.l; $('#mName').textContent=LO.name; $('#mXp').style.width=(li.cur/li.need*100)+'%'; $('#mXpT').textContent=li.cur+' / '+li.need+' XP';
+  const li=lvlInfo(); $('#mLvlN').textContent=li.l; $('#mXp').style.width=(li.cur/li.need*100)+'%'; $('#mXpT').textContent=li.cur+' / '+li.need+' XP';
   $('#mCr').textContent=PROF.credits; $('#mSh').textContent=PROF.shards;
   setPlate($('#opPlate'),LO.name,myTitle(),myBanner()); passChip(); const Cl=CLASSES[LO.cls], mk=weaponMk(LO.weapon);
-  $('#opSub').innerHTML=Cl.name+' with '+WEAPONS[LO.weapon].name+(mk>1?' Mk '+(mk===2?'II':'III'):'')+' + '+SECONDARIES[LO.sec].name+'<br>'+ARMORS[LO.armor].name+', '+LO.utils.map(u=>UTILS[u].short).join(' + ')+(LO.perk?', '+PERKS[LO.perk].name:'');
   const M=MODES[PROF.mode]||MODES.solo; $('#bDeploy').innerHTML='Play<small>Choose a mode · last played '+esc(M.name)+'</small>'; updateOnlineBtn();
   drawOpCard(); renderDailyBtn();
 }
@@ -7906,7 +7916,6 @@ function inviteChoice(c,w){ c=String(c).toUpperCase().slice(0,5); $('#bkT').text
   setTimeout(()=>{ show('#how',false); if(IOS&&!appStandalone()) inviteChoice(c,w); else joinFromLink(c,w); },300); }catch(e){} })(); // the invite comes first; the first-run briefing can wait
 window.addEventListener('pagehide',()=>{ if(NET.on) netLeave(); });
 $('#bDeploy').addEventListener('click',()=>{ SFX.init(); SFX.click(); buzz(6); openModeSel(false); });
-$('#opcard').addEventListener('click',()=>{ SFX.click(); go('loadout'); });
 $('#bHow').addEventListener('click',()=>{ howButtons(); show('#how',true); });
 $('#howClose').addEventListener('click',()=>{ show('#how',false); if(!PROF.seenBrief){ PROF.seenBrief=true; saveProf(); } });
 $('#mLvl').addEventListener('click',()=>openProfile('overview'));
