@@ -75,6 +75,7 @@ b,strong{font-weight:700}
 .seg{display:inline-flex;gap:3px;padding:3px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:var(--r2);flex:none}
 .seg button{min-height:38px;min-width:var(--tap);padding:0 var(--s3);font-size:13px;font-weight:600;border-radius:4px;color:var(--muted);transition:background-color .12s,color .12s}
 .seg button.sel{background:var(--signal);color:var(--signal-ink)}
+.seg button[disabled]{opacity:.38;cursor:default}
 @media (hover:hover){ .seg button:not(.sel):hover{color:var(--text);background:rgba(255,255,255,.05)} }
 .xpbar{display:block;height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
 .xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--signal),#9ff0ff);transition:width .9s var(--ease)}
@@ -211,8 +212,8 @@ body.sheet-open .nav{display:none}
 .spec .sprog{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
 .spec .sprog i{display:block;height:100%;width:0;background:var(--signal);transition:width .3s}
 .spec.watch{border-left-color:var(--signal)}
-#clocks{position:absolute;left:calc(var(--sal) + 10px);right:calc(var(--sar) + 116px);top:calc(var(--sat) + 90px);display:flex;flex-wrap:wrap;gap:4px;pointer-events:none}
-#clocks .ck{display:flex;align-items:baseline;gap:5px;height:24px;padding:3px 7px 0;border-radius:4px;background:rgba(8,12,18,.85);border:1px solid rgba(255,255,255,.16);font:600 12px/1 'Chakra Petch',sans-serif;color:#cfd9e3}
+#clocks{position:absolute;right:calc(var(--sar) + 10px);top:calc(var(--sat) + 158px);width:116px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;pointer-events:none}
+#clocks .ck{display:flex;align-items:baseline;justify-content:space-between;gap:5px;max-width:100%;overflow:hidden;white-space:nowrap;height:24px;padding:3px 7px 0;border-radius:4px;background:rgba(8,12,18,.85);border:1px solid rgba(255,255,255,.16);font:600 12px/1 'Chakra Petch',sans-serif;color:#cfd9e3}
 #clocks .ck b{font:600 18px/1 Teko,sans-serif;color:var(--text)}
 #clocks .ck.cur{border-color:var(--signal);box-shadow:0 0 8px rgba(63,210,255,.35)}
 #clocks .ck.low b{color:var(--amber)}
@@ -770,12 +771,12 @@ body.sheet-open .nav{display:none}
   </header>
   <div class="lo-scroll"><div class="wr-wrap">
     <div class="wr-room" id="wrRoom"></div>
+    <div class="wr-specs hidden" id="wrSpecs"></div>
     <div class="modes" id="wrModes" role="radiogroup" aria-label="Mode"></div>
     <p class="modedesc" id="wrDesc"></p>
     <div class="wr-count" id="wrCount" aria-live="polite"></div>
     <div class="wr-slots" id="wrSlots"></div>
     <div class="wr-time" id="wrTime"></div>
-    <div class="wr-specs hidden" id="wrSpecs"></div>
     <div class="wr-quick" id="wrQuick">
       <div class="wq-row"><span class="lbl">Set all bots</span><div class="dall" id="wrAll" role="group" aria-label="Set every bot's difficulty"></div></div>
       <div class="wq-row2"><button class="btn sm" id="wrFill">Fill with bots</button><button class="btn sm ghost" id="wrMin">Fewest bots</button></div>
@@ -4933,7 +4934,7 @@ function updateTurnOrder(){
   const ev=[]; const si=stormIdxAt(G.round+1);
   if(si>=0){ const S=stormStage(si); ev.push(['st',S.move?'move':'storm',S.move?'Storm moves at round start':'Storm closes at round start']); }
   if(G.drop&&!G.drop.landed&&G.drop.land===G.round+1) ev.push(['dr','drop','Supply drop lands']);
-  const tok=(u,cur)=>{ const me=u===G.player&&!G.watch, al=!me&&mine(u), known=me||al||shouldShow(u), dead=!u.alive;
+  const tok=(u,cur)=>{ const me=u===G.player&&!G.watch, al=!me&&!G.watch&&mine(u), known=me||al||shouldShow(u), dead=!u.alive;
     const cls='tk'+(cur?' cur':'')+(me?' me':al?' ally':known?' foe':' unk')+(dead?' dead':u.downed?' down':'');
     const label=(me?'You':known?u.name+' ('+CLASSES[u.cls].name+')':'Unknown operative')+(dead?', out':u.downed?', downed':'')+(cur?', acting now':'');
     return [cls+(known&&!me&&!al?'|'+u.color:''),'<div class="'+cls+'" role="listitem" title="'+label+'" aria-label="'+label+'"'+(known&&!me&&!al&&!dead?' style="color:'+u.color+'"':'')+'>'+(dead?'×':known?ICON[CLS_ICON[u.cls]]:'?')+'</div>']; };
@@ -4947,7 +4948,7 @@ function updateTimer(){
   const el=$('#tmr'); if(!el) return;
   const on=G.turnMax>0&&!!G.turnRes&&!G.over&&!G.playerDead;
   el.classList.toggle('hidden',!on); if(!on) return;
-  const left=Math.max(0,G.turnLeft); $('#tmrN').textContent=Math.ceil(left); $('#tmrB').style.width=(left/G.turnMax*100)+'%';
+  const left=Math.max(0,G.turnLeft); $('#tmrN').textContent=left>=60?fmtClock(left):Math.ceil(left); el.querySelector('small').textContent=G.tm&&G.tm.b?(G.bank0>0?'bank':'grace'):'sec'; $('#tmrB').style.width=(left/G.turnMax*100)+'%';
   el.classList.toggle('warn',left<=5);
 }
 function updateHUD(){
@@ -5893,7 +5894,7 @@ function renderLobby(){
   $('#wrLeave').classList.toggle('hidden',!LB.online);
   $('#wrStat').textContent=LB.online?NET.status||'':'';
   renderLobbyTime(ed); renderLobbySpecs();
-  if(LB.online&&NET.spec) note.textContent='You are spectating: no operative. The match appears here when the host deploys.';
+  if(LB.online&&NET.spec) note.textContent=NET.live?'A match is running: watch it live from the top of this screen.':'You are spectating: no operative. The match appears here when the host deploys.';
 }
 $('#lobby').addEventListener('click',e=>{
   const c=lbCtx(), per=MODES[c.mode].team, b0=c.bots.slice();
@@ -6233,7 +6234,7 @@ function fillSpec(){ if(!G.spec) return; const f=G.spec.follow, live=f&&f.alive,
   let sub=teamsLeft()+(G.M.team>1?' teams':'')+' left, round '+G.round+(live?', '+CLASSES[f.cls].name+(f.downed?' (down)':' '+f.hp+'/'+f.maxHp+' HP'):G.spec.free?', drag to look around':', auto camera');
   if(W&&W.kind==='spec') sub=(FF.on?'Catching up to the live match… ':'')+sub;
   if(W&&W.kind==='replay'){ sub=(FF.on?'Skipping ahead… ':'')+sub+(W.bad?' · out of sync from round '+W.bad:W.ok?' · verified to round '+W.ok:''); $('#spProg').style.width=(W.total?Math.min(100,G.round/W.total*100):0)+'%';
-    const pb=$('#spPlay'); pb.textContent=G.paused?'▶ Play':'❚❚ Pause'; pb.setAttribute('aria-label',G.paused?'Play replay':'Pause replay'); $('#spFinal').disabled=FF.on||G.round>=W.total-1; }
+    const pb=$('#spPlay'); pb.textContent=G.paused?'▶ Play':'❚❚ Pause'; pb.setAttribute('aria-label',G.paused?'Play replay':'Pause replay'); $('#spFinal').disabled=FF.on||G.round>=W.total-2; }
   $('#spSub').textContent=sub; $('#spR3').classList.toggle('hidden',!(W&&W.kind==='replay')); $('#spec').classList.toggle('watch',!!W);
   $('#spLeave').textContent=W?'Exit':'Results'; $('#spSpeed').textContent=(G.speed||1)+'×'; }
 function cycleSpec(dir){ if(!G.spec||G.over) return; const list=['auto','free'].concat(G.units.filter(u=>u.alive)); let i=list.indexOf(G.spec.free?'free':G.spec.follow||'auto'); if(i<0) i=0; i=(i+dir+list.length)%list.length;
@@ -6322,6 +6323,7 @@ function recSave(){ if(!REC||REC.saved||!REC.h.length) return; REC.saved=true; R
 function rpLoad(){ try{ const a=JSON.parse(localStorage.getItem(RP_KEY)||'[]'); return Array.isArray(a)?a.filter(r=>r&&r.id&&r.cfg):[]; }catch(e){ return []; } }
 // keep at most RP_MAX replays and about RP_BYTES of JSON (a typical match is 5-40 KB); drop the oldest until it fits
 function rpStore(list){ list=list.slice(0,RP_MAX);
+  if(!list.length){ try{ localStorage.setItem(RP_KEY,'[]'); return true; }catch(e){ return false; } }
   while(list.length){ const s=JSON.stringify(list); if(s.length<=RP_BYTES){ try{ localStorage.setItem(RP_KEY,s); return true; }catch(e){} } if(list.length===1) break; list.pop(); }
   return false; }
 function rpGet(id){ if(REC&&REC.id===id) return REC; return rpLoad().find(r=>r.id===id)||null; }
@@ -6361,7 +6363,8 @@ function startWatchNet(cfg,log,midMatch,hostRound){
 setInterval(()=>{ if(!G.watch||G.watch.kind!=='spec'||FF.on||G.over||G.scene!=='game') return; let n=0; for(const q of NET.q.values()) n+=q.length; if(n>=4) ffStart(()=>NET.w.size>0); },1000);
 
 function playReplay(rep,o){ o=o||{}; if(!rep){ toast('Replay unavailable',''); return; }
-  if(G.scene==='game'&&!G.over&&!G.watch&&!G.playerDead){ toast('Finish your match first',''); return; }
+  if(G.scene==='game'&&!G.over&&!G.watch){ toast('Finish your match first',''); return; }
+  if(NET.host&&NET.cfg&&!NET.done){ toast('Your room’s match is still running','You relay it for everyone until it ends.'); return; }
   ffStop(); watchScreens(); NET.q=new Map(); NET.w=new Map(); show('#roul',false);
   try{ const c=JSON.parse(JSON.stringify(rep.cfg));
     if(rep.kind==='off'){ if(!c.lo||!CLASSES[c.lo.cls]||!WEAPONS[c.lo.weapon]||!Array.isArray(c.slots)||!MODES[c.mode]) throw new Error('bad cfg');
@@ -6375,8 +6378,8 @@ function playReplay(rep,o){ o=o||{}; if(!rep){ toast('Replay unavailable',''); r
   if(G.watch.other) toast('Recorded on another version','It may not play out the same way.');
   if(o.final) replayJumpFinal();
 }
-// skip to the start of the second-to-last recorded round
-function replayJumpFinal(){ const W=G.watch; if(!W||W.kind!=='replay') return; const to=Math.max(1,W.total-1); if(G.round>=to) return; ffStart(()=>G.round>=to); }
+// skip to the start of the third-to-last recorded round (the final turns, with a little context)
+function replayJumpFinal(){ const W=G.watch; if(!W||W.kind!=='replay') return; const to=Math.max(1,W.total-2); if(G.round>=to) return; ffStart(()=>G.round>=to); }
 function replayCheck(h){ const W=G.watch, i=G.hlog.length-1; if(i>=W.total) return;
   if(W.rep.h[i]===h){ if(!W.bad) W.ok=i+1; } else if(!W.bad){ W.bad=G.round; toast('Replay out of sync','Round '+G.round+' differs from the recorded match.'); } }
 function exitWatch(){ const W=G.watch; ffStop(); G.matchId++; G.watch=null; show('#wend',false);
@@ -6460,7 +6463,7 @@ function dailyMark(k){ const d=dyLoad(); if(!d.days[k]) d.days[k]={t:Date.now(),
 function dailyScore(r,s){ const of=Math.max(2,r.of||8), pl=clamp(r.place||of,1,of), P=Math.round((of-pl)/(of-1)*1000)+(r.win?500:0), K=s.kills*200, D=s.dmg*10, S=s.rounds*25; return {P,K,D,S,total:P+K+D+S}; }
 function dailyEnd(){ const box=$('#eDaily'), cb=$('#eCard'); if(!G.daily){ box.classList.add('hidden'); cb.classList.add('hidden'); return; }
   const k=G.daily.key, d=dyLoad(), day=d.days[k]||{}; let sc=day.sc;
-  if(!day.done){ const r=G.result, s=G.stats; sc=dailyScore(r,s); let thumb=null; try{ thumb=mapThumb(1).toDataURL('image/png'); }catch(e){}
+  if(!day.done){ const r=G.result, s=G.stats; sc=dailyScore(r,s); let thumb=null; try{ thumb=mapThumb(2).toDataURL('image/jpeg',0.86); }catch(e){}
     Object.assign(day,{done:true,sc,s:sc.total,p:r.place,of:r.of,win:!!r.win,k:s.kills,d:s.dmg,r:s.rounds,reg:G.region,cls:LO.cls,name:LO.name,thumb});
     day.pb=!d.best||sc.total>d.best.s; if(day.pb) d.best={s:sc.total,key:k}; d.days[k]=day; dySave(d); }
   box.classList.remove('hidden'); cb.classList.remove('hidden');
@@ -6474,10 +6477,11 @@ function renderDailyBtn(){ const b=$('#bDaily'); if(!b) return; const k=dailyKey
 function dailyCard(k){ const d=dyLoad(), day=d.days[k]; if(!day||!day.done) return Promise.resolve(null);
   const W=1080,H=1350, cv=document.createElement('canvas'); cv.width=W; cv.height=H; const g=cv.getContext('2d'), R=REG[day.reg]||REG.city;
   const img=new Image(), ready=new Promise(res=>{ img.onload=()=>res(true); img.onerror=()=>res(false); if(day.thumb) img.src=day.thumb; else res(false); });
+  const live=G.daily&&G.daily.key===k&&G.scene==='game'?mapThumb(4):null; // right after the match: the real map, full resolution
   return Promise.all([ready,document.fonts?document.fonts.ready.catch(()=>{}):null]).then(([ok])=>{
     const bg=g.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#05080d'); bg.addColorStop(1,'#0b1520'); g.fillStyle=bg; g.fillRect(0,0,W,H);
     g.save(); g.beginPath(); g.rect(60,250,W-120,600); g.clip();
-    if(ok){ g.imageSmoothingEnabled=true; g.drawImage(img,60,250,W-120,(W-120)*150/240); } else g.drawImage(regionArt(day.reg),60,250,W-120,600);
+    if(live) g.drawImage(live,60,250,W-120,600); else if(ok){ g.imageSmoothingEnabled=true; g.drawImage(img,60,250,W-120,(W-120)*150/240); } else g.drawImage(regionArt(day.reg),60,250,W-120,600);
     const sh=g.createLinearGradient(0,600,0,850); sh.addColorStop(0,'rgba(5,8,13,0)'); sh.addColorStop(1,'rgba(5,8,13,.92)'); g.fillStyle=sh; g.fillRect(60,250,W-120,600); g.restore();
     g.strokeStyle='rgba(63,210,255,.5)'; g.lineWidth=3; g.strokeRect(60,250,W-120,600);
     const T=(t,x,y,f,c,al)=>{ g.font=f; g.fillStyle=c; g.textAlign=al||'left'; g.fillText(t,x,y); };
