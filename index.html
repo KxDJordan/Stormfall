@@ -2475,7 +2475,7 @@ function drawSoldier(c,o){
   // dropped primary when downed/dead lies on the ground in front
   // legs (far then near)
   const leg=(ft,far)=>{ const hx=hip[0]+(far?-1.2:1.2), hy=hip[1]+.5, j=ik(hx,hy,ft[0],ft[1]-1.2,thl,shl,-1);
-    if(SS&&!far) ssPat(c,pat,t); c.strokeStyle=far?dkc:cm; c.lineWidth=lw; c.beginPath(); c.moveTo(hx,hy); c.lineTo(j[0],j[1]); c.lineTo(j[2],j[3]); c.stroke(); if(!far) glow(true);
+    if(SS&&!far) ssPat(c,pat,t); c.strokeStyle=far?dkc:cm; c.lineWidth=lw; c.beginPath(); c.moveTo(hx,hy); c.lineTo(j[0],j[1]); c.lineTo(j[2],j[3]); c.stroke(); if(!far&&hd2) glow(true);
     if(hd2){ c.strokeStyle=far?'rgba(0,0,0,.25)':'rgba(0,0,0,.22)'; c.lineWidth=lw*.42; c.beginPath(); c.moveTo(hx-L*lw*.28,hy); c.lineTo(j[0]-L*lw*.28,j[1]); c.lineTo(j[2]-L*lw*.28,j[3]); c.stroke(); }
     if(AR.exo){ c.strokeStyle=far?'#3a3f48':'#596170'; c.lineWidth=1; c.beginPath(); c.moveTo(hx+1.6,hy); c.lineTo(j[0]+1.6,j[1]); c.lineTo(j[2]+1.2,j[3]); c.stroke(); }
     if(AR.kp&&!far){ c.fillStyle=C(B.a,.8); rr(c,j[0]-lw*.35,j[1]-lw*.45,lw*.95,lw*.9,.6); c.fill(); }
@@ -2546,7 +2546,7 @@ function drawSoldier(c,o){
   if(!useSec&&!primLow&&!farH&&!dropped){ c.fillStyle='#1d2026'; c.beginPath(); c.arc(fgHand[0],fgHand[1]+.3,aw*.5,0,Math.PI*2); c.fill(); }
   // near arm to the grip (or wherever the action puts the hand)
   const nT=nearH||(useSec&&secH?[secH[0],secH[1]]:gHand);
-  { const j=ik(shN[0],shN[1],nT[0],nT[1],6.2,6.6,1); if(SS) ssPat(c,pat,t); c.strokeStyle=cm; c.lineWidth=aw; c.beginPath(); c.moveTo(shN[0],shN[1]); c.lineTo(j[0],j[1]); c.lineTo(j[2],j[3]); c.stroke(); glow(true);
+  { const j=ik(shN[0],shN[1],nT[0],nT[1],6.2,6.6,1); if(SS) ssPat(c,pat,t); c.strokeStyle=cm; c.lineWidth=aw; c.beginPath(); c.moveTo(shN[0],shN[1]); c.lineTo(j[0],j[1]); c.lineTo(j[2],j[3]); c.stroke(); if(hd2) glow(true);
     if(hd2){ c.strokeStyle='rgba(0,0,0,.22)'; c.lineWidth=aw*.4; c.beginPath(); c.moveTo(j[0],j[1]+aw*.25); c.lineTo(j[2],j[3]+aw*.25); c.stroke(); }
     c.fillStyle='#1d2026'; c.beginPath(); c.arc(j[2],j[3],aw*.55,0,Math.PI*2); c.fill(); }
   if(AR.pad){ c.fillStyle=ca; rr(c,shN[0]-AR.pad*.9,shN[1]-2.2,AR.pad*1.9+1.4,4.4,1.6); c.fill(); glow(); c.fillStyle=vis; c.fillRect(shN[0]-AR.pad*.9+.4,shN[1]+1.3,AR.pad*1.9+.6,.6); if(hd2){ c.fillStyle='rgba(255,255,255,.22)'; c.fillRect(shN[0]-AR.pad*.9+.5,shN[1]-2,AR.pad*1.9+.4,.7); } }
@@ -2554,7 +2554,7 @@ function drawSoldier(c,o){
   if(SM&&SM.shim&&hd&&!dead){ const sp=((t*.45+ph*.3)%1.6)/1.6; if(sp<.62){ const x=lerp(-tw-6,tw+6,sp/.62); c.save(); tp(); c.clip(); c.globalCompositeOperation='lighter'; c.fillStyle=SM.metal&&!SM.shc?'rgba(255,240,190,.55)':C(SM.shc||SM.c[2]||[255,255,255],1,.4*SM.shim); c.beginPath(); c.moveTo(x-1.2,0); c.lineTo(x+1.2,0); c.lineTo(x+4.6,-TH); c.lineTo(x+2.2,-TH); c.closePath(); c.fill(); c.restore(); }
     if(SM.metal||SM.glint){ const g1=Math.max(0,Math.sin(t*3.1+ph*2)); if(g1>.6){ const a=(g1-.6)/.4; c.globalCompositeOperation='lighter'; c.strokeStyle='rgba(255,250,220,'+a+')'; c.lineWidth=.4; const gx=tw-2, gy=-TH+3; c.beginPath(); c.moveTo(gx-2*a,gy); c.lineTo(gx+2*a,gy); c.moveTo(gx,gy-2*a); c.lineTo(gx,gy+2*a); c.stroke(); c.globalCompositeOperation='source-over'; } } }
   if(SM&&SM.ov==='rim'&&!dead){ const p=.6+.4*Math.sin(t*3+ph); c.globalCompositeOperation='lighter'; tp(); c.strokeStyle=C(SM.rimc); c.globalAlpha=ga0*.2*p; c.lineWidth=2; c.stroke(); c.globalAlpha=ga0*.7*p; c.lineWidth=.45; c.stroke(); c.globalAlpha=ga0; c.globalCompositeOperation='source-over'; }
-  if(SM&&SM.mote&&!dead&&hd) skinMotes(c,SM.mote,t,ph,tw,TH,ga0);
+  if(SM&&SM.mote&&!dead&&hd) skinMotes(c,SM.mote,t,ph,tw,TH,ga0,hd2);
   // hit flash: whiten the torso and helmet
   if(o.flash>0){ c.globalCompositeOperation='lighter'; c.fillStyle='rgba(255,255,255,'+Math.min(.5,o.flash*1.8)+')'; tp(); c.fill(); c.beginPath(); c.arc(hc[0],hc[1],5.2,0,Math.PI*2); c.fill(); c.globalCompositeOperation='source-over'; }
   c.restore(); // torso space
@@ -2563,7 +2563,7 @@ function drawSoldier(c,o){
   if(cls==='specialist'&&!dead&&!o.noDrone&&!(dn>.5)) drawDrone(c,o,vis,vc,t,ph,fs);
 }
 // skin particles drawn with the rig (torso space): a pure function of the clock, so they cost a few blits and need no particle budget
-function skinMotes(c,M,t,ph,tw,TH,ga){ const n=M.n||3, col=M.col, sp=M.k==='rise'?.28:M.k==='drip'?.7:M.k==='snow'?.32:.45; c.globalCompositeOperation='lighter';
+function skinMotes(c,M,t,ph,tw,TH,ga,full){ const n=full?M.n||3:Math.ceil((M.n||3)*.6), col=M.col, sp=M.k==='rise'?.28:M.k==='drip'?.7:M.k==='snow'?.32:.45; c.globalCompositeOperation='lighter';
   for(let i=0;i<n;i++){ const h=hash(i,7,301), q=(t*sp+i/n+ph*.13)%1; let x=null,y=0,r=1.2,a=1;
     if(M.k==='ember'){ x=(h-.5)*tw*2+Math.sin(t*2+i*1.7)*1.8*q; y=-TH*.4-q*20; r=1.5*(1-q)+.5; a=(1-q)*Math.min(1,q*10); }
     else if(M.k==='rise'){ x=(h-.5)*tw*2.6; y=-2-q*24; r=1.3; a=Math.sin(q*Math.PI)*.9; }
@@ -3065,6 +3065,17 @@ function sigilAt(c,x,y,R,t,tc,br){ if(br<=.01) return; c.strokeStyle=C(tc,1,.85*
   c.beginPath(); for(let i=0;i<12;i++){ const a=t+i*Math.PI/6, r0=R*.82, r1=R*.98; c.moveTo(x+Math.cos(a)*r0,y+Math.sin(a)*r0*.5); c.lineTo(x+Math.cos(a+.1)*r1,y+Math.sin(a+.1)*r1*.5); } c.stroke();
   for(let tri=0;tri<2;tri++){ c.beginPath(); for(let k=0;k<3;k++){ const a=-t*1.3+tri*Math.PI/3+k*2.094; c.lineTo(x+Math.cos(a)*R*.78,y+Math.sin(a)*R*.39); } c.closePath(); c.stroke(); }
   sdot(c,tc,x,y,R*.9,.3*Math.min(1,br)); }
+// idle flourish for menu previews (op card, loadout): the equipped trail lingers at the operative's feet
+function trailIdle(c,x,y,key,t,s){ const tr=TRAILS[key]; if(!tr||!tr.c) return; const tc=hexc(tr.c), P=key==='prism'||key==='confetti'?TPAL[key]:null;
+  c.save(); c.globalCompositeOperation='lighter';
+  if(key==='sigil') sigilAt(c,x,y,22*s,t*.8,tc,.55);
+  else { isoE(c,x,y,22*s); c.strokeStyle=C(tc,1,.25+.12*Math.sin(t*2)); c.lineWidth=1.2*s; c.stroke(); sdot(c,tc,x,y,20*s,.22); }
+  for(let i=0;i<5;i++){ const q=(t*.35+i/5)%1, h=hash(i,5,91), mx=x+(h-.5)*34*s+Math.sin(t*1.3+i*2)*3*s, my=y-2*s-q*44*s, a=Math.sin(q*Math.PI)*.85, col=P?P[i%P.length]:i%2?tc:[255,255,255];
+    if(key==='sakura'){ c.globalCompositeOperation='source-over'; c.globalAlpha=a; petalAt(c,mx,y-44*s+q*44*s,2.2*s,t*2+i,Math.cos(t*3+i)); c.globalAlpha=1; c.globalCompositeOperation='lighter'; }
+    else if(key==='coins'||key==='confetti'){ c.globalCompositeOperation='source-over'; c.globalAlpha=a; if(key==='coins') coinAt(c,mx,my,2.4*s,t*6+i); else confAt(c,mx,my,1.6*s,t*5+i,col); c.globalAlpha=1; c.globalCompositeOperation='lighter'; }
+    else if(key==='pixel'||key==='glitch'){ c.fillStyle=C(col,1,a); c.fillRect(Math.round(mx),Math.round(my),2*s,2*s); }
+    else sdot(c,col,mx,my,(key==='meteor'||key==='ember'||key==='phoenix'?2.6:2)*s,a,key==='meteor'||key==='phoenix'?'fire':null); }
+  c.restore(); }
 function drawTrailFx(c,x,y,tc,key,t,s,o){
   const L=200*s, F=TFX[key]; c.globalCompositeOperation='lighter';
   if(key==='aurora'){ for(let r=0;r<3;r++){ c.strokeStyle='hsla('+((t*90+r*70)%360)+',100%,65%,.55)'; c.lineWidth=(4-r)*s; c.beginPath(); for(let i=0;i<=12;i++){ const yy=y-8*s-i/12*L; c.lineTo(x+Math.sin(i*.7+t*5+r*2)*7*s*(1-i/14),yy); } c.stroke(); } }
@@ -3090,10 +3101,10 @@ function trailLand(u,tc){ const F=TFX[u.trail], p=tileC(u.x,u.y);
   addFx({type:'shock',x:p[0],y:p[1],r:70,col:tc,life:.35,flat:1}); addFx({type:'tland',key:u.trail,x:p[0],y:p[1],col:tc,life:F.ld||1.2,sd:Math.floor(Math.random()*1e4)});
   if(F.burst) F.burst(p,tc); }
 /* preview of a trail for store tiles / galleries: one loop of hover, drop and landing at cycle time a (0..TCYC) */
-const TCYC=3.4;
+const TCYC=3.1;
 function drawTrailPreview(c,key,a,o,x,gy,fs){
-  const tr=TRAILS[key]||TRAILS.default, tc=tr.c?hexc(tr.c):hexc(o.color||'#3fd2ff'), F=TFX[key], H=64*fs, ld=F?F.ld||1.2:.8;
-  const d=a<.7?1:a<1.15?1-Math.pow((a-.7)/.45,2):0, y=gy-d*H, t=G.time;
+  const tr=TRAILS[key]||TRAILS.default, tc=tr.c?hexc(tr.c):hexc(o.color||'#3fd2ff'), F=TFX[key], H=34*fs, ld=F?F.ld||1.2:.8;
+  const d=a<.85?1:a<1.15?1-Math.pow((a-.85)/.3,2):0, y=gy-d*H, t=G.time;
   if(d<=0){ const k=(a-1.15)/ld; if(k<1){ c.save(); if(F&&F.land){ c.globalCompositeOperation='lighter'; F.land(c,x,gy,tc,k,fs,7); c.globalCompositeOperation='source-over'; }
       else { c.globalCompositeOperation='lighter'; isoE(c,x,gy,(10+50*ease(k))*fs); c.strokeStyle=C(tc,1,.85*(1-k)); c.lineWidth=3*fs*(1-k)+1; c.stroke(); sdot(c,tc,x,gy,26*fs,(1-k)*.6,'fire'); c.globalCompositeOperation='source-over'; } c.restore(); } }
   else drawTrailFx(c,x,y,tc,key,t+o.ph,fs,{gy,d});
@@ -4995,7 +5006,7 @@ function syncCos(quiet){ try{ if(!PROF||!PROF.cos) return []; }catch(e){ return 
   if(got.length&&!quiet&&typeof toast==='function') toast('Cosmetic unlocked',got.join(', '),'lvl'); return got; }
 // AI picks: non-premium pools (one seeded pick per unit, as before) and a hashed visor shape / trail (no RNG calls)
 function aiCos(name,list,salt){ let h=salt; for(const ch of String(name)) h=(Math.imul(h,31)+ch.charCodeAt(0))|0; return list[Math.floor(hash(h,salt,77)*list.length)]; }
-const AI_SKINS=Object.keys(SKINS).filter(k=>'cre'.includes(SKINS[k].r)), AI_FINS=Object.keys(FINISHES).filter(k=>'cre'.includes(FINISHES[k].r)), AI_VISORS=Object.keys(VISORS).filter(k=>VISORS[k].r!=='m'), AI_TRAILS=Object.keys(TRAILS).filter(k=>'cre'.includes(TRAILS[k].r));
+const AI_SKINS=Object.keys(SKINS).filter(k=>'cre'.includes(SKINS[k].r)), AI_FINS=Object.keys(FINISHES).filter(k=>'cre'.includes(FINISHES[k].r)), AI_VISORS=Object.keys(VISORS).filter(k=>'cre'.includes(VISORS[k].r)), AI_TRAILS=Object.keys(TRAILS).filter(k=>'cre'.includes(TRAILS[k].r));
 const PACKS=[{id:'p1',sh:100,price:'$0.99',name:'Pouch'},{id:'p2',sh:550,price:'$4.99',name:'Crate',tag:'+10% bonus'},{id:'p3',sh:1200,price:'$9.99',name:'Vault',tag:'Best value'}];
 const PERKS={pk_aim:{name:'Steady Hands',aim:6},pk_mob:{name:'Fleet Foot',mob:1},pk_plate:{name:'Drop Plating',shield:2},pk_scav:{name:'Scavenger',desc:'Supply crates also give +2 shield.'},pk_bounty:{name:'Bounty Hunter',desc:'+50% credits per elimination.'}};
 PERKS.pk_aim.desc='+'+PERKS.pk_aim.aim+' aim on every shot.'; PERKS.pk_mob.desc='+'+PERKS.pk_mob.mob+' mobility (tiles per action point).'; PERKS.pk_plate.desc='Start every match with '+PERKS.pk_plate.shield+' shield.';
@@ -5085,7 +5096,7 @@ function loadProf(){
     if(typeof s.xp==='number') p.xp=Math.max(0,s.xp|0);
     if(Array.isArray(s.owned)) p.owned=s.owned.filter(x=>typeof x==='string');
     if(Array.isArray(s.cos)) p.cos=Array.from(new Set(p.cos.concat(s.cos)));
-    if(s.equip) for(const k in p.equip) if(s.equip[k]&&COS[k][s.equip[k]]) p.equip[k]=s.equip[k];
+    if(s.equip) for(const k in p.equip) if(cosHas(k,s.equip[k])) p.equip[k]=s.equip[k];
     if(s.q&&Array.isArray(s.q.daily)) p.q=s.q;
     if(s.settings) Object.assign(p.settings,s.settings);
     if(s.career) Object.assign(p.career,s.career);
@@ -5201,7 +5212,7 @@ $('#diffs').addEventListener('click',e=>{ const b=e.target.closest('[data-diff]'
 function drawOpCard(){ const c=$('#opc').getContext('2d'); c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,128,152);
   c.drawImage(pvBg('opc',128,152,g=>{ const gr=g.createRadialGradient(64,120,4,64,120,70); gr.addColorStop(0,'rgba(63,210,255,.35)'); gr.addColorStop(1,'rgba(63,210,255,0)'); g.fillStyle=gr; g.fillRect(0,0,128,152); }),0,0);
   const o=demoPose(Object.assign({x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:visorCol(),face:1,time:G.time,ph:1.3,skin:PROF.equip.skin,visor:PROF.equip.visor,finish:PROF.equip.finish},gearLook(LO)),G.time,1.3);
-  c.save(); c.translate(54,136); c.scale(2.5,2.5); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,54,136,2.5); }
+  trailIdle(c,54,136,PROF.equip.trail,G.time,1.1); c.save(); c.translate(54,136); c.scale(2.5,2.5); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,54,136,2.5); }
 async function startMatch(){
   if(NET.on){ if(!confirm('Leave the online room and play offline?')) return; netLeave(); }
   SFX.init(); applySettings(); LO=sanitize(LO); saveLO(); for(const m of META) show('#'+m,false); show('#nav',false); show('#end',false); show('#hud',false); $('#feed').innerHTML=''; closeEmotes(); closePingTray(); G.pingMode=false;
@@ -5597,14 +5608,15 @@ function drawPreview(){
   c.strokeStyle='rgba(63,210,255,.7)'; c.lineWidth=2; c.beginPath(); c.ellipse(140,292,70,18,0,0,Math.PI*2); c.stroke();
   c.strokeStyle='rgba(63,210,255,.35)'; c.setLineDash([10,8]); c.lineDashOffset=-t*20; c.beginPath(); c.ellipse(140,292,90,24,0,0,Math.PI*2); c.stroke(); c.setLineDash([]);
   const o=demoPose(Object.assign({x:0,y:0,cls:draft.cls,armor:draft.armor,weapon:draft.weapon,sec:draft.sec,color:visorCol(),face:1,time:t,ph:0,skin:PROF.equip.skin,visor:PROF.equip.visor,finish:PROF.equip.finish},gearLook(draft)),t,0);
-  c.save(); c.translate(124,290); c.scale(4.9,4.9); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,124,290,4.9);
+  trailIdle(c,124,290,PROF.equip.trail,t,2); c.save(); c.translate(124,290); c.scale(4.9,4.9); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,124,290,4.9);
 }
 
 /* ================= store ================= */
 let stTab='Featured';
 const ST_TABS=['Featured','Skins','Visors','Finishes','Trails','Shards'];
 const ST_DESC={Featured:'Today’s rotation. 25% off, refreshes daily.',Skins:'Armor colorways for every class.',Visors:'Visor, chest stripe and ground ring color.',Finishes:'Weapon paint.',Trails:'The beam you leave behind on drop-in.',Shards:'Premium currency for rare cosmetics. You also earn shards from level-ups and weekly quests.'};
-function baseItems(cat){ const T=COS[cat]; return Object.keys(T).map(k=>({id:cat+':'+k,cat,key:k,name:T[k].name,price:T[k].price,cur:T[k].cur||'cr'})); }
+// store rows; r/rar/rc = rarity key, name and colour, how = free-unlock text ('' when only sold)
+function baseItems(cat){ const T=COS[cat]; return Object.keys(T).map(k=>{ const r=T[k].r||'c'; return {id:cat+':'+k,cat,key:k,name:T[k].name,price:T[k].price,cur:T[k].cur||'cr',r,rar:RARITY[r].name,rc:RARITY[r].col,how:cosHow(cat,k)}; }); }
 // category tabs show today's featured discount too, so an item costs the same wherever you buy it
 function cosItems(cat){ const f=new Map(featured().map(it=>[it.id,it])); return baseItems(cat).map(it=>f.get(it.id)||it); }
 function featured(){ const all=['skin','visor','finish','trail'].flatMap(baseItems).filter(i=>i.price>0); const s=seedOf(dayKey()+'f'); return all.map((it,i)=>[hash(i,s,9),it]).sort((a,b)=>a[0]-b[0]).slice(0,4).map(e=>Object.assign({},e[1],{old:e[1].price,price:Math.ceil(e[1].price*0.75)})); }
@@ -5636,7 +5648,7 @@ function drawCosPreview(cv2){
   if(cat==='visor'){ // the operative plus a close-up of the helmet so the visor's shape reads
     const o2=Object.assign({},o); demoPose(o,t,ph); c.save(); c.translate(96,184); c.scale(3.3,3.3); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,96,184,3.3);
     c.save(); c.beginPath(); c.arc(238,92,74,0,Math.PI*2); c.fillStyle='rgba(8,14,22,.55)'; c.fill(); c.clip(); o2.noShadow=true; o2.noDrone=true; o2.aim=(((t+ph)%6)>4.4)?1:0;
-    c.translate(226,476); c.scale(10.2,10.2); drawSoldier(c,o2); c.restore();
+    c.translate(214,478); c.scale(10.2,10.2); drawSoldier(c,o2); c.restore();
     c.strokeStyle=C(hexc(vis),1,.5); c.lineWidth=1.5; c.beginPath(); c.arc(238,92,74,0,Math.PI*2); c.stroke(); return; }
   demoPose(o,t,ph); c.save(); c.translate(146,182); c.scale(3.6,3.6); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,146,182,3.6);
 }
@@ -5644,9 +5656,9 @@ function drawCosPreview(cv2){
    names the SETS key (or pass key); any canvas size works (drawn for 320x192 and scaled). */
 function drawSetPreview(cv2,key){
   key=key||cv2.dataset.set; const S=SETS[key]; const c=cv2.getContext('2d'); c.setTransform(cv2.width/320,0,0,cv2.height/192,0,0); c.clearRect(0,0,320,192); if(!S) return;
-  const I=S.items, t=G.time, ph=hash(key.length,3,9)*6, vis=(VISORS[I.visor]||VISORS.cyan).c, tr=TRAILS[I.trail], tc=tr&&tr.c?hexc(tr.c):hexc(vis);
+  const I=S.items, t=G.time, ph=hash(key.length,3,9)*6, vis=(VISORS[I.visor]||VISORS.cyan).c, tr=TRAILS[I.trail];
   c.globalCompositeOperation='lighter'; c.globalAlpha=.5; c.drawImage(softTex(hexc(RARITY[S.r].col)),40,150,240,56); c.globalAlpha=1; c.globalCompositeOperation='source-over';
-  drawTrailFx(c,160,170,tc,I.trail,t+ph,.75,{gy:180,d:.25});
+  trailIdle(c,150,182,I.trail,t,2.6);
   const o=demoPose(Object.assign({x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:vis,visor:I.visor,face:1,time:t,ph,skin:I.skin,finish:I.finish},gearLook(LO),{pfin:null,sfin:null}),t,ph);
   c.save(); c.translate(150,182); c.scale(3.5,3.5); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,150,182,3.5);
 }
