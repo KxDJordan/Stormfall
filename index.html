@@ -634,6 +634,9 @@ body.sheet-open .nav{display:none}
 #torder .tk.unk{color:#8b97a3;border-style:dashed;font-size:16px}
 #torder .tk.down{background:rgba(96,14,24,.92)}
 #torder .tk.down::after{content:"";position:absolute;inset:-3px;border:2px solid var(--hostile);border-radius:6px;animation:tkdown 1s ease-in-out infinite alternate}
+#torder .tk .dtk{position:absolute;left:50%;bottom:-5px;width:12px;height:6px;margin-left:-6px;border-radius:2px;border:1px solid #7fe8ff;background:rgba(8,12,18,.9)}
+#torder .tk .dtk.out{background:#7fe8ff;box-shadow:0 0 5px rgba(127,232,255,.8)}
+#torder .tk .dtk.dead{border-color:var(--hostile);background:rgba(120,20,30,.9)}
 #torder .tk.dead{width:12px;opacity:.45;border-color:transparent;background:transparent;color:#8b97a3;font-size:14px}
 #torder .sep{flex:none;display:flex;align-items:center;gap:3px;height:26px;padding:0 5px 0 4px;margin:0 2px;border-left:2px solid rgba(255,255,255,.35);font:700 11px/1 'Chakra Petch',sans-serif;color:#cfd9e3;background:rgba(8,12,18,.65);border-radius:0 3px 3px 0}
 #torder .sep i{display:grid;place-items:center;width:18px;height:18px;border-radius:3px;font-style:normal}
@@ -665,6 +668,14 @@ body.sheet-open .nav{display:none}
 .unitp .cl{color:var(--muted);font-size:12px;margin-top:2px}
 .unitp .nm,.unitp .cl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .unitp .mid{flex:1;min-width:0}
+.drp{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:3px;font-size:11px;color:var(--muted)}
+.drp .dl{display:flex;align-items:center;gap:3px;color:#bfefff;font-weight:600}
+.drp .dl svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.drp .dhp{display:flex;gap:2px}.drp .dhp i{width:6px;height:6px;border-radius:1px;background:rgba(255,255,255,.15)}.drp .dhp i.on{background:var(--ok)}.drp .dhp i.sh{background:#6fd0ff}
+.drp .dap{gap:4px}.drp .dap i{width:7px;height:7px;border-color:#7fe8ff}.drp .dap i.on{background:#7fe8ff}
+.drp .dst.bad{color:var(--hostile)}
+.unitp.dctl{border-left-color:#7fe8ff;background:rgba(8,34,42,.94)}
+.unitp.dctl .drp .dl{color:#7fe8ff}
 .unitp.downed{border-left-color:var(--hostile);background:rgba(60,12,18,.9)}
 .pips{display:flex;flex-wrap:wrap;gap:2px}
 .pip{width:9px;height:9px;background:rgba(255,255,255,.12);transform:skewX(-14deg)}
@@ -1092,7 +1103,7 @@ body.sheet-open .nav{display:none}
     </div>
     <div class="unitp pe" id="unitp">
       <div class="np" id="uPlate"><b class="nm" id="uName"></b><small id="uTtl"></small><div class="cl" id="uCls"></div></div>
-      <div class="mid"><div class="pips" id="uHp"></div><div class="meta"><span class="ap" id="uAp"></span><span id="uAmmo"></span><span class="swk hidden" id="uSw" title="">Second Wind</span><span class="st" id="uSt"></span></div><div class="ally hidden" id="uAlly"></div></div>
+      <div class="mid"><div class="pips" id="uHp"></div><div class="meta"><span class="ap" id="uAp"></span><span id="uAmmo"></span><span class="swk hidden" id="uSw" title="">Second Wind</span><span class="st" id="uSt"></span></div><div class="drp hidden" id="uDr" aria-label="Drone"></div><div class="ally hidden" id="uAlly"></div></div>
       <div class="tmr hidden" id="tmr"><b id="tmrN">30</b><i id="tmrB"></i><small>sec</small></div>
     </div>
     <div class="actions pe" id="actions"></div>
@@ -1186,6 +1197,7 @@ body.sheet-open .nav{display:none}
       <li>The strip under the top bar shows the turn order for this round, then the round break with any storm or supply event. You are highlighted, teammates are green, and enemies you cannot see show as “?”.</li>
       <li>Duos: teams of two; with an odd number of humans the last one drops with an AI partner. A downed operative bleeds out in 2 turns unless an adjacent teammate revives them.</li>
       <li>Team pings: in Duos, tap 📍 then the map, or press and hold on the map, to ping (Enemy here, Move here, Watch this area, Loot here, Danger) or give a command (Hold, Regroup, Push, Fall back, Revive me). Only your team sees them; they fade after 2 rounds. An AI partner follows them (online, orders given on your own turn).</li>
+      <li>Specialist drone: it rides docked just above the Specialist (no vision, can’t be hit) until you tap <em>Deploy</em> (free, once a turn) and pick a tile. Deployed, it is its own unit with its own drone AP each turn (2; 3 with the Extended battery): fly it, zap, mark, or use its model action. Combat Protocol, Aid Protocol, Capacitor Discharge, Chain Lightning, Guardian, Haywire, Overclock, Drone Shield and Restoration all need it deployed. It sees for your team, can be shot, blown up, zapped and caught by overwatch, takes 1 storm damage a round outside the zone, and never counts as an operative (turn order, victory, objectives). Tap <em>Drone</em> to control it, <em>Operative</em> to switch back, <em>Recall</em> to dock it. Destroyed: <em>Rebuild</em> (1 AP) after 2 of your turns. Chassis: Sparrow (scout, Scan), Striker (Burst, harder zaps), Mender (Heal Pulse), Bulwark (Shield Projector, 6 HP), Jammer (Jam). Drone mastery unlocks upgrades; drone skins are in the Store.</li>
       <li>Weapon mastery: hits, damage and takedowns with a primary or sidearm level that weapon (1–10). Mastery unlocks its attachments (optic, barrel, magazine, underbarrel: picked per weapon in Loadout) and mastery finishes, up to the animated Stormcell.</li>
       <li>The waiting room after Play sets up the match: add or remove bots (any size from a 1v1 up to the mode’s limit) and give each bot its own difficulty, Recruit, Veteran or Elite, or set them all at once. Difficulty changes aim, gear, memory, hearing and how cleverly they flank; an AI partner keeps gear matched to your team. Smaller matches start with a smaller storm and fewer crates, and pay less for placement.</li>
       <li>Six regions: Neo-Kowloon, Frostfall Station, Ember Wastes, Verdant Ruins, Ironhaven Docks and Blackwell Refinery. The map roulette after Deploy picks one you did not just play.</li>
@@ -1274,7 +1286,7 @@ const CLASSES={
   grenadier:{name:'Grenadier',tag:'Heavy weapons',aim:66,hp:8,mob:5,sight:0,weapons:['cannon','rifle','slug','minigun'],armors:['medium','heavy','bastion'],utils:['frag','plasma','smoke','flash','medkit'],ability:'hail',
     desc:'Carries an extra charge on damaging grenades and throws 2 tiles farther. Hail of Bullets never misses. Only class that can wear the EXO Rig or Bastion Frame and carry plasma.'},
   specialist:{name:'Specialist',tag:'Drone support',aim:72,hp:8,mob:6,sight:0,weapons:['rifle','smg','carbine','volt'],armors:['light','medium','stalker'],utils:['frag','smoke','flash','medkit'],ability:'zap',
-    desc:'Flies a combat drone. Combat Protocol zaps any visible enemy for 3 armor-piercing damage and keeps your turn going. Medkits carry an extra charge and heal 4.'}
+    desc:'Flies a combat drone. Deploy it (free, once a turn) and it acts on its own drone AP: Combat Protocol zaps an enemy it sees for 3 armor-piercing damage, and every model has its own support action. Medkits carry an extra charge and heal 4.'}
 };
 /* Weapon accuracy by range: rt=[[upToTile,aimMod],...] in ascending tiles; past the last entry the modifier keeps
    dropping by `fall` per tile. range(d) is built from rt, and the loadout text, optimal band and bars are all derived
@@ -1361,7 +1373,7 @@ const ABIL={
   slash:{name:'Blade Strike',short:'Blade',cd:3,desc:'Dash to an enemy you can reach and slash: 95% hit, 4–6 damage. Ends turn.'},
   deadeye:{name:'Deadeye',short:'Deadeye',cd:3,desc:'−15 aim, +50% damage. Like a normal shot, you can still move after if you haven’t moved yet.'},
   hail:{name:'Hail of Bullets',short:'Hail',cd:4,desc:'Guaranteed hit, uses 2 ammo. Ends turn.'},
-  zap:{name:'Combat Protocol',short:'Protocol',cd:3,desc:'Drone zap: 3 armor-piercing damage, never misses. Costs 1 AP and does not end your turn.'}
+  zap:{name:'Combat Protocol',short:'Protocol',cd:3,desc:'Drone action (deploy the drone first): zap an enemy the drone sees for 3 armor-piercing damage, never misses. Costs 1 drone AP, not yours.'}
 };
 /* Secondary weapons (one per operative, next to the primary).
    type melee: strikes an adjacent enemy; dash>0 lets it dash up to that many tiles of movement to reach one (ends the turn).
@@ -1503,15 +1515,15 @@ const CPERKS={
     [{id:'g_rupt',name:'Rupture',act:'rupt',desc:'Active: a guaranteed primary hit with +3 damage; the target takes +1 damage from every hit for the rest of the match. Ends turn. Cooldown 5.'},
      {id:'g_jugg',name:'Juggernaut',desc:'+1 armor. Disorientation wears off as soon as your turn starts.'}]],
   specialist:[
-    [{id:'p_over',name:'Overclock',desc:'Combat Protocol deals +1 damage. Cooldown −1.'},
+    [{id:'p_over',name:'Overclock',desc:'Combat Protocol (drone deployed) deals +1 damage. Cooldown −1.'},
      {id:'p_medic',name:'Field Medic',desc:'+1 medkit charge, and medkits also give +2 shield.'}],
-    [{id:'p_aid',name:'Aid Protocol',act:'aid',desc:'Active: the drone gives you or an ally in sight +3 shield. 1 AP, keeps your turn going. Cooldown 3.'},
-     {id:'p_hay',name:'Haywire',desc:'Combat Protocol also disorients the target (−20 aim) and breaks its overwatch.'}],
-    [{id:'p_cap',name:'Capacitor Discharge',act:'cap',desc:'Active: 3 armor-piercing damage to an enemy in sight and 2 to every enemy within 2 tiles of it. Follows shooting AP rules. Cooldown 5.'},
-     {id:'p_shield',name:'Drone Shield',desc:'Start each of your turns with at least 1 shield.'}],
-    [{id:'p_guard',name:'Guardian',desc:'When your overwatch fires, the drone also zaps the target for 2.'},
-     {id:'p_restore',name:'Restoration',desc:'At the start of your turn the drone heals you and teammates within 3 tiles for 1.'}],
-    [{id:'p_chain',name:'Chain Lightning',desc:'Combat Protocol arcs to the nearest other enemy you see within 4 tiles of the target.'},
+    [{id:'p_aid',name:'Aid Protocol',act:'aid',desc:'Active (drone deployed): the drone gives you or an ally it can see within 10 tiles +3 shield. 1 drone AP. Cooldown 3.'},
+     {id:'p_hay',name:'Haywire',desc:'Combat Protocol (drone deployed) also disorients the target (−20 aim) and breaks its overwatch; an enemy drone is grounded for its next turn.'}],
+    [{id:'p_cap',name:'Capacitor Discharge',act:'cap',desc:'Active (drone deployed): 3 armor-piercing damage to an enemy the drone sees and 2 to every enemy within 2 tiles of it. 1 drone AP. Cooldown 5.'},
+     {id:'p_shield',name:'Drone Shield',desc:'While your drone is deployed, start each of your turns with at least 1 shield.'}],
+    [{id:'p_guard',name:'Guardian',desc:'When your overwatch fires, your deployed drone also zaps the target for 2 if it can see it.'},
+     {id:'p_restore',name:'Restoration',desc:'At the start of your turn your deployed drone heals you and teammates within 3 tiles of it for 1.'}],
+    [{id:'p_chain',name:'Chain Lightning',desc:'Combat Protocol (drone deployed) arcs to the nearest other enemy the drone sees within 4 tiles of the target.'},
      {id:'p_stim',name:'Combat Stims',act:'stim',desc:'Active: +1 AP this turn (free action). Cooldown 5.'}]]
 };
 const CP={}; for(const c in CPERKS) CPERKS[c].forEach((tier,i)=>tier.forEach((p,j)=>{ p.cls=c; p.tier=i; p.opt=j; CP[p.id]=p; }));
@@ -1534,6 +1546,55 @@ const hasP=(u,id)=>!!(u&&u.cp&&u.cp[id]);
 function abilCd(u,ab){ return ABIL[ab].cd-((ab==='slash'&&hasP(u,'r_lunge'))||(ab==='deadeye'&&hasP(u,'s_dead'))||(ab==='hail'&&hasP(u,'g_hail'))||(ab==='zap'&&hasP(u,'p_over'))?1:0); }
 // chosen class perks for a class, given a 5-entry pick array and an "is this tier owned" test
 function cpList(cls,tree,has){ const out=[]; if(!CPERKS[cls]) return out; for(let i=0;i<5;i++) if(has('ct'+(i+1))) out.push(CPERKS[cls][i][tree&&tree[i]===1?1:0].id); return out; }
+ACTS.aid.drone=ACTS.cap.drone=true; // drone perk actives: used from drone control (DACTS), never from the Specialist's own bar
+/* ================= Specialist drone (rules data) =================
+   The Specialist's drone is attached (hovering just above the operative: purely visual, cannot be targeted, no vision)
+   until the Deploy action launches it to a tile. Deployed, it is its own entity (G.drones, never in G.units, so it never
+   counts for turn order, victory, objectives, revives, crates, doors or kill placement): it has HP, can be shot, blown up,
+   zapped and caught by overwatch, gives its team vision like an operative, and acts during its Specialist's turn on its
+   own drone AP (independent of the Specialist's 2 AP). Every drone ability (Combat Protocol and the drone perks) needs it
+   deployed. Deploy is free (no Specialist AP, once a turn) and uses 1 drone AP for the launch flight. Destroyed: a wreck,
+   then Rebuild (1 AP) once `rebuild` of the Specialist's turns have passed. Models are chassis with one model action each;
+   upgrades are drone mastery unlocks (up to `slots` equipped). These numbers drive the rules, loadout cards and HUD. */
+const DRONE={hv:34,rebuild:2,slots:2,zapRange:12,markAim:10,areaR:1.5,jamR:2.5,scanR:4,heal:2,shield:2,burst:2,burstRange:6,storm:1,aidRange:10};
+const DMODELS={
+  sparrow:{name:'Sparrow',tag:'Scout',hp:4,mob:7,sight:9,def:25,act:'scan',d:'Light and quick, with the longest sight.'},
+  striker:{name:'Striker',tag:'Assault',hp:4,mob:5,sight:7,def:20,act:'burst',zap:1,d:'An armed chassis: Combat Protocol hits harder and it carries its own pulse gun.'},
+  medic:{name:'Mender',tag:'Medic',hp:4,mob:5,sight:7,def:20,act:'heal',d:'A flying field kit that patches up every ally right under it.'},
+  bulwark:{name:'Bulwark',tag:'Shield projector',hp:6,mob:4,sight:7,def:10,act:'shield',d:'Slow and sturdy: projects shields onto allies under it and soaks fire.'},
+  jammer:{name:'Jammer',tag:'Electronic warfare',hp:4,mob:5,sight:8,def:20,act:'jam',d:'Shuts down what is near it: enemy aim, overwatch, drones and scans.'}
+};
+for(const k in DMODELS) DMODELS[k].id=k;
+const DM_KEYS=Object.keys(DMODELS);
+// drone upgrades: unlocked by drone mastery level m (XP from your drone's actions), up to DRONE.slots equipped
+const DUPS={
+  plate:{name:'Armor plating',m:2,hp:1,d:'+1 drone HP.'},
+  optics:{name:'Long-range optics',m:4,sight:2,range:2,d:'+2 drone sight and +2 tiles of Burst range.'},
+  battery:{name:'Extended battery',m:6,ap:1,d:'+1 drone AP every turn.'},
+  repair:{name:'Auto-repair',m:8,regen:1,d:'Repairs 1 drone HP at the start of each of your turns.'},
+  shell:{name:'Ablative shell',m:10,armor:1,d:'The drone blocks 1 damage from every hit.'}
+};
+for(const k in DUPS) DUPS[k].id=k;
+const DXP={act:15,dmg:4,kill:50,dkill:30,deploy:20};
+// drone actions (each costs 1 drone AP). base: every model; model actions: DMODELS[m].act; perk: needs that Specialist perk
+const DACTS={
+  move:{name:'Fly',short:'Fly',d:'Fly up to the drone’s move range. It flies over half cover, gaps and rooftops, but not through walls, full cover or anyone. Enemies on overwatch can fire at it.'},
+  zap:{name:'Combat Protocol',short:'Protocol',tgt:'foe',d:'Zap an enemy or enemy drone the drone can see within '+DRONE.zapRange+' tiles: 3 armor-piercing damage, never misses.'},
+  mark:{name:'Mark Target',short:'Mark',tgt:'enemy',d:'Paint an enemy the drone can see: your team gets +'+DRONE.markAim+' aim against it until the end of next round.'},
+  scan:{name:'Scan',short:'Scan',cd:3,d:'Reveal everything within '+DRONE.scanR+' tiles of the drone, even through walls, until the end of next round.'},
+  burst:{name:'Burst',short:'Burst',cd:2,tgt:'foe',d:'Pulse gun at an enemy or drone it sees within '+DRONE.burstRange+' tiles: 80% hit minus defense and cover, '+DRONE.burst+' armor-piercing damage.'},
+  heal:{name:'Heal Pulse',short:'Heal',cd:2,d:'Every ally within '+DRONE.areaR+' tiles of the drone (you too) heals '+DRONE.heal+' HP.'},
+  shield:{name:'Shield Projector',short:'Shield',cd:2,d:'Every ally within '+DRONE.areaR+' tiles of the drone (you too) gains +'+DRONE.shield+' shield.'},
+  jam:{name:'Jam',short:'Jam',cd:3,d:'Enemies within '+DRONE.jamR+' tiles of the drone are disoriented (−20 aim) and lose overwatch; enemy drones there are grounded for their next turn and their scans there end.'},
+  aid:{name:'Aid Protocol',short:'Aid',perk:'p_aid',cd:3,tgt:'ally',d:'The drone gives you or an ally it can see within '+DRONE.aidRange+' tiles +3 shield.'},
+  cap:{name:'Capacitor Discharge',short:'Discharge',perk:'p_cap',cd:5,tgt:'enemy',d:'3 armor-piercing damage to an enemy the drone sees within '+DRONE.zapRange+' tiles and 2 to every enemy within 2 tiles of it.'},
+  recall:{name:'Recall',short:'Recall',d:'Fly back and dock above you. Docked, it cannot be hit, gives no vision and cannot act until you deploy it again.'}
+};
+for(const k in DACTS) DACTS[k].id=k;
+// stats of a model with upgrades (shared by the sim, the loadout cards and the HUD)
+function dmStats(m,ups){ const M=DMODELS[m]||DMODELS.sparrow, U=(ups||[]).map(k=>DUPS[k]).filter(Boolean), s=f=>U.reduce((a,u)=>a+(u[f]||0),0);
+  return {hp:M.hp+s('hp'),mob:M.mob,sight:M.sight+s('sight'),def:M.def,ap:2+s('ap'),armor:s('armor'),regen:s('regen'),range:s('range'),zap:3+(M.zap||0)}; }
+function dmDesc(m){ const M=DMODELS[m], A=DACTS[M.act]; return M.d+' Model action: '+A.name+', cooldown '+A.cd+'. '+A.d+(M.zap?' Combat Protocol +'+M.zap+' damage.':''); }
 const RIVALS=[['VIPER','#ff4d5e'],['JACKAL','#ff9f1c'],['RAVEN','#c77dff'],['MANTIS','#a6ff3c'],['COBRA','#ffd23c'],['WRAITH','#ff6bd6'],['GHOUL','#ff7a5c'],['HYDRA','#5cffc4'],['SPECTRE','#ff9fb0']];
 const PLAYER_COL='#3fd2ff';
 const BODY={ranger:{m:[62,88,58],d:[34,48,30],a:[112,142,86]},sharpshooter:{m:[58,70,90],d:[33,40,53],a:[125,144,173]},grenadier:{m:[92,76,54],d:[52,42,29],a:[154,128,88]},specialist:{m:[46,82,88],d:[26,48,52],a:[95,154,160]}};
@@ -1653,7 +1714,7 @@ const G={scene:'menu',region:'city',R:REG.city,grid:null,lanes:{x:[],y:[]},units
   mode:'idle',busy:false,paused:false,over:true,matchId:0,round:0,storm:null,reach:null,pending:-1,pendingPath:null,
   targets:[],tIdx:0,tKind:null,slashPaths:null,throwUtil:null,throwTile:-1,turnRes:null,flashA:0,stats:null,
   ground:null,gScale:1,bg:null,weather:[],autoPlayer:false,lastRegion:null,M:MODES.solo,SC:STORM,drop:null,bubbles:[],
-  turnLeft:0,turnMax:0,fullVis:true,zDraw:false,cmd:null,place:0,
+  turnLeft:0,turnMax:0,fullVis:true,zDraw:false,cmd:null,place:0,drones:[],dmode:null,
   reveals:[],sensors:[],lkp:new Map(),cues:[],groundDirty:false}; // reveals/sensors: sim (per team); lkp/cues: local player's visual memory
 let UID=0;
 // online session state (see "online play" below)
@@ -2033,7 +2094,7 @@ function computeVis(){
   if(G.scene!=='game'||G.watch){ v.fill(1); G.fullVis=true; return; } // spectators and replays see the whole map
   const vs=viewers(); if(!vs.length||G.over){ v.fill(1); G.fullVis=true; return; }
   G.fullVis=false; v.fill(0);
-  for(const p of vs){ const sr=sightOf(p);
+  for(const p of vs.concat(G.drones.filter(d=>d.alive&&d.team===G.player.team))){ const sr=sightOf(p); // deployed drones see for their team
     for(let y=Math.max(0,Math.floor(p.y-sr));y<=Math.min(MH-1,Math.ceil(p.y+sr));y++) for(let x=Math.max(0,Math.floor(p.x-sr));x<=Math.min(MW-1,Math.ceil(p.x+sr));x++){
       const i=idx(x,y); if(v[i]) continue; if(Math.hypot(x-p.x,y-p.y)<=sr+0.01&&hasLOS(p.x,p.y,x,y)&&!smokeBlocks(p.x,p.y,x,y)){ v[i]=1; G.seen[i]=1; } } }
   for(const r of G.reveals||[]){ if(r.team!==G.player.team||G.round>r.until) continue;
@@ -2044,7 +2105,7 @@ function computeVis(){
 /* ================= pathing ================= */
 function computeReach(u,maxCost){
   const N=MW*MH, dist=new Float32Array(N).fill(Infinity), prev=new Int32Array(N).fill(-1), done=new Uint8Array(N);
-  const occ=new Uint8Array(N); for(const o of G.units) if(o.alive&&o!==u) occ[idx(o.x,o.y)]=1;
+  const occ=new Uint8Array(N); for(const o of G.units) if(o.alive&&o!==u) occ[idx(o.x,o.y)]=1; for(const d of G.drones) if(d.alive) occ[idx(d.x,d.y)]=1; // deployed drones hold their tile
   const s=idx(u.x,u.y); dist[s]=0; const open=[s];
   while(open.length){
     let bi=0; for(let i=1;i<open.length;i++) if(dist[open[i]]<dist[open[bi]]) bi=i;
@@ -2083,8 +2144,15 @@ function sanitize(lo){
   const at={}, src=lo.att&&typeof lo.att==='object'?lo.att:{};
   for(const k in src){ if(!mastTracked(k)) continue; const ml=mastLvl(k), m={}; for(const id of attIds(src[k],k)) if(ml>=attNeed(k,id)) m[ATTACH[id].slot]=id; if(Object.keys(m).length) at[k]=m; }
   o.att=at;
+  // Specialist drone: an unlocked model and upgrades your drone mastery has unlocked (old saves: Sparrow, no upgrades)
+  const dsrc=lo.drone&&typeof lo.drone==='object'?lo.drone:{}, dml=dMastLvl();
+  o.drone={m:DMODELS[dsrc.m]&&dmOwned(dsrc.m)?dsrc.m:'sparrow',up:(Array.isArray(dsrc.up)?dsrc.up:[]).filter((k,i,a)=>DUPS[k]&&a.indexOf(k)===i&&dml>=DUPS[k].m).slice(0,DRONE.slots)};
   return o;
 }
+function dmOwned(m,lv){ const id='d_'+m; return UNLOCK_LVL[id]==null||(lv!=null?lvlOwn(id,lv):own(id)); }
+// drone mastery (PROF.dmast: total drone XP), same curve as weapon mastery
+function dMastInfo(){ return mastInfo('drone',(PROF&&PROF.dmast)||0); }
+function dMastLvl(){ return dMastInfo().l; }
 function randomLoadout(not,lv){ lv=lv||1; const keys=Object.keys(CLASSES).filter(k=>k!==not); const cls=pick(keys),Cl=CLASSES[cls];
   const pool=Cl.utils.filter(u=>!UTILS[u].shop||lvlOwn('u_'+u,lv)), perks=Object.keys(PERKS).filter(k=>lvlOwn(k,lv));
   const L={cls,weapon:pick(Cl.weapons.filter(k=>wOwned(k,lv))),armor:pick(Cl.armors.filter(k=>aOwned(k,lv))),utils:shuffle(pool).slice(0,lvlOwn('pouch',lv)?3:2),perk:perks.length&&RNG()<0.8?pick(perks):null,
@@ -2123,7 +2191,14 @@ function makeUnit(lo,isPlayer,name,color,prof,team){
     kfx:eq?(cosHas('kill',eq.kill)?eq.kill:'default'):aiCos(name,AI_KFX,6)}; // kill effect (visual only)
   // name plate (cosmetic, never read by the sim): your own picks, or a remote spec's cleaned ids; AI has none
   u.ttl=prof?(prof.own?(hasK(TITLES,prof.title)?prof.title:''):myTitle()):''; u.bnr=prof?(prof.own?bnKey(prof.banner):myBanner()):'';
-  u.hp=u.maxHp; return u;
+  u.hp=u.maxHp;
+  // Specialist drone: model and upgrades from the loadout (validated by sanitize / cleanSpec; here only ids are re-checked);
+  // AI: a model it has unlocked at its level and upgrades by level, picked by a name hash (no RNG call). Skin is cosmetic.
+  if(lo.cls==='specialist'){ let m, ups;
+    if(prof){ const D=lo.drone&&typeof lo.drone==='object'?lo.drone:{}; m=DMODELS[D.m]&&(UNLOCK_LVL['d_'+D.m]==null||has('d_'+D.m))?D.m:'sparrow'; ups=(Array.isArray(D.up)?D.up:[]).filter((k,i,a)=>DUPS[k]&&a.indexOf(k)===i).slice(0,DRONE.slots); }
+    else { const ok=DM_KEYS.filter(k=>UNLOCK_LVL['d_'+k]==null||lvlOwn('d_'+k,lv)); m=aiCos(name,ok,11); ups=lv>=14?['plate','battery']:lv>=8?['plate']:[]; }
+    u.dr=droneNew(u,m,ups,eq?(cosHas('drone',eq.drone)?eq.drone:'default'):aiCos(name,AI_DSKINS,12)); }
+  return u;
 }
 // per-weapon mastery counters for this match (local player's own actions only; never read by the sim)
 function mstat(k){ G.mstat=G.mstat||{}; return G.mstat[k]||(G.mstat[k]={hits:0,dmg:0,kills:0}); }
@@ -2132,12 +2207,12 @@ function mstat(k){ G.mstat=G.mstat||{}; return G.mstat[k]||(G.mstat[k]={hits:0,d
    util / obj), so a takedown knows what caused it; reaction shots (overwatch, return fire) count as primary. */
 function cstatNew(){ return {k_prim:0,k_sec:0,k_abil:0,k_util:0,k_obj:0,rfHits:0,crits:0,breach:0,doors:0,tiles:0,cover:0,booms:0,abil:0,utils:0,dmgTaken:0}; }
 function cst(u,k,n){ if(u&&u.isPlayer&&G.cstat) G.cstat[k]=(G.cstat[k]||0)+(n==null?1:n); }
-function cmdCtx(c){ const k=c&&c.k; return k==='fire'?(c.kind==='shoot'?'prim':'abil'):k==='sec'?'sec':k==='act'?'abil':k==='throw'||k==='util'?'util':k==='obj'?'obj':null; }
+function cmdCtx(c){ const k=c&&c.k; return k==='fire'?(c.kind==='shoot'?'prim':'abil'):k==='sec'?'sec':k==='act'||k==='drone'?'abil':k==='throw'||k==='util'?'util':k==='obj'?'obj':null; }
 function placeUnit(u,x,y){ u.x=u.rx=x; u.y=u.ry=y; u.rz=ez(x,y); }
 function throwRange(u,U){ return U.range+(U.dev?0:(u.cls==='grenadier'?2:0)+(hasP(u,'g_launch')?3:0)); }
 function faceTo(u,x,y){ const a=iso(u.x,u.y),b=iso(x,y); if(Math.abs(b[0]-a[0])>1) u.face=b[0]>a[0]?1:-1; }
 function unitScreen(u){ const p=iso(u.rx+.5,u.ry+.5); return [p[0],p[1]-u.drop*420-(u.rz||0)]; }
-function chest(u){ const p=unitScreen(u); return [p[0],p[1]-21]; }
+function chest(u){ const p=unitScreen(u); return u.drone?p:[p[0],p[1]-21]; } // a drone's rz already includes its hover height
 const SCL=1.14; // operative rig scale (visual)
 
 /* ================= match setup ================= */
@@ -2188,7 +2263,7 @@ function setupMatch(lo,mk,net,pre){
       else if(hum) u=makeUnit(randomLoadout(lo.cls,aiLevel()),false,pick(['BISHOP','KESTREL','ROOK']),'#8ff0d6',null,t);
       else { const r=names[ni++%names.length]; u=makeUnit(randomLoadout(undefined,aiLevel(DF.gear)),false,r[0],per>1?tc:r[1],null,t); }
       u.bot=true; u.diff=DF; list.push(u); } }
-  G.units=list;
+  G.units=list; G.drones=list.filter(u=>u.dr).map(u=>u.dr); G.dmode=null; G.dstat={acts:0,dmg:0,kills:0,dkills:0,dep:0};
   // team-shared AI memory/hearing (teamDiff) follows the sharpest bot on the team; a team with no bots stays Veteran
   G.teamDiff={}; for(const u of list){ if(!u.bot) continue; const c=G.teamDiff[u.team]; if(!c||DKEYS.indexOf(u.diff.key)>DKEYS.indexOf(c.key)) G.teamDiff[u.team]=u.diff; }
   const taken=new Set();
@@ -2218,7 +2293,7 @@ function setupMenuScene(){
   G.region=pick(REGIONS); G.lastRegion=G.region; G.R=REG[G.region];
   const m=genMap(G.region); G.grid=m.grid; G.lanes=m.lanes; G.elev=m.elev; G.floorT=m.floorT; G.lvl=m.lvl; G.lad=m.lad; G.losCache.fill(0); G.decals=[]; G.smoke=[]; G.crates=[];
   G.storm={cx:MW/2,cy:MH/2,r:11,nextR:8,stage:1,anim:null,ncx:MW/2,ncy:MH/2};
-  G.units=[]; G.player=null; G.M=MODES.solo; G.SC=STORM;
+  G.units=[]; G.drones=[]; G.player=null; G.M=MODES.solo; G.SC=STORM;
   const floors=[]; for(let i=0;i<MW*MH;i++) if(!G.grid[i]) floors.push(i);
   const centre=floors.filter(i=>Math.hypot(i%MW-MW/2,((i/MW)|0)-MH/2)<6);
   for(let k=0;k<6;k++){ const s=pick(centre.length?centre:floors); if(G.units.some(u=>idx(u.x,u.y)===s)) continue; const lo=randomLoadout(); const r=RIVALS[k]; const u=makeUnit(lo,false,r[0],k===0?visorCol():r[1],null,k); placeUnit(u,s%MW,(s/MW)|0); u.face=Math.random()<.5?1:-1; G.units.push(u); }
@@ -3432,17 +3507,100 @@ function drawHead(c,AR,cls,B,cm,ca,vis,vc,visX,t,ph,hd,L,rim,o,gcol){
   if(SM&&SM.ov==='halo'&&!(o.dead>0)){ const y=-8.4+Math.sin(t*1.6+ph)*.45, ga=c.globalAlpha; c.globalCompositeOperation='lighter'; c.globalAlpha=ga*.4; c.drawImage(softTex(SM.aura||[255,220,140]),-5.5,y-4,12,8);
     c.globalAlpha=ga; c.strokeStyle='rgba(255,226,150,.45)'; c.lineWidth=1.5; c.beginPath(); c.ellipse(.5,y,4,1.15,-.08,0,6.3); c.stroke(); c.strokeStyle='rgba(255,250,225,.95)'; c.lineWidth=.5; c.stroke(); c.globalCompositeOperation='source-over'; }
 }
-function drawDrone(c,o,vis,vc,t,ph,fs){
-  const dx=o.x-fs*15, dy=o.y-50+Math.sin(t*3+ph)*2.5, zap=o.zap||0;
-  c.save(); c.translate(dx,dy); c.rotate(Math.sin(t*1.7+ph)*.08);
-  c.fillStyle='rgba(200,230,255,.28)'; c.beginPath(); c.ellipse(-6.5,-3.4,4.4,1,0,0,Math.PI*2); c.ellipse(6.5,-3.4,4.4,1,0,0,Math.PI*2); c.fill();
-  c.strokeStyle='#3a4452'; c.lineWidth=1.2; c.beginPath(); c.moveTo(-6.5,-3); c.lineTo(6.5,-3); c.stroke();
-  c.fillStyle='#2a3440'; c.beginPath(); c.moveTo(-5,-1.6); c.lineTo(5,-1.6); c.lineTo(3.4,2.6); c.lineTo(-3.4,2.6); c.closePath(); c.fill();
-  c.fillStyle='#42505f'; c.fillRect(-4.2,-1.6,8.4,1);
-  c.fillStyle=vis; c.beginPath(); c.arc(0,.8,1.6,0,Math.PI*2); c.fill();
-  c.globalCompositeOperation='lighter'; softDot(c,vc,0,.8,5+zap*8,.55+zap*.45); if(zap>0) softDot(c,[255,255,255],0,.8,2+zap*4,zap); c.globalCompositeOperation='source-over';
-  c.restore();
+// attached (docked) drone: hovers just above the operative's helmet and follows it; purely visual
+function drawDrone(c,o,vis,vc,t,ph,fs){ paintDrone(c,o.x+fs*1.5,o.y-56,o.dm||'sparrow',o.ds||'default',t,ph,.62,{face:fs,zap:o.zap||0,lt:vc}); }
+/* ---------- Specialist drones: chassis sprites (model x skin x animation frame, cached), rotors and lights per frame ----------
+   Geometry is in drone space (about 36 x 26 px, centre 0,0, nose toward +x). rot: rotor hubs [x,y,r]; lt: status light;
+   duct: ducted rotors (Bulwark). The sprite holds the body, arms, pattern and emissive trims; rotors, the light, zap glow and
+   hit flash are drawn each frame (a few fills and one soft-dot blit: cheap enough for every drone on screen). */
+const DGEO={
+  sparrow:{rot:[[-10,-5.4,5.2],[10,-5.4,5.2]],lt:[7.2,1],body:g=>{ g.moveTo(-8,1); g.lineTo(-6.5,-1.8); g.lineTo(5.5,-2.2); g.lineTo(9.4,.4); g.lineTo(6,3); g.lineTo(-6,3); g.closePath(); },
+    arms:[[-3.5,-1.2,-10,-4.4],[3.5,-1.2,10,-4.4]],fin:[[-6.5,-1.6],[-9.5,-6],[-4.4,-1.8]]},
+  striker:{rot:[[-11,-5.6,5.4],[11,-5.6,5.4]],lt:[8.8,.2],body:g=>{ g.moveTo(-9,-1.6); g.lineTo(4,-3.2); g.lineTo(10.6,-.2); g.lineTo(5,2.8); g.lineTo(-9,2.2); g.closePath(); },
+    arms:[[-2.5,-2,-11,-4.8],[2.5,-2,11,-4.8]],gun:[1.5,2.6,10,1.6]},
+  medic:{rot:[[-10,-4.6,4.2],[10,-4.6,4.2],[-5.5,-6.6,3.6],[5.5,-6.6,3.6]],lt:[0,4.2],body:g=>{ g.ellipse(0,.4,8.4,4.6,0,0,Math.PI*2); },
+    arms:[[-5,-1,-10,-4],[5,-1,10,-4],[-3,-2.5,-5.5,-6],[3,-2.5,5.5,-6]],cross:[0,.2]},
+  bulwark:{rot:[[-12.5,-4.4,4.2],[12.5,-4.4,4.2]],duct:1,lt:[0,4.8],body:g=>{ g.moveTo(-11,-.6); g.lineTo(-8,-4.2); g.lineTo(8,-4.2); g.lineTo(11,-.6); g.lineTo(8.4,3.4); g.lineTo(-8.4,3.4); g.closePath(); },
+    arms:[[-9,-2,-12.5,-4],[9,-2,12.5,-4]],ring:[0,4.4,5.6,1.5]},
+  jammer:{rot:[[-10.5,-4.6,4.8],[10.5,-4.6,4.8]],lt:[6,.6],body:g=>{ rr(g,-7,-3,14,6.6,2); },
+    arms:[[-4,-1.5,-10.5,-4],[4,-1.5,10.5,-4]],mast:[-1,-3,-1,-11],dish:[3.6,-6.4]}
+};
+const DS_PAT_ANIM={police:1,toxic:1,holo:1,ghost:1,gold:1,magma:1,void:1,celestial:1};
+function dsCol(c,k,a){ return C(c,k,a); }
+// pattern layer clipped to the body (drone space), frame f of 8 for animated skins
+function dsPattern(g,K,f){ const P=K.pat, a=K.a, k=K.k, b=K.b, ph=f/8;
+  if(P==='carbon'){ g.fillStyle=dsCol(k,1,.55); for(let x=-16;x<16;x+=2) for(let y=-10;y<8;y+=2) if(((x+y)>>1)&1) g.fillRect(x,y,1,1); }
+  else if(P==='hazard'){ g.fillStyle=dsCol(a,1,.9); for(let x=-24;x<24;x+=4){ g.beginPath(); g.moveTo(x,6); g.lineTo(x+2,6); g.lineTo(x+9,-8); g.lineTo(x+7,-8); g.closePath(); g.fill(); } }
+  else if(P==='camo'){ for(let i=0;i<9;i++){ g.fillStyle=dsCol(i%2?k:a,1,.75); g.beginPath(); g.ellipse((hash(i,3,71)-.5)*22,(hash(i,5,71)-.5)*10,2+hash(i,7,71)*2.6,1.3+hash(i,9,71)*1.4,hash(i,1,71)*3,0,6.3); g.fill(); } }
+  else if(P==='digi'){ for(let i=0;i<26;i++){ g.fillStyle=dsCol(i%3?k:a,1,.6); g.fillRect(Math.floor((hash(i,2,73)-.5)*22),Math.floor((hash(i,4,73)-.5)*10),1.4,1.4); } }
+  else if(P==='chrome'){ const gr=g.createLinearGradient(0,-6,0,5); gr.addColorStop(0,'rgba(255,255,255,.85)'); gr.addColorStop(.35,dsCol(b,1,.1)); gr.addColorStop(.55,dsCol(k,1,.7)); gr.addColorStop(.8,dsCol(b,1.15,.4)); gr.addColorStop(1,dsCol(k,.8,.8)); g.fillStyle=gr; g.fillRect(-16,-10,32,18); }
+  else if(P==='neon'){ g.strokeStyle=dsCol(a,1,.95); g.lineWidth=.55; g.beginPath(); g.moveTo(-9,1.2); g.lineTo(9,1.2); g.moveTo(-6,-1); g.lineTo(-2,-1); g.stroke(); }
+  else if(P==='police'){ const on=f<4; g.fillStyle=on?'rgba(255,60,70,.95)':'rgba(255,60,70,.25)'; g.fillRect(-6,-3,4,1.6); g.fillStyle=!on?'rgba(70,140,255,.95)':'rgba(70,140,255,.25)'; g.fillRect(2,-3,4,1.6); g.fillStyle=dsCol(a,1,.9); g.fillRect(-9,1,18,.8); }
+  else if(P==='toxic'){ g.fillStyle=dsCol(a,1,.85); for(let i=0;i<5;i++){ const x=-7+i*3.4, q=(ph+i*.23)%1; g.fillRect(x,-2,.9,2+q*4); g.beginPath(); g.arc(x+.45,q*4+.2,.7,0,6.3); g.fill(); } g.fillStyle=dsCol(a,1,.35+.3*Math.sin(ph*6.28)); g.fillRect(-10,-1,20,.7); }
+  else if(P==='holo'){ const gr=g.createLinearGradient(-12,-6,12,6), hs=[[255,120,200],[120,200,255],[150,255,190],[255,240,150],[255,120,200]]; for(let i=0;i<5;i++) gr.addColorStop(((i/4)+ph)%1,dsCol(hs[i],1,.55)); g.fillStyle=gr; g.fillRect(-16,-10,32,18); }
+  else if(P==='ghost'){ g.fillStyle=dsCol(a,1,.25); for(let y=-8;y<6;y+=1.4) g.fillRect(-16,y+(ph*1.4),32,.45); const sx=-14+ph*30; g.fillStyle='rgba(220,250,255,.55)'; g.beginPath(); g.moveTo(sx,-8); g.lineTo(sx+3,-8); g.lineTo(sx-2,6); g.lineTo(sx-5,6); g.closePath(); g.fill(); }
+  else if(P==='gold'){ const gr=g.createLinearGradient(-10,-6,10,6); gr.addColorStop(0,'rgba(255,240,170,.7)'); gr.addColorStop(.5,'rgba(150,104,30,.35)'); gr.addColorStop(1,'rgba(255,226,140,.6)'); g.fillStyle=gr; g.fillRect(-16,-10,32,18); const sx=-14+ph*34; g.fillStyle='rgba(255,252,225,.7)'; g.fillRect(sx,-8,1.4,16); }
+  else if(P==='magma'){ g.strokeStyle=dsCol(a,1,.55+.4*Math.sin(ph*6.28)); g.lineWidth=.7; g.beginPath(); g.moveTo(-9,-1); g.lineTo(-5,.5); g.lineTo(-2,-1.5); g.lineTo(2,1); g.lineTo(6,-.5); g.lineTo(9,1.5); g.moveTo(-3,2.5); g.lineTo(-1,0); g.moveTo(4,2.6); g.lineTo(3,.5); g.stroke(); }
+  else if(P==='void'){ for(let i=0;i<14;i++){ const tw=.5+.5*Math.sin(ph*6.28+i*1.7); g.fillStyle='rgba(230,200,255,'+(.25+.7*tw).toFixed(2)+')'; g.fillRect((hash(i,6,79)-.5)*20,(hash(i,8,79)-.5)*8,.8,.8); } g.fillStyle=dsCol(a,1,.25+.2*Math.sin(ph*6.28)); g.fillRect(-16,-10,32,18); }
+  else if(P==='celestial'){ g.strokeStyle=dsCol(a,1,.9); g.lineWidth=.6; g.beginPath(); g.moveTo(-9,1.3); g.lineTo(9,1.3); g.stroke(); g.fillStyle='rgba(255,236,170,'+(.35+.35*Math.sin(ph*6.28)).toFixed(2)+')'; g.fillRect(-16,-10,32,6); }
 }
+const DSPR=new Map(); // drone sprite cache (LRU, at most 160 sprites of 144 x 104 px)
+function droneSprite(m,sk,f){ const key=m+':'+sk+':'+f; let s=DSPR.get(key); if(s){ DSPR.delete(key); DSPR.set(key,s); return s; }
+  if(DSPR.size>=160) DSPR.delete(DSPR.keys().next().value);
+  const K=DSKINS[sk]||DSKINS.default, D=DGEO[m]||DGEO.sparrow, S=4; s=document.createElement('canvas'); s.width=36*S; s.height=26*S; const g=s.getContext('2d'); g.setTransform(S,0,0,S,18*S,14*S);
+  // arms and motor pods
+  g.strokeStyle=dsCol(K.k,.8); g.lineWidth=1.3; g.lineCap='round'; g.beginPath(); for(const a of D.arms){ g.moveTo(a[0],a[1]); g.lineTo(a[2],a[3]); } g.stroke(); g.lineCap='butt';
+  for(const r of D.rot){ g.fillStyle=dsCol(K.k,.9); g.beginPath(); g.ellipse(r[0],r[1]+1,1.6,1.1,0,0,6.3); g.fill(); if(D.duct){ g.strokeStyle=dsCol(K.b,.85); g.lineWidth=1.1; g.beginPath(); g.ellipse(r[0],r[1],r[2]+.6,(r[2]+.6)*.32,0,0,6.3); g.stroke(); } }
+  if(D.fin){ g.fillStyle=dsCol(K.b,.9); g.beginPath(); g.moveTo(D.fin[0][0],D.fin[0][1]); g.lineTo(D.fin[1][0],D.fin[1][1]); g.lineTo(D.fin[2][0],D.fin[2][1]); g.closePath(); g.fill(); }
+  if(D.mast){ const q=D.mast; g.strokeStyle=dsCol(K.k,.9); g.lineWidth=.8; g.beginPath(); g.moveTo(q[0],q[1]); g.lineTo(q[2],q[3]); g.moveTo(q[2]-2,q[3]+2); g.lineTo(q[2]+2,q[3]+2); g.moveTo(q[2]-1.4,q[3]+4.5); g.lineTo(q[2]+1.4,q[3]+4.5); g.stroke(); g.fillStyle=dsCol(K.a,1); g.fillRect(q[2]-.5,q[3]-.8,1,1); }
+  if(D.dish){ g.fillStyle=dsCol(K.b,1.1); g.beginPath(); g.ellipse(D.dish[0],D.dish[1],2.6,1.6,-.6,0,6.3); g.fill(); g.strokeStyle=dsCol(K.k,.8); g.lineWidth=.5; g.stroke(); g.strokeStyle=dsCol(K.k,.9); g.lineWidth=.7; g.beginPath(); g.moveTo(D.dish[0],D.dish[1]+1.2); g.lineTo(D.dish[0]-1,-2.6); g.stroke(); }
+  if(D.gun){ const q=D.gun; g.fillStyle=dsCol(K.k,.7); rr(g,q[0],q[1],q[2],q[3],.6); g.fill(); g.fillStyle=dsCol(K.a,1,.8); g.fillRect(q[0]+q[2]-1,q[1]+.3,1,q[3]-.6); }
+  // body: base, pattern and lower shade clipped to it, a top highlight and a dark outline
+  g.beginPath(); D.body(g); g.fillStyle=dsCol(K.b); g.fill();
+  g.save(); g.beginPath(); D.body(g); g.clip(); dsPattern(g,K,f); g.fillStyle=dsCol(K.k,1,.42); g.fillRect(-16,1.2,32,8); g.fillStyle='rgba(255,255,255,.16)'; g.fillRect(-16,-10,32,7.6); g.restore();
+  g.beginPath(); D.body(g); g.strokeStyle=dsCol(K.k,.55,.9); g.lineWidth=.55; g.stroke();
+  if(D.cross){ g.fillStyle=dsCol(K.a,1); g.fillRect(D.cross[0]-2.2,D.cross[1]-.7,4.4,1.4); g.fillRect(D.cross[0]-.7,D.cross[1]-2.2,1.4,4.4); }
+  if(D.ring){ const q=D.ring; g.strokeStyle=dsCol(K.a,1,.9); g.lineWidth=.8; g.beginPath(); g.ellipse(q[0],q[1],q[2],q[3],0,0,6.3); g.stroke(); }
+  // sensor eye
+  const L=D.lt; g.fillStyle='#0b1016'; g.beginPath(); g.arc(L[0],L[1],1.5,0,6.3); g.fill();
+  DSPR.set(key,s); return s; }
+// a drone at (x,y) (its body, in the caller's space) with scale s. o: face, zap (0..1), lt (light rgb), flash, still, wreck, tilt
+function paintDrone(c,x,y,m,sk,t,ph,s,o){ o=o||{}; const K=DSKINS[sk]||DSKINS.default, D=DGEO[m]||DGEO.sparrow, f=DS_PAT_ANIM[K.pat]?Math.floor(t*7+ph*5)%8:0, spr=droneSprite(m,sk,f);
+  const bob=o.still||o.wreck?0:Math.sin(t*3+ph)*1.6, fc=o.face<0?-1:1;
+  c.save(); c.translate(x,y+bob*s); c.rotate((o.tilt||0)+(o.wreck?0:Math.sin(t*1.7+ph)*.05)); c.scale(fc*s,s);
+  if(o.wreck) c.globalAlpha*=.85;
+  c.drawImage(spr,-18,-14,36,26);
+  if(!o.wreck){ c.lineWidth=.7; for(let i=0;i<D.rot.length;i++){ const r=D.rot[i], an=t*38+i*1.3+ph, w=Math.cos(an)*r[2];
+      c.fillStyle='rgba(210,232,252,.22)'; c.beginPath(); c.ellipse(r[0],r[1],r[2],r[2]*.28,0,0,6.3); c.fill();
+      c.strokeStyle='rgba(28,34,44,.7)'; c.beginPath(); c.moveTo(r[0]-w,r[1]-Math.sin(an)*r[2]*.28); c.lineTo(r[0]+w,r[1]+Math.sin(an)*r[2]*.28); c.stroke(); }
+    const L=D.lt, lc=o.lt||[63,210,255], bl=.75+.25*Math.sin(t*5+ph), z=o.zap||0; c.globalCompositeOperation='lighter';
+    c.fillStyle=C(lc,1,.95); c.beginPath(); c.arc(L[0],L[1],.95,0,6.3); c.fill(); softDot(c,lc,L[0],L[1],3.6+z*7,.45*bl+z*.5); if(z>0) softDot(c,[255,255,255],L[0],L[1],1.5+z*3,z);
+    if(K.glow) softDot(c,K.a,0,.5,10,.12+.06*Math.sin(t*2+ph));
+    if(o.flash>0) softDot(c,[255,255,255],0,0,9,Math.min(.8,o.flash*2.6));
+    c.globalCompositeOperation='source-over'; }
+  c.restore(); }
+// a deployed drone on the map: ground shadow, rings (selected / target / team), body, HP pips (and drone AP on your own)
+function drawDroneUnit(c,d){
+  const t=G.time, p=unitScreen(d), gx=p[0], gy=iso(d.rx+.5,d.ry+.5)[1]-ez(Math.round(d.rx),Math.round(d.ry)), own=G.player&&d.team===G.player.team, me=G.player&&G.player.dr===d;
+  c.fillStyle='rgba(0,0,0,.26)'; c.beginPath(); c.ellipse(gx,gy,9,4,0,0,6.3); c.fill();
+  if(me&&G.dmode==='ctl'&&G.turnRes){ c.strokeStyle='rgba(127,232,255,.95)'; c.lineWidth=2; c.setLineDash([5,4]); c.lineDashOffset=-t*12; c.beginPath(); c.ellipse(gx,gy,15,7,0,0,6.3); c.stroke(); c.setLineDash([]); }
+  else { c.strokeStyle=own?'rgba(93,255,154,.55)':C(d.col,1,.55); c.lineWidth=1.2; c.beginPath(); c.ellipse(gx,gy,11,5,0,0,6.3); c.stroke(); }
+  if(G.mode==='target'&&G.targets[G.tIdx]===d){ c.strokeStyle='rgba(255,77,94,.95)'; c.lineWidth=2; const r=16+Math.sin(t*6)*2; c.beginPath(); c.ellipse(gx,gy,r,r*.48,0,0,6.3); c.stroke(); c.beginPath(); c.arc(p[0],p[1],11+Math.sin(t*6),0,6.3); c.stroke(); }
+  c.strokeStyle='rgba(127,232,255,.12)'; c.lineWidth=1; c.beginPath(); c.moveTo(gx,gy); c.lineTo(p[0],p[1]+5); c.stroke();
+  paintDrone(c,p[0],p[1],d.model,d.skin,t,d.ph,1.3,{face:d.face,zap:d.vZap||0,lt:d.col,flash:d.flash});
+  if(G.scene!=='game') return;
+  const n=d.maxHp, pw=3, gap=1, tot=(n+d.shield)*(pw+gap), x0=p[0]-tot/2, y0=p[1]-21;
+  c.fillStyle='rgba(4,8,14,.72)'; rr(c,x0-2,y0-2,tot+3,7,2); c.fill();
+  for(let i=0;i<n;i++){ c.fillStyle=i<d.hp?(own?'#5dff9a':'#ff4d5e'):'rgba(255,255,255,.15)'; c.fillRect(x0+i*(pw+gap),y0,pw,3); }
+  for(let i=0;i<d.shield;i++){ c.fillStyle='#6fd0ff'; c.fillRect(x0+(n+i)*(pw+gap),y0,pw,3); }
+  if(me&&G.turnRes){ for(let i=0;i<d.maxAp;i++){ const ax=p[0]+(i-(d.maxAp-1)/2)*7, ay=y0-5; c.save(); c.translate(ax,ay); c.rotate(Math.PI/4); c.fillStyle=i<d.ap?'#7fe8ff':'rgba(4,8,14,.7)'; c.strokeStyle='#7fe8ff'; c.lineWidth=.8; c.fillRect(-1.8,-1.8,3.6,3.6); c.strokeRect(-1.8,-1.8,3.6,3.6); c.restore(); } }
+  else if(!own){ c.font='600 9px "Chakra Petch",sans-serif'; c.textAlign='center'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,.6)'; c.strokeText(d.name+' drone',p[0],y0-4); c.fillStyle=d.color; c.fillText(d.name+' drone',p[0],y0-4); }
+  if(d.jam>0){ c.font='700 10px "Chakra Petch",sans-serif'; c.textAlign='center'; c.fillStyle='#ffb340'; c.fillText('⚡',p[0]+tot/2+6,y0+4); }
+}
+// wreck on the ground until it is rebuilt (or forever, once its Specialist is out)
+function drawDroneWreck(c,d){ const q=tileC(d.wx,d.wy); c.fillStyle='rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(q[0],q[1],10,4,0,0,6.3); c.fill(); paintDrone(c,q[0]+2,q[1]-3,d.model,d.skin,0,d.ph,.9,{wreck:true,tilt:.45,face:d.face}); c.fillStyle='rgba(20,22,26,.45)'; c.beginPath(); c.ellipse(q[0]+2,q[1]-3,9,4,0,0,6.3); c.fill(); }
+// falling drone (fx 'dfall'): drops from its hover point to the ground, spinning
+function drawDroneFx(c){ for(const f of G.fx){ if(f.type!=='dfall') continue; const k=clamp(f.t/f.life,0,1), y=lerp(f.y,f.gy-3,k*k); paintDrone(c,f.x,y,f.m,f.s,G.time,0,1,{wreck:true,tilt:k*2.4,face:f.face}); } }
 /* ================= rendering: frame ================= */
 function buildBg(){
   const R=G.R, w=cv.width, h=cv.height; const b=document.createElement('canvas'); b.width=w; b.height=h; const g=b.getContext('2d');
@@ -3547,7 +3705,7 @@ function drawUnit(c,u){
     if(u.rupt){ c.globalCompositeOperation='lighter'; softDot(c,[255,70,50],p[0],p[1]-20,9,.25+.15*Math.sin(t*4+u.ph)); c.globalCompositeOperation='source-over'; }
   }
   if(!u.alive||u.drop>0||G.scene!=='game') return;
-  const y0=p[1]-56;
+  const y0=p[1]-(u.dr&&u.dr.st==='dock'?66:56); // the docked drone hovers between the helmet and the plate
   c.textAlign='center';
   if(down){ c.font='700 11px "Chakra Petch",sans-serif'; c.fillStyle=u.swDown?'#5dff9a':'#ff6b78'; c.fillText(u.swDown?'SECOND WIND':'DOWNED · '+u.bleed,p[0],p[1]-26); return; }
   const n=u.maxHp, pw=4, gap=1.2, tot=n*(pw+gap)+u.shield*(pw+gap); const x0=p[0]-tot/2;
@@ -3568,7 +3726,8 @@ function soldierOf(u,x,y,ghost){
     if(a.lbl==='RUPTURE'){ charge=n; chargeC=[255,70,50]; } else if(id==='sniper'||id==='gauss'){ charge=n*n; } else if(a.lbl==='DEADEYE'){ charge=n*.6; chargeC=[255,220,120]; } else if(id==='volt') charge=n*.5; if(a.t>a.pre+.05) charge=0; }
   return {x,y,cls:u.cls,armor:u.aid,weapon:u.wid,sec:u.sid,color:u.alive?u.color:'#555b63',face:u.face,faceS:u.vFace==null?u.face:u.vFace,time:G.time,ph:u.ph,skin:u.skin,visor:u.visor,finish:u.finish,pfin:u.pfin,sfin:u.sfin,patt:u.patt,satt:u.satt,
     act:ghost?null:a,aim:u.vAim||0,kick:u.vKick||0,kickK:u.vKickK,mv:u.vMove||0,walk:u.walk,climb:u.vClimb,ow:u.vOw||0,crouch:u.vCrouch||0,down:u.vDown||(down?1:0),
-    dead:u.alive?null:(u.vDead||0),deadDir:-(u.vDeathS||-u.face)*u.face,flinch:u.flash>0?u.flash/.3:0,flash:u.flash,drop:u.drop>0?u.drop:0,charge,chargeC,zap:u.vZap||0,noShadow:ghost||u.drop>0.05};
+    dead:u.alive?null:(u.vDead||0),deadDir:-(u.vDeathS||-u.face)*u.face,flinch:u.flash>0?u.flash/.3:0,flash:u.flash,drop:u.drop>0?u.drop:0,charge,chargeC,zap:u.vZap||0,noShadow:ghost||u.drop>0.05,
+    dm:u.dr?u.dr.model:null,ds:u.dr?u.dr.skin:null,noDrone:ghost||!u.dr||u.dr.st!=='dock'};
 }
 
 /* ---------- drop-in trails (shared by the match and the store preview) ---------- */
@@ -4222,7 +4381,7 @@ function moveActive(){ return G.scene==='game'&&!!G.player&&G.mode==='move'&&!!G
 function updateFade(focus){
   const dt=clamp(G.time-RC.fadeT,0,0.1); RC.fadeT=G.time; const k=1-Math.exp(-dt*12);
   const rm=RC.reachM, fm=RC.focusM; rm.fill(0); fm.fill(0);
-  if(moveActive()){ const d=G.reach.dist, mob=G.player.mob+1e-6; for(let i=0;i<MW*MH;i++) if(d[i]<Infinity) rm[i]=d[i]<=mob?2:1; }
+  if(moveActive()){ const d=G.reach.dist, mob=(G.dmode&&G.player.dr?G.player.dr.mob:G.player.mob)+1e-6; for(let i=0;i<MW*MH;i++) if(d[i]<Infinity) rm[i]=d[i]<=mob?2:1; }
   for(const f of focus){ const fx=Math.round(f.x), fy=Math.round(f.y); if(inMap(fx,fy)) fm[idx(fx,fy)]=1; }
   // the structure the local player stands on stays solid (fading the roof under your own feet reads as falling through)
   const pu=G.scene==='game'&&G.player&&G.player.alive?G.player:null, own=pu&&lvAt(pu.x,pu.y)>=2?cell(pu.x,pu.y):null;
@@ -4270,6 +4429,7 @@ function drawWorld(c){
   for(const q of G.crates) ents.push({d:q.x+q.y+0.3,k:1,q});
   if(G.scene==='game') for(const q of G.sites) if(!q.done&&q.k!=='bounty') ents.push({d:q.x+q.y+0.25,k:3,q});
   for(const u of G.units){ if(G.scene==='game'&&!shouldShow(u)) continue; ents.push({d:u.rx+u.ry+0.5+(u.alive?0.01:0),k:2,u}); }
+  for(const d of G.drones){ if(d.alive){ if(G.scene!=='game'||shouldShow(d)) ents.push({d:d.rx+d.ry+0.55,k:5,u:d}); } else if(d.st==='dead'&&d.wx!=null&&tileShown(d.wx,d.wy)) ents.push({d:d.wx+d.wy+0.35,k:6,u:d}); }
   ents.sort((a,b)=>a.d-b.d);
   for(const e of ents){
     if(e.k===0){ const i=idx(e.x,e.y), sh=shadeAt(i), al=RC.fade[i], o=e.o, b=e.b;
@@ -4280,6 +4440,8 @@ function drawWorld(c){
     else if(e.k===4){ const x=e.x,y=e.y,i=idx(x,y),sh=shadeAt(i); const sp=sprite('p'+i+'_'+sh,e.bx,e.by,TW+8,TH+EZ+8,g=>drawPlatform(g,x,y,sh)); c.drawImage(sp.cv,sp.x,sp.y,sp.w,sp.h); platOverlay(c,x,y,i); }
     else if(e.k===1){ drawCrate(c,e.q,shadeAt(idx(e.q.x,e.q.y))<1?0.55:1); }
     else if(e.k===3){ drawSite(c,e.q,shadeAt(idx(e.q.x,e.q.y))<1?0.6:1); }
+    else if(e.k===5){ const q=unitScreen(e.u); if(onScreen(q[0]-40,q[1]-40,80,110)) drawDroneUnit(c,e.u); }
+    else if(e.k===6){ drawDroneWreck(c,e.u); }
     else { const q=unitScreen(e.u); if(e.u.drop>0||onScreen(q[0]-60,q[1]-90,120,120)) drawUnit(c,e.u); }
   }
   if(moveActive()&&G.pending>=0&&pendHigh()) drawPending(c);
@@ -4287,11 +4449,12 @@ function drawWorld(c){
   drawSmoke(c);
   drawIntel(c);
   if(st) drawStormRing(c,false);
-  if(moveActive()){ const FP=flankPreview(); if(FP&&FP.n){ c.lineJoin='round'; c.strokeStyle='rgba(30,12,0,.75)'; c.lineWidth=2.5; c.stroke(FP.path); c.fillStyle='rgba(255,179,71,'+(0.75+0.25*Math.sin(t*3))+')'; c.fill(FP.path); c.lineJoin='miter'; } } // flank markers
+  if(moveActive()&&!G.dmode){ const FP=flankPreview(); if(FP&&FP.n){ c.lineJoin='round'; c.strokeStyle='rgba(30,12,0,.75)'; c.lineWidth=2.5; c.stroke(FP.path); c.fillStyle='rgba(255,179,71,'+(0.75+0.25*Math.sin(t*3))+')'; c.fill(FP.path); c.lineJoin='miter'; } } // flank markers
   drawCoverIcons(c);
   drawFlankIcons(c);
   drawBounty(c);
   drawFx(c);
+  drawDroneFx(c);
   drawPods(c);
   drawBubbles(c);
   drawTeamPings(c);
@@ -4466,7 +4629,7 @@ function flankIcon(){ if(RC.icons.flank) return RC.icons.flank; const S=4, cv2=d
   g.fillStyle='#ffb347'; for(const ox of [6,12]){ g.beginPath(); g.moveTo(ox,5); g.lineTo(ox+5,10); g.lineTo(ox,15); g.lineTo(ox+2.5,10); g.closePath(); g.fill(); }
   g.font='700 9.5px "Chakra Petch",sans-serif'; g.textAlign='left'; g.textBaseline='middle'; g.fillText('FLANK',21,10.5); return RC.icons.flank=cv2; }
 function drawFlankIcons(c){
-  if(G.scene!=='game'||!G.player||!standing(G.player)||!G.turnRes||G.busy) return; if(G.mode!=='move'&&G.mode!=='target') return;
+  if(G.scene!=='game'||!G.player||!standing(G.player)||!G.turnRes||G.busy||G.dmode) return; if(G.mode!=='move'&&G.mode!=='target') return;
   const pend=G.mode==='move'&&G.pending>=0, x=pend?G.pending%MW:G.player.x, y=pend?(G.pending/MW)|0:G.player.y, F=flankFrom(x,y), ic=flankIcon(), k=clamp(1/G.cam.z,0.85,1.5);
   for(const e of F.them){ const q=unitScreen(e), bob=Math.sin(G.time*4+e.id)*1.5; c.drawImage(ic,q[0]-28*k,q[1]-80-20*k+bob,56*k,20*k); }
   if(pend&&(F.us||F.open)){ const s=tileC(x,y), lb=F.us?'FLANKED BY '+F.us:'NO COVER', ly=s[1]+(hi(x,y)||outsideStorm(x,y)?36:22);
@@ -4503,9 +4666,9 @@ function drawHighlights(c){
   if(G.scene!=='game'||!G.player) return; const p=G.player, t=G.time;
   if(G.mode==='move'&&G.reach&&!G.busy&&G.turnRes){
     const R=G.reach;
-    const rk=objId(R)+':'+p.mob+':'+RC.gen;
-    regionDraw(c,i=>R.dist[i]>0&&R.dist[i]<=p.mob+1e-6,'rgba(60,190,255,.12)','rgba(90,210,255,.75)','m'+rk);
-    if(p.ap>=2) regionDraw(c,i=>isFinite(R.dist[i])&&R.dist[i]>p.mob+1e-6,'rgba(255,200,60,.08)','rgba(255,200,70,.55)','d'+rk);
+    const dm=!!(G.dmode&&p.dr), mob=dm?p.dr.mob:p.mob, rk=objId(R)+':'+mob+':'+RC.gen;
+    regionDraw(c,i=>R.dist[i]>0&&R.dist[i]<=mob+1e-6,dm?'rgba(127,232,255,.10)':'rgba(60,190,255,.12)',dm?'rgba(160,240,255,.8)':'rgba(90,210,255,.75)','m'+rk);
+    if(!dm&&p.ap>=2) regionDraw(c,i=>isFinite(R.dist[i])&&R.dist[i]>p.mob+1e-6,'rgba(255,200,60,.08)','rgba(255,200,70,.55)','d'+rk);
     if(G.pending>=0&&G.pendingPath&&!pendHigh()) drawPending(c);
   }
   if(G.mode==='throw'&&G.throwUtil){ const U=UTILS[G.throwUtil.id], rg=throwRange(p,U);
@@ -4516,7 +4679,7 @@ function drawHighlights(c){
       c.strokeStyle=sel?'rgba(255,110,60,.95)':'rgba(255,190,120,.55)'; c.lineWidth=sel?2.5:1.5; c.beginPath(); c.ellipse(s[0],s[1],18+(sel?pu*4:0),9+(sel?pu*2:0),0,0,Math.PI*2); c.stroke();
       if(sel&&B){ c.strokeStyle='rgba(255,90,40,.5)'; c.setLineDash([5,5]); c.beginPath(); c.ellipse(s[0],s[1],B.r*TW/Math.SQRT2,B.r*TH/Math.SQRT2,0,0,Math.PI*2); c.stroke(); c.setLineDash([]); } });
     const q=G.objT[G.oIdx]; if(q){ const a=chest(p), b=tileC(q[0],q[1]); c.strokeStyle='rgba(255,140,80,.7)'; c.lineWidth=1.5; c.setLineDash([3,6]); c.lineDashOffset=-t*20; c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]-14); c.stroke(); c.setLineDash([]); } }
-  if(G.mode==='target'&&G.targets[G.tIdx]){ const a=chest(p), b=chest(G.targets[G.tIdx]); c.strokeStyle='rgba(255,77,94,.7)'; c.lineWidth=1.5; c.setLineDash([3,6]); c.lineDashOffset=-t*20; c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke(); c.setLineDash([]); }
+  if(G.mode==='target'&&G.targets[G.tIdx]){ const a=G.tKind&&G.tKind.startsWith('d_')&&p.dr&&p.dr.alive?chest(p.dr):chest(p), b=chest(G.targets[G.tIdx]); c.strokeStyle='rgba(255,77,94,.7)'; c.lineWidth=1.5; c.setLineDash([3,6]); c.lineDashOffset=-t*20; c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke(); c.setLineDash([]); }
 }
 
 function drawPods(c){
@@ -4761,6 +4924,7 @@ function update(dt){
   for(let i=G.pings.length-1;i>=0;i--){ G.pings[i].t+=gdt; if(G.pings[i].t>=1.6) G.pings.splice(i,1); }
   for(let i=G.bubbles.length-1;i>=0;i--){ G.bubbles[i].t+=dt; if(G.bubbles[i].t>=G.bubbles[i].life) G.bubbles.splice(i,1); }
   for(const u of G.units){ if(u.flash>0) u.flash-=gdt; if(!u.alive&&u.deadT<1) u.deadT=Math.min(1,u.deadT+gdt*2.5); animStep(u,gdt); }
+  for(const d of G.drones){ if(d.flash>0) d.flash-=gdt; d.vZap=Math.max(0,(d.vZap||0)-gdt*3); }
   G.flashA=Math.max(0,G.flashA-dt*1.4); G.cam.shake=Math.max(0,G.cam.shake-dt*40);
   // turn timer: only ticks while the player can act
   if(G.scene==='game'&&G.turnRes&&!G.busy&&!G.paused&&!G.over&&G.turnMax>0){
@@ -4821,6 +4985,7 @@ function hitInfo(a,t,o){
     if(am.mov&&(a.moved||o.fx!=null)&&!o.reaction){ aim+=am.mov; mods.push(['grip',am.mov]); } if(am.rx&&o.reaction){ aim+=am.rx; mods.push(['stock',am.rx]); } }
   if(hasP(a,'s_mark')&&!t.downed&&t.hp*2<t.maxHp){ aim+=25; mods.push(['executioner',25]); }
   if(t.holo&&t.holo.team===a.team&&G.round<=t.holo.until){ aim+=15; mods.push(['holo-targeted',15]); }
+  if(t.mark&&t.mark.team===a.team&&G.round<=t.mark.until){ aim+=DRONE.markAim; mods.push(['drone mark',DRONE.markAim]); }
   // weather: rain spoils long shots
   const wx=wxNow(); if(wx.longAim&&d>=wx.longD-0.01){ aim+=wx.longAim; mods.push(['rain at range',wx.longAim]); }
   const fs=flankState(a,t,ax,ay); if(fs.flanked){ aim+=FLANK.aim; mods.push(['flanked',FLANK.aim]); }
@@ -4846,7 +5011,7 @@ function feedLine(text,you){
 }
 function mine(u){ return !!(u&&G.player&&u.team===G.player.team); }
 function applyDamage(t,d,src,o){
-  o=o||{}; if(!t.alive) return;
+  o=o||{}; if(!t.alive) return; if(t.drone){ droneHurt(t,d,src,o); return; } // a deployed Specialist drone: its own HP, never downed, no kill credit
   // weapon mastery (local player only, like G.stats): damage and takedowns (downs and eliminations) with that weapon
   const ms=o.wid&&src&&src.isPlayer&&isEnemy(src,t)&&mastTracked(o.wid)?mstat(o.wid):null;
   if(t.downed){ if(o.anim) floatText(t,'FINISHED',[255,77,94],20); if(ms) ms.kills++; kill(t,src,o.anim,o.how); return; }
@@ -4882,6 +5047,7 @@ function playerOut(){
 function kill(t,src,anim,how){
   t.vDeathS=src&&src!==t?(iso(t.x,t.y)[0]>=iso(src.x,src.y)[0]?1:-1):-t.face; // visual: which way the body falls
   t.alive=false; t.downed=false; t.swDown=false; t.deadT=0.001; t.overwatch=false; t.hunker=false;
+  if(t.dr&&t.dr.st!=='dead'){ if(t.dr.alive) droneWreck(t.dr,null,!!anim||shouldShow(t.dr),true); t.dr.st='dead'; t.dr.alive=false; t.dr.rb=99; } // the Specialist is out: its drone goes down with it
   bountyKill(t,src);
   if(src&&src!==t&&isEnemy(src,t)){ src.kills++; src.tk=(src.tk||0)+1; if(src.isPlayer){ G.stats.kills++; cst(src,'k_'+(G.cctx||'prim')); floatText(src,'+'+killValue(src)+' CR',[255,179,64],17); buzz(25); } else if(Math.random()<0.3&&shouldShow(src)) bubble(src,fpick(TAUNTS)); }
   feedLine(src&&src!==t?(src.name+' eliminated '+t.name+(how?' ('+how+')':'')):(t.name+(how==='bled out'?' bled out':how==='explosion'?' was caught in a blast':' was lost to the storm')),mine(t)||mine(src));
@@ -4973,7 +5139,8 @@ async function triggerOverwatch(m){
     // Kill Zone (Sharpshooter perk): overwatch stays up for up to 3 shots, one per enemy
     if(w.kz>0){ const key=m.id+':'+G.round; if(w.kzSeen===key) continue; w.kzSeen=key; w.kz--; if(w.kz<=0) w.overwatch=false; } else w.overwatch=false;
     await fireShot(w,m,{reaction:true});
-    if(hasP(w,'p_guard')&&standing(w)&&standing(m)) await doZap(w,m,{dmg:2,label:'GUARDIAN'}); }
+    if(hasP(w,'p_guard')&&standing(w)&&standing(m)&&dOut(w)&&canSee(w.dr,m)) await doZap(w,m,{dmg:2,label:'GUARDIAN'}); }
+  if(m.drone) return; // drones fly: no Bladestorm
   // Bladestorm (Ranger perk): an automatic strike on an enemy that moves next to you, once per enemy turn
   for(const w of G.units){ if(!standing(m)||G.over) return; if(w===m||!standing(w)||!hasP(w,'r_storm')||!isEnemy(w,m)) continue;
     if(!canMelee(w.x,w.y,m.x,m.y)||!canSee(w,m)) continue; const key=m.id+':'+G.round; if(w.bsSeen===key) continue; w.bsSeen=key;
@@ -5004,17 +5171,19 @@ async function doReload(u){ const free=freeReload(u); if(free) u.frl=true; else 
   if(free&&shouldShow(u)) floatText(u,'SPEED RELOAD',[127,232,255],16); if(u.S&&u.S.clip) u.sAmmo=u.S.clip; if(shouldShow(u)){ vAnim(u,'reload',.5); const p=unitScreen(u); part({x:p[0]+u.face*5,y:p[1],z:20,vx:u.face*frand(5,25),vy:frand(-5,5),vz:frand(10,40),life:1,size:2,col:[34,36,42],type:'casing',grav:400}); floatText(u,'RELOADED',[200,220,240],18); SFX.click(); await wait(500);} }
 async function doMedkit(u,util){ util.ch--; u.ap-=1; const amt=u.cls==='specialist'?UTILS.medkit.healSpec:UTILS.medkit.heal; const h=Math.min(amt,u.maxHp-u.hp); u.hp+=h; const sh=hasP(u,'p_medic')?2:0; u.shield+=sh;
   if(shouldShow(u)){ focusOn(u.x,u.y); vAnim(u,'heal',.65); floatText(u,'+'+h+' HP'+(sh?' +'+sh+' SHIELD':''),[93,255,154],22); healFx(u); if(sh) shieldFx(u,true); SFX.heal(); await wait(650); } }
-function droneAt(u){ const p=unitScreen(u); return [p[0]-u.face*15,p[1]-50]; }
-// o.dmg/o.label: a side zap (Guardian) instead of Combat Protocol; Overclock, Haywire and Chain Lightning only modify the real ability
+// effects origin: the deployed drone's body (visual fallback: the docked spot above the operative's head)
+function droneAt(u){ const d=u&&u.dr; if(d&&d.alive) return unitScreen(d); const p=unitScreen(u); return [p[0],p[1]-64]; }
+// Combat Protocol, fired by the Specialist's deployed drone from its own position (u = the Specialist: damage source and
+// perks). o.dmg/o.label: a side zap (Guardian) instead of Combat Protocol; Overclock, Haywire and Chain Lightning only modify the real ability
 async function doZap(u,t,o){
-  o=o||{}; const main=!o.dmg, dmg=o.dmg||(3+(hasP(u,'p_over')?1:0));
-  const anim=shouldShow(u)||shouldShow(t);
-  if(anim){ vAnim(u,'cast',main?.75:.5); focusMid(u,t); floatText(u,o.label||'COMBAT PROTOCOL',[127,232,255],17); await wait(main?450:250); u.vZap=1; bolt(droneAt(u),chest(t)); SFX.zap(); await wait(180); }
-  applyDamage(t,dmg,u,{pierce:true,anim,how:'drone'});
-  if(main&&hasP(u,'p_hay')&&standing(t)){ t.disorient=Math.max(t.disorient,2); t.overwatch=false; if(anim) floatText(t,'DISORIENTED',[255,179,64],16); }
-  if(main&&hasP(u,'p_chain')&&standing(u)&&!G.over){ const dd=v=>Math.hypot(v.x-t.x,v.y-t.y);
-    const c2=visibleEnemies(u).filter(v=>v!==t&&!v.downed&&dd(v)<=4.01).sort((a,b)=>dd(a)-dd(b))[0];
-    if(c2){ const an2=anim||shouldShow(c2); if(an2){ bolt(chest(t),chest(c2)); SFX.zap(); await wait(200); } applyDamage(c2,dmg,u,{pierce:true,anim:an2,how:'chain lightning'}); } }
+  o=o||{}; const d=u.dr; if(!d||!d.alive||!t||!t.alive) return; const main=!o.dmg, dmg=o.dmg||(3+(hasP(u,'p_over')?1:0)+(DMODELS[d.model].zap||0));
+  const anim=shouldShow(d)||shouldShow(t);
+  if(anim){ if(shouldShow(u)) vAnim(u,'cast',main?.75:.5); focusMid(d,t); floatText(d,o.label||'COMBAT PROTOCOL',[127,232,255],17); await wait(main?420:250); d.vZap=1; faceTo(d,t.x,t.y); bolt(chest(d),chest(t)); SFX.zap(); await wait(180); }
+  applyDamage(t,dmg,u,{pierce:true,anim,how:'drone'}); dStat(u,t,dmg);
+  if(main&&hasP(u,'p_hay')&&standing(t)){ if(t.drone){ t.jam=1; if(anim) floatText(t,'GROUNDED',[255,179,64],16); } else { t.disorient=Math.max(t.disorient,2); t.overwatch=false; if(anim) floatText(t,'DISORIENTED',[255,179,64],16); } }
+  if(main&&hasP(u,'p_chain')&&d.alive&&!G.over){ const dd=v=>Math.hypot(v.x-t.x,v.y-t.y);
+    const c2=visibleEnemies(d).filter(v=>v!==t&&!v.downed&&dd(v)<=4.01).sort((a,b)=>dd(a)-dd(b)||a.id-b.id)[0];
+    if(c2){ const an2=anim||shouldShow(c2); if(an2){ bolt(chest(t),chest(c2)); SFX.zap(); await wait(200); } applyDamage(c2,dmg,u,{pierce:true,anim:an2,how:'chain lightning'}); dStat(u,c2,dmg); } }
   if(anim) await wait(t.alive?600:1000);
 }
 async function doSlash(u,t,path){
@@ -5060,10 +5229,12 @@ async function doMelee(u,t,M,o){
 }
 // what the secondary can do to each visible enemy right now: {t,mode:'melee'|'throw'|'pistol',path?}
 // free = Lightning Hands (no dash). A dash is limited by the weapon (+2 with Long Reach) and by the AP left.
-function secTargets(u,free){
+// wd: also enemy drones in sight (player targeting only: pistol, adjacent melee without a dash, or a throw)
+function secTargets(u,free,wd){
   const S=u.S, out=[]; if(!S) return out;
-  const vis=visibleEnemies(u);
-  if(S.type==='pistol'){ if(u.sAmmo>0) for(const t of vis) out.push({t,mode:'pistol'}); return out; }
+  const vis=visibleEnemies(u), fd=wd?foeDrones(u):[];
+  if(S.type==='pistol'){ if(u.sAmmo>0) for(const t of vis.concat(fd)) out.push({t,mode:'pistol'}); return out; }
+  for(const d of fd){ if(canMelee(u.x,u.y,d.x,d.y)) out.push({t:d,mode:'melee',path:[[u.x,u.y]]}); else if(S.type==='thrown'&&u.sUses>0&&tdist(u,d)<=S.range+0.01) out.push({t:d,mode:'throw'}); }
   const dash=!free&&S.dash?Math.min(S.dash+(hasP(u,'r_lunge')?2:0),u.mob*Math.max(1,u.ap)):0;
   for(const s of slashTargets(u,dash)) if(s.path.length<=1||s.path.length-1<=dash) out.push({t:s.t,mode:'melee',path:s.path});
   if(S.type==='thrown'&&u.sUses>0) for(const t of vis){ if(out.some(q=>q.t===t&&q.path.length<=1)) continue; const i=out.findIndex(q=>q.t===t); if(tdist(u,t)<=S.range+0.01){ if(i>=0) out.splice(i,1); out.push({t,mode:'throw'}); } }
@@ -5144,11 +5315,12 @@ async function doThrow(u,util,tx,ty){
     const a=muzzle(u); await new Promise(res=>addFx({type:'nade',a,b:b0,h:60+Math.hypot(tx-u.x,ty-u.y)*10,col:util.id==='smoke'?'#ddd':util.id==='flash'?'#fff':util.id==='plasma'||util.id==='arc'||U.dev?'#7fe8ff':'#ff6a3d',life:U.dev?.7:.55,res})); }
   if(U.dev){ await deployDevice(u,util,tx,ty,anim); return; }
   if(U.dmg){ makeNoise(u); G.noise.push({id:u.id,team:u.team,x:tx,y:ty,r:G.round,blast:true}); soundCue(tx,ty,'blast',null); }
-  const hitU=G.units.filter(v=>v.alive&&inBlast(v,tx,ty,U.radius||0));
+  const hitU=G.units.filter(v=>v.alive&&inBlast(v,tx,ty,U.radius||0)), hitD=G.drones.filter(v=>v.alive&&inBlast(v,tx,ty,U.radius||0));
   if(U.dmg){
     if(anim) explode(tx,ty,U.radius,util.id==='plasma'||!!U.arc,util.id); else if(G.player&&!G.fullVis) ping(tx,ty,[255,120,40]);
     G.decals.push({x:tx+.5,y:ty+.5,r:U.radius}); terrChanged(true,tx,ty,U.radius);
     for(const v of hitU){ if(u.isPlayer&&isEnemy(u,v)) G.stats.nadeHits++; applyDamage(v,rollDmg(U.dmg)+(hasP(u,'g_volat')?1:0),u,{anim:anim||shouldShow(v),how:U.short.toLowerCase(),pierce:!!U.arc}); if(U.arc&&v.alive&&!v.downed){ v.disorient=2; v.overwatch=false; if(anim||shouldShow(v)) floatText(v,'DISORIENTED',[255,179,64],16); } }
+    for(const v of hitD){ applyDamage(v,rollDmg(U.dmg)+(hasP(u,'g_volat')?1:0),u,{anim:anim||shouldShow(v),pierce:!!U.arc}); if(U.arc&&v.alive) v.jam=1; } // drones in the blast (arc also grounds them)
     // destroys cover one stage (arc leaves it standing) and sets off explosives in the blast
     if(!U.arc) await terrBlast(tx,ty,U.radius,u);
   } else if(util.id==='smoke'){
@@ -5157,6 +5329,7 @@ async function doThrow(u,util,tx,ty){
   } else if(util.id==='flash'){
     if(anim){ const p=tileC(tx,ty); addFx({type:'flash',x:p[0],y:p[1]-10,r:180,col:[255,255,255],life:.35}); addFx({type:'ring',x:p[0],y:p[1],r:U.radius*TW,col:[255,255,255],life:.45}); flashFx(p); G.flashA=Math.max(G.flashA,0.45); SFX.noise(.5,'highpass',2000,.6); SFX.tone(3000,2800,.6,.05,'sine'); }
     for(const v of hitU){ if(v.downed) continue; v.disorient=2; v.overwatch=false; if(anim||shouldShow(v)) floatText(v,'DISORIENTED',[255,179,64],18); }
+    for(const v of hitD){ v.jam=1; if(anim||shouldShow(v)) floatText(v,'GROUNDED',[255,179,64],16); }
   }
   if(anim) await wait(800);
 }
@@ -5179,6 +5352,133 @@ async function doRevive(u,t){
   updateHUD();
 }
 function adjDowned(u){ return G.units.find(m=>m!==u&&m.team===u.team&&m.alive&&m.downed&&Math.max(Math.abs(m.x-u.x),Math.abs(m.y-u.y))<=1&&Math.abs(lvAt(m.x,m.y)-lvAt(u.x,u.y))<=1); }
+/* ================= Specialist drone (sim) =================
+   Commands {k:'drone',a,...} run through execCmd like every other action (players, network queue, replays, AI). The
+   executor re-validates everything from the board (paths are rebuilt with droneReach from the target tile), so a stale or
+   forged command does nothing. Only seeded RNG (Burst's roll); visibility only decides whether to animate. */
+// a Specialist's drone entity, attached at the start (st 'dock', alive false). id 1000+owner id never collides with a unit's
+function droneNew(u,m,ups,skin){ const S=dmStats(m,ups);
+  return {drone:true,id:1000+u.id,oid:u.id,team:u.team,name:u.name,model:m,ups:ups.slice(),skin:skin||'default',maxHp:S.hp,hp:S.hp,armor:S.armor,shield:0,def:S.def,sight:S.sight,mob:S.mob,maxAp:S.ap,regen:S.regen,range:S.range,
+    ap:0,st:'dock',alive:false,downed:false,x:0,y:0,rx:0,ry:0,rz:0,drop:0,face:1,flash:0,walk:0,cp:{},jam:0,rb:0,depR:-1,mark:null,holo:null,ph:(u.id*1.37)%6,color:u.color,col:u.col}; }
+function droneOwner(d){ return G.units.find(u=>u.id===d.oid)||null; }
+const dOut=u=>!!(u&&u.dr&&u.dr.st==='out');
+// a Specialist whose deployed drone still has drone AP keeps its turn open (player input and the network queue use this same test)
+const dCanAct=u=>!!(u&&u.dr&&u.dr.st==='out'&&u.dr.ap>0&&standing(u));
+const droneOn=(x,y)=>G.drones.find(d=>d.alive&&d.x===x&&d.y===y);
+// any unit or drone by id (command targets)
+function findAny(id){ return G.units.find(x=>x.id===id)||G.drones.find(d=>d.id===id)||null; }
+// enemy drones a viewer (unit or drone) can see, by the normal sight rules
+function foeDrones(v){ return G.drones.filter(d=>d.alive&&d!==v&&isEnemy(v,d)&&canSee(v,d)); }
+// drone mastery counters (the local player's own drone only; written by the sim, never read by it, like G.mstat)
+function dStat(u,t,dmg){ if(!u||!u.isPlayer||!G.dstat) return; G.dstat.dmg+=dmg||0; if(t&&!t.alive) G.dstat[t.drone?'dkills':'kills']++; }
+function dAct(u){ if(u&&u.isPlayer&&G.dstat) G.dstat.acts++; }
+// hover height above the tile's surface (a little higher over cover so it clears it)
+function droneHv(x,y){ const o=cell(x,y); return DRONE.hv+(o&&!o.flat&&!o.roof&&o.t===1?8:0); }
+function placeDrone(d,x,y){ d.x=d.rx=x; d.y=d.ry=y; d.rz=ez(x,y)+droneHv(x,y); }
+// flight: any tile that is not full cover (rooftops and half cover are fine) and not taken by an operative or another drone;
+// no ladders or climb costs; a diagonal step may not cut past a full-cover corner. Same shape as computeReach ({dist,prev}).
+function droneEnter(j,self){ const x=j%MW,y=(j/MW)|0; if(solidT(x,y)) return false; for(const v of G.units) if(v.alive&&v.x===x&&v.y===y) return false; for(const d of G.drones) if(d!==self&&d.alive&&d.x===x&&d.y===y) return false; return true; }
+function droneReach(sx,sy,maxCost,self){
+  const N=MW*MH, dist=new Float32Array(N).fill(Infinity), prev=new Int32Array(N).fill(-1), done=new Uint8Array(N), ok=new Int8Array(N);
+  const s=idx(sx,sy); dist[s]=0; const open=[s];
+  while(open.length){ let bi=0; for(let i=1;i<open.length;i++) if(dist[open[i]]<dist[open[bi]]) bi=i;
+    const cur=open[bi]; open[bi]=open[open.length-1]; open.pop(); if(done[cur]) continue; done[cur]=1; const cx=cur%MW, cy=(cur/MW)|0;
+    for(const d of DIRS8){ const nx=cx+d[0], ny=cy+d[1]; if(!inMap(nx,ny)) continue; const j=idx(nx,ny);
+      if(!ok[j]) ok[j]=droneEnter(j,self)?1:-1; if(ok[j]<0) continue;
+      const diag=d[0]&&d[1]; if(diag&&(solidT(cx+d[0],cy)||solidT(cx,cy+d[1]))) continue;
+      const nd=dist[cur]+(diag?1.5:1); if(nd>maxCost+1e-6||nd>=dist[j]) continue; dist[j]=nd; prev[j]=cur; open.push(j); } }
+  return {dist,prev}; }
+// fly a path tile by tile; enemies on overwatch react to it like to any mover
+async function droneFly(d,path){
+  for(let k=1;k<path.length;k++){ if(!d.alive||G.over) return; const nx=path[k][0], ny=path[k][1];
+    const anim=shouldShow(d)||tileShown(nx,ny); faceTo(d,nx,ny);
+    if(anim){ if(!(G.spec&&G.spec.follow)) focusOn(nx,ny); const diag=nx!==d.x&&ny!==d.y; await new Promise(res=>G.tweens.push({u:d,fx:d.rx,fy:d.ry,tx:nx,ty:ny,fz:d.rz,tz:ez(nx,ny)+droneHv(nx,ny),t:0,dur:diag?.15:.11,res})); }
+    placeDrone(d,nx,ny); if(G.player&&d.team===G.player.team) computeVis();
+    await triggerOverwatch(d); }
+}
+// damage to a deployed drone (applyDamage routes here): armor (Ablative shell) and shield, no downs, no kill credit
+function droneHurt(d,dmg,src,o){ o=o||{}; if(!d.alive) return; let v=o.pierce?dmg:Math.max(1,dmg-d.armor); const tot=v; let abs=0;
+  if(d.shield>0){ abs=Math.min(d.shield,v); d.shield-=abs; v-=abs; } d.hp-=v; d.flash=.3;
+  if(o.anim){ if(abs>0) shieldFx(d,false); floatText(d,(o.graze?'GRAZE ':o.crit?'CRIT ':'')+'−'+tot,o.graze?[190,215,255]:[255,255,255],17); SFX.hit(); }
+  if(d.hp<=0) droneWreck(d,src,!!o.anim||shouldShow(d)); }
+function droneWreck(d,src,anim,quiet){ const u=droneOwner(d);
+  d.hp=0; d.st='dead'; d.alive=false; d.ap=0; d.shield=0; d.rb=DRONE.rebuild; d.wx=d.x; d.wy=d.y; d.mark=null;
+  if(src&&src.isPlayer&&isEnemy(src,d)) cst(src,'droneKills');
+  if(!quiet) feedLine(src&&src!==u&&isEnemy(src,d)?src.name+' destroyed '+d.name+'’s drone':d.name+'’s drone went down',mine(d)||mine(src));
+  if(anim){ const p=unitScreen(d), g=tileC(d.x,d.y); addFx({type:'dfall',x:p[0],y:p[1],gy:g[1],m:d.model,s:d.skin,col:d.col,face:d.face,life:.55});
+    addFx({type:'flash',x:p[0],y:p[1],r:56,col:[255,210,150],life:.22}); addFx({type:'ring',x:p[0],y:p[1],r:34,col:[255,170,90],life:.35});
+    for(let i=0;i<16;i++) part({x:p[0],y:p[1],vx:frand(-120,120),vy:frand(-100,40),life:frand(.3,.6),size:1.6,col:[255,220,150],type:'spark',grav:260});
+    for(let i=0;i<7;i++) part({x:g[0]+frand(-4,4),y:g[1]+frand(-2,2),z:Math.max(4,g[1]-p[1]),vx:frand(-50,50),vy:frand(-25,15),vz:frand(20,90),life:frand(.8,1.3),size:frand(1.6,2.6),col:[58,62,70],type:'debris',grav:520});
+    later(560,()=>{ for(let i=0;i<9;i++) part({x:g[0]+frand(-8,8),y:g[1]+frand(-3,3),z:frand(2,8),vx:frand(-12,12),vy:frand(-6,6),vz:frand(10,30),life:frand(.9,1.6),size:frand(7,12),col:[60,62,68],type:'smoke'}); });
+    floatText(d,'DRONE DESTROYED',[255,120,90],17); SFX.boom(); G.cam.shake=Math.max(G.cam.shake,4); }
+  if(G.player&&d.team===G.player.team&&G.scene==='game') computeVis(); }
+// the owner's turn start: rebuild countdown, drone AP (none when grounded), Auto-repair, storm (1 damage outside the zone)
+async function droneTurnStart(u){ const d=u.dr; if(!d) return;
+  if(d.st==='dead'){ if(d.rb>0) d.rb--; return; }
+  const grounded=d.jam>0; d.jam=0; d.ap=grounded?0:d.maxAp;
+  if(d.regen&&d.hp<d.maxHp){ d.hp=Math.min(d.maxHp,d.hp+d.regen); if(d.alive&&shouldShow(d)) floatText(d,'+'+d.regen+' REPAIR',[93,255,154],15); }
+  if(d.st!=='out') return;
+  if(grounded&&shouldShow(d)) floatText(d,'GROUNDED',[255,179,64],16);
+  if(outsideStorm(d.x,d.y)){ const show=shouldShow(d); if(show){ floatText(d,'STORM',G.R.storm,15); await wait(250); } droneHurt(d,DRONE.storm,null,{pierce:true,anim:show}); if(show) await wait(400); } }
+const D_MODEL_ACTS=['scan','burst','heal','shield','jam'];
+function burstHit(d,t){ const cov=coverFrom(t.x,t.y,d.x,d.y); return clamp(Math.round(80-(t.def||0)-(cov===2?40:cov===1?20:0)-(t.slip?15:0)-(smokeOnLine(d.x,d.y,t.x,t.y)?UTILS.smoke.smokeDef:0)),5,95); }
+function burstRange(d){ return DRONE.burstRange+(d.range||0); }
+// why a drone action is unavailable right now ('' = ready); shared by the HUD and the AI
+function dWhy(u,a){ const d=u.dr; if(!d) return 'No drone';
+  if(d.st==='dead') return d.rb>0?'Drone destroyed: rebuild in '+d.rb+' turn'+(d.rb>1?'s':''):'Drone destroyed: rebuild it';
+  if(d.st!=='out') return 'Deploy your drone first';
+  if(d.ap<1) return 'No drone AP left';
+  const A=DACTS[a]; if(!A) return '?'; if(A.perk&&!hasP(u,A.perk)) return 'Needs '+CP[A.perk].name;
+  if(D_MODEL_ACTS.includes(a)&&DMODELS[d.model].act!==a) return DMODELS[d.model].name+' cannot do this';
+  const cd=u.cd[a]||0; if(cd>0) return 'Ready in '+cd+' turn'+(cd>1?'s':''); return ''; }
+// drone action targets (from the drone's own position and sight)
+function dTargets(u,a){ const d=u.dr; if(!d||!d.alive) return [];
+  if(a==='zap'||a==='burst'){ const R=a==='zap'?DRONE.zapRange:burstRange(d); return visibleEnemies(d).concat(foeDrones(d)).filter(t=>tdist(d,t)<=R+0.01); }
+  if(a==='mark') return visibleEnemies(d).filter(t=>!t.downed);
+  if(a==='cap') return visibleEnemies(d).filter(t=>!t.downed&&tdist(d,t)<=DRONE.zapRange+0.01);
+  if(a==='aid') return G.units.filter(m=>standing(m)&&m.team===d.team&&tdist(d,m)<=DRONE.aidRange+0.01&&(canSee(d,m)||tdist(d,m)<=1.5));
+  return []; }
+function dArea(d,r,f){ return G.units.filter(m=>standing(m)&&f(m)&&Math.hypot(m.x-d.x,m.y-d.y)<=r+0.01); }
+async function droneCmd(u,c){
+  const d=u.dr, a=c&&c.a; if(!d||!standing(u)||G.over||typeof a!=='string') return;
+  if(a==='rebuild'){ if(d.st!=='dead'||d.rb>0||u.ap<=0||u.shot) return; u.ap-=1; d.st='dock'; d.hp=d.maxHp; d.shield=0; d.ap=0; d.wx=null;
+    if(shouldShow(u)){ vAnim(u,'reload',.7); floatText(u,'DRONE REBUILT',[127,232,255],17); healFx(u,[127,232,255]); SFX.heal(); await wait(650); } return; }
+  if(a==='deploy'){ if(d.st!=='dock'||u.ap<=0||d.ap<1||d.depR===G.round||!inMap(c.x,c.y)) return;
+    const R=droneReach(u.x,u.y,d.mob,d), i=idx(c.x,c.y); if(!(R.dist[i]>0&&isFinite(R.dist[i]))) return;
+    d.ap-=1; d.depR=G.round; d.st='out'; d.alive=true; d.x=u.x; d.y=u.y; d.rx=u.rx; d.ry=u.ry; d.rz=(u.rz||0)+62; d.face=u.face; dAct(u); if(u.isPlayer&&G.dstat) G.dstat.dep=1;
+    if(shouldShow(u)){ floatText(u,'DRONE DEPLOYED',[127,232,255],16); SFX.tone(700,1300,.2,.06,'sine'); }
+    await droneFly(d,buildPath(R,i)); if(G.player&&d.team===G.player.team) computeVis(); return; }
+  if(d.st!=='out'||!d.alive||d.ap<1) return;
+  const A=DACTS[a]; if(!A||a==='deploy') return; if(A.perk&&!hasP(u,A.perk)) return; if(D_MODEL_ACTS.includes(a)&&DMODELS[d.model].act!==a) return; if((u.cd[a]||0)>0) return;
+  const t=c.t!=null?findAny(c.t):null, an=()=>shouldShow(d)||(t&&shouldShow(t));
+  if(a==='move'){ if(!inMap(c.x,c.y)) return; const R=droneReach(d.x,d.y,d.mob,d), i=idx(c.x,c.y); if(!(R.dist[i]>0&&isFinite(R.dist[i]))) return; d.ap-=1; dAct(u); await droneFly(d,buildPath(R,i)); return; }
+  if(a==='recall'){ d.ap-=1; dAct(u); if(shouldShow(d)||shouldShow(u)){ floatText(d,'RECALL',[127,232,255],15); SFX.tone(1200,700,.2,.05,'sine'); await new Promise(res=>G.tweens.push({u:d,fx:d.rx,fy:d.ry,tx:u.x,ty:u.y,fz:d.rz,tz:(u.rz||0)+62,t:0,dur:.42,res})); }
+    d.st='dock'; d.alive=false; d.x=u.x; d.y=u.y; if(G.player&&d.team===G.player.team) computeVis(); return; }
+  if(a==='zap'){ if(!t||!t.alive||!isEnemy(d,t)||!canSee(d,t)||tdist(d,t)>DRONE.zapRange+0.01) return; d.ap-=1; u.cd.zap=abilCd(u,'zap'); dAct(u); await doZap(u,t); return; }
+  if(a==='mark'){ if(!t||t.drone||!standing(t)||!isEnemy(d,t)||!canSee(d,t)) return; d.ap-=1; dAct(u); t.mark={team:d.team,until:G.round+1};
+    if(an()){ focusMid(d,t); floatText(d,'MARK TARGET',[255,214,90],16); await wait(250); addFx({type:'beam',a:chest(d),b:chest(t),col:[255,90,90],life:.35}); floatText(t,'MARKED +'+DRONE.markAim+' AIM',[255,214,90],16); SFX.tone(1600,1900,.15,.05,'square'); await wait(450); } return; }
+  if(a==='aid'){ if(!t||t.drone||!standing(t)||t.team!==d.team||tdist(d,t)>DRONE.aidRange+0.01||!(canSee(d,t)||tdist(d,t)<=1.5)) return; d.ap-=1; u.cd.aid=A.cd; dAct(u); t.shield+=3;
+    if(an()){ focusMid(d,t); floatText(d,'AID PROTOCOL',[127,232,255],17); await wait(300); d.vZap=1; bolt(chest(d),chest(t),[111,208,255]); shieldFx(t,true); floatText(t,'+3 SHIELD',[111,208,255],20); SFX.heal(); await wait(550); } return; }
+  if(a==='cap'){ if(!t||t.drone||!t.alive||!isEnemy(d,t)||!canSee(d,t)||tdist(d,t)>DRONE.zapRange+0.01) return; d.ap-=1; u.cd.cap=A.cd; dAct(u); await doDischarge(u,t); return; }
+  if(a==='burst'){ if(!t||!t.alive||!isEnemy(d,t)||!canSee(d,t)||tdist(d,t)>burstRange(d)+0.01) return; d.ap-=1; u.cd.burst=A.cd; dAct(u);
+    const hit=RNG()*100<burstHit(d,t), anim=an(); faceTo(d,t.x,t.y);
+    if(anim){ focusMid(d,t); floatText(d,'BURST',[255,190,80],16); await wait(300); const a0=chest(d), b0=chest(t); for(let i=0;i<3;i++) later(i*70,()=>{ d.vZap=.7; addFx({type:'tracer',a:a0,b:[b0[0]+(hit?0:frand(-14,14)),b0[1]+(hit?0:frand(-8,8))],col:mine(d)?[110,225,255]:[255,110,90],w:1.4,life:.14}); }); SFX.shot('burst'); await wait(260); }
+    makeNoise(d);
+    if(hit){ applyDamage(t,DRONE.burst,u,{pierce:true,anim,how:'drone'}); dStat(u,t,DRONE.burst); } else if(anim) floatText(t,'MISSED',[200,210,220],18);
+    if(anim) await wait(t.alive?500:900); return; }
+  if(a==='scan'){ d.ap-=1; u.cd.scan=A.cd; dAct(u); G.reveals=(G.reveals||[]).filter(r=>r.until>=G.round); G.reveals.push({team:d.team,x:d.x,y:d.y,r:DRONE.scanR,until:G.round+1,uid:u.id,dr:1}); computeVis();
+    if(shouldShow(d)){ const p=tileC(d.x,d.y); addFx({type:'ring',x:p[0],y:p[1],r:DRONE.scanR*TW*0.7,col:[127,232,255],life:.8}); floatText(d,'SCAN',[127,232,255],16); SFX.tone(900,1500,.25,.06,'sine'); await wait(500); } return; }
+  if(a==='heal'||a==='shield'){ d.ap-=1; u.cd[a]=A.cd; dAct(u); const L=dArea(d,DRONE.areaR,m=>m.team===d.team), col=a==='heal'?[93,255,154]:[111,208,255], anim=shouldShow(d);
+    if(anim){ const p=tileC(d.x,d.y); addFx({type:'ring',x:p[0],y:p[1],r:DRONE.areaR*TW*0.9,col,life:.6}); d.vZap=1; floatText(d,a==='heal'?'HEAL PULSE':'SHIELD PROJECTOR',col,16); SFX.heal(); await wait(300); }
+    for(const m of L){ if(a==='heal'){ const h=Math.min(DRONE.heal,m.maxHp-m.hp); m.hp+=h; if(shouldShow(m)){ floatText(m,'+'+h+' HP',col,18); healFx(m); } } else { m.shield+=DRONE.shield; if(shouldShow(m)){ floatText(m,'+'+DRONE.shield+' SHIELD',col,18); shieldFx(m,true); } } }
+    if(anim) await wait(500); return; }
+  if(a==='jam'){ d.ap-=1; u.cd.jam=A.cd; dAct(u); const anim=shouldShow(d);
+    if(anim){ const p=tileC(d.x,d.y); addFx({type:'ring',x:p[0],y:p[1],r:DRONE.jamR*TW*0.75,col:[255,179,64],life:.6}); addFx({type:'arcs',x:p[0],y:p[1]-DRONE.hv,r:30,col:[255,200,120],life:.4}); d.vZap=1; floatText(d,'JAM',[255,179,64],17); SFX.noise(.4,'bandpass',1800,.3); await wait(300); }
+    for(const v of dArea(d,DRONE.jamR,m=>isEnemy(d,m))){ v.disorient=Math.max(v.disorient,1); v.overwatch=false; if(anim||shouldShow(v)) floatText(v,'JAMMED',[255,179,64],16); }
+    for(const e of G.drones){ if(!e.alive||!isEnemy(d,e)||Math.hypot(e.x-d.x,e.y-d.y)>DRONE.jamR+0.01) continue; e.jam=1; if(anim||shouldShow(e)) floatText(e,'GROUNDED',[255,179,64],15); }
+    const n0=(G.reveals||[]).length; G.reveals=(G.reveals||[]).filter(r=>!(r.dr&&r.team!==d.team&&Math.hypot(r.x-d.x,r.y-d.y)<=DRONE.jamR+r.r+0.01)); if(G.reveals.length!==n0) computeVis();
+    if(anim) await wait(500); return; }
+}
 
 /* ================= interactive & destructible terrain (sim) =================
    Everything here runs inside the command / turn flow, identically on every client: only seeded RNG (damage rolls),
@@ -5222,6 +5522,7 @@ async function detonate(x,y,src){
   soundCue(x,y,'blast',null);
   if(G.noise) G.noise.push({id:src?src.id:-1,team:src?src.team:-1,x,y,r:G.round,blast:true});
   for(const v of hitU){ if(!v.alive) continue; applyDamage(v,rollDmg(B.dmg),src,{anim:anim||shouldShow(v),how:'explosion'}); }
+  for(const v of G.drones){ if(!v.alive||!inBlast(v,x,y,B.r)) continue; applyDamage(v,rollDmg(B.dmg),src,{anim:anim||shouldShow(v),how:'explosion'}); }
   if(anim) await wait(450);
   await terrBlast(x,y,B.r,src);
 }
@@ -5239,7 +5540,7 @@ async function terrBlast(cx,cy,r,src){
 }
 // doors: {k:'door',x,y} opens or closes an adjacent door (free, once per turn); walking through a closed door opens it
 function adjDoor(u){ if(lvAt(u.x,u.y)>=2) return null; for(const d of DIRS4){ const o=cell(u.x+d[0],u.y+d[1]); if(o&&o.kind==='door') return {x:u.x+d[0],y:u.y+d[1],o}; } return null; }
-function doorBlocked(x,y){ return !!unitAt(x,y)||G.crates.some(q=>q.x===x&&q.y===y); }
+function doorBlocked(x,y){ return !!unitAt(x,y)||!!droneOn(x,y)||G.crates.some(q=>q.x===x&&q.y===y); }
 function setDoor(x,y,open,who){
   const o=cell(x,y); if(!o||o.kind!=='door'||(o.t<2)===open) return;
   o.t=open?0:2; o.rv=(o.rv||0)+1; terrChanged(false);
@@ -5287,7 +5588,7 @@ async function shotCover(a,t,W,anim){
 /* ================= return fire ================= */
 // A unit in full cover (from the attacker) fires back once per enemy turn at an attacker that shot at it and is still
 // standing, if it can see it and has ammo; not while downed, disoriented, hunkered or on overwatch. Reaction penalty, 1 ammo.
-function rfReady(t,a){ return standing(t)&&standing(a)&&isEnemy(t,a)&&t.ammo>0&&!(t.disorient>0)&&!t.hunker&&!t.overwatch&&t.rfKey!==G.round+':'+a.id&&canSee(t,a)&&hitInfo(a,t).cov===2; }
+function rfReady(t,a){ return !t.drone&&!a.drone&&standing(t)&&standing(a)&&isEnemy(t,a)&&t.ammo>0&&!(t.disorient>0)&&!t.hunker&&!t.overwatch&&t.rfKey!==G.round+':'+a.id&&canSee(t,a)&&hitInfo(a,t).cov===2; }
 async function returnFire(t,a){ if(G.over||!rfReady(t,a)) return; t.rfKey=G.round+':'+a.id; if(mine(t)||mine(a)) feedLine(t.name+' returned fire on '+a.name,true); await fireShot(t,a,{reaction:true,rf:true,how:'return fire'}); }
 
 /* ================= information tools (sim) ================= */
@@ -5465,6 +5766,7 @@ async function unitTurn(u,mid){
   u.ap=rose?1:2; u.overwatch=false; u.hunker=false; u.moved=false; u.shot=false;
   u.slip=false; u.kz=0; u.implUsed=false; u.zoneUsed=false; // per-turn class perk state
   for(const k in u.cd) if(u.cd[k]>0) u.cd[k]--;
+  await droneTurnStart(u); if(!standing(u)||G.over||G.matchId!==mid) return;
   await turnStartPerks(u);
   if(outsideStorm(u.x,u.y)){ const d=stormDmg(G.storm.stage)||1; if(d>0){ const show=shouldShow(u); if(show){ focusOn(u.x,u.y); await wait(300); floatText(u,'STORM',G.R.storm,18); }
       applyDamage(u,d,null,{pierce:true,anim:show}); if(show) await wait(700); if(!standing(u)||G.over||G.matchId!==mid) return; } }
@@ -5476,22 +5778,28 @@ async function unitTurn(u,mid){
 async function turnStartPerks(u){
   if(hasP(u,'g_jugg')&&u.disorient>0) u.disorient=0;
   let show=false;
-  if(hasP(u,'p_shield')&&u.shield<1){ u.shield=1; if(shouldShow(u)){ floatText(u,'DRONE SHIELD',[111,208,255],16); show=true; } }
-  if(hasP(u,'p_restore')) for(const m of G.units){ if(!standing(m)||m.team!==u.team||Math.hypot(m.x-u.x,m.y-u.y)>3.01||m.hp>=m.maxHp) continue; m.hp+=1; if(shouldShow(m)){ floatText(m,'+1 HP',[93,255,154],18); show=true; } }
+  if(hasP(u,'p_shield')&&dOut(u)&&u.shield<1){ u.shield=1; if(shouldShow(u)){ floatText(u,'DRONE SHIELD',[111,208,255],16); show=true; } }
+  if(hasP(u,'p_restore')&&dOut(u)) for(const m of G.units){ if(!standing(m)||m.team!==u.team||Math.hypot(m.x-u.dr.x,m.y-u.dr.y)>3.01||m.hp>=m.maxHp) continue; m.hp+=1; if(shouldShow(m)){ floatText(m,'+1 HP',[93,255,154],18); show=true; } }
   if(show) await wait(450);
 }
 /* ================= player turn ================= */
 function playerTurn(u){
-  return new Promise(res=>{ G.turnRes=res; G.mode='move'; G.pending=-1; G.pendingPath=null; G.busy=false; G.turnMax=tmTurnMax(); G.turnLeft=G.turnMax; refreshReach(); focusOn(u.x,u.y); computeVis(); turnTag('Your turn','you'); buzz(15); updateHUD(); });
+  return new Promise(res=>{ G.turnRes=res; G.mode='move'; G.dmode=null; G.pending=-1; G.pendingPath=null; G.busy=false; G.turnMax=tmTurnMax(); G.turnLeft=G.turnMax; refreshReach(); focusOn(u.x,u.y); computeVis(); turnTag('Your turn','you'); buzz(15); updateHUD(); });
 }
 function timeUp(){ const u=G.player; if(!inputOpen()){ G.turnLeft=0; return; } G.turnLeft=0; hint('Time’s up'); SFX.tone(400,200,.25,.1,'square'); buzz([40,40,40]); G.mode='move'; G.pending=-1; G.pendingPath=null; G.busy=true; playCmd({k:'end'}); }
-function refreshReach(){ const u=G.player; G.reach=u.ap>0?computeReach(u,u.mob*u.ap):null; }
-function finishPlayerTurn(){ const r=G.turnRes; if(!r) return; tmTurnEnd(); G.turnRes=null; G.mode='idle'; G.reach=null; G.pending=-1; G.pendingPath=null; updateHUD(); r(); }
+// move preview: the operative's, or the drone's flight (control mode 'ctl') / launch area (mode 'deploy') when G.dmode is set (UI only)
+function refreshReach(){ const u=G.player, d=u.dr;
+  if(G.dmode==='ctl'&&d){ G.reach=dCanAct(u)?droneReach(d.x,d.y,d.mob,d):null; return; }
+  if(G.dmode==='deploy'&&d){ G.reach=droneReach(u.x,u.y,d.mob,d); return; }
+  G.reach=u.ap>0?computeReach(u,u.mob*u.ap):null; }
+function finishPlayerTurn(){ const r=G.turnRes; if(!r) return; tmTurnEnd(); G.turnRes=null; G.mode='idle'; G.dmode=null; G.reach=null; G.pending=-1; G.pendingPath=null; updateHUD(); r(); }
 function afterAction(){
   const u=G.player; G.busy=false;
   if(G.over||!standing(u)){ finishPlayerTurn(); return; }
   computeVis();
-  if(u.ap<=0){ G.mode='idle'; G.busy=true; updateHUD(); later(300,finishPlayerTurn); return; } // busy: no input while the turn closes
+  if(u.ap<=0&&!dCanAct(u)){ G.mode='idle'; G.busy=true; updateHUD(); later(300,finishPlayerTurn); return; } // busy: no input while the turn closes
+  // drone control: after a launch go straight to the drone; leave control when it cannot act; with no AP of your own left, the drone is all you have
+  if(G.dmode==='deploy') G.dmode=dCanAct(u)?'ctl':null; if(G.dmode==='ctl'&&!dCanAct(u)) G.dmode=null; if(!G.dmode&&u.ap<=0&&dCanAct(u)) G.dmode='ctl';
   G.mode='move'; G.pending=-1; G.pendingPath=null; refreshReach(); updateHUD();
 }
 function inputOpen(){ return G.scene==='game'&&!!G.turnRes&&!G.busy&&!G.paused&&!G.over; }
@@ -5510,15 +5818,15 @@ function enterTarget(kind,pre){
   const u=G.player; let list;
   G.slashPaths=null; G.secMap=null;
   if(kind==='slash'){ const s=slashTargets(u); G.slashPaths=new Map(s.map(q=>[q.t,q.path])); list=s.map(q=>q.t); }
-  else if(kind==='sec'||kind==='hands'){ const s=secTargets(u,kind==='hands'); G.secMap=new Map(s.map(q=>[q.t,q])); list=s.map(q=>q.t); }
-  else if(kind==='zap'||kind==='cap') list=visibleEnemies(u).filter(t=>tdist(u,t)<=12);
-  else if(kind==='aid') list=[u].concat(G.units.filter(m=>m!==u&&m.team===u.team&&standing(m)&&tdist(u,m)<=10&&canSee(u,m)));
+  else if(kind==='sec'||kind==='hands'){ const s=secTargets(u,kind==='hands',true); G.secMap=new Map(s.map(q=>[q.t,q])); list=s.map(q=>q.t); }
+  else if(kind.startsWith('d_')) list=dTargets(u,kind.slice(2)); // drone actions: targets from the drone's own position and sight
+  else if(kind==='shoot') list=visibleEnemies(u).concat(foeDrones(u)); // enemy drones can be shot
   else list=visibleEnemies(u);
   if(!list.length){ hint('No targets in sight'); return; }
-  const score=t=>kind==='aid'?(t.hp+t.shield)/t.maxHp*-100:kind==='sec'||kind==='hands'?secInfo(u,t,G.secMap.get(t).mode).any:kind==='slash'||kind==='zap'||kind==='hail'||kind==='cap'||kind==='rupt'||kind==='supp'?-t.hp:hitInfo(u,t,{deadeye:kind==='deadeye',aimMod:kind==='rapid'?-15:0}).any;
+  const score=t=>kind==='d_aid'?(t.hp+t.shield)/t.maxHp*-100:kind.startsWith('d_')?-t.hp-(t.drone?20:0):kind==='aid'?(t.hp+t.shield)/t.maxHp*-100:kind==='sec'||kind==='hands'?secInfo(u,t,G.secMap.get(t).mode).any:kind==='slash'||kind==='zap'||kind==='hail'||kind==='cap'||kind==='rupt'||kind==='supp'?-t.hp:hitInfo(u,t,{deadeye:kind==='deadeye',aimMod:kind==='rapid'?-15:0}).any;
   list.sort((a,b)=>score(b)-score(a));
   G.targets=list; G.tIdx=Math.max(0,list.indexOf(pre)); G.tKind=kind; G.mode='target'; G.pending=-1; G.pendingPath=null;
-  focusMid(u,list[G.tIdx]); updateHUD();
+  focusMid(kind.startsWith('d_')&&u.dr&&u.dr.alive?u.dr:u,list[G.tIdx]); updateHUD();
 }
 // shoot-an-object targeting: G.objT lists [x,y] candidates, G.oIdx is the selection (UI only)
 function enterObj(){ const u=G.player, list=objTargets(u); if(!list.length){ hint('Nothing to shoot in sight'); return; }
@@ -5544,15 +5852,18 @@ async function execCmd(u,c){
   try{ return await execCmd0(u,c); } finally { G.cctx=p; } }
 async function execCmd0(u,c){
   const byId=id=>G.units.find(x=>x.id===id);
+  if(c.k==='drone'){ await droneCmd(u,c); return; }        // Specialist drone: {k:'drone',a,x?,y?,t?} (deploy, move, zap, mark, model/perk actions, recall, rebuild)
+  if(c.k==='end'){ u.ap=0; if(u.dr) u.dr.ap=0; return; }  // ends the turn for the operative and its drone
   if(c.k==='move'){ if(!Array.isArray(c.path)) return; u.ap-=c.ap; await moveUnit(u,c.path); u.moved=true; if(u.shot) u.ap=0; }
-  else if(c.k==='fire'){ const t=byId(c.t), k=c.kind; if(!t) return;
-    if(k==='zap'){ u.ap-=1; u.cd.zap=abilCd(u,'zap'); await doZap(u,t); return; }
+  else if(c.k==='fire'){ const t=findAny(c.t), k=c.kind; if(!t) return;
+    if(k==='zap'){ await droneCmd(u,{k:'drone',a:'zap',t:c.t}); return; } // Combat Protocol is a drone action now (needs the drone deployed)
+    if(t.drone&&k!=='shoot') return; // drones can be shot, not hit with abilities
     if(k==='slash'){ await doBlade(u,t,c.path); return; }
     const o={}; if(k==='deadeye'){ o.deadeye=true; o.label='DEADEYE'; u.cd.deadeye=abilCd(u,'deadeye'); } if(k==='hail'){ o.guaranteed=true; o.ammoCost=2; o.fxk='heavy'; o.label='HAIL OF BULLETS'; u.cd.hail=abilCd(u,'hail'); if(hasP(u,'g_hail')) o.bonus=1; }
     // shooting before moving keeps 1 AP for a move (not another action); heavy weapons and shots after moving end the turn
     if(u.moved||u.W.heavy||k==='hail') u.ap=0; else { u.ap=Math.max(0,u.ap-1); u.shot=true; }
     const tk0=u.tk||0; await fireShot(u,t,o); afterAttack(u,tk0,true); }
-  else if(c.k==='sec'){ await secAttack(u,byId(c.t),c); }   // secondary weapon: {k:'sec',t,path?,free?}
+  else if(c.k==='sec'){ await secAttack(u,findAny(c.t),c); }   // secondary weapon: {k:'sec',t,path?,free?}
   else if(c.k==='act'){ await doActive(u,c); }              // class perk active: {k:'act',a,t?}
   else if(c.k==='throw'){ const util=u.utils[c.i]; if(!util||util.ch<=0) return; const U=UTILS[util.id];
     if(U.dev&&(u.ap<=0||!inMap(c.x,c.y)||Math.hypot(c.x-u.x,c.y-u.y)>throwRange(u,U)+0.01||solidT(c.x,c.y))) return; // drone / sensor target checks (rooftops are fine)
@@ -5575,7 +5886,8 @@ async function pFire(){
   if(!inputOpen()) return; const u=G.player, t=G.targets[G.tIdx], k=G.tKind; if(!t) return; if(TUT.on&&!tutAllow(k)) return;
   G.busy=true; G.mode='idle'; updateHUD();
   let c={k:'fire',kind:k,t:t.id}; if(k==='slash') c.path=G.slashPaths&&G.slashPaths.get(t);
-  if(k==='sec'||k==='hands'){ const s=G.secMap&&G.secMap.get(t); c={k:'sec',t:t.id}; if(s&&s.path&&s.path.length>1) c.path=s.path; if(k==='hands') c.free=1; }
+  if(k.startsWith('d_')) c={k:'drone',a:k.slice(2),t:t.id};
+  else if(k==='sec'||k==='hands'){ const s=G.secMap&&G.secMap.get(t); c={k:'sec',t:t.id}; if(s&&s.path&&s.path.length>1) c.path=s.path; if(k==='hands') c.free=1; }
   else if(ACTS[k]) c={k:'act',a:k,t:t.id};
   await playCmd(c);
 }
@@ -5585,13 +5897,23 @@ async function pThrow(){
   await playCmd({k:'throw',i:u.utils.indexOf(util),x:tx,y:ty});
 }
 async function pMove(){
-  if(!inputOpen()||G.pending<0) return; if(TUT.on&&!tutAllow('move')) return; const u=G.player; const cost=G.reach.dist[G.pending]; const ap=cost<=u.mob+1e-6?1:2; if(ap>u.ap) return;
+  if(!inputOpen()||G.pending<0) return; if(TUT.on&&!tutAllow('move')) return; const u=G.player; const cost=G.reach.dist[G.pending];
+  if(G.dmode){ const x=G.pending%MW, y=(G.pending/MW)|0, a=G.dmode==='deploy'?'deploy':'move'; G.busy=true; G.mode='idle'; G.pending=-1; G.pendingPath=null; updateHUD(); await playCmd({k:'drone',a,x,y}); return; } const ap=cost<=u.mob+1e-6?1:2; if(ap>u.ap) return;
   const path=G.pendingPath; G.busy=true; G.mode='idle'; G.pending=-1; G.pendingPath=null; updateHUD();
   await playCmd({k:'move',path,ap});
 }
 function onAction(id){
   const u=G.player; if(!inputOpen()) return; if(TUT.on&&!tutAllow(id)) return;
   if(id==='move'){ pMove(); return; }
+  // Specialist drone: launch it, take control of it, hand control back, rebuild it, and its actions (d_<action>)
+  if(id==='ddeploy'){ const d=u.dr; if(!d||d.st!=='dock') return; G.dmode='deploy'; G.mode='move'; G.pending=-1; G.pendingPath=null; refreshReach(); focusOn(u.x,u.y); hint('Tap a tile to launch the drone'); updateHUD(); return; }
+  if(id==='dctl'){ if(!dCanAct(u)) return; G.dmode='ctl'; G.mode='move'; G.pending=-1; G.pendingPath=null; refreshReach(); focusOn(u.dr.x,u.dr.y); updateHUD(); return; }
+  if(id==='dop'){ G.dmode=null; G.mode='move'; G.pending=-1; G.pendingPath=null; refreshReach(); focusOn(u.x,u.y); updateHUD(); return; }
+  if(id==='drebuild'){ if(u.shot){ hint('After shooting you can only move'); return; } G.busy=true; G.mode='idle'; playCmd({k:'drone',a:'rebuild'}); return; }
+  if(id==='zap') id='d_zap'; // Combat Protocol is fired by the deployed drone
+  if(id.startsWith('d_')){ const a=id.slice(2), A=DACTS[a], w=dWhy(u,a); if(!A) return; if(w){ hint(w); return; }
+    if(A.tgt){ if(G.dmode!=='ctl'){ G.dmode='ctl'; refreshReach(); } enterTarget(id); return; }
+    G.busy=true; G.mode='idle'; playCmd({k:'drone',a}); return; }
   if(id==='door'){ const dr=adjDoor(u); if(dr){ G.busy=true; G.mode='idle'; playCmd({k:'door',x:dr.x,y:dr.y}); } return; }
   if(u.shot&&id!=='end'){ hint('After shooting you can only move'); return; }
   if(id==='breach'){ const dr=adjDoor(u); if(dr&&dr.o.t===2){ G.busy=true; G.mode='idle'; playCmd({k:'breach',x:dr.x,y:dr.y}); } return; }
@@ -5605,27 +5927,52 @@ function onAction(id){
   if(id==='ow'||id==='hunker'||id==='end'){ G.busy=true; playCmd({k:id}); return; }
   if(id==='reload'){ G.busy=true; playCmd({k:'reload'}); return; }
 }
+const DICON={zap:'zap',mark:'a_mark',scan:'a_scan',burst:'a_burst',heal:'a_heal',shield:'a_aid',jam:'a_jam',aid:'a_aid',cap:'a_cap',recall:'d_recall'};
+// the action bar while controlling the drone (G.dmode 'ctl'): its own actions on its own drone AP
+function dActionList(){
+  const u=G.player, d=u.dr, A=[], M=DMODELS[d.model];
+  if(G.pending>=0) A.push({id:'move',label:'Fly',sub:'1 drone AP',icon:'move',hot:true});
+  const add=(a,extra)=>{ const X=DACTS[a], c2=u.cd[a]||0; let w=dWhy(u,a); if(!w&&extra) w=extra(); A.push({id:'d_'+a,label:X.short,sub:c2?c2+' turn'+(c2>1?'s':''):'1 drone AP',icon:DICON[a],off:!!w,why:w||'',abil:a!=='recall'&&a!=='mark'}); };
+  add('zap',()=>dTargets(u,'zap').length?'':'No enemy the drone can see');
+  add(M.act,()=>M.act==='burst'?(dTargets(u,'burst').length?'':'No enemy within '+burstRange(d)+' tiles of the drone'):M.act==='heal'?(dArea(d,DRONE.areaR,m=>m.team===d.team&&m.hp<m.maxHp).length?'':'No hurt ally under the drone'):M.act==='shield'?(dArea(d,DRONE.areaR,m=>m.team===d.team).length?'':'No ally under the drone'):'');
+  add('mark',()=>dTargets(u,'mark').length?'':'No enemy the drone can see');
+  if(hasP(u,'p_aid')) add('aid',()=>dTargets(u,'aid').length?'':'No ally the drone can see');
+  if(hasP(u,'p_cap')) add('cap',()=>dTargets(u,'cap').length?'':'No enemy the drone can see');
+  add('recall');
+  A.push({id:'dop',label:'Operative',sub:u.ap+' AP',icon:'d_op',off:!(u.ap>0),why:'No AP left: the drone can still act',free:true});
+  A.push({id:'end',label:'End turn',sub:'',icon:'end',off:false,end:true});
+  return A;
+}
 function actionList(){
   const u=G.player, A=[]; if(!u) return A;
+  if(G.dmode==='ctl'&&dCanAct(u)) return dActionList();
+  if(G.dmode==='deploy'){ if(G.pending>=0) A.push({id:'move',label:'Launch',sub:'1 drone AP',icon:'drone',hot:true}); A.push({id:'dop',label:'Cancel',sub:'Deploy',icon:'end',off:false,free:true}); return A; }
   const vis=visibleEnemies(u); const ap=u.ap;
   if(G.pending>=0){ const cost=G.reach.dist[G.pending]; A.push({id:'move',label:'Move',sub:(cost<=u.mob+1e-6?1:2)+' AP',icon:'move',hot:true}); }
   const ob=siteAt(u.x,u.y); if(ob){ const T=OBJ[ob.k], w=siteWhy(u,ob), n=ob.prog[u.team]||0; A.push({id:'site',label:T.verb+' '+(ob.k==='med'?'station':T.name.toLowerCase()),sub:T.need>1?n+'/'+T.need+' · 1 AP':'1 AP',icon:'site_'+ob.k,hot:!w,off:!!w,why:w}); }
   const dn=adjDowned(u); if(dn) A.push({id:'revive',label:'Revive',sub:dn.name,icon:'revive',hot:true,off:!ap});
   const sniperBlock=u.W.heavy&&ap<2;
-  A.push({id:'shoot',label:'Shoot',sub:u.ammo+'/'+u.W.clip,icon:'shoot',off:!ap||!u.ammo||!vis.length||sniperBlock,why:!u.ammo?'Out of ammo: reload':!vis.length?'No enemies in sight':sniperBlock?u.W.name+' needs 2 AP':''});
+  const visD=vis.length?vis:foeDrones(u); // enemy drones in sight can be shot too
+  A.push({id:'shoot',label:'Shoot',sub:u.ammo+'/'+u.W.clip,icon:'shoot',off:!ap||!u.ammo||!visD.length||sniperBlock,why:!u.ammo?'Out of ammo: reload':!visD.length?'No enemies in sight':sniperBlock?u.W.name+' needs 2 AP':''});
   const ab=CLASSES[u.cls].ability, A2=ABIL[ab], cd=u.cd[ab]||0;
   let abOff=!ap||cd>0, why=cd>0?'Ready in '+cd+' turn'+(cd>1?'s':''):'';
+  if(ab==='zap'){ why=dWhy(u,'zap')||(dTargets(u,'zap').length?'':'No enemy the drone can see'); abOff=!!why; } // a drone action: needs the drone deployed, not your AP
   if(!abOff){ if(ab==='slash'&&!slashTargets(u).length){ abOff=true; why='No enemy in reach'; }
-    if(ab==='zap'&&!vis.some(t=>tdist(u,t)<=12)){ abOff=true; why='No enemy in sight'; }
+
     if((ab==='deadeye')&&(!vis.length||!u.ammo||sniperBlock)){ abOff=true; why=!vis.length?'No enemy in sight':!u.ammo?'Out of ammo':'Needs 2 AP'; }
     if(ab==='hail'&&(!vis.length||u.ammo<2)){ abOff=true; why=!vis.length?'No enemy in sight':'Needs 2 ammo'; } }
-  A.push({id:ab,label:A2.short,sub:cd?cd+' turn'+(cd>1?'s':''):'Ready',icon:ab,off:abOff,why,abil:true});
+  A.push({id:ab,label:A2.short,sub:cd?cd+' turn'+(cd>1?'s':''):ab==='zap'?(dOut(u)?'Drone':'Deploy first'):'Ready',icon:ab,off:abOff,why,abil:true,free:ab==='zap'});
+  // the drone: Deploy (free, once a turn, uses 1 drone AP), take control of it, or Rebuild it (1 AP) after it was destroyed
+  if(u.dr){ const d=u.dr;
+    if(d.st==='dock') A.push({id:'ddeploy',label:'Deploy',sub:'Free',icon:'drone',off:!ap||d.ap<1||d.depR===G.round,why:!ap?'No AP left':d.depR===G.round?'Already launched this turn':'Drone grounded this turn',free:true,hot:!!ap&&d.ap>0&&d.depR!==G.round&&G.round>=1,abil:true});
+    else if(d.st==='out') A.push({id:'dctl',label:'Drone',sub:d.ap+' AP',icon:'drone',off:d.ap<1,why:d.jam>0?'Grounded this turn':'No drone AP left',free:true,abil:true});
+    else A.push({id:'drebuild',label:'Rebuild',sub:d.rb>0?d.rb+' turn'+(d.rb>1?'s':''):'1 AP',icon:'drone',off:!ap||d.rb>0,why:d.rb>0?'Rebuild ready in '+d.rb+' turn'+(d.rb>1?'s':''):'No AP left'}); }
   // secondary weapon
-  const S=u.S; if(S){ const st=secTargets(u,false), sOut=S.type==='pistol'&&u.sAmmo<=0;
+  const S=u.S; if(S){ const st=secTargets(u,false,true), sOut=S.type==='pistol'&&u.sAmmo<=0;
     A.push({id:'sec',label:S.short,sub:S.type==='pistol'?u.sAmmo+'/'+S.clip:S.type==='thrown'?'×'+u.sUses:'Melee',icon:S.type==='pistol'?'pistol':S.type==='thrown'?'thrown':'melee',
       off:!ap||sOut||!st.length,why:sOut?'Out of ammo: reload':!st.length?(S.type==='melee'?(S.dash?'No enemy within '+(S.dash+(hasP(u,'r_lunge')?2:0))+' tiles':'No enemy adjacent'):S.type==='thrown'?'No enemy in throwing range':'No enemies in sight'):''}); }
   // class perk actives
-  for(const k in ACTS){ const X=ACTS[k]; if(!hasP(u,X.perk)) continue; const c2=u.cd[k]||0; let off=!ap||c2>0, w=c2>0?'Ready in '+c2+' turn'+(c2>1?'s':''):'';
+  for(const k in ACTS){ const X=ACTS[k]; if(!hasP(u,X.perk)||X.drone) continue; const c2=u.cd[k]||0; let off=!ap||c2>0, w=c2>0?'Ready in '+c2+' turn'+(c2>1?'s':''):''; // Aid Protocol / Discharge: drone actions (drone control)
     if(!off){ const no=m=>{ off=true; w=m; };
       if((k==='rapid'||k==='rupt'||k==='supp')&&!vis.length) no('No enemy in sight'); else if(k==='rapid'&&u.ammo<2) no('Needs 2 ammo'); else if((k==='rupt'||k==='supp'||k==='kz')&&!u.ammo) no('Out of ammo');
       else if(k==='cap'&&!vis.some(t=>tdist(u,t)<=12)) no('No enemy in sight'); else if(k==='whirl'&&!vis.some(t=>canMelee(u.x,u.y,t.x,t.y))) no('No enemy adjacent');
@@ -5651,14 +5998,14 @@ function actionList(){
 function makeNoise(u){ if(!G.noise) return; G.noise.push({id:u.id,team:u.team,x:u.x,y:u.y,r:G.round}); soundCue(u.x,u.y,'shot',u); if(G.noise.length>80) G.noise.splice(0,G.noise.length-80); }
 function intelOf(team){ G.intel=G.intel||{}; return G.intel[team]||(G.intel[team]=new Map()); }
 function updateIntel(team){
-  const m=intelOf(team), eyes=G.units.filter(z=>z.team===team&&standing(z));
-  for(const e of G.units){ if(!standing(e)||e.team===team) continue; if(eyes.some(z=>canSee(z,e))||revealedFor(team,e.x,e.y)) m.set(e.id,{x:e.x,y:e.y,r:G.round,seen:true}); }
+  const m=intelOf(team), eyes=G.units.filter(z=>z.team===team&&standing(z)), seers=eyes.concat(G.drones.filter(d=>d.alive&&d.team===team)); // deployed drones add sight (not hearing)
+  for(const e of G.units){ if(!standing(e)||e.team===team) continue; if(seers.some(z=>canSee(z,e))||revealedFor(team,e.x,e.y)) m.set(e.id,{x:e.x,y:e.y,r:G.round,seen:true}); }
   const D=teamDiff(team), hear=D.hear*wxHear(); // rain shortens hearing
   for(const n of (G.noise||[])){ if(n.team===team||n.r<G.round-1||n.blast) continue; if(!eyes.some(z=>Math.hypot(z.x-n.x,z.y-n.y)<=hear)) continue; const o=m.get(n.id); if(!o||o.r<n.r) m.set(n.id,{x:n.x,y:n.y,r:n.r,seen:false}); }
   // snow: footprints on tiles the team can see place the unit that made them (same rule the local player sees them by)
   if(G.prints&&G.prints.length) for(const p of G.prints){ if(p.team===team||p.r<G.round-1) continue; const e=G.units.find(z=>z.id===p.id); if(!e||!standing(e)) continue;
     const o=m.get(p.id); if(o&&(o.r>p.r||(o.seen&&o.r===p.r))) continue;
-    if(eyes.some(z=>Math.hypot(z.x-p.x,z.y-p.y)<=sightOf(z)+0.01&&hasLOS(z.x,z.y,p.x,p.y))) m.set(p.id,{x:p.x,y:p.y,r:p.r,seen:false}); }
+    if(seers.some(z=>Math.hypot(z.x-p.x,z.y-p.y)<=sightOf(z)+0.01&&hasLOS(z.x,z.y,p.x,p.y))) m.set(p.id,{x:p.x,y:p.y,r:p.r,seen:false}); }
   return m;
 }
 function teamDiff(team){ return (G.teamDiff&&G.teamDiff[team])||DIFFS.veteran; }
@@ -5748,14 +6095,15 @@ function aiBestAttack(u){
     if(canFire){ const h=hitInfo(u,t); const kb=avg>=eff?h.any/6:0; res.push({k:'shoot',t,hit:h.any,score:(h.full+h.graze*0.5)*(avg+h.crit/100*2)/10+kb});
       if(u.cls==='sharpshooter'&&!u.cd.deadeye&&!t.downed){ const h2=hitInfo(u,t,{deadeye:true}); res.push({k:'deadeye',t,hit:h2.any,score:(h2.full+h2.graze*0.5)*avg*1.5/10+(avg*1.5>=eff?h2.any/6:0)}); }
       if(u.cls==='grenadier'&&!u.cd.hail&&u.ammo>=2&&!t.downed) res.push({k:'hail',t,hit:100,score:avg*9+(avg>=eff?14:0)}); }
-    if(u.cls==='specialist'&&!u.cd.zap&&tdist(u,t)<=12) res.push({k:'zap',t,hit:100,score:28+(eff<=3?20:0)});
+
     // class perk actives aimed at an enemy
     if(canFire&&!t.downed){
       if(hasP(u,'r_rapid')&&!u.cd.rapid&&u.ammo>=2){ const h=hitInfo(u,t,{aimMod:-15}), e=(h.full+h.graze*0.5)/100; res.push({k:'rapid',t,hit:h.any,score:2*e*avg*10/1.1+(e>0.4&&2*avg>=eff?12:0)}); }
       if(hasP(u,'g_rupt')&&!u.cd.rupt) res.push({k:'rupt',t,hit:100,score:(avg+3)*9+(avg+3>=eff?14:0)});
       if(hasP(u,'g_supp')&&!u.cd.supp&&t.disorient<=0){ const h=hitInfo(u,t); res.push({k:'supp',t,hit:100,score:12+(t.overwatch?12:0)+(h.any<40?10:0)}); } }
-    if(hasP(u,'p_cap')&&!u.cd.cap&&!t.downed&&tdist(u,t)<=12){ const n=vis.filter(v=>v!==t&&Math.hypot(v.x-t.x,v.y-t.y)<=2.01).length; res.push({k:'cap',t,hit:100,score:26+(eff<=3?18:0)+n*16}); }
   }
+  // enemy drones this operative can see: a cheap kill that takes away their eyes (worth less than hurting an operative)
+  if(canFire) for(const d of foeDrones(u)){ const h=hitInfo(u,d), kill=avg>=d.hp+d.shield; res.push({k:'shoot',t:d,hit:h.any,score:(h.full+h.graze*0.5)/100*(kill?26:9)+(G.drones.some(x=>x===d&&canSee(d,u))?3:0)}); }
   // secondary weapon (melee, dash, throw or pistol); preferred when the primary cannot fire
   for(const s of secTargets(u,false)){ const sc=secScore(u,s)+(canFire?0:4); res.push({k:'sec',t:s.t,path:s.path,hit:secInfo(u,s.t,s.mode).any,score:sc}); }
   if(hasP(u,'r_whirl')&&!u.cd.whirl){ const adj=vis.filter(v=>canMelee(u.x,u.y,v.x,v.y)); if(adj.length) res.push({k:'whirl',t:adj[0],hit:90,score:adj.length*36+(adj.some(v=>v.hp+v.shield<=5)?12:0)}); }
@@ -5787,7 +6135,7 @@ async function aiExecute(u,a){
   if(a.k==='shoot'){ u.ap=0; await fireShot(u,a.t,{}); afterAttack(u,tk0,true); }
   else if(a.k==='deadeye'){ u.ap=0; u.cd.deadeye=abilCd(u,'deadeye'); await fireShot(u,a.t,{deadeye:true,label:'DEADEYE'}); afterAttack(u,tk0,true); }
   else if(a.k==='hail'){ u.ap=0; u.cd.hail=abilCd(u,'hail'); await fireShot(u,a.t,{guaranteed:true,ammoCost:2,fxk:'heavy',label:'HAIL OF BULLETS',bonus:hasP(u,'g_hail')?1:0}); afterAttack(u,tk0,true); }
-  else if(a.k==='zap'){ u.ap-=1; u.cd.zap=abilCd(u,'zap'); await doZap(u,a.t); }
+  else if(a.k==='zap'){ await execCmd(u,{k:'drone',a:'zap',t:a.t.id}); }
   else if(a.k==='slash'){ await doBlade(u,a.t,a.path); }
   // secondaries and class perk actives run through the same code as player commands, so AI follows the same AP rules
   else if(a.k==='sec'){ await execCmd(u,{k:'sec',t:a.t.id,path:a.path}); }
@@ -5807,7 +6155,9 @@ async function aiRevive(u){
   if(standing(u)&&u.ap>0&&dn.alive&&dn.downed&&Math.max(Math.abs(dn.x-u.x),Math.abs(dn.y-u.y))<=1){ await doRevive(u,dn); }
   return true;
 }
-async function aiTurn(u,mid){
+// the AI's turn, then whatever drone AP is left (zap, support, reposition or recall after the operative has acted)
+async function aiTurn(u,mid){ await aiTurn0(u,mid); if(standing(u)&&!G.over&&G.matchId===mid) await aiDrone(u,()=>!standing(u)||G.over||G.matchId!==mid,true); }
+async function aiTurn0(u,mid){
   const stale=()=>!standing(u)||G.over||G.matchId!==mid;
   if(shouldShow(u)){ turnTag(u.name+' · '+CLASSES[u.cls].name,mine(u)?'you':'enemy'); focusOn(u.x,u.y); await wait(380); } else { turnTag('Hostile activity','enemy'); await wait(70); }
   if(stale()) return;
@@ -5817,6 +6167,7 @@ async function aiTurn(u,mid){
   const med=u.utils.find(x=>x.id==='medkit'&&x.ch>0);
   if(med&&u.hp<=u.maxHp*0.5&&u.ap>0&&!outsideStorm(u.x,u.y)) await doMedkit(u,med);
   if(stale()) return;
+  await aiDrone(u,stale,false); if(stale()) return; // the drone goes first: deploy, zap, support (its own drone AP)
   await aiPerkPre(u,stale); if(stale()||u.ap<=0) return;
   await aiUtilPre(u); if(stale()||u.ap<=0) return;
   // standing on an objective at turn start: work it first (1 AP), then fight or reposition with the other
@@ -5858,11 +6209,52 @@ async function aiUtilPre(u){
 async function aiPerkPre(u,stale){
   if(hasP(u,'p_stim')&&!u.cd.stim&&u.ap>0&&visibleEnemies(u).length) await execCmd(u,{k:'act',a:'stim'});
   if(stale()) return;
-  if(hasP(u,'p_aid')&&!u.cd.aid&&u.ap>0){ const tgt=u.hp<=u.maxHp*0.6&&u.shield<2?u:G.units.find(m=>m!==u&&m.team===u.team&&standing(m)&&m.hp<=m.maxHp*0.5&&m.shield<2&&tdist(u,m)<=10&&canSee(u,m)); if(tgt) await execCmd(u,{k:'act',a:'aid',t:tgt.id}); }
-  if(stale()) return;
+
   if(hasP(u,'s_hands')&&!u.cd.hands&&u.ap>0){ let best=null,bs=8; for(const s of secTargets(u,true)){ const sc=secScore(u,s); if(sc>bs){ bs=sc; best=s; } } if(best) await execCmd(u,{k:'sec',t:best.t.id,free:1}); }
 }
-/* ================= end ================= */
+/* AI Specialist drones. Every choice uses the team's intel (knownThreats) and the drone's own sight, never hidden state;
+   commands go through execCmd like a player's. aiDroneCmd is also what the test bots use for a human Specialist. */
+function aiDronePos(u,d,sx,sy,threats){
+  const R=droneReach(sx,sy,d.mob,d), M=DMODELS[d.model], zapOk=!(u.cd.zap>0), goal=u._goal||[Math.floor(G.storm.cx),Math.floor(G.storm.cy)];
+  const score=(x,y)=>{ let s=0, seen=0, fs=0;
+    for(const t of threats){ const dd=Math.hypot(t.x-x,t.y-y), los=hasLOS(x,y,t.x,t.y)&&!smokeBlocks(x,y,t.x,t.y);
+      if(los&&dd<=d.sight+0.01){ seen++; if(zapOk&&dd<=DRONE.zapRange) s+=4; }
+      if(los&&dd<=sightOf(t)+0.5){ const cov=coverFrom(x,y,t.x,t.y); s+=cov===2?3:cov===1?1:-5; fs++; }
+      if(dd<1.6) s-=6; if(M.act==='jam'&&dd<=DRONE.jamR) s+=7; }
+    s+=Math.min(2,seen)*12;
+    if(!threats.length){ s-=Math.hypot(goal[0]-x,goal[1]-y)*0.8; s+=lvAt(x,y)*2; }
+    if(M.act==='heal'||M.act==='shield'||hasP(u,'p_restore')) for(const m of G.units) if(standing(m)&&m.team===u.team&&Math.hypot(m.x-x,m.y-y)<=(M.act==='heal'||M.act==='shield'?DRONE.areaR:3)+0.01) s+=m.hp<m.maxHp?7:3;
+    const lo=Math.hypot(u.x-x,u.y-y); if(lo>8) s-=(lo-8)*3;
+    if(outsideStorm(x,y)) s-=25;
+    return s; };
+  let best=null, bs=d.alive?score(sx,sy)+3:-1e9;
+  for(let i=0;i<MW*MH;i++){ const c=R.dist[i]; if(!isFinite(c)||c<=0) continue; const x=i%MW, y=(i/MW)|0, s=score(x,y)-c*0.15; if(s>bs){ bs=s; best=[x,y]; } }
+  return best; }
+function aiDroneCmd(u,late){
+  const d=u.dr; if(!d||!standing(u)||G.over) return null; const D=a=>({k:'drone',a});
+  if(d.st==='dead') return !late&&d.rb<=0&&u.ap>0&&!u.shot&&!visibleEnemies(u).length?D('rebuild'):null;
+  const threats=knownThreats(u);
+  if(d.st==='dock'){ if(late||u.ap<=0||d.ap<1||d.depR===G.round||(!threats.length&&G.round<2)) return null;
+    const p=aiDronePos(u,d,u.x,u.y,threats); return p?Object.assign(D('deploy'),{x:p[0],y:p[1]}):null; }
+  if(!d.alive||d.ap<1) return null;
+  if(d.hp<=Math.ceil(d.maxHp/3)&&threats.length) return D('recall'); // low HP: bring it home before it is shot down
+  const ok=a=>!dWhy(u,a), opts=[], M=DMODELS[d.model];
+  const eff=t=>t.downed?0.5:t.hp+t.shield, zd=3+(hasP(u,'p_over')?1:0)+(M.zap||0);
+  if(ok('zap')) for(const t of dTargets(u,'zap')) opts.push({c:Object.assign(D('zap'),{t:t.id}),s:t.drone?12+(eff(t)<=zd?14:0):t.downed?30:28+(eff(t)<=zd?22:0)});
+  if(ok('cap')) for(const t of dTargets(u,'cap')){ const n=G.units.filter(v=>v!==t&&standing(v)&&isEnemy(d,v)&&Math.hypot(v.x-t.x,v.y-t.y)<=2.01).length; opts.push({c:Object.assign(D('cap'),{t:t.id}),s:26+(eff(t)<=3?18:0)+n*16}); }
+  if(ok('burst')) for(const t of dTargets(u,'burst')){ const h=burstHit(d,t)/100; opts.push({c:Object.assign(D('burst'),{t:t.id}),s:h*16+(eff(t)<=DRONE.burst?h*14:0)}); }
+  if(ok('aid')){ const t=dTargets(u,'aid').find(m=>m.hp<=m.maxHp*0.6&&m.shield<2); if(t) opts.push({c:Object.assign(D('aid'),{t:t.id}),s:20}); }
+  if(ok('heal')){ let n=0; for(const m of dArea(d,DRONE.areaR,m=>m.team===d.team)) n+=Math.min(DRONE.heal,m.maxHp-m.hp); if(n) opts.push({c:D('heal'),s:n*7}); }
+  if(ok('shield')){ const n=dArea(d,DRONE.areaR,m=>m.team===d.team).length; if(n&&threats.length) opts.push({c:D('shield'),s:n*10}); }
+  if(ok('jam')){ let s=0; for(const v of dArea(d,DRONE.jamR,m=>isEnemy(d,m)&&canSee(d,m))) s+=14+(v.overwatch?8:0); for(const e of foeDrones(d)) if(Math.hypot(e.x-d.x,e.y-d.y)<=DRONE.jamR+0.01) s+=10; if(s) opts.push({c:D('jam'),s}); }
+  if(ok('scan')&&!visibleEnemies(d).length) opts.push({c:D('scan'),s:threats.some(t=>Math.hypot(t.x-d.x,t.y-d.y)<=DRONE.scanR+2)?14:6});
+  if(ok('mark')) for(const t of dTargets(u,'mark')) if(!(t.mark&&t.mark.team===d.team&&t.mark.until>G.round)) opts.push({c:Object.assign(D('mark'),{t:t.id}),s:9+(G.units.some(m=>m.team===d.team&&standing(m)&&canSee(m,t))?3:0)});
+  opts.sort((a,b)=>b.s-a.s);
+  if(opts.length&&opts[0].s>=8) return opts[0].c;
+  if(ok('move')){ const p=aiDronePos(u,d,d.x,d.y,threats); if(p) return Object.assign(D('move'),{x:p[0],y:p[1]}); }
+  return null; }
+async function aiDrone(u,stale,late){ const d=u.dr; if(!d) return;
+  for(let g=0;g<6;g++){ if(stale()) return; const c=aiDroneCmd(u,late); if(!c) return; const sig=d.st+d.ap+':'+u.ap+':'+d.x+','+d.y; await execCmd(u,c); if(sig===d.st+d.ap+':'+u.ap+':'+d.x+','+d.y) return; } }/* ================= end ================= */
 function endMatch(win){
   if(G.over) return; G.over=true; G.turnRes=null;
   const wt=G.units.find(standing);
@@ -5924,6 +6316,13 @@ Object.assign(ICON,{
   breach:'<svg viewBox="0 0 24 24"><path d="M6 21V3h8v6M3 21h18M14 13l7-4M15 17l6 1M12 15l2 6"/></svg>',
   obj:'<svg viewBox="0 0 24 24"><path d="M7 5h10v15H7zM7 5c0-1.5 10-1.5 10 0M7 10h10M7 15h10"/><path d="M12 1v2"/></svg>',
   drone:'<svg viewBox="0 0 24 24"><path d="M9 11h6v3H9zM3 8h6M15 8h6M6 8v3M18 8v3M12 14v3M8 20l4-3 4 3"/></svg>',
+  a_mark:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="1.5"/></svg>',
+  a_scan:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12l6-6"/></svg>',
+  a_burst:'<svg viewBox="0 0 24 24"><path d="M3 12h8M3 8h5M3 16h5M14 12l7 0M17 9l4 3-4 3"/></svg>',
+  a_heal:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg>',
+  a_jam:'<svg viewBox="0 0 24 24"><path d="M4 12c2-4 4 4 6 0s4 4 6 0 4 4 4 0"/><path d="M3 4l18 16"/></svg>',
+  d_recall:'<svg viewBox="0 0 24 24"><path d="M9 6H4v5M4 11a8 8 0 1 0 2.5-5.5"/><path d="M10 13h4v2h-4z"/></svg>',
+  d_op:'<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="3"/><path d="M6 21v-5a6 6 0 0 1 12 0v5"/></svg>',
   site_uplink:'<svg viewBox="0 0 24 24"><path d="M12 11v10M8 21h8M12 11l-3-3M7 5a7 7 0 0 1 10 0M9.5 7.5a3.5 3.5 0 0 1 5 0"/><circle cx="12" cy="10" r="1.2"/></svg>',
   site_vault:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.5"/><path d="M12 8.5v1.5M12 14v1.5M8.5 12H10M14 12h1.5M6 19v2M18 19v2"/></svg>',
   site_med:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 8v8M8 12h8"/></svg>',
@@ -5974,7 +6373,9 @@ function updateTurnOrder(){
   const tok=(u,cur)=>{ const me=u===G.player&&!G.watch, al=!me&&!G.watch&&mine(u), known=me||al||shouldShow(u), dead=!u.alive;
     const cls='tk'+(cur?' cur':'')+(me?' me':al?' ally':known?' foe':' unk')+(dead?' dead':u.downed?' down':'');
     const label=(me?'You':known?u.name+' ('+CLASSES[u.cls].name+')':'Unknown operative')+(dead?', out':u.downed?', downed':'')+(cur?', acting now':'');
-    return [cls+(known&&!me&&!al?'|'+u.color:''),'<div class="'+cls+'" role="listitem" title="'+label+'" aria-label="'+label+'"'+(known&&!me&&!al&&!dead?' style="color:'+u.color+'"':'')+'>'+(dead?'×':known?ICON[CLS_ICON[u.cls]]:'?')+'</div>']; };
+    // the Specialist's drone sits under its token: docked (outline), deployed (filled) or destroyed (red); enemies' only when you can see the drone
+    const d=u.dr, ds=!d||dead||!known?'':d.st==='out'?((me||al||shouldShow(d))?'out':''):d.st==='dead'?'dead':'dock';
+    return [cls+(known&&!me&&!al?'|'+u.color:'')+(ds?'|d'+ds:''),'<div class="'+cls+'" role="listitem" title="'+label+(ds?', drone '+(ds==='out'?'deployed':ds==='dead'?'destroyed':'docked'):'')+'" aria-label="'+label+'"'+(known&&!me&&!al&&!dead?' style="color:'+u.color+'"':'')+'>'+(dead?'×':known?ICON[CLS_ICON[u.cls]]:'?')+(ds?'<b class="dtk '+ds+'"></b>':'')+'</div>']; };
   const parts=items.map(it=>tok(it[0],it[1]));
   const sep='<div class="sep" role="listitem" aria-label="Round '+(G.round+1)+(ev.length?': '+ev.map(e=>e[2]).join(', '):'')+'">R'+(G.round+1)+ev.map(e=>'<i class="'+e[0]+'" title="'+e[2]+'">'+TO_ICON[e[1]]+'</i>').join('')+'</div>';
   const sig=G.round+'/'+ci+'/'+parts.map(p=>p[0]).join(',')+'/'+ev.map(e=>e[1]).join(',');
@@ -6001,6 +6402,13 @@ function updateHUD(){
   $('#uAmmo').textContent='Ammo '+u.ammo+'/'+u.W.clip+(u.S&&u.S.clip?' · '+u.S.short+' '+u.sAmmo+'/'+u.S.clip:u.S&&u.S.uses?' · '+u.S.short+' ×'+u.sUses:'');
   const sw=$('#uSw'); sw.classList.toggle('hidden',!(u.sw>0)); sw.title=SW_TXT;
   const sts=[]; if(u.swDown) sts.push('Second Wind: back up next turn'); else if(u.downed) sts.push('Downed: '+u.bleed+' turn'+(u.bleed===1?'':'s')+' to bleed out'); if(u.overwatch) sts.push('Overwatch'); if(u.hunker) sts.push('Hunkered'); if(u.disorient>0) sts.push('Disoriented'); if(hi(u.x,u.y)) sts.push('High ground'); if(inSmoke(u.x,u.y)) sts.push('In smoke'); if(outsideStorm(u.x,u.y)) sts.push('In storm'); $('#uSt').textContent=sts.join(' · ');
+  // drone row: model, HP pips, drone AP (deployed) or its state; the panel turns teal while you control the drone
+  const dp=$('#uDr'), dc=G.dmode==='ctl'&&dCanAct(u); up.classList.toggle('dctl',dc);
+  if(u.dr){ const d=u.dr; let h='<span class="dl">'+ICON.drone+DMODELS[d.model].name+'</span>';
+    if(d.st==='dead') h+='<span class="dst bad">'+(d.rb>0?'Destroyed · rebuild in '+d.rb+' turn'+(d.rb>1?'s':''):'Destroyed · Rebuild ready')+'</span>';
+    else { h+='<span class="dhp">'; for(let i=0;i<d.maxHp;i++) h+='<i class="'+(i<d.hp?'on':'')+'"></i>'; for(let i=0;i<d.shield;i++) h+='<i class="sh"></i>'; h+='</span>';
+      if(d.st==='out'){ h+='<span class="ap dap" title="Drone AP">'; for(let i=0;i<d.maxAp;i++) h+='<i class="'+(i<d.ap?'on':'')+'"></i>'; h+='</span>'+(d.jam>0?'<span class="dst bad">Grounded</span>':''); } else h+='<span class="dst">Docked</span>'; }
+    dp.innerHTML=h; dp.classList.remove('hidden'); if(dc) $('#uCls').textContent='Drone control · '+DMODELS[d.model].name+' · '+d.ap+' drone AP'; } else dp.classList.add('hidden');
   const al=$('#uAlly'), pt=G.M.team>1?G.units.find(m=>m!==u&&m.team===u.team):null;
   if(pt){ al.classList.remove('hidden'); al.classList.toggle('down',!standing(pt)); al.textContent=!pt.alive?pt.name+' is out':pt.downed?pt.name+' is down: get adjacent to revive':pt.name+' '+pt.hp+'/'+pt.maxHp+' HP'+(pt.shield?' +'+pt.shield:''); } else al.classList.add('hidden');
   const tg=$('#tgt'), acts=$('#actions');
@@ -6014,9 +6422,24 @@ function updateHUD(){
   acts.innerHTML=actionList().map(a=>'<button class="act'+(a.off?' off':'')+(a.hot?' hot':'')+(a.abil?' abil':'')+(a.end?' end':'')+'" data-act="'+a.id+'" data-why="'+(a.why||'')+'" aria-label="'+a.label+'">'+(ICON[a.icon]||'')+'<span>'+a.label+'</span><span class="sub">'+a.sub+'</span></button>').join('');
 }
 function weaponMkU(u){ return u.mk||1; }
+// target panel for drone actions (from the drone's position)
+function fillDroneTarget(u,t,a){ const d=u.dr, A=DACTS[a]; if(!d) return;
+  $('#tName').textContent=t===u?'You':t.drone?t.name+' drone':t.name;
+  $('#tSub').textContent=(t.drone?DMODELS[t.model].name+' drone':CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(d,t).toFixed(1)+' tiles from the drone';
+  let hit='100%', lbl=A.name, row=''; const zd=3+(hasP(u,'p_over')?1:0)+(DMODELS[d.model].zap||0);
+  if(a==='zap') row='<span>Damage '+zd+(hasP(u,'p_chain')?' (+ chain)':'')+'</span><span>Armor-piercing</span>'+(hasP(u,'p_hay')?'<span>Haywire</span>':'');
+  else if(a==='burst'){ hit=burstHit(d,t)+'%'; lbl='Burst · chance to hit'; row='<span>Damage '+DRONE.burst+'</span><span>Armor-piercing</span>'; }
+  else if(a==='mark'){ hit='+'+DRONE.markAim; lbl='team aim against it'; row='<span>Until the end of next round</span>'; }
+  else if(a==='aid'){ hit='+3'; lbl='shield'; }
+  else if(a==='cap') row='<span>Damage 3, +2 to enemies within 2 tiles</span>';
+  $('#tHit').textContent=hit; $('#tHitL').textContent=lbl; $('#tRow').innerHTML=row+'<span>1 drone AP ('+d.ap+' left)</span>';
+  $('#tMods').textContent=A.d+(a==='zap'?' Cooldown '+abilCd(u,'zap')+'.':A.cd?' Cooldown '+A.cd+'.':'');
+  $('#tChips').innerHTML=G.targets.length>1?G.targets.map((q,i)=>'<button class="tchip'+(i===G.tIdx?' sel':'')+'" data-ti="'+i+'">'+(q===u?'You':q.drone?q.name+' drone':q.name)+(a==='burst'?' '+burstHit(d,q)+'%':'')+'</button>').join(''):'';
+  const fb=$('#tFire'); fb.textContent=A.short; fb.classList.remove('off'); }
 function fillTargetPanel(){
   const u=G.player, t=G.targets[G.tIdx], k=G.tKind; if(!t) return;
-  $('#tName').textContent=t.name; $('#tSub').textContent=CLASSES[t.cls].name+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(u,t).toFixed(1)+' tiles'+(hi(t.x,t.y)?' · high ground':'');
+  if(k.startsWith('d_')){ fillDroneTarget(u,t,k.slice(2)); return; }
+  $('#tName').textContent=t.drone?t.name+' drone':t.name; $('#tSub').textContent=(t.drone?DMODELS[t.model].name+' drone':CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(u,t).toFixed(1)+' tiles'+(hi(t.x,t.y)?' · high ground':'');
   let hit,crit,dmg,cov,mods=[],gr=0,full=0,lbl=null,note=null,aimTxt='Aim '+u.aim+' ',fl=false;
   const rb=hasP(u,'r_reaper')?2:0, zd=3+(hasP(u,'p_over')?1:0);
   if(k==='zap'){ hit=100; crit=0; dmg=String(zd)+(hasP(u,'p_chain')?' (+ chain)':''); cov=-1; }
@@ -6038,7 +6461,7 @@ function fillTargetPanel(){
   if((k==='shoot'||k==='deadeye'||k==='rapid'||k==='rupt'||k==='hail')&&rfReady(t,u)) note=(note?note+' ':'')+'In full cover: '+t.name+' will return fire.';
   $('#tMods').textContent=(mods.length?(aimTxt+mods.map(m=>(m[1]>0?'+':'')+m[1]+' '+m[0]).join(', ')+'.'+(gr?' Grazes deal half damage.':'')):(ABIL[k]?ABIL[k].desc:ACTS[k]?ACTS[k].desc:''))+(note?' '+note:'');
   const chipHit=q=>k==='shoot'||k==='deadeye'||k==='rapid'?hitInfo(u,q,{deadeye:k==='deadeye',aimMod:k==='rapid'?-15:0}).any+'%':(k==='sec'||k==='hands')&&G.secMap&&G.secMap.get(q)?secInfo(u,q,G.secMap.get(q).mode).any+'%':'';
-  $('#tChips').innerHTML=G.targets.length>1?G.targets.map((q,i)=>'<button class="tchip'+(i===G.tIdx?' sel':'')+'" data-ti="'+i+'">'+(q===u?'You':q.name)+' '+chipHit(q)+'</button>').join(''):'';
+  $('#tChips').innerHTML=G.targets.length>1?G.targets.map((q,i)=>'<button class="tchip'+(i===G.tIdx?' sel':'')+'" data-ti="'+i+'">'+(q===u?'You':q.drone?q.name+' drone':q.name)+' '+chipHit(q)+'</button>').join(''):'';
   const q0=(k==='sec'||k==='hands')&&G.secMap&&G.secMap.get(t);
   const fb=$('#tFire'); fb.textContent=k==='shoot'?'Fire':k==='slash'?'Strike':k==='zap'?'Zap':q0?(q0.mode==='throw'?'Throw':q0.mode==='pistol'?'Fire':'Strike'):ABIL[k]?ABIL[k].short:ACTS[k]?ACTS[k].short:'Go'; fb.classList.remove('off');
 }
@@ -6096,16 +6519,19 @@ function screenToTile(sx,sy){
     if(hi(ex,ey)===L) return [ex,ey]; }
   const f=screenToTileF(sx,sy); return [Math.floor(f[0]),Math.floor(f[1])];
 }
-function unitAtScreen(sx,sy){ let best=null,bd=1e9; for(const u of G.units){ if(!u.alive||u.isPlayer||!shouldShow(u)) continue; const p=unitScreen(u); const s=[(p[0]-G.cam.x)*G.cam.z+VW/2,(p[1]-18-G.cam.y)*G.cam.z+VH/2]; const d=Math.hypot(s[0]-sx,s[1]-sy); if(d<Math.max(26,26*G.cam.z)&&d<bd){ bd=d; best=u; } } return best; }
+function unitAtScreen(sx,sy,noDrones){ let best=null,bd=1e9; for(const u of G.units){ if(!u.alive||u.isPlayer||!shouldShow(u)) continue; const p=unitScreen(u); const s=[(p[0]-G.cam.x)*G.cam.z+VW/2,(p[1]-18-G.cam.y)*G.cam.z+VH/2]; const d=Math.hypot(s[0]-sx,s[1]-sy); if(d<Math.max(26,26*G.cam.z)&&d<bd){ bd=d; best=u; } }
+  if(!noDrones) for(const u of G.drones){ if(!u.alive||!shouldShow(u)||(G.player&&u===G.player.dr)) continue; const p=unitScreen(u); const s=[(p[0]-G.cam.x)*G.cam.z+VW/2,(p[1]-G.cam.y)*G.cam.z+VH/2]; const d=Math.hypot(s[0]-sx,s[1]-sy); if(d<Math.max(20,20*G.cam.z)&&d<bd){ bd=d; best=u; } }
+  return best; }
 function onTap(sx,sy){
   SFX.init(); closeEmotes();
   // spectating (eliminated, live spectator or replay): tap an operative to follow it
-  if(G.playerDead&&G.spec&&!G.over){ const hu=unitAtScreen(sx,sy); if(hu&&hu.alive){ G.spec.follow=hu; G.spec.free=false; G.cam.tz=defaultZ(); SFX.click(); fillSpec(); } return; }
+  if(G.playerDead&&G.spec&&!G.over){ const hu=unitAtScreen(sx,sy,true); if(hu&&hu.alive){ G.spec.follow=hu; G.spec.free=false; G.cam.tz=defaultZ(); SFX.click(); fillSpec(); } return; }
   if(G.pingMode){ G.pingMode=false; const tt=screenToTile(sx,sy); updatePingBtn(); if(inMap(tt[0],tt[1])) openPingTray(tt[0],tt[1]); return; }
   closePingTray(); if(!inputOpen()) return; const u=G.player;
   const hu=unitAtScreen(sx,sy);
   if(G.mode==='target'){ if(hu){ const i=G.targets.indexOf(hu); if(i>=0){ G.tIdx=i; focusMid(u,hu); updateHUD(); SFX.click(); } } return; }
-  if(G.mode==='move'&&hu&&isEnemy(u,hu)){ if(u.ap>0&&!u.shot&&u.ammo>0&&!(u.W.heavy&&u.ap<2)&&canSee(u,hu)){ enterTarget('shoot',hu); SFX.click(); return; } }
+  if(G.mode==='move'&&hu&&isEnemy(u,hu)&&G.dmode==='ctl'){ if(!dWhy(u,'zap')&&dTargets(u,'zap').includes(hu)){ enterTarget('d_zap',hu); SFX.click(); return; } }
+  else if(G.mode==='move'&&hu&&isEnemy(u,hu)&&!G.dmode){ if(u.ap>0&&!u.shot&&u.ammo>0&&!(u.W.heavy&&u.ap<2)&&canSee(u,hu)){ enterTarget('shoot',hu); SFX.click(); return; } }
   const tt=screenToTile(sx,sy), tx=tt[0], ty=tt[1];
   if(G.mode==='obj'){ const i=(G.objT||[]).findIndex(q=>q[0]===tx&&q[1]===ty); if(i>=0){ if(i===G.oIdx){ pObj(); return; } G.oIdx=i; SFX.click(); updateHUD(); } return; }
   if(G.mode==='throw'){ if(!inMap(tx,ty)) return; const U=UTILS[G.throwUtil.id]; if(Math.hypot(tx-u.x,ty-u.y)<=throwRange(u,U)&&(G.vis[idx(tx,ty)]||U.blind)&&!(U.dev&&solidT(tx,ty))){ const i=idx(tx,ty); if(G.throwTile===i){ pThrow(); return; } G.throwTile=i; SFX.click(); updateHUD(); } else hint('Out of range'); return; }
@@ -6242,7 +6668,7 @@ document.addEventListener('gesturestart',e=>e.preventDefault());
 $('#hWx').addEventListener('click',()=>{ SFX.init(); toggleWxTip(); }); $('#wxTip').addEventListener('click',()=>toggleWxTip(false));
 $('#actions').addEventListener('click',e=>{ const b=e.target.closest('button[data-act]'); if(!b) return; SFX.init(); if(b.classList.contains('off')){ if(b.dataset.why) hint(b.dataset.why); return; } SFX.click(); onAction(b.dataset.act); });
 $('#tChips').addEventListener('click',e=>{ const ob=e.target.closest('[data-oi]'); if(ob&&G.objT){ G.oIdx=+ob.dataset.oi; const q=G.objT[G.oIdx]; if(q) focusMid(G.player,tileDummy(q[0],q[1])); SFX.click(); updateHUD(); return; } const b=e.target.closest('[data-ti]'); if(!b) return; G.tIdx=+b.dataset.ti; focusMid(G.player,G.targets[G.tIdx]); SFX.click(); updateHUD(); });
-$('#tCancel').addEventListener('click',()=>{ if(!inputOpen()) return; SFX.click(); G.mode='move'; G.throwUtil=null; G.throwTile=-1; focusOn(G.player.x,G.player.y); updateHUD(); });
+$('#tCancel').addEventListener('click',()=>{ if(!inputOpen()) return; SFX.click(); G.mode='move'; G.throwUtil=null; G.throwTile=-1; const f=G.dmode==='ctl'&&G.player.dr&&G.player.dr.alive?G.player.dr:G.player; focusOn(f.x,f.y); updateHUD(); });
 $('#tFire').addEventListener('click',()=>{ if(!inputOpen()) return; SFX.init(); if(G.mode==='throw'){ if(G.throwTile<0){ hint('Tap a tile to aim'); return; } pThrow(); } else if(G.mode==='obj') pObj(); else pFire(); });
 
 /* ================= cosmetics =================
@@ -6343,8 +6769,28 @@ Object.assign(VISORS,{p_cinder:{name:'Cinder eye',c:'#ff5a1f',price:0,r:'e',sh:'
 FINISHES.p_rime={name:'Rime',c:'#cfefff',price:0,r:'e',sk:'frost',pass:'white'}; FINISHES.p_rime.anim=SKMAT.frost.fr;
 Object.assign(TRAILS,{p_tempest:{name:'Tempest',c:'#b8a8ff',price:0,r:'l',pass:'storm'},p_glacier:{name:'Glacier fall',c:'#d8f6ff',price:0,r:'l',pass:'white'}});
 TFX.p_tempest=TFX.lightning; TFX.p_glacier=TFX.comet;
-const COS={skin:SKINS,visor:VISORS,finish:FINISHES,trail:TRAILS,kill:KILLS};
-const COS_LABEL={skin:'Armor skin',visor:'Visor',finish:'Weapon finish',trail:'Drop trail',kill:'Kill effect'};
+/* drone skins (Specialist drone chassis paint): b base, k dark, a accent / emissive, pat = pattern painted into the cached
+   chassis sprite (dsPattern; animated patterns cycle 8 cached frames), glow = a soft accent aura drawn with it */
+const DSKINS={
+  default:{name:'Standard issue',price:0,r:'c',b:[118,130,146],k:[52,60,72],a:[170,182,196],pat:'plain'},
+  carbon:{name:'Carbon weave',price:300,r:'c',b:[48,50,56],k:[22,23,27],a:[120,126,138],pat:'carbon'},
+  hazard:{name:'Hazard crew',price:350,r:'c',lvl:4,b:[58,58,62],k:[30,30,32],a:[236,186,36],pat:'hazard'},
+  woodland:{name:'Woodland camo',price:300,r:'c',b:[92,100,64],k:[46,54,34],a:[150,140,96],pat:'camo'},
+  dune:{name:'Dune',price:300,r:'c',b:[178,144,100],k:[112,86,58],a:[214,188,142],pat:'camo'},
+  whiteout:{name:'Whiteout',price:300,r:'c',b:[206,214,224],k:[130,140,154],a:[240,244,250],pat:'digi'},
+  chrome:{name:'Liquid chrome',price:900,r:'r',b:[176,190,208],k:[62,68,82],a:[240,246,255],pat:'chrome'},
+  neon:{name:'Neon runner',price:950,r:'r',b:[34,24,50],k:[14,10,22],a:[255,60,200],pat:'neon',glow:1},
+  interceptor:{name:'Interceptor',price:1000,r:'r',ach:{k:'kills',n:40},b:[28,36,64],k:[12,16,30],a:[230,236,246],pat:'police'},
+  toxic:{name:'Biohazard',price:160,cur:'sh',r:'e',b:[40,48,36],k:[18,22,16],a:[150,255,60],pat:'toxic',glow:1},
+  holo:{name:'Prism holo',price:180,cur:'sh',r:'e',b:[200,190,240],k:[90,80,140],a:[230,220,255],pat:'holo'},
+  ghost:{name:'Ghost shimmer',price:1800,r:'e',ach:{k:'top3',n:10},b:[104,124,146],k:[46,56,70],a:[190,240,255],pat:'ghost',glow:1},
+  gold:{name:'Gilded',price:300,cur:'sh',r:'l',b:[184,144,60],k:[100,72,26],a:[255,232,150],pat:'gold'},
+  magma:{name:'Magma core',price:340,cur:'sh',r:'l',b:[44,32,30],k:[18,14,12],a:[255,120,20],pat:'magma',glow:1},
+  void:{name:'Void rift',price:700,cur:'sh',r:'m',b:[24,14,44],k:[8,4,16],a:[190,90,255],pat:'void',glow:1},
+  celestial:{name:'Celestial',price:800,cur:'sh',r:'m',lvl:28,b:[238,234,226],k:[160,150,130],a:[236,196,96],pat:'celestial',glow:1}
+};
+const COS={skin:SKINS,visor:VISORS,finish:FINISHES,trail:TRAILS,kill:KILLS,drone:DSKINS};
+const COS_LABEL={skin:'Armor skin',visor:'Visor',finish:'Weapon finish',trail:'Drop trail',kill:'Kill effect',drone:'Drone skin'};
 const cosHas=(cat,k)=>!!(COS[cat]&&typeof k==='string'&&Object.prototype.hasOwnProperty.call(COS[cat],k));
 /* sets: matching skin + visor + trail + finish (+ kill effect). Buying a set grants the items you do not own yet at 25% off their total
    (shard-priced when any part is shard-priced; credits count 10:1). Data + setQuote/buySet/drawSetPreview for the store UI. */
@@ -6352,17 +6798,17 @@ const SETS={
   airborne:{name:'Airborne',r:'c',items:{skin:'woodland',visor:'twin',trail:'para',finish:'olive',kill:'tomb'}},
   ronin:{name:'Ronin',r:'r',items:{skin:'lacquer',visor:'slit',trail:'sakura',finish:'f_lacquer',kill:'slash'}},
   street:{name:'Street king',r:'r',items:{skin:'graffiti',visor:'led',trail:'confetti',finish:'f_graff',kill:'confetti'}},
-  biohazard:{name:'Biohazard',r:'e',items:{skin:'toxic',visor:'gas',trail:'toxic',finish:'f_haz',kill:'toxic'}},
-  frostbite:{name:'Frostbite',r:'e',items:{skin:'frost',visor:'ice',trail:'comet',finish:'frost',kill:'glass'}},
-  neon:{name:'Neon drive',r:'e',items:{skin:'synth',visor:'fox',trail:'prism',finish:'f_holo',kill:'derez'}},
+  biohazard:{name:'Biohazard',r:'e',items:{skin:'toxic',visor:'gas',trail:'toxic',finish:'f_haz',kill:'toxic',drone:'toxic'}},
+  frostbite:{name:'Frostbite',r:'e',items:{skin:'frost',visor:'ice',trail:'comet',finish:'frost',kill:'glass',drone:'whiteout'}},
+  neon:{name:'Neon drive',r:'e',items:{skin:'synth',visor:'fox',trail:'prism',finish:'f_holo',kill:'derez',drone:'neon'}},
   stormchaser:{name:'Stormchaser',r:'e',items:{skin:'circuit',visor:'tee',trail:'lightning',finish:'f_circuit',kill:'zap'}},
-  ghost:{name:'Ghost protocol',r:'l',items:{skin:'phantom',visor:'cyclops',trail:'glitch',finish:'f_carbon',kill:'glitch'}},
+  ghost:{name:'Ghost protocol',r:'l',items:{skin:'phantom',visor:'cyclops',trail:'glitch',finish:'f_carbon',kill:'glitch',drone:'ghost'}},
   reaper:{name:'Reaper',r:'l',items:{skin:'ossuary',visor:'skull',trail:'wisp',finish:'crimson',kill:'skull'}},
-  inferno:{name:'Inferno',r:'l',items:{skin:'lava',visor:'oni',trail:'meteor',finish:'f_lava',kill:'meteor'}},
-  sovereign:{name:'Sovereign',r:'l',items:{skin:'royal',visor:'mirror',trail:'coins',finish:'f_royal',kill:'bounty'}},
-  seraph:{name:'Seraph',r:'m',items:{skin:'celestial',visor:'grill',trail:'phoenix',finish:'gold',kill:'ascend'}},
+  inferno:{name:'Inferno',r:'l',items:{skin:'lava',visor:'oni',trail:'meteor',finish:'f_lava',kill:'meteor',drone:'magma'}},
+  sovereign:{name:'Sovereign',r:'l',items:{skin:'royal',visor:'mirror',trail:'coins',finish:'f_royal',kill:'bounty',drone:'gold'}},
+  seraph:{name:'Seraph',r:'m',items:{skin:'celestial',visor:'grill',trail:'phoenix',finish:'gold',kill:'ascend',drone:'celestial'}},
   zeroday:{name:'Zero day',r:'m',items:{skin:'datastorm',visor:'hud',trail:'pixel',finish:'f_data',kill:'voxel'}},
-  horizon:{name:'Event horizon',r:'m',items:{skin:'voidrift',visor:'band',trail:'blackhole',finish:'f_galaxy',kill:'blackhole'}}
+  horizon:{name:'Event horizon',r:'m',items:{skin:'voidrift',visor:'band',trail:'blackhole',finish:'f_galaxy',kill:'blackhole',drone:'void'}}
 };
 function setIds(k){ const S=SETS[k]; return S?Object.keys(S.items).map(c=>c+':'+S.items[c]):[]; }
 function setQuote(k){ const ids=setIds(k), miss=ids.filter(id=>!PROF.cos.includes(id)); let cr=0, sh=0;
@@ -6382,7 +6828,7 @@ function syncCos(quiet){ try{ if(!PROF||!PROF.cos) return []; }catch(e){ return 
 // AI picks: non-premium pools (one seeded pick per unit, as before) and a hashed visor shape / trail (no RNG calls)
 function aiCos(name,list,salt){ let h=salt; for(const ch of String(name)) h=(Math.imul(h,31)+ch.charCodeAt(0))|0; return list[Math.floor(hash(h,salt,77)*list.length)]; }
 const aiPool=T=>Object.keys(T).filter(k=>'cre'.includes(T[k].r)&&!T[k].pass); // AI never wears season pass exclusives
-const AI_SKINS=aiPool(SKINS), AI_FINS=aiPool(FINISHES), AI_VISORS=aiPool(VISORS), AI_TRAILS=aiPool(TRAILS);
+const AI_SKINS=aiPool(SKINS), AI_FINS=aiPool(FINISHES), AI_VISORS=aiPool(VISORS), AI_TRAILS=aiPool(TRAILS), AI_DSKINS=aiPool(DSKINS);
 // AI kill effects: hashed from the name like trails (no RNG call); about half keep the standard one
 const AI_KFX=Object.keys(KILLS).filter(k=>'cr'.includes(KILLS[k].r)).concat(new Array(9).fill('default'));
 const PACKS=[{id:'p1',sh:100,price:'$0.99',name:'Pouch'},{id:'p2',sh:550,price:'$4.99',name:'Crate',tag:'+10% bonus'},{id:'p3',sh:1200,price:'$9.99',name:'Vault',tag:'Best value'}];
@@ -6396,6 +6842,7 @@ const UNLOCKS={2:['u_shieldcell','w_carbine'],3:['mk2_rifle','mk2_shotgun','mk2_
 [[2,'s_tknife'],[3,'s_silencer'],[4,'s_machete'],[5,'s_hatchet'],[6,'s_baton'],[7,'s_magnum'],[8,'s_machpistol'],[9,'s_axe'],[11,'s_katana']].forEach(e=>UNLOCKS[e[0]].push(e[1]));
 CP_LVL.forEach((l,i)=>UNLOCKS[l].push('ct'+(i+1)));
 UNLOCKS[3].push('u_drone'); UNLOCKS[5].push('u_sensor'); // fog-of-war tools
+UNLOCKS[5].push('d_striker'); UNLOCKS[8].push('d_medic'); UNLOCKS[12].push('d_bulwark'); (UNLOCKS[16]=UNLOCKS[16]||[]).push('d_jammer'); // Specialist drone models (Sparrow is the starter)
 for(const cat in COS) for(const k in COS[cat]){ const l=COS[cat][k].lvl; if(l) (UNLOCKS[l]=UNLOCKS[l]||[]).push('cos:'+cat+':'+k); } // free cosmetics on the level track
 const UNLOCK_LVL={}; for(const l in UNLOCKS) for(const id of UNLOCKS[l]) UNLOCK_LVL[id]=+l;
 function unlockName(id){
@@ -6403,6 +6850,7 @@ function unlockName(id){
   if(id.startsWith('mk3_')) return WEAPONS[id.slice(4)].name+' Mk III';
   if(id.startsWith('ar_')) return ARMORS[id.slice(3)].name+' lining (+1 HP)';
   if(id.startsWith('u_')) return UTILS[id.slice(2)].name;
+  if(id.startsWith('d_')&&DMODELS[id.slice(2)]) return DMODELS[id.slice(2)].name+' drone (Specialist)';
   if(id.startsWith('w_')) return WEAPONS[id.slice(2)].name;
   if(id.startsWith('a_')) return ARMORS[id.slice(2)].name;
   if(id==='pouch') return 'Third utility slot';
@@ -6434,7 +6882,7 @@ function mastLvl(k){ return mastInfo(k).l; }
 function mfinFor(k){ const f=PROF.mfin&&PROF.mfin[k]; return f&&MFIN[f]&&mastTracked(k)&&mastLvl(k)>=MFIN[f].m?f:null; }
 // what reaching mastery level l on weapon k unlocks: attachments and finishes
 function mastUnlocks(k,l){ const o=[]; for(const id in ATTACH) if(attNeed(k,id)===l) o.push(ATTACH[id].name); for(const f in MFIN) if(MFIN[f].m===l) o.push(MFIN[f].name+' finish'); return o; }
-function wName(k){ return (WEAPONS[k]||SECONDARIES[k]||{short:k}).short; }
+function wName(k){ return k==='drone'?'Drone':(WEAPONS[k]||SECONDARIES[k]||{short:k}).short; }
 function aiLevel(off){ return Math.max(1,(G.lvFix||level())+ri(-2,1)+(off||0)); }
 function utilSlots(){ return own('pouch')?3:2; }
 function utilOwned(id){ return !UTILS[id].shop||own('u_'+id); }
@@ -6586,7 +7034,7 @@ function seasonNow(t){ t=t==null?Date.now():t; const L=SEASON_DAYS*864e5, n=Math
 const PTRACK=new Map();
 function passTrack(n){ if(PTRACK.has(n)) return PTRACK.get(n);
   const S=seasonNow(SEASON_EPOCH+n*SEASON_DAYS*864e5+1).th, sd=seedOf('season'+n), pool={}, used={};
-  for(const cat of Object.keys(COS)) for(const k of Object.keys(COS[cat])){ const it=COS[cat][k]; if(it.pass||!it.price||it.lvl||it.ach||!'crel'.includes(it.r||'c')) continue; (pool[it.r||'c']=pool[it.r||'c']||[]).push(cat+':'+k); }
+  for(const cat of Object.keys(COS)) for(const k of Object.keys(COS[cat])){ const it=COS[cat][k]; if(cat==='drone'||it.pass||!it.price||it.lvl||it.ach||!'crel'.includes(it.r||'c')) continue; (pool[it.r||'c']=pool[it.r||'c']||[]).push(cat+':'+k); } // drone skins came later: keep existing season tracks unchanged
   for(const r in pool) pool[r]=pool[r].map((id,i)=>[hash(i,sd,13),id]).sort((a,b)=>a[0]-b[0]).map(e=>e[1]);
   const T=PASS_TPL.map((e,i)=>{ const tier=i+1, k=e[0];
     if(k==='cos'){ const P=pool[e[1]]||[], j=used[e[1]]=(used[e[1]]||0)+1; return P.length?{tier,k:'cos',id:P[(j-1)%P.length]}:{tier,k:'cr',n:300}; }
@@ -6626,7 +7074,7 @@ function passLines(r,s,fR){ const X=PASS_XP, L=[], half=Math.max(1,Math.ceil(r.o
 let PROF=loadProf(); syncCos(true); passSync();
 function loadProf(){
   let s=null; try{ s=JSON.parse(localStorage.getItem('stormfall_profile')||'null'); }catch(e){}
-  const p={v:3,credits:250,shards:0,xp:0,owned:[],cos:['skin:default','visor:cyan','finish:default','trail:default','kill:default'],equip:{skin:'default',visor:'cyan',finish:'default',trail:'default',kill:'default'},
+  const p={v:3,credits:250,shards:0,xp:0,owned:[],cos:['skin:default','visor:cyan','finish:default','trail:default','kill:default','drone:default'],equip:{skin:'default',visor:'cyan',finish:'default',trail:'default',kill:'default',drone:'default'},dmast:0,
     q:{dk:'',daily:[],wk:'',weekly:[]},settings:{sound:true,haptics:true,timer:30,shake:true,oneTap:false},career:{matches:0,wins:0,kills:0,dmg:0,top3:0},history:[],mode:'solo',diff:'veteran',wr:{},seenBrief:false,mast:{},mfin:{},
     id:{title:'t_recruit',banner:'bn_std',tt:[],bn:[]},chal:{},pass:null,tut:{done:false,seen:false}};
   if(s&&typeof s==='object'){
@@ -6653,6 +7101,7 @@ function loadProf(){
     // weapon mastery XP and per-weapon mastery finish picks (profiles from before mastery start empty)
     if(s.mast&&typeof s.mast==='object') for(const k in s.mast) if(mastTracked(k)&&typeof s.mast[k]==='number') p.mast[k]=Math.max(0,s.mast[k]|0);
     if(s.mfin&&typeof s.mfin==='object') for(const k in s.mfin) if(mastTracked(k)&&MFIN[s.mfin[k]]) p.mfin[k]=s.mfin[k];
+    if(typeof s.dmast==='number') p.dmast=Math.max(0,s.dmast|0); // Specialist drone mastery XP
     if(!s.v||s.v<3){ // migrate v2 armory purchases: colors became visors, matches count as XP
       for(const id of p.owned){ if(id.startsWith('col_')){ const k=id.slice(4)==='cyan'?'cyan':id.slice(4); if(VISORS[k]) p.cos.push('visor:'+k); } }
       if(s.color){ const k=Object.keys(VISORS).find(k=>VISORS[k].c===s.color); if(k){ p.equip.visor=k; p.cos.push('visor:'+k); } }
@@ -6685,6 +7134,10 @@ function grantRewards(){
   for(const k of ws){ if(!mastTracked(k)) continue; const m=ms[k]||{hits:0,dmg:0,kills:0}, gain=m.hits*MXP.hit+m.dmg*MXP.dmg+m.kills*MXP.kill+(k===G.player.wid?MXP.use:0); if(!gain) continue;
     const b=mastInfo(k); PROF.mast[k]=(PROF.mast[k]||0)+gain; const a2=mastInfo(k), un=[]; for(let l=b.l+1;l<=a2.l;l++) un.push(...mastUnlocks(k,l));
     mast.push({k,gain,b,a:a2,unl:un,s:m}); }
+  // drone mastery (Specialist): actions, damage and takedowns by your own drone, plus a bonus for deploying it
+  const ds=G.dstat; if(G.player&&G.player.dr&&ds){ const gain=ds.acts*DXP.act+ds.dmg*DXP.dmg+ds.kills*DXP.kill+ds.dkills*DXP.dkill+(ds.dep?DXP.deploy:0);
+    if(gain){ const b=dMastInfo(); PROF.dmast=(PROF.dmast||0)+gain; const a2=dMastInfo(), un=[]; for(let l=b.l+1;l<=a2.l;l++) for(const k in DUPS) if(DUPS[k].m===l) un.push(DUPS[k].name);
+      mast.push({k:'drone',gain,b,a:a2,unl:un,s:ds}); } }
   const c=PROF.career; c.matches++; c.kills+=s.kills; c.dmg+=s.dmg; if(r.win) c.wins++; if(r.place<=3&&r.of>3) c.top3++;
   PROF.history.unshift({m:M.key,r:G.region,p:r.place,of:r.of,k:s.kills,d:s.dmg,w:r.win,t:Date.now()}); PROF.history=PROF.history.slice(0,10);
   // quests
@@ -6765,8 +7218,9 @@ function refreshMenu(){
 $('#modes').addEventListener('click',e=>{ const b=e.target.closest('[data-mode]'); if(!b) return; PROF.mode=b.dataset.mode; saveProf(); SFX.click(); buzz(6); refreshMenu(); });
 function drawOpCard(){ const c=$('#opc').getContext('2d'); c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,128,152);
   c.drawImage(pvBg('opc',128,152,g=>{ const gr=g.createRadialGradient(64,120,4,64,120,70); gr.addColorStop(0,'rgba(63,210,255,.35)'); gr.addColorStop(1,'rgba(63,210,255,0)'); g.fillStyle=gr; g.fillRect(0,0,128,152); }),0,0);
-  const o=demoPose(Object.assign({x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:visorCol(),face:1,time:G.time,ph:1.3,skin:PROF.equip.skin,visor:PROF.equip.visor,finish:PROF.equip.finish},gearLook(LO)),G.time,1.3);
-  trailIdle(c,54,136,PROF.equip.trail,G.time,1.1); c.save(); c.translate(54,136); c.scale(2.5,2.5); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,54,136,2.5); }
+  const o=demoPose(Object.assign({x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:visorCol(),face:1,time:G.time,ph:1.3,skin:PROF.equip.skin,visor:PROF.equip.visor,finish:PROF.equip.finish,dm:LO.drone.m,ds:PROF.equip.drone},gearLook(LO)),G.time,1.3);
+  const sp=LO.cls==='specialist', sy=sp?148:136, sc=sp?2.2:2.5; // a Specialist stands a little smaller so its docked drone fits above the helmet
+  trailIdle(c,54,sy,PROF.equip.trail,G.time,1.1); c.save(); c.translate(54,sy); c.scale(sc,sc); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,54,sy,sc); }
 async function startMatch(daily){
   if(NET.on){ if(!confirm('Leave the online room and play offline?')) return; netLeave(); }
   SFX.init(); applySettings(); LO=sanitize(LO); saveLO(); for(const m of META) show('#'+m,false); show('#nav',false); show('#lobby',false); show('#end',false); show('#hud',false); $('#feed').innerHTML=''; closeEmotes(); closePingTray(); G.pingMode=false;
@@ -6857,8 +7311,8 @@ function peerReady(){
   return load('vendor/peerjs.min.js').catch(()=>load('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'))
     .then(()=>{ if(!window.Peer) throw new Error('missing'); }).catch(()=>{ throw new Error('Could not load the networking library. Check your connection.'); });
 }
-function mySpec(){ LO=sanitize(LO); const o=[]; for(const id of ['mk2_'+LO.weapon,'mk3_'+LO.weapon,'ar_'+LO.armor,'w_'+LO.weapon,'a_'+LO.armor,LO.perk,'s_'+LO.sec,'ct1','ct2','ct3','ct4','ct5']) if(id&&own(id)) o.push(id);
-  return {name:LO.name,lo:{cls:LO.cls,weapon:LO.weapon,armor:LO.armor,utils:LO.utils.slice(),perk:LO.perk,sec:LO.sec,tree:LO.tree[LO.cls].slice(),att:specAtt()},own:o,color:visorCol(),skin:PROF.equip.skin,visor:PROF.equip.visor,finish:PROF.equip.finish,trail:PROF.equip.trail,kill:PROF.equip.kill,
+function mySpec(){ LO=sanitize(LO); const o=[]; for(const id of ['mk2_'+LO.weapon,'mk3_'+LO.weapon,'ar_'+LO.armor,'w_'+LO.weapon,'a_'+LO.armor,LO.perk,'s_'+LO.sec,'ct1','ct2','ct3','ct4','ct5','d_'+LO.drone.m]) if(id&&own(id)) o.push(id);
+  return {name:LO.name,lo:{cls:LO.cls,weapon:LO.weapon,armor:LO.armor,utils:LO.utils.slice(),perk:LO.perk,sec:LO.sec,tree:LO.tree[LO.cls].slice(),att:specAtt(),drone:{m:LO.drone.m,up:LO.drone.up.slice()}},own:o,color:visorCol(),skin:PROF.equip.skin,visor:PROF.equip.visor,finish:PROF.equip.finish,trail:PROF.equip.trail,kill:PROF.equip.kill,drone:PROF.equip.drone||'default',
     mfin:{p:mfinFor(LO.weapon),s:isPistol(LO.sec)?mfinFor(LO.sec):null},lv:level(),
     title:myTitle(),banner:myBanner()}; } // name plate: cosmetic ids, checked against TITLES / BANNERS by cleanSpec
 // the attachments of the two weapons you carry, as {weapon:{slot:id}} (sanitize already checked your mastery)
@@ -6870,11 +7324,14 @@ function specAtt(){ const o={}; for(const k of [LO.weapon,LO.sec]) if(LO.att&&LO
 function cleanAtt(src,lv,ks){ const o={}; let n=0; src=src&&typeof src==='object'?src:{};
   for(const k of ks){ if(!mastTracked(k)||o[k]) continue; const m=src[k], out={}; if(m&&typeof m==='object') for(const id of attIds(m,k)){ if(n>=lv||lv<attNeed(k,id)-2) continue; out[ATTACH[id].slot]=id; n++; } o[k]=out; }
   return o; }
-function cleanSpec(sp,pid){ sp=sp&&typeof sp==='object'?sp:{}; const lo=sp.lo&&typeof sp.lo==='object'?sp.lo:{}; const cls=CLASSES[lo.cls]?lo.cls:'ranger', Cl=CLASSES[cls];
+/* A remote spec's drone: a known model its claimed level has unlocked; known upgrade ids, no repeats, at most DRONE.slots,
+   each needing level >= 2 x its drone mastery level - 2 (drone mastery cannot be verified; the level bounds it, like attachments). */
+function cleanDrone(D,lv){ D=D&&typeof D==='object'?D:{}; const m=DMODELS[D.m]&&dmOwned(D.m,lv)?D.m:'sparrow';
+  return {m,up:(Array.isArray(D.up)?D.up:[]).filter((k,i,a)=>typeof k==='string'&&DUPS[k]&&a.indexOf(k)===i&&lv>=DUPS[k].m*2-2).slice(0,DRONE.slots)}; }function cleanSpec(sp,pid){ sp=sp&&typeof sp==='object'?sp:{}; const lo=sp.lo&&typeof sp.lo==='object'?sp.lo:{}; const cls=CLASSES[lo.cls]?lo.cls:'ranger', Cl=CLASSES[cls];
   const utils=(Array.isArray(lo.utils)?lo.utils:[]).filter((u,i,a)=>Cl.utils.includes(u)&&a.indexOf(u)===i).slice(0,3); if(!utils.length) utils.push(Cl.utils[0]);
   const lv=clamp(sp.lv|0,1,40);
   // perk tiers (ct1..ct5) and secondaries (s_*) must match the claimed level; other ids keep the old rule (level or owned)
-  const own=(Array.isArray(sp.own)?sp.own:[]).filter(x=>typeof x==='string'&&(!/^(ct\d|s_\w+)$/.test(x)||lv>=(UNLOCK_LVL[x]||99))).slice(0,16), gear=id=>UNLOCK_LVL[id]==null||lv>=UNLOCK_LVL[id]||own.includes(id);
+  const own=(Array.isArray(sp.own)?sp.own:[]).filter(x=>typeof x==='string'&&(!/^(ct\d|s_\w+|d_\w+)$/.test(x)||lv>=(UNLOCK_LVL[x]||99))).slice(0,16), gear=id=>UNLOCK_LVL[id]==null||lv>=UNLOCK_LVL[id]||own.includes(id);
   const tree=[0,1,2,3,4].map(i=>Array.isArray(lo.tree)&&lo.tree[i]===1?1:0);
   const r={pid,name:String(sp.name||'GUEST').replace(/[^\w \-]/g,'').slice(0,12).toUpperCase()||'GUEST',
     lo:{cls,weapon:Cl.weapons.includes(lo.weapon)&&gear('w_'+lo.weapon)?lo.weapon:Cl.weapons[0],armor:Cl.armors.includes(lo.armor)&&gear('a_'+lo.armor)?lo.armor:Cl.armors[0],utils,perk:PERKS[lo.perk]?lo.perk:null,
@@ -6883,6 +7340,7 @@ function cleanSpec(sp,pid){ sp=sp&&typeof sp==='object'?sp:{}; const lo=sp.lo&&t
     color:/^#[0-9a-f]{6}$/i.test(sp.color)?sp.color:'#eef4fa',skin:cosHas('skin',sp.skin)?sp.skin:'default',visor:cosHas('visor',sp.visor)?sp.visor:'cyan',finish:cosHas('finish',sp.finish)?sp.finish:'default',trail:cosHas('trail',sp.trail)?sp.trail:'default',kill:cosHas('kill',sp.kill)?sp.kill:'default',lv,
     mfin:{p:sp.mfin&&MFIN[sp.mfin.p]&&lv>=MFIN[sp.mfin.p].m-2?sp.mfin.p:null,s:sp.mfin&&MFIN[sp.mfin.s]&&lv>=MFIN[sp.mfin.s].m-2?sp.mfin.s:null}};
   r.lo.att=cleanAtt(lo.att,lv,[r.lo.weapon,r.lo.sec]);
+  r.lo.drone=cleanDrone(lo.drone,lv); r.drone=cosHas('drone',sp.drone)?sp.drone:'default';
   r.title=hasK(TITLES,sp.title)?sp.title:''; r.banner=bnKey(typeof sp.banner==='string'?sp.banner:''); // known ids only
   return r; }
 
@@ -6899,7 +7357,7 @@ function showEmote(u,k){ const e=EMOTES.find(x=>x.k===k); if(!u||!e||!u.alive) r
 async function netTurn(u,mid){
   if(shouldShow(u)){ turnTag(u.name+' · '+CLASSES[u.cls].name,mine(u)?'you':'enemy'); focusOn(u.x,u.y); } else turnTag('Waiting for '+u.name,'enemy');
   clkTurn(u,true);
-  while(standing(u)&&u.ap>0&&!G.over&&G.matchId===mid){
+  while(standing(u)&&(u.ap>0||dCanAct(u))&&!G.over&&G.matchId===mid){ // a deployed drone with drone AP keeps the turn open (same test as afterAction)
     const c=await netNext(u.id); if(G.matchId!==mid) return;
     if(c&&c.k!=='ai'&&c.r!==G.round) continue; // stale command from an earlier turn
     if(c&&typeof c.bk==='number') clkReport(u,c.bk); // chess clock: the acting client's own bank (display only)
@@ -7240,6 +7698,9 @@ function renderLoadout(){
       +slotRow('sec','Secondary',S.name,sm,isPistol(draft.sec)?mBadge(draft.sec):'','',wpvHtml(draft.sec,'sm'))+'</div>';
     h+='<div class="grp"><h3>Protection and kit</h3>'+slotRow('armor','Armor',A.name,A.short+' · '+A.desc+(own('ar_'+draft.armor)?' · +1 HP lining':''))
       +slotRow('util','Utilities · '+draft.utils.length+' of '+utilSlots(),draft.utils.map(k=>UTILS[k].name+' ×'+utCharges(k)).join(' + '),own('pouch')?'':'Third slot at level '+UNLOCK_LVL.pouch)+'</div>';
+    if(draft.cls==='specialist'){ const D=draft.drone||{m:'sparrow',up:[]}, M=DMODELS[D.m]||DMODELS.sparrow, st=dmStats(D.m,D.up), mi=dMastInfo(), sk=DSKINS[PROF.equip.drone]||DSKINS.default, nU=Object.keys(DUPS).filter(k=>mi.l>=DUPS[k].m).length;
+      h+='<div class="grp"><h3>Drone <small>mastery '+mi.l+'</small></h3>'+slotRow('drone','Drone · '+M.tag,M.name,st.hp+' HP · move '+st.mob+' · sight '+st.sight+' · '+st.ap+' drone AP · '+DACTS[M.act].name,'<span class="tg">'+esc(sk.name)+'</span>','',dpvHtml(D.m,'sm'))
+        +slotRow('dup','Drone upgrades · '+D.up.length+' of '+DRONE.slots,D.up.length?D.up.map(k=>DUPS[k].name).join(' + '):'<span class="none">None</span>',nU+' of '+Object.keys(DUPS).length+' unlocked by drone mastery')+'</div>'; }
   } else if(loTabK==='mods'){
     const grp=(k,label)=>{ const m=mastInfo(k), cur=(draft.att&&draft.att[k])||{}, ml=m.l, F=PROF.mfin&&PROF.mfin[k];
       return '<div class="grp"><h3>'+label+' <small>'+esc(wName(k))+'</small></h3><div class="mstbox">'+mastHtml(k)+'</div>'+attSlots(k).map(s=>{ const id=cur[s], A=id&&ATTACH[id], open=attIdsFor(k,s).filter(x=>attNeed(k,x)<=ml).length, all=attIdsFor(k,s).length;
@@ -7255,7 +7716,7 @@ function renderLoadout(){
         +'<p class="tdesc">'+(ok?cap1(p.desc.replace(/^Active: /,'')):'Unlocks at level '+CP_LVL[i]+'.')+'</p></div>'; }).join('')+'</div></div>';
   }
   $('#loPane').innerHTML=h;
-  document.querySelectorAll('#loPane canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,true)); drawWpvs($('#loPane'));
+  document.querySelectorAll('#loPane canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,true)); drawWpvs($('#loPane')); document.querySelectorAll('#loPane canvas[data-dpv]').forEach(drawDpv);
   if(loPick) fillPicker();
 }
 function loTab(k){ loTabK=k; renderLoadout(); const p=$('#loScroll'); if(p&&p.scrollTop>0&&window.innerWidth<900){ const t=$('#loTabs'); p.scrollTop=Math.min(p.scrollTop,t.offsetTop-6); } }
@@ -7269,17 +7730,20 @@ function fillPicker(){ const k=loPick, p=k.split(':'), aimNow=loAim(); let kick=
   else if(k==='armor'){ t='Armor'; body=arCards(); }
   else if(k==='util'){ t='Utilities'; sub='Pick '+utilSlots()+(own('pouch')?'':' · third slot at level '+UNLOCK_LVL.pouch)+'. Tap to add or remove.'; body=utCards(); foot='<span>'+draft.utils.length+' of '+utilSlots()+' picked</span><button class="btn primary sm" data-close>Done</button>'; }
   else if(k==='perk'){ t='Perk'; sub='One at a time, works with any class.'; body=pkCards(); }
+  else if(k==='drone'){ kick='Specialist'; t='Drone'; sub='Deploy it in a match (free, once a turn) and it acts on its own drone AP. New chassis unlock with level; the paint is in the Store.'; body=dmCards(); }
+  else if(k==='dup'){ kick='Drone · mastery '+dMastLvl(); t='Drone upgrades'; sub='Pick up to '+DRONE.slots+'. Drone mastery comes from your drone’s actions, damage and takedowns.'; body=dupCards(); foot='<span>'+((draft.drone&&draft.drone.up.length)||0)+' of '+DRONE.slots+' picked</span><button class="btn primary sm" data-close>Done</button>'; }
   else if(p[0]==='att'){ kick=wName(p[1])+' · mastery '+mastLvl(p[1]); t=ATT_SLOT_NAME[p[2]]; sub='Attachments unlock with weapon mastery.'; body=attCards(p[1],p[2]); }
   else if(p[0]==='mf'){ kick=wName(p[1])+' · mastery '+mastLvl(p[1]); t='Mastery finish'; sub='Cosmetic. Unlocked by weapon mastery; “Store finish” uses your equipped store paint.'; body=mfCards(p[1]); cls='fsws grid'; }
   $('#shKick').textContent=kick; $('#shTitle').textContent=t; $('#shSub').textContent=sub; $('#shSub').classList.toggle('hidden',!sub);
   const b=$('#shBody'), st=b.scrollTop; b.className='sheet-body '+cls; b.innerHTML=body; b.scrollTop=st; $('#shFoot').innerHTML=foot; $('#shFoot').classList.toggle('hidden',!foot);
-  b.querySelectorAll('canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,true)); drawWpvs(b); }
+  b.querySelectorAll('canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,true)); drawWpvs(b); b.querySelectorAll('canvas[data-dpv]').forEach(drawDpv); }
 $('#loadout').addEventListener('click',e=>{ if(!draft) return;
   if(e.target.closest('[data-close]')){ SFX.click(); closePicker(); return; }
   const tb=e.target.closest('[data-lotab]'); if(tb){ SFX.click(); buzz(6); loTab(tb.dataset.lotab); return; }
   const pk=e.target.closest('[data-pick]'); if(pk){ SFX.click(); buzz(6); openPicker(pk.dataset.pick); return; }
+  const dl=e.target.closest('[data-dmlock]'); if(dl){ SFX.click(); hintMeta('Drone mastery '+dl.dataset.dmlock+' unlocks this. Deploy your drone and use it: zaps, support, scouting and takedowns all count.'); return; }
   const lk=e.target.closest('[data-mlock]'); if(lk){ SFX.click(); hintMeta(wName(lk.dataset.mw)+' mastery '+lk.dataset.mlock+' unlocks this. Land hits, deal damage and take enemies down with it.'); return; }
-  const b=e.target.closest('[data-lock],[data-cls],[data-sec],[data-cp],[data-pk],[data-wp],[data-ar],[data-ut],[data-att],[data-mf]'); if(!b) return; SFX.click(); buzz(6);
+  const b=e.target.closest('[data-lock],[data-cls],[data-sec],[data-cp],[data-pk],[data-wp],[data-ar],[data-ut],[data-att],[data-mf],[data-dm],[data-dup]'); if(!b) return; SFX.click(); buzz(6);
   if(b.dataset.lock){ hintMeta(+b.dataset.lock>1?'Unlocks at level '+b.dataset.lock+'. Keep leveling.':'Keep leveling to unlock this.'); return; }
   let close=true;
   if(b.dataset.cls){ draft.cls=b.dataset.cls; const n=sanitize(draft); draft.weapon=n.weapon; draft.armor=n.armor; draft.utils=n.utils; draft.sec=n.sec; draft.tree=n.tree; }
@@ -7288,6 +7752,8 @@ $('#loadout').addEventListener('click',e=>{ if(!draft) return;
   else if(b.dataset.pk!==undefined) draft.perk=b.dataset.pk||null; else if(b.dataset.wp) draft.weapon=b.dataset.wp; else if(b.dataset.ar) draft.armor=b.dataset.ar;
   else if(b.dataset.ut){ const k=b.dataset.ut; close=false; if(draft.utils.includes(k)){ if(draft.utils.length>1) draft.utils=draft.utils.filter(x=>x!==k); } else { draft.utils.push(k); if(draft.utils.length>utilSlots()) draft.utils.shift(); } }
   else if(b.dataset.att){ const [k,s,id]=b.dataset.att.split(':'); draft.att=draft.att||{}; const m=draft.att[k]=Object.assign({},draft.att[k]); if(id) m[s]=id; else delete m[s]; }
+  else if(b.dataset.dm){ draft.drone=Object.assign({up:[]},draft.drone,{m:b.dataset.dm}); }
+  else if(b.dataset.dup){ const k=b.dataset.dup, D=draft.drone=Object.assign({m:'sparrow'},draft.drone); D.up=(D.up||[]).slice(); close=false; if(D.up.includes(k)) D.up=D.up.filter(x=>x!==k); else { D.up.push(k); if(D.up.length>DRONE.slots) D.up.shift(); } }
   else if(b.dataset.mf){ const [k,key]=b.dataset.mf.split(':'); PROF.mfin=PROF.mfin||{}; if(key) PROF.mfin[k]=key; else delete PROF.mfin[k]; saveProf(); }
   if(close&&loPick) closePicker();
   renderLoadout(); });
@@ -7306,7 +7772,18 @@ function drawMfSwatch(cv2,force){ const [k,f]=cv2.dataset.mfpv.split(':'); if(!f
 // a weapon sprite fitted into a small canvas (loadout swatches, profile mastery rows)
 function wpnOn(cv2,k,fin){ const D=WPN[k]; if(!D) return; const c=cv2.getContext('2d'), W=cv2.width, H=cv2.height; c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,W,H);
   const b=D.box, s=Math.min(W*.8/(b[2]+4),H*.8/(b[3]+2)); c.translate(W/2-(b[0]+b[2]/2+1.5)*s,H/2-(b[1]+b[3]/2)*s); c.scale(s,s); WSC=s; drawWpn(c,k,fin,visorCol(),0,0,0); }
-function drawMfAnim(){ if(!draft) return; document.querySelectorAll('#loadout canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,false)); }
+function drawMfAnim(){ if(!draft) return; document.querySelectorAll('#loadout canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,false)); document.querySelectorAll('#loadout canvas[data-dpv]').forEach(drawDpv); }
+/* ---------- loadout: Specialist drone (model cards, upgrade cards, mastery) ---------- */
+function dpvHtml(m,cls){ return '<canvas class="wpv'+(cls?' '+cls:'')+'" data-dpv="'+m+'" width="240" height="84" aria-hidden="true"></canvas>'; }
+function drawDpv(cv2){ const c=cv2.getContext('2d'), W=cv2.width, H=cv2.height; c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,W,H); c.fillStyle='rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(W/2,H*.86,W*.16,H*.06,0,0,6.3); c.fill();
+  paintDrone(c,W/2,H*.5,cv2.dataset.dpv,PROF.equip.drone||'default',G.time,0,H/21,{lt:hexc(visorCol())}); }
+function dMastHtml(){ const m=dMastInfo(), nx=m.max?[]:Object.keys(DUPS).filter(k=>DUPS[k].m===m.l+1).map(k=>DUPS[k].name);
+  return '<div class="mst"><b>M'+m.l+'</b><span class="xpbar"><i style="width:'+(m.max?100:(m.cur/m.need*100).toFixed(1))+'%"></i></span><span>'+(m.max?'Mastered':m.cur+'/'+m.need+' XP')+'</span></div>'+(nx.length?'<div class="lk" style="color:var(--muted);font-size:11px">Drone mastery '+(m.l+1)+': '+nx.join(', ')+'</div>':''); }
+function dmCards(){ const D=draft.drone||{m:'sparrow',up:[]}; return DM_KEYS.map(k=>{ const M=DMODELS[k], ok=dmOwned(k), lv=UNLOCK_LVL['d_'+k], st=dmStats(k,D.up);
+  return '<button class="card'+(D.m===k?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-dm="'+k+'"':'data-lock="'+lv+'"')+'>'+dpvHtml(k)+'<div class="t">'+M.name+' · '+M.tag+(lv?'<span class="gt lv">'+(ok?'Lv ':'Locked · Lv ')+lv+'</span>':'<span class="gt">Starter</span>')+'</div><div class="d">'+dmDesc(k)+'<br><b class="opt">'+st.hp+' HP · move '+st.mob+' · sight '+st.sight+' · defense '+st.def+' · '+st.ap+' drone AP'+(st.armor?' · armor '+st.armor:'')+'</b></div>'
+    +bars([['HP',st.hp/7*100],['Move',st.mob/7*100],['Sight',st.sight/11*100],['Defense',st.def/25*100]])+(ok?'':'<div class="lk">Unlocks at level '+lv+'</div>')+'</button>'; }).join(''); }
+function dupCards(){ const ml=dMastLvl(), cur=(draft.drone&&draft.drone.up)||[]; return '<div class="mstbox">'+dMastHtml()+'</div>'+Object.keys(DUPS).map(k=>{ const U=DUPS[k], ok=ml>=U.m, on=cur.includes(k);
+  return '<button class="card'+(on?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-dup="'+k+'"':'data-dmlock="'+U.m+'"')+' aria-pressed="'+on+'"><div class="t">'+U.name+(ok?'':'<span class="gt lv">M'+U.m+'</span>')+'</div><div class="d">'+U.d+'</div>'+(ok?'':'<div class="lk">Drone mastery '+U.m+'</div>')+'</button>'; }).join(''); }
 // loadout text for a secondary, generated from the numbers the game uses
 function secDesc(S){ const t=[S.dmg[0]+'–'+S.dmg[1]+' dmg'+(S.critDmg?' (crit +'+S.critDmg+')':'')+', '+S.crit+'% crit'];
   if(S.type==='pistol'){ const ob=optBand(S.W); t.push(S.clip+' rounds (reload refills it)'); return t.join(', ')+'<br><b class="opt">Optimal '+bandTxt(ob)+' ('+sgn(ob.mod)+' aim)</b><br>Aim by range: '+rangeTxt(S.W)+(S.silent?'<br>Silent: no noise.':''); }
@@ -7337,19 +7814,20 @@ function drawPreview(){
     const rg=g.createRadialGradient(140,290,5,140,290,120); rg.addColorStop(0,'rgba(63,210,255,.45)'); rg.addColorStop(1,'rgba(63,210,255,0)'); g.fillStyle=rg; g.fillRect(0,170,w,170); }),0,0,w,h);
   c.strokeStyle='rgba(63,210,255,.7)'; c.lineWidth=2; c.beginPath(); c.ellipse(140,292,70,18,0,0,Math.PI*2); c.stroke();
   c.strokeStyle='rgba(63,210,255,.35)'; c.setLineDash([10,8]); c.lineDashOffset=-t*20; c.beginPath(); c.ellipse(140,292,90,24,0,0,Math.PI*2); c.stroke(); c.setLineDash([]);
-  const o=demoPose(Object.assign({x:0,y:0,cls:draft.cls,armor:draft.armor,weapon:draft.weapon,sec:draft.sec,color:visorCol(),face:1,time:t,ph:0,skin:PROF.equip.skin,visor:PROF.equip.visor,finish:PROF.equip.finish},gearLook(draft)),t,0);
-  trailIdle(c,124,290,PROF.equip.trail,t,2); c.save(); c.translate(124,290); c.scale(4.9,4.9); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,124,290,4.9);
+  const o=demoPose(Object.assign({x:0,y:0,cls:draft.cls,armor:draft.armor,weapon:draft.weapon,sec:draft.sec,color:visorCol(),face:1,time:t,ph:0,skin:PROF.equip.skin,visor:PROF.equip.visor,finish:PROF.equip.finish,dm:draft.drone&&draft.drone.m,ds:PROF.equip.drone},gearLook(draft)),t,0);
+  const sc=draft.cls==='specialist'?4.3:4.9; // room for the docked drone above a Specialist's helmet
+  trailIdle(c,124,290,PROF.equip.trail,t,2); c.save(); c.translate(124,290); c.scale(sc,sc); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,124,290,sc);
 }
 
 /* ================= store ================= */
 let stTab='Featured';
-const ST_TABS=['Featured','Sets','Skins','Visors','Finishes','Trails','Kill FX','Shards'];
-const ST_DESC={Sets:'Matching skin, visor, drop trail, weapon finish and kill effect. 25% off whatever you don’t own yet.','Kill FX':'Plays on every enemy you eliminate.',Featured:'Today’s rotation. 25% off, refreshes daily.',Skins:'Armor colorways for every class.',Visors:'Visor, chest stripe and ground ring color.',Finishes:'Weapon paint.',Trails:'The beam you leave behind on drop-in.',Shards:'Premium currency for rare cosmetics. You also earn shards from level-ups and weekly quests.'};
+const ST_TABS=['Featured','Sets','Skins','Visors','Finishes','Trails','Kill FX','Drones','Shards'];
+const ST_DESC={Sets:'Matching skin, visor, drop trail, weapon finish and kill effect. 25% off whatever you don’t own yet.','Kill FX':'Plays on every enemy you eliminate.',Featured:'Today’s rotation. 25% off, refreshes daily.',Skins:'Armor colorways for every class.',Visors:'Visor, chest stripe and ground ring color.',Finishes:'Weapon paint.',Trails:'The beam you leave behind on drop-in.',Drones:'Paint for the Specialist’s drone, on every chassis. Shown in matches, the loadout and your operative card.',Shards:'Premium currency for rare cosmetics. You also earn shards from level-ups and weekly quests.'};
 // store rows; r/rar/rc = rarity key, name and colour, how = free-unlock text ('' when only sold)
 function baseItems(cat){ const T=COS[cat]; return Object.keys(T).filter(k=>!T[k].pass||PROF.cos.includes(cat+':'+k)).map(k=>{ const r=T[k].r||'c'; return {id:cat+':'+k,cat,key:k,name:T[k].name,price:T[k].price,cur:T[k].cur||'cr',r,rar:RARITY[r].name,rc:RARITY[r].col,how:cosHow(cat,k)}; }); }
 // category tabs show today's featured discount too, so an item costs the same wherever you buy it
 function cosItems(cat){ const f=new Map(featured().map(it=>[it.id,it])); return baseItems(cat).map(it=>f.get(it.id)||it); }
-function featured(){ const all=['skin','visor','finish','trail','kill'].flatMap(baseItems).filter(i=>i.price>0); const s=seedOf(dayKey()+'f'); return all.map((it,i)=>[hash(i,s,9),it]).sort((a,b)=>a[0]-b[0]).slice(0,4).map(e=>Object.assign({},e[1],{old:e[1].price,price:Math.ceil(e[1].price*0.75)})); }
+function featured(){ const all=['skin','visor','finish','trail','kill','drone'].flatMap(baseItems).filter(i=>i.price>0); const s=seedOf(dayKey()+'f'); return all.map((it,i)=>[hash(i,s,9),it]).sort((a,b)=>a[0]-b[0]).slice(0,4).map(e=>Object.assign({},e[1],{old:e[1].price,price:Math.ceil(e[1].price*0.75)})); }
 /* Store layout: category tabs, a filter (all / owned / not owned) and sort (rarity, price, name) toolbar, and a grid of
    preview cards built for 30+ items per tab. Rarity reads an item's own `rarity` field when the cosmetic data has one,
    otherwise it is derived from price and currency. Previews come from drawCosPreview (only on-screen tiles animate). */
@@ -7371,7 +7849,7 @@ function renderStore(){
       else { const have=q.cur==='sh'?PROF.shards:PROF.credits; btn='<button class="buy'+(q.cur==='sh'?' shb':'')+(have<q.price?' no':'')+'" data-setbuy="'+k+'" aria-label="Buy the '+esc(S.name)+' set for '+q.price+(q.cur==='sh'?' shards':' credits')+'"><span class="cur '+(q.cur==='sh'?'s':'c')+'"></span>'+q.price+'<s>'+q.full+'</s></button>'; }
       return '<div class="item r-'+r+(q.owned?' own':'')+(eq?' eqd':'')+'"><div class="ipv"><canvas data-set="'+k+'" width="320" height="192"></canvas><span class="rar">'+RAR_NAME[r]+'</span>'+(q.owned?'':'<span class="deal">'+(q.miss.length<q.ids.length?q.miss.length+' left':'Set')+'</span>')+'</div><div class="ib"><span class="tag">'+esc(parts)+'</span><div class="t">'+esc(S.name)+'</div><div class="p">'+btn+'</div></div></div>'; }).join('');
     document.querySelectorAll('#stGrid canvas[data-set]').forEach(cv2=>drawSetPreview(cv2)); return; }
-  let list=stTab==='Featured'?featured():cosItems({Skins:'skin',Visors:'visor',Finishes:'finish',Trails:'trail','Kill FX':'kill'}[stTab]);
+  let list=stTab==='Featured'?featured():cosItems({Skins:'skin',Visors:'visor',Finishes:'finish',Trails:'trail','Kill FX':'kill',Drones:'drone'}[stTab]);
   const total=list.length, nOwn=list.filter(stOwned).length;
   if(stTab==='Featured'){ tb.classList.add('hidden'); const mid=new Date(); mid.setHours(24,0,0,0); $('#stDesc').textContent=ST_DESC.Featured+' New deals in '+fmtLeft(mid-Date.now())+'.'; }
   else { tb.classList.remove('hidden'); $('#stDesc').textContent=ST_DESC[stTab]+(stTab==='Kill FX'?' Equipped: '+KILLS[PROF.equip.kill].name+'.':'');
@@ -7392,11 +7870,12 @@ function drawCosPreview(cv2){
   const [cat,key]=cv2.dataset.pv.split(':'); const c=cv2.getContext('2d'); c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,320,192);
   if(!cosHas(cat,key)) return;
   const eq=Object.assign({},PROF.equip); eq[cat]=key; const t=G.time, ph=(hash(cat.length,key.length,5)*6), vis=(VISORS[eq.visor]||VISORS.cyan).c, it=COS[cat][key];
-  const o=Object.assign({x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:vis,visor:eq.visor,face:1,time:t,ph,skin:eq.skin,finish:eq.finish},gearLook(LO));
+  const o=Object.assign({x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:vis,visor:eq.visor,face:1,time:t,ph,skin:eq.skin,finish:eq.finish,noDrone:true},gearLook(LO));
   if(cat==='finish'){ o.pfin=o.sfin=null; } // previewing a store finish: show it, not the weapon's mastery finish
   // rarity floor glow for epic and up (cached sprite)
   if('elm'.includes(it.r||'c')){ c.globalCompositeOperation='lighter'; c.globalAlpha=.5; c.drawImage(softTex(hexc(RARITY[it.r].col)),cat==='visor'?16:46,150,cat==='visor'?160:200,56); c.globalAlpha=1; c.globalCompositeOperation='source-over'; }
   if(cat==='trail'){ drawTrailPreview(c,key,(t+ph)%TCYC,o,160,182,1.7); return; }
+  if(cat==='drone'){ drawDronePreview(c,key,t,ph); return; }
   if(cat==='kill'){ drawKillPreview(c,key,(t+ph)%kfxCycle(key),166,178,1.55,LO); return; }
   if(cat==='finish'){ o.aim=1; o.act={k:'aim',t:1,d:9,pre:.1}; c.save(); c.translate(82,178); c.scale(3.1,3.1); drawSoldier(c,o); c.restore();
     // the finish on a big rendered weapon, slowly tilting, with a glint
@@ -7409,15 +7888,24 @@ function drawCosPreview(cv2){
     c.strokeStyle=C(hexc(vis),1,.5); c.lineWidth=1.5; c.beginPath(); c.arc(238,92,74,0,Math.PI*2); c.stroke(); return; }
   demoPose(o,t,ph); c.save(); c.translate(146,182); c.scale(3.6,3.6); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,146,182,3.6);
 }
-/* a set (bundle) preview for the store: the operative in the full set, idling inside the set's drop trail. cv2.dataset.set
+/* drone skin preview (store tiles, rewards): the skin on each chassis in turn (4 s each), hovering over a pad, with a small
+   Specialist for scale. Everything is a cached sprite or a few cheap fills. */
+function drawDronePreview(c,key,t,ph){ const m=DM_KEYS[Math.floor((t+ph)/4)%DM_KEYS.length], K=DSKINS[key]||DSKINS.default, lc=hexc(visorCol());
+  c.fillStyle='rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(186,170,46,10,0,0,6.3); c.fill();
+  c.strokeStyle=C(K.a,1,.35); c.lineWidth=1.5; c.setLineDash([6,5]); c.lineDashOffset=-t*14; c.beginPath(); c.ellipse(186,170,58,13,0,0,6.3); c.stroke(); c.setLineDash([]);
+  const o=Object.assign({x:0,y:0,cls:'specialist',armor:'light',weapon:'rifle',sec:'pistol',color:visorCol(),visor:PROF.equip.visor,face:1,time:t,ph,skin:PROF.equip.skin,finish:PROF.equip.finish,noDrone:true});
+  c.save(); c.translate(62,180); c.scale(2.2,2.2); drawSoldier(c,o); c.restore();
+  paintDrone(c,190,92,m,key,t,ph,5,{face:Math.sin((t+ph)*.5)>0?1:-1,lt:lc});
+  c.font='600 12px "Chakra Petch",sans-serif'; c.textAlign='right'; c.fillStyle='rgba(220,232,244,.75)'; c.fillText(DMODELS[m].name,310,22); c.textAlign='left'; }/* a set (bundle) preview for the store: the operative in the full set, idling inside the set's drop trail. cv2.dataset.set
    names the SETS key (or pass key); any canvas size works (drawn for 320x192 and scaled). */
 function drawSetPreview(cv2,key){
   key=key||cv2.dataset.set; const S=SETS[key]; const c=cv2.getContext('2d'); c.setTransform(cv2.width/320,0,0,cv2.height/192,0,0); c.clearRect(0,0,320,192); if(!S) return;
   const I=S.items, t=G.time, ph=hash(key.length,3,9)*6, vis=(VISORS[I.visor]||VISORS.cyan).c, tr=TRAILS[I.trail];
   c.globalCompositeOperation='lighter'; c.globalAlpha=.5; c.drawImage(softTex(hexc(RARITY[S.r].col)),40,150,240,56); c.globalAlpha=1; c.globalCompositeOperation='source-over';
   trailIdle(c,150,182,I.trail,t,2.6);
-  const o=demoPose(Object.assign({x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:vis,visor:I.visor,face:1,time:t,ph,skin:I.skin,finish:I.finish},gearLook(LO),{pfin:null,sfin:null}),t,ph);
+  const o=demoPose(Object.assign({x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:vis,visor:I.visor,face:1,time:t,ph,skin:I.skin,finish:I.finish,noDrone:true},gearLook(LO),{pfin:null,sfin:null}),t,ph);
   c.save(); c.translate(150,182); c.scale(3.5,3.5); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,150,182,3.5);
+  if(I.drone) paintDrone(c,238,64,LO.drone&&LO.drone.m||'sparrow',I.drone,t,ph,2.4,{lt:hexc(vis)}); // the set's drone skin
 }
 
 $('#store').addEventListener('click',e=>{
@@ -7834,7 +8322,7 @@ const REP_V=1, RP_KEY='stormfall_replays', RP_MAX=10, RP_BYTES=1800000;
 const BUILD=(()=>{ try{ const t=(document.currentScript&&document.currentScript.textContent)||''; let h=0x811c9dc5; for(let i=0;i<t.length;i+=3) h=Math.imul(h^t.charCodeAt(i),16777619); return (h>>>0).toString(36); }catch(e){ return '?'; } })();
 let REC=null;
 // the local player's gear unlocks and cosmetics as a spec (the same shape as an online player's), so offline replays don't depend on the profile
-function offSpec(){ const sp=mySpec(); return {own:sp.own,color:sp.color,skin:sp.skin,visor:sp.visor,finish:sp.finish,trail:sp.trail,mfin:sp.mfin}; }
+function offSpec(){ const sp=mySpec(); return {own:sp.own,color:sp.color,skin:sp.skin,visor:sp.visor,finish:sp.finish,trail:sp.trail,mfin:sp.mfin,drone:sp.drone}; }
 function recStart(kind,cfg,me){ const c=JSON.parse(JSON.stringify(cfg)); if(kind!=='off'){ delete c.slots; delete c.me; } // online: netCfgClean rebuilds the slots
   REC={v:REP_V,b:BUILD,p:PROTO,kind,cfg:c,me:me||null,cmds:{},h:[],t:Date.now(),mid:G.matchId,saved:false}; }
 function recCmd(id,c){ if(!REC||REC.mid!==G.matchId||!c||typeof c!=='object') return; let cc; try{ cc=JSON.parse(JSON.stringify(c)); }catch(e){ return; } (REC.cmds[id]||(REC.cmds[id]=[])).push(cc); }
@@ -7850,6 +8338,9 @@ function simHash(){ let h=0x811c9dc5; const add=v=>{ v=v|0; h=Math.imul(h^(v&255
   for(const q of (G.sites||[])) { add(q.x*97+q.y); add(+!!q.done); add(q.prog==null?-1:(typeof q.prog==='object'?Object.keys(q.prog).length:q.prog)); }
   add((G.prints||[]).length); add((G.scans||[]).length); if(G.wx) add(String(G.wx.k).charCodeAt(0));
   for(const u of G.units){ add(u.sw|0); add(+!!u.swDown); }
+  // Specialist drones (state added with deployable drones) and drone marks
+  for(const d of (G.drones||[])){ add(d.id); add(d.st==='out'?1:d.st==='dead'?2:0); add(d.x); add(d.y); add(d.hp); add(d.maxHp); add(d.shield); add(d.ap); add(d.jam|0); add(d.rb|0); add(d.depR|0); }
+  for(const u of G.units) add(u.mark?u.mark.team*1000+u.mark.until:-1);
   return h>>>0; }
 function roundHash(){ const h=simHash(); G.hlog.push(h); if(NET.host&&!G.watch) NET.round=G.round; if(REC&&REC.mid===G.matchId) REC.h.push(h); if(G.watch&&G.watch.kind==='replay') replayCheck(h); }
 function recInfo(){ const r=G.result||{}, me=G.player; return {mode:G.M.key,region:G.region,place:r.place||0,of:r.of||nTeams(),win:!!r.win,winner:r.winner||null,
