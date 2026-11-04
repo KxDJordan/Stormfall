@@ -11236,7 +11236,7 @@ const PA_updateHUD=updateHUD; updateHUD=function(){ const r=PA_updateHUD.apply(t
   $('#uHp').setAttribute('aria-label','Health '+u.hp+' of '+u.maxHp+(u.shield?', shield '+u.shield:'')); $('#uAp').setAttribute('aria-label',u.ap+' action points');
   document.querySelectorAll('#actions button[data-act]').forEach(b=>{ const sp=b.querySelectorAll('span'), off=b.classList.contains('off'); b.setAttribute('aria-label',(sp[0]?sp[0].textContent:b.dataset.act)+(sp[1]&&sp[1].textContent?', '+sp[1].textContent:'')+(off?', unavailable'+(b.dataset.why?': '+b.dataset.why:''):'')); if(off) b.setAttribute('aria-disabled','true'); }); }catch(e){} return r; };
 
-/* ---------- sound captions: text for every heard cue, plus footsteps of unseen enemies within 5 tiles ---------- */
+/* ---------- sound captions: text and direction for every cue all players hear (gunfire, blasts, sensor pings) ---------- */
 const PA_CAP={shot:'Gunfire',blast:'Explosion',sensor:'Sensor ping',step:'Footsteps'};
 function paDir(x,y){ const u=G.player; if(!u) return ''; const a=iso(x+.5,y+.5), b=iso(u.x+.5,u.y+.5), dx=a[0]-b[0], dy=a[1]-b[1];
   const i=Math.round((Math.atan2(dy,dx)/(Math.PI/4))+8)%8, d=Math.hypot(x-u.x,y-u.y);
@@ -11245,7 +11245,10 @@ function paCaption(x,y,kind){ if(!paSet().cap) return; const el=document.getElem
   const t=PA_CAP[kind]||'Sound', d=document.createElement('div'); d.innerHTML='<b>['+t+']</b> '+paDir(x,y); el.appendChild(d); PA.caps.push({el:d,t:performance.now()}); while(el.children.length>3) el.removeChild(el.firstChild); }
 function paCapTick(){ if(!PA.caps.length) return; const now=performance.now(); PA.caps=PA.caps.filter(c=>{ if(now-c.t>4000){ if(c.el.parentNode) c.el.parentNode.removeChild(c.el); return false; } return true; }); }
 const PA_cueAt=cueAt; cueAt=function(x,y,kind){ const last=G.cues[G.cues.length-1]; const r=PA_cueAt.apply(this,arguments); if(G.cues[G.cues.length-1]!==last) paCaption(x,y,kind); return r; };
-function paStep(u){ try{ if(!paSet().cap||G.scene!=='game'||!G.player||G.fullVis||FF.on||!u||mine(u)||shouldShow(u)) return;
+// footsteps of unseen enemies are not a sound anyone else hears, so a caption for them would be extra information for
+// caption users only (unfair in online and ranked play). Disabled: captions cover sounds every player hears.
+const PA_STEPS=false;
+function paStep(u){ try{ if(!PA_STEPS||!paSet().cap||G.scene!=='game'||!G.player||G.fullVis||FF.on||!u||mine(u)||shouldShow(u)) return;
   if(!viewers().some(v=>Math.hypot(v.x-u.x,v.y-u.y)<=5)) return; const t=G.time; if(PA.stepT[u.id]!=null&&t-PA.stepT[u.id]<1.2&&t>=PA.stepT[u.id]) return; PA.stepT[u.id]=t;
   G.cues.push({x:u.x,y:u.y,kind:'step',t}); if(G.cues.length>24) G.cues.shift(); paCaption(u.x,u.y,'step'); SFX.noise(.06,'lowpass',380,.05); }catch(e){} }
 
@@ -11285,7 +11288,7 @@ function paRows(){ const s=paSet(), g=PA_LV[s.gfx]?s.gfx:'auto';
     +paSeg('motion','Motion','Screen shake, flashes, animated UI. System follows your phone',[['system','System'],['reduce','Reduced'],['full','Full']],paPick(s.motion,['system','reduce','full'],'system'))
     +paSeg('hand','Thumb side','Mirrors the action bar and Fire / Cancel',[['r','Right'],['l','Left']],s.hand==='l'?'l':'r')
     +paSeg('confirm','Confirm actions','Prevents misclicks on the action bar and Fire',[['off','Off'],['double','Double-tap'],['hold','Hold']],paConf())
-    +paTog('cap','Sound captions','Text and direction for gunfire, blasts and nearby footsteps you cannot see',!!s.cap)
+    +paTog('cap','Sound captions','Text and direction for gunfire, blasts and sensor pings',!!s.cap)
     +paTog('sr','Screen reader announcements','Turn start, damage taken, eliminations',s.sr!==false)
     +paSeg('hapt','Haptics','Vibration on supported phones',[['off','Off'],['low','Low'],['full','Full']],hapLevel()); }
 const PA_setRows=setRows; setRows=function(compact){ let h=PA_setRows.apply(this,arguments);
