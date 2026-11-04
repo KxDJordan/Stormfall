@@ -1019,7 +1019,7 @@ body.sheet-open .nav{display:none}
     <div class="ms-dots" id="msDots" aria-hidden="true"></div>
     <div class="ms-join hidden" id="msJoin">
       <div class="orsep"><span>or join a friend’s room</span></div>
-      <div class="joinrow"><input id="onCode" maxlength="5" placeholder="CODE" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Room code"><button class="btn" data-on="join">Join</button><button class="btn ghost" data-on="watch" title="Join without an operative and watch the room’s matches live">Watch</button></div>
+      <div class="joinrow"><input id="onCode" maxlength="5" placeholder="CODE" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Room code"><button class="btn ghost" data-on="paste" title="Paste a room code or invite link you copied">Paste</button><button class="btn" data-on="join">Join</button><button class="btn ghost" data-on="watch" title="Join without an operative and watch the room’s matches live">Watch</button></div>
       <p class="ms-hint">Watch joins as a spectator: no operative, full view of the map, live, even mid-match.</p>
     </div>
   </div>
@@ -7672,7 +7672,7 @@ function netHello(){ const h={t:'hello',v:PROTO,p:mySpec()}; if(NET.spec) h.spec
 // Play with friends: the room's waiting room when in one, else the mode select in friends mode (host a mode / join / watch)
 function openOnline(){ if(NET.on&&!NET.host&&NET.hostConn&&NET.hostConn.open){ try{ NET.hostConn.send(netHello()); }catch(_){} }
   if(inRoom()){ openLobby(true); return; } openModeSel(true); }
-function shareInvite(){ const link=inviteLink(), txt='Join my Stormfall room: '+NET.code;
+function shareInvite(){ const link=inviteLink(), txt='Join my Stormfall room: '+NET.code+'\nIn the Stormfall app: Play with friends → Paste invite (or type '+NET.code+'). Or open this link:';
   try{ if(navigator.share&&matchMedia('(pointer:coarse)').matches){ navigator.share({title:'Stormfall',text:txt,url:link}).catch(()=>{}); return; } }catch(_){}
   try{ navigator.clipboard.writeText(link).then(()=>toast('Invite link copied',link)).catch(()=>toast('Room code '+NET.code,link)); }catch(_){ toast('Room code '+NET.code,link); } }
 function esc(t){ return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -7795,6 +7795,7 @@ $('#modesel').addEventListener('click',e=>{
   SFX.click();
   if(t.id==='msCancel'){ netLeave(); return; }
   const a=t.dataset.on;
+  if(a==='paste'){ pasteInvite(); return; }
   if(a==='join') netJoin($('#onCode').value); else if(a==='watch') netJoin($('#onCode').value,true);
 });
 $('#modesel').addEventListener('keydown',e=>{
@@ -7814,7 +7815,26 @@ $('#msTrack').addEventListener('scroll',()=>{ clearTimeout(MS.st); MS.st=setTime
 $('#msTrack').addEventListener('wheel',e=>{ const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY; if(!d) return; e.preventDefault();
   const now=Date.now(); if(now<MS.wlock) return; MS.wheel+=d; if(Math.abs(MS.wheel)<30) return; msStep(MS.wheel>0?1:-1); MS.wheel=0; MS.wlock=now+260; },{passive:false});
 $('#bOnline').addEventListener('click',()=>{ SFX.init(); SFX.click(); openOnline(); });
-(function(){ try{ const q=new URLSearchParams(location.search), c=q.get('join')||q.get('watch'); if(!c) return; const w=!q.get('join'); history.replaceState(null,'',location.pathname); setTimeout(()=>{ openOnline(); const i=$('#onCode'); if(i) i.value=String(c).toUpperCase().slice(0,5); netJoin(c,w); },300); }catch(e){} })();
+// a room code from pasted text: a bare code or an invite link (…?join=CODE / ?watch=CODE)
+function codeFrom(t){ t=String(t||'').toUpperCase().trim(); const m=t.match(/[?&](?:JOIN|WATCH)=([A-Z0-9]{5})\b/)||t.match(/ROOM:?\s+([A-Z0-9]{5})\b/)||t.match(/^([A-Z0-9]{5})$/); return m?m[1]:''; }
+async function pasteInvite(){ let t=''; try{ t=await navigator.clipboard.readText(); }catch(e){} const c=codeFrom(t), i=$('#onCode');
+  if(c){ if(i) i.value=c; toast('Room code '+c,'Tap Join'); } else { toast('No room code on the clipboard','Copy the invite message or link first, or type the code'); if(i) i.focus(); } }
+const IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function joinFromLink(c,w){ openOnline(); const i=$('#onCode'); if(i) i.value=String(c).toUpperCase().slice(0,5); netJoin(c,w); }
+// iPhone opens links from Messages in Safari, never in a home-screen app (and the two keep separate progress),
+// so ask where to play: join here, or copy the code for the app
+function inviteChoice(c,w){ c=String(c).toUpperCase().slice(0,5); $('#bkT').textContent=(w?'Watch':'Join')+' room '+c;
+  $('#bkS').textContent='Links from Messages open in Safari. If you play Stormfall from your Home Screen, copy the code and join from the app so your progress comes with you.';
+  const ta=$('#bkTxt'); ta.readOnly=true; ta.value=c; $('#bkStat').textContent='';
+  $('#bkB').innerHTML='<button class="btn" data-inv="here">'+(w?'Watch':'Join')+' here in Safari</button><button class="btn primary" data-inv="app">Copy code for the app</button>';
+  $('#bkB').onclick=async e=>{ const b=e.target.closest('[data-inv]'); if(!b) return; $('#bkB').onclick=null;
+    if(b.dataset.inv==='here'){ show('#bk',false); joinFromLink(c,w); return; }
+    let ok=false; try{ await navigator.clipboard.writeText(c); ok=true; }catch(_){}
+    $('#bkS').textContent=(ok?'Code '+c+' copied. ':'Your code is '+c+'. ')+'Open Stormfall from your Home Screen, tap Play with friends, then Paste and Join.';
+    $('#bkB').innerHTML='<button class="btn primary" data-bk="close">Done</button>'; };
+  show('#bk',true); }
+(function(){ try{ const q=new URLSearchParams(location.search), c=q.get('join')||q.get('watch'); if(!c) return; const w=!q.get('join'); history.replaceState(null,'',location.pathname);
+  setTimeout(()=>{ show('#how',false); if(IOS&&!appStandalone()) inviteChoice(c,w); else joinFromLink(c,w); },300); }catch(e){} })(); // the invite comes first; the first-run briefing can wait
 window.addEventListener('pagehide',()=>{ if(NET.on) netLeave(); });
 $('#bDeploy').addEventListener('click',()=>{ SFX.init(); SFX.click(); buzz(6); openModeSel(false); });
 $('#opcard').addEventListener('click',()=>{ SFX.click(); go('loadout'); });
