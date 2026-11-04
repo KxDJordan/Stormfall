@@ -1,0 +1,19 @@
+{
+  "name": "stormfall-cloudflare",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Stormfall backend: Worker + Static Assets, D1 cloud saves and daily leaderboard, PeerJS signaling Durable Object",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-public.mjs",
+    "db:local": "wrangler d1 migrations apply stormfall --local",
+    "dev": "npm run build && npm run db:local && wrangler dev --var ALLOW_LOCALHOST:1",
+    "test:unit": "node --test test/unit.test.mjs",
+    "test:api": "node --test --test-concurrency=1 test/api.test.mjs test/turn.test.mjs",
+    "test": "npm run test:unit && npm run test:api",
+    "deploy": "npm run build && wrangler d1 migrations apply stormfall --remote && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.157.0"
+  }
+}

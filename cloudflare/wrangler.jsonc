@@ -1,0 +1,59 @@
+// Stormfall on Cloudflare: one Worker with Static Assets (game files) + D1 (accounts, saves, leaderboard)
+// + one SQLite-backed Durable Object (PeerJS signaling). Everything here fits the Workers Free plan.
+// You never need to edit ids by hand: the deploy workflow (scripts/ensure-d1.mjs) finds or creates the D1 database
+// and writes its id below at build time.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "stormfall",
+  "main": "src/index.js",
+  "compatibility_date": "2025-09-01",
+  "workers_dev": true,
+
+  // The game itself. Requests for files in ./public are answered by the assets layer and never run the Worker
+  // (static asset requests are free and unlimited); only /api/* runs Worker code first.
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"],
+    "not_found_handling": "none"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "stormfall",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // PeerJS signaling. The free plan only allows SQLite-backed Durable Objects, hence new_sqlite_classes.
+  "durable_objects": {
+    "bindings": [{ "name": "SIGNAL", "class_name": "Signal" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Signal"] }],
+
+  // Workers Rate Limiting API (per-location counters, no storage cost). namespace_id is any number unique in the account.
+  "ratelimits": [
+    { "name": "RL_IP", "namespace_id": "4801", "simple": { "limit": 120, "period": 60 } },
+    { "name": "RL_NEW", "namespace_id": "4802", "simple": { "limit": 5, "period": 60 } },
+    { "name": "RL_ACCT", "namespace_id": "4803", "simple": { "limit": 30, "period": 60 } }
+  ],
+
+  // Daily housekeeping: drop leaderboards older than 40 days and accounts that never saved anything.
+  "triggers": { "crons": ["17 4 * * *"] },
+
+  "vars": {
+    // Origins allowed to call the API cross-origin (comma separated). The Worker's own origin is always allowed.
+    // Add your custom domain here if you set one up.
+    "ALLOWED_ORIGINS": "https://kxdjordan.github.io",
+    "ALLOW_LOCALHOST": "0",
+    "PEER_KEY": "peerjs",
+    "TURN_TTL": "86400"
+  },
+  // Optional secrets (set by the deploy workflow when the matching GitHub secrets exist):
+  //   TURN_KEY_ID, TURN_KEY_API_TOKEN   Cloudflare Realtime TURN key, for players behind strict NATs
+
+  "observability": { "enabled": true, "head_sampling_rate": 0.05 }
+  // Local dev (`npm run dev`) passes --var ALLOW_LOCALHOST:1 so http://localhost pages can call the API.
+}
