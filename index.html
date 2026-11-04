@@ -4848,7 +4848,7 @@ function aiScoreTile(u,x,y,threats,cost){
   if(G.elev[idx(x,y)]) s+=7;
   const q=G.crates.find(q=>q.x===x&&q.y===y); if(q) s+=q.drop?45:14;
   const ob=siteAt(x,y); if(ob) s+=siteVal(u,ob); // objectives are public
-  if(threats.length&&u._site) s-=Math.hypot(u._site[0]-x,u._site[1]-y)*0.5; // keep working toward a contested site while fighting
+  if(threats.length&&u._site) s-=Math.hypot(u._site[0]-x,u._site[1]-y)*0.9; // keep working toward a contested site while fighting
   if(inSmoke(x,y)) s+=6;
   if(threats.length) for(const d of DIRS8){ const o=cell(x+d[0],y+d[1]); if(o&&TERR[o.kind]&&TERR[o.kind].boom){ s-=8; break; } } // don't hide behind a fuel barrel
   // stay near the team leader; a human leader's orders (G.cmd[team], from pings / quick chat) tighten or loosen the leash
@@ -4861,16 +4861,16 @@ function aiScoreTile(u,x,y,threats,cost){
 }
 // AI objective values (public information only: site positions, type and progress)
 function siteVal(u,s){ if(!s||s.done||s.k==='bounty'||!standing(u)) return 0; let v=0;
-  if(s.k==='uplink') v=22+(s.prog[u.team]?10:0); else if(s.k==='vault') v=28+(s.prog[u.team]?12:0);
+  if(s.k==='uplink') v=30+(s.prog[u.team]?12:0); else if(s.k==='vault') v=34+(s.prog[u.team]?14:0);
   else if(s.k==='med'){ const miss=u.maxHp-u.hp; v=miss>=2?8+miss*5:0; }
   if(v&&s.last[u.team]===G.round) v*=0.5; // already worked this round: holding the spot still matters
   return v; }
 // no known threats: head for a worthwhile site that is inside (or near) the safe zone
 function siteGoal(u){ const st=G.storm, mv=stormMoving(), zx=mv?st.ncx:st.cx, zy=mv?st.ncy:st.cy, R=mv?st.nextR:Math.min(st.r,st.nextR+1); let best=null,bs=0;
-  for(const s of G.sites||[]){ const v=siteVal(u,s); if(v<=0) continue; const d=Math.hypot(s.x-u.x,s.y-u.y); if(d>22||Math.hypot(s.x+.5-zx,s.y+.5-zy)>R+1) continue; const sc=v-d; if(!best||sc>bs){ best=s; bs=sc; } }
+  for(const s of G.sites||[]){ const v=siteVal(u,s); if(v<=0) continue; const d=Math.hypot(s.x-u.x,s.y-u.y); if(d>26||Math.hypot(s.x+.5-zx,s.y+.5-zy)>R+1) continue; const sc=v-d; if(!best||sc>bs){ best=s; bs=sc; } }
   return best?[best.x,best.y]:null; }
 // work the site under this unit when no strong attack is on the table
-async function aiSite(u,atk){ const s=siteAt(u.x,u.y); if(!s||siteWhy(u,s)||siteVal(u,s)<=0) return false; if(atk&&atk.score>=30) return false;
+async function aiSite(u,atk){ const s=siteAt(u.x,u.y); if(!s||siteWhy(u,s)||siteVal(u,s)<=0||outsideStorm(u.x,u.y)||stormSoon(u)) return false; if(atk&&atk.score>=30) return false;
   await execCmd(u,{k:'site',s:s.id}); return true; }
 function aiChooseMove(u,maxAp){
   maxAp=maxAp||u.ap; if(maxAp<=0) return null;
