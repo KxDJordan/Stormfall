@@ -1424,7 +1424,7 @@ body.sheet-open #sfInv{display:none}
       <li>Duos: teams of two; with an odd number of humans the last one drops with an AI partner. A downed operative bleeds out in 2 turns unless an adjacent teammate revives them.</li>
       <li>Trios and Quads: squads of three (up to 12 operatives on a 48×48 map) or four (up to 16 on a 56×56 map), four squads at most. Empty seats in your squad are AI squadmates. Downs and revives work as in Duos: a squad is out when nobody on it is left standing (anyone still down is eliminated with it). The storm starts wider and shrinks faster (Quads adds an early stage in round 3), there are more crates, supply drops (five in Quads) and four objectives. Unseen enemy turns play fast; the turn-order strip marks one with an amber arrow.</li>
       <li>King of the Hill: teams of two on a 32×32 map with no storm. At the end of each round, a team with operatives inside the gold ring and no enemy in it scores a point (both sides inside: contested, nobody scores). The hill moves every 5 rounds; its next spot shows as a dashed ring a round ahead. First team to 8 wins; after round 24 the most points (then the most operatives standing) wins. No downs: an eliminated operative redeploys at the start of the round after next, away from enemies and the hill, with full health, ammo and utilities.</li>
-      <li>Siege: two teams of four, best of three rounds, sides swap after each. Defenders start inside a walled compound in the middle of the map (doors, windows, sandbags, crates) around the data core. Attackers win a round by holding the core (the cyan ring) with no defender in it at 2 round ends, or by taking out every defender; defenders win by holding out for 10 rounds or wiping the attackers. Attackers carry 2 Breaching Charges (blow walls, doors and cover in a 1.5-tile blast clean away, 2–3 damage) and a Scout Drone; defenders carry 2 extra smoke grenades and 2 Barricades (drop a sandbag wall, half cover, on an empty ground tile within 2 tiles, not on the core). No storm, downs and revives as in Duos.</li>
+      <li>Siege: two teams of four, best of three rounds, sides swap after each. Defenders start inside a walled compound in the middle of the map (a door and a window in each wall, sandbags, crates) around the data core; attackers start outside under a smoke screen that clears after two rounds. Attackers win a round by holding the core (the cyan ring) with no defender in it at the end of a round, or by taking out every defender; defenders win by holding out for 10 rounds or wiping the attackers. Attackers carry 2 Breaching Charges (blow walls, doors and cover in a 1.5-tile blast clean away, 2–3 damage) and a Scout Drone; defenders trade their damaging grenades for 2 extra smoke grenades and 2 Barricades (drop a sandbag wall, half cover, on an empty ground tile within 2 tiles, not on the core). No storm, downs and revives as in Duos.</li>
       <li>Rumble: teams of two in a 24×24 arena, no storm. Eliminations score for the killer’s team; first to 12 wins (or the most after round 24). Respawns as in King of the Hill.</li>
       <li>Infection: everyone drops alone; at the start of round 1 one operative (two with 7 or more) turns Infected. Survivors become one team with shared sight; the Infected have claws only (dash up to 5 tiles), +2 mobility, +6 HP, regenerate 2 HP a turn and sense survivors within 10 tiles. The Infected never die: taken down, one regenerates for a turn (it can’t be hurt meanwhile) and gets back up at full HP. A survivor the Infected take out goes down “turning” and rises as Infected on its next turn. Survivors win if any of them is standing after round 15; the Infected win when nobody is left to turn.</li>
       <li>Blackout: Solo at night. You see only 3.5 tiles (+1 on high ground). Anyone standing in light (a flare, near a deployed Specialist drone, in a Scout Drone’s area) or who fired an unsuppressed shot since their last turn can be seen from normal sight range. Everyone carries a flare (throw it into the dark: it lights 3 tiles until the end of next round) and crates often hold another. Every shot flashes on every minimap. Suppressed weapons and blades stay dark.</li>
@@ -6550,7 +6550,7 @@ async function swRise(u){
 const INF_S=0, INF_T=1;
 const INF={two:7,hp:6,mob:2,regen:2,sense:10,zeroHp:4,zeroShield:3,down:1,col:'#9dff3a',loot:3};
 const INF_CLAW={id:'claw',name:'Infected Claws',short:'Claws',type:'melee',dmg:[4,6],acc:88,crit:20,critDmg:2,dash:5,desc:'Dash up to 5 tiles and rake an adjacent survivor.'};
-const BO={sight:3.5,high:1,droneR:2.5,crateFlare:0.35};
+const BO={sight:3.5,high:1,droneR:2.5,crateFlare:0.35,flareGap:3}; // flareGap: AI, rounds between one operative's flares
 const MUTS={
   lowg:{name:'Low gravity',short:'Low-G',desc:'+1 mobility, grenades fly 3 tiles farther, and you can drop off any roof or ledge without a ladder.'},
   boom:{name:'Explosive everything',short:'Boom',desc:'Every destructible object explodes like an oil drum when it is destroyed. Chain reactions included.'},
@@ -6706,10 +6706,24 @@ function boFlash(u){ if(!u||u.drone) return; u.mfl=1; const now=G.time; G.mmP.pu
 function boFlare(u,tx,ty,anim){ G.flares.push({x:tx,y:ty,r:UTILS.flare.radius,until:G.round+1,team:u.team}); computeVis();
   const p=tileC(tx,ty); addFx({type:'flash',x:p[0],y:p[1]-20,r:120,col:[255,200,140],life:.4}); addFx({type:'ring',x:p[0],y:p[1],r:UTILS.flare.radius*TW*0.7,col:[255,170,90],life:.7});
   if(anim) SFX.tone(1400,600,.35,.05,'triangle'); feedLine(u.name+' fired a flare',mine(u)); }
-async function aiFlare(u){ const fi=u.utils.findIndex(q=>q.id==='flare'&&q.ch>0); if(fi<0) return false; const rg=throwRange(u,UTILS.flare), sr=sightOf(u); let tgt=null,bd=1e9;
-  for(const [id,e] of intelOf(u.team)){ if(e.r<G.round-1) continue; const t=G.units.find(z=>z.id===id); if(!t||!standing(t)) continue; const d=Math.hypot(e.x-u.x,e.y-u.y);
-    if(d<=rg&&d>sr+0.5&&d<bd&&!solidT(e.x,e.y)&&!G.flares.some(f=>G.round<=f.until&&Math.hypot(f.x-e.x,f.y-e.y)<=f.r)){ bd=d; tgt=[e.x,e.y]; } }
-  if(!tgt) return false; await execCmd(u,{k:'throw',i:fi,x:tgt[0],y:tgt[1]}); return true; }
+/* AI flares (team intel only), at most one per operative every BO.flareGap rounds. Targets: an enemy the team saw or heard
+   in the last two rounds, out past night sight (worth most when someone on the team, this operative right after the throw, could then
+   shoot it by daylight range, or when this operative took fire from the dark since its last turn). With a spare flare
+   (two or more), also the dark ground ahead on its way to an older or farther last known position (now and then
+   while just advancing). Runs only with nothing in sight and a full turn. */
+async function aiFlare(u,hit){ const fi=u.utils.findIndex(q=>q.id==='flare'&&q.ch>0); if(fi<0) return false;
+  if(u._flR!=null&&G.round-u._flR<BO.flareGap) return false;
+  const ch=u.utils[fi].ch, U=UTILS.flare, rg=throwRange(u,U), sr=sightOf(u), mates=G.units.filter(m=>m.team===u.team&&standing(m));
+  const dark=(x,y)=>!boLitAt(x,y)&&!solidT(x,y)&&Math.hypot(x-u.x,y-u.y)>Math.max(sr+0.5,U.radius+0.6);
+  let tgt=null,bs=6;
+  for(const [id,e] of intelOf(u.team)){ if(e.r<G.round-2) continue; const t=G.units.find(z=>z.id===id); if(!t||!standing(t)) continue;
+    const d=Math.hypot(e.x-u.x,e.y-u.y); if(d>rg+0.01||!dark(e.x,e.y)) continue;
+    let sc=10-d*0.4+(e.r===G.round?2:e.r<G.round-1?-3:0)+(hit?8:0);
+    if(mates.some(m=>Math.hypot(m.x-e.x,m.y-e.y)<=sightDay(m)+0.01&&hasLOS(m.x,m.y,e.x,e.y)&&(m!==u||(u.ap>=2&&u.ammo>0&&!u.noGun)))) sc+=14;
+    if(sc>bs){ bs=sc; tgt=[e.x,e.y]; } }
+  if(!tgt&&ch>1){ const g=goalFor(u), dg=Math.hypot(g[0]-u.x,g[1]-u.y); if(dg>sr+2&&([...intelOf(u.team).values()].some(e=>e.x===g[0]&&e.y===g[1])||(G.round>=3&&RNG()<0.3))){ const k=Math.min(rg-0.5,dg,7)/dg, x=clamp(Math.round(u.x+(g[0]-u.x)*k),0,MW-1), y=clamp(Math.round(u.y+(g[1]-u.y)*k),0,MH-1);
+    if(dark(x,y)) tgt=[x,y]; } }
+  if(!tgt) return false; u._flR=G.round; await execCmd(u,{k:'throw',i:fi,x:tgt[0],y:tgt[1]}); return true; }
 // rendering (visual only): one night tint, a cached path of dim visible tiles past your night sight, then light pools from
 // two pre-rendered glow sprites (own operatives, flares, drones, muzzle flashes): no per-tile gradients
 function boGlowSpr(warm){ const k=warm?'gw':'gc'; if(RC[k]) return RC[k]; const cv2=document.createElement('canvas'); cv2.width=128; cv2.height=64; const g=cv2.getContext('2d');
@@ -7418,7 +7432,7 @@ function aiScoreTile(u,x,y,threats,cost){
     if(C&&L.human){ if(C.k==='regroup'||C.k==='fallback'||C.k==='revive'){ lim=2.5; w=9; } else if(C.k!=='hold'&&C.k!=='danger'){ lim=8; w=3; } }
     if(d>lim) s-=(d-lim)*w; }
   if(C) s+=cmdScore(u,C,x,y,threats);
-  if(G.gm) s+=gmTileScore(u,x,y);
+  if(G.gm) s+=gmTileScore(u,x,y,threats);
   if(u.noGun||(G.inf&&G.inf.on)) s+=modeTile(u,x,y,threats); // melee-only units close in; Infection survivors bunch up and kite
   return s+RNG()*D.noise;
 }
@@ -7562,8 +7576,9 @@ async function aiTurn0(u,mid){
 // information tools: with nothing in sight and a full turn, scout a heard/sensed position (or ahead) with a drone, or
 // drop a motion sensor where it stands. Decisions use only the team's intel; effects arrive through updateIntel.
 async function aiUtilPre(u){
+  let hit=false; if(G.M.night){ const hp=u.hp+u.shield; hit=u._boHp!=null&&hp<u._boHp; u._boHp=hp; } // Blackout: hurt since its last turn
   if(u.ap<2||u.shot||G.round<2||visibleEnemies(u).length) return;
-  if(G.M.night&&await aiFlare(u)) return; // Blackout: light up a heard enemy
+  if(G.M.night&&await aiFlare(u,hit)) return; // Blackout: light up a known enemy (or the dark ahead)
   const di=u.utils.findIndex(x=>x.id==='drone'&&x.ch>0), si=u.utils.findIndex(x=>x.id==='sensor'&&x.ch>0);
   if(di>=0){ const rg=throwRange(u,UTILS.drone); let tgt=null,bd=1e9;
     for(const [id,e] of intelOf(u.team)){ if(e.seen||e.r<G.round-1) continue; const t=G.units.find(z=>z.id===id); if(!t||!standing(t)) continue; const d=Math.hypot(e.x-u.x,e.y-u.y); if(d<bd&&d<=rg+4){ bd=d; tgt=[e.x,e.y]; } }
@@ -8533,8 +8548,9 @@ function applySettings(){ SFX.on=!!PROF.settings.sound; }
    Respawns (King of the Hill, Rumble): no downs; an eliminated operative is back at the start of the round after next,
    on a ground tile far from enemies (and away from the hill), with full health, ammo and utilities. */
 const KOTH={r:2.5,every:5,gap:8};               // hill radius (tiles, from the centre tile) and rounds per hill
-const SIEGE={len:10,hold:2,wins:2,core:1.5,H:5}; // rounds per Siege round, round ends on the core to take it, wins for the match, core radius, compound half-size
+const SIEGE={len:10,hold:1,wins:2,core:1.5,H:5,out:8}; // rounds per Siege round, round ends on the core to take it, wins for the match, core radius, compound half-size, attacker start (tiles out from the wall)
 const GM_KEYS=['koth','siege','rumble'];
+const siegeHoldTxt=()=>SIEGE.hold>1?'at '+SIEGE.hold+' round ends':'at the end of a round';
 ICON.charge=ICON.breach;
 ICON.barricade='<svg viewBox="0 0 24 24"><path d="M3 20h18M4 20v-4h16v4M6 16v-4h12v4M8 12V8h8v4"/></svg>';
 function gmSetup(){
@@ -8597,7 +8613,7 @@ async function gmRoundStart(){ const S=G.gm, my=G.player?G.player.team:-1;
   }
   else if(S.k==='rumble'&&G.round===1){ banner('Rumble','First team to '+G.M.target+' eliminations wins. Respawn after 2 rounds.','',2600); await wait(1000); }
   else if(S.k==='siege'&&G.round===S.r0){ const C=S.core;
-    banner('Round '+S.sr+(S.sr>1?' · sides swapped':''),my===S.att&&!G.watch?'You attack: breach the compound and hold the data core at '+SIEGE.hold+' round ends.':my===S.def&&!G.watch?'You defend: keep them off the data core for '+SIEGE.len+' rounds.':'Attackers need the data core; defenders must hold '+SIEGE.len+' rounds.','',3000);
+    banner('Round '+S.sr+(S.sr>1?' · sides swapped':''),my===S.att&&!G.watch?'You attack: breach the compound and hold the data core '+siegeHoldTxt()+'.':my===S.def&&!G.watch?'You defend: keep them off the data core for '+SIEGE.len+' rounds.':'Attackers need the data core; defenders must hold '+SIEGE.len+' rounds.','',3000);
     focusOn(C.x,C.y); await wait(1400); }
   updateTop(); }
 async function gmRoundEnd(){ const S=G.gm;
@@ -8633,7 +8649,7 @@ function hillPick(prev){ const R=KOTH.r, m=Math.ceil(R)+2, c=(MW-1)/2, cand=[], 
     if(n<t*0.7) continue; wide.push(idx(x,y)); if(prev?Math.hypot(x-prev.x,y-prev.y)>=KOTH.gap:dc<=4.5) cand.push(idx(x,y)); }
   const L=cand.length?cand:wide.length?wide:[idx(Math.round(c),Math.round(c))], i=pick(L); return {x:i%MW,y:(i/MW)|0}; }
 /* Siege: a walled compound in the middle of the map (the clearing around it is rebuilt from the region map), the data
-   core on its centre tile. Doors in the middle of each wall, two windows per wall, crates and sandbags inside. */
+   core on its centre tile. Doors in the middle of each wall, one window per wall, crates and sandbags inside. */
 function siegeSetup(){ const S=G.gm, c=Math.floor(MW/2), H=SIEGE.H, K=H+1;
   S.core={x:c,y:c}; S.sr=1; S.att=S.teams[0]; S.def=S.teams[1]; S.prog=0; S.r0=1; S.walls=[]; S.side=0;
   const inA=(x,y)=>Math.abs(x-c)<=K&&Math.abs(y-c)<=K;
@@ -8641,32 +8657,35 @@ function siegeSetup(){ const S=G.gm, c=Math.floor(MW/2), H=SIEGE.H, K=H+1;
   for(let y=c-K-1;y<=c+K+1;y++) for(let x=c-K-1;x<=c+K+1;x++){ if(!inMap(x,y)||inA(x,y)) continue; const i=idx(x,y); DIRS4.forEach((d,k)=>{ if(inA(x+d[0],y+d[1])) G.lad[i]&=~(1<<k); }); }
   const put=(x,y,o)=>{ G.grid[idx(x,y)]=Object.assign({h:0,v:hash(x,y,77)},o); };
   for(let k=-H;k<=H;k++) for(const [x,y,ax] of [[c+k,c-H,1],[c+k,c+H,1],[c-H,c+k,0],[c+H,c+k,0]]){ const m=Math.abs(k);
-    if(m===0) put(x,y,{t:2,kind:'door',h:44,pass:true,ax,hp:TERR.door.hp}); else if(m===3) put(x,y,{t:1,kind:'window',hp:TERR.window.hp}); else put(x,y,{t:2,kind:'wall',h:44});
+    if(m===0) put(x,y,{t:2,kind:'door',h:44,pass:true,ax,hp:TERR.door.hp}); else if(k===3) put(x,y,{t:1,kind:'window',hp:TERR.window.hp}); else put(x,y,{t:2,kind:'wall',h:44});
     if(!S.walls.some(w=>w[0]===x&&w[1]===y)) S.walls.push([x,y]); }
   for(const d of [[-2,-2],[2,-2],[-2,2],[2,2]]) put(c+d[0],c+d[1],{t:1,kind:'sandbag',hp:TERR.sandbag.hp});
   for(const d of [[0,-3],[0,3],[-3,0],[3,0]]) put(c+d[0],c+d[1],{t:1,kind:'crates',hp:TERR.crates.hp});
   G.crates=G.crates.filter(q=>!G.grid[idx(q.x,q.y)]); losClear();
   S.grid0=G.grid.map(o=>o?Object.assign({},o):null); S.crates0=G.crates.map(q=>Object.assign({},q));
   siegePlace(); }
-// side kits: attackers carry breaching charges and a scout drone, defenders extra smoke and barricades
+// side kits: attackers carry breaching charges and a scout drone; defenders trade their damaging grenades for extra smoke
+// and barricades (so a breach team bunched at a wall is not simply bombed off it)
 function siegeKit(u,att){ const add=(id,n)=>{ const q=u.utils.find(z=>z.id===id); if(q) q.ch+=n; else u.utils.push({id,ch:n}); };
-  if(att){ add('charge',2); add('drone',1); } else { add('smoke',2); add('barricade',2); } }
+  if(att){ add('charge',2); add('drone',1); } else { u.utils=u.utils.filter(q=>!UTILS[q.id].dmg); add('smoke',2); add('barricade',2); } }
 // attackers: grouped at a seeded side, 8 tiles out from the wall in line with its door; defenders spread around the core
 function siegePlace(){ const S=G.gm, c=S.core.x, H=SIEGE.H, side=ri(0,3), dir=[[0,-1],[1,0],[0,1],[-1,0]][side]; S.side=side;
   const taken=new Set(), ok=(x,y)=>{ const i=idx(x,y); return !G.grid[i]&&!G.lvl[i]&&G.surf[i]!==1&&!taken.has(i)&&!G.crates.some(q=>q.x===x&&q.y===y); };
   const near=(x0,y0,f)=>{ const L=[]; for(let i=0;i<MW*MH;i++){ const x=i%MW,y=(i/MW)|0; if(x<1||y<1||x>MW-2||y>MH-2||!f(x,y)) continue; L.push([Math.hypot(x-x0,y-y0)+hash(x,y,S.sr*5+side)*0.3,i]); } return L.sort((a,b)=>a[0]-b[0]||a[1]-b[1]); };
-  const cheb=(x,y)=>Math.max(Math.abs(x-c),Math.abs(y-c)), ax=clamp(c+dir[0]*(H+8),2,MW-3), ay=clamp(c+dir[1]*(H+8),2,MH-3);
+  const cheb=(x,y)=>Math.max(Math.abs(x-c),Math.abs(y-c)), ax=clamp(c+dir[0]*(H+SIEGE.out),2,MW-3), ay=clamp(c+dir[1]*(H+SIEGE.out),2,MH-3);
   const LA=near(ax,ay,(x,y)=>ok(x,y)&&cheb(x,y)>H+2), LD=near(c,c,(x,y)=>ok(x,y)&&cheb(x,y)<H&&Math.hypot(x-c,y-c)>SIEGE.core+0.01).slice(0,30), dpos=[];
   for(const u of G.units){ const att=u.team===S.att; let i=-1;
     if(att){ const e=LA.find(q=>!taken.has(q[1])); if(e) i=e[1]; }
     else { let bs=-1; for(const q of LD){ if(taken.has(q[1])) continue; let md=9; for(const t of dpos) md=Math.min(md,Math.hypot(q[1]%MW-t%MW,((q[1]/MW)|0)-((t/MW)|0))); if(md>bs+0.01){ bs=md; i=q[1]; } } if(i>=0) dpos.push(i); }
     if(i<0) i=(LA.concat(LD).find(q=>!taken.has(q[1]))||[0,idx(c,c)])[1];
     taken.add(i); gmRevive(u); siegeKit(u,att); placeUnit(u,i%MW,(i/MW)|0); u.face=(dir[0]+dir[1]>0)===att?-1:1; }
+  // the attackers' approach starts under a smoke screen between them and the facing wall (it clears after the second round)
+  for(const k of [-3.5,0,3.5]) G.smoke.push({x:Math.round(c+dir[0]*(H+2.5)-dir[1]*k),y:Math.round(c+dir[1]*(H+2.5)+dir[0]*k),r:2,until:S.r0+1});
   if(G.player&&!G.watch){ G.playerDead=false; G.spec=null; G.speed=1; $('#spec').classList.add('hidden'); } }
 // a new Siege round: the compound and pickups as they were at the start, everyone back in, sides as set by the caller
 function siegeReset(){ const S=G.gm;
   G.grid=S.grid0.map(o=>o?Object.assign({},o):null); G.crates=S.crates0.map(q=>Object.assign({},q));
-  G.smoke=[]; G.drop=null; G.reveals=[]; G.sensors=[]; G.noise=[]; G.intel={}; G.prints=[]; G.scans=[]; G.decals=[]; G.lkp=new Map(); G.cues=[]; G.place=0; G.cmd={};
+  G.smoke=G.smoke.filter(q=>q.perm); G.drop=null; G.reveals=[]; G.sensors=[]; G.noise=[]; G.intel={}; G.prints=[]; G.scans=[]; G.decals=[]; G.lkp=new Map(); G.cues=[]; G.place=0; G.cmd={};
   siegePlace(); losClear(); G.seen.fill(0); buildGround(); G.groundDirty=false;
   for(const u of G.units){ u.drop=1; dropLand(u,0.7); }
   computeVis(); }
@@ -8703,29 +8722,51 @@ async function gmCharge(u,tx,ty,anim){ const U=UTILS.charge, R=U.radius, boom=[]
   for(const b of boom) await detonate(b[0],b[1],u);
   if(anim) await wait(750); }
 /* AI: where to stand (added to aiScoreTile), where to head with nothing in sight (goalFor), and Siege kit use */
-function gmTileScore(u,x,y){ const S=G.gm;
+function gmTileScore(u,x,y,threats){ const S=G.gm;
   // the hill scores at the end of this round; an announced next hill only pulls a little (it scores from next round)
   if(S.k==='koth'){ const z=(h,a,b)=>{ const d=Math.hypot(x-h.x,y-h.y); return d<=KOTH.r+0.01?a-d*2:-(d-KOTH.r)*b; }; return z(S.hill,60,2.6)+(S.next?0.3*z(S.next,60,2.6):0); }
-  if(S.k==='siege'){ const C=S.core, d=Math.hypot(x-C.x,y-C.y), on=d<=SIEGE.core+0.01;
-    if(u.team===S.att) return on?28:-d*1.3;
-    return (on?6:0)-Math.max(0,d-4.2)*5; }
+  if(S.k==='siege'){ const C=S.core, d=Math.hypot(x-C.x,y-C.y), on=d<=SIEGE.core+0.01, ch=Math.max(Math.abs(x-C.x),Math.abs(y-C.y)), H=SIEGE.H;
+    // attackers: close in, and once inside the walls flood the core ring and stay on it; the pull grows as the clock runs
+    if(u.team===S.att) return (on?62-d*3:-d*2.2+(ch<H?14:0))*(1+0.2*(G.round-S.r0));
+    // defenders: hold inside the compound around the core (never chase outside the walls); step onto the ring to contest it
+    // when the team knows of an attacker near it
+    const near=(threats||[]).some(t=>Math.hypot(t.x-C.x,t.y-C.y)<=SIEGE.core+2.6);
+    return (on?(near?40:-6):0)-Math.max(0,d-3.6)*4-(ch>=H?50+(ch-H)*10:0); }
   // Rumble: keep closing on the nearest enemy (the arena is small; nobody wins it from a corner)
   let md=99; for(const v of G.units) if(standing(v)&&isEnemy(u,v)) md=Math.min(md,Math.hypot(v.x-x,v.y-y)); return -Math.max(0,md-5)*0.9; }
 function gmGoal(u){ const S=G.gm; if(S.k==='koth') return [S.hill.x,S.hill.y]; if(S.k==='siege') return [S.core.x,S.core.y];
   // Rumble: a small arena, so head for the nearest enemy (the arena is loud: a hunt, not a hide-and-seek)
   let b=null,bd=1e9; for(const v of G.units){ if(!standing(v)||!isEnemy(u,v)) continue; const d=Math.hypot(v.x-u.x,v.y-u.y); if(d<bd){ bd=d; b=[v.x,v.y]; } } return b; }
-async function gmAiPre(u){ const S=G.gm; if(S.k!=='siege'||u.ap<1||u.shot||visibleEnemies(u).length) return;
-  const C=S.core, cheb=Math.max(Math.abs(u.x-C.x),Math.abs(u.y-C.y));
-  if(u.team===S.att){ const i=u.utils.findIndex(q=>q.id==='charge'&&q.ch>0); if(i<0||cheb<=SIEGE.H||cheb>SIEGE.H+5) return;
-    const rg=throwRange(u,UTILS.charge), du=Math.hypot(u.x-C.x,u.y-C.y); let best=null,bs=-1e9;
-    for(const w of S.walls){ const o=cell(w[0],w[1]); if(!o||o.flat) continue; const d=Math.hypot(w[0]-u.x,w[1]-u.y); if(d>rg+0.01||d<2.6||Math.hypot(w[0]-C.x,w[1]-C.y)>du) continue;
-      if(G.units.some(v=>v.alive&&v.team===u.team&&inBlast(v,w[0],w[1],UTILS.charge.radius))||!hasLOS(u.x,u.y,w[0],w[1])) continue;
-      const sc=-d-(o.kind==='door'?3:0)+hash(w[0],w[1],G.round)*0.5; if(sc>bs){ bs=sc; best=w; } }
-    if(best&&RNG()<0.55) await execCmd(u,{k:'throw',i,x:best[0],y:best[1]}); return; }
+async function gmAiPre(u){ const S=G.gm; if(S.k!=='siege'||u.ap<1||u.shot) return;
+  const C=S.core, cheb=Math.max(Math.abs(u.x-C.x),Math.abs(u.y-C.y)), vis=visibleEnemies(u);
+  if(u.team===S.att){ await siegeAiCharge(u,vis,cheb); return; }
+  if(vis.length) return;
   if(u.team===S.def&&G.round-S.r0<3&&cheb<SIEGE.H){ const i=u.utils.findIndex(q=>q.id==='barricade'&&q.ch>0); if(i<0) return;
     const dir=[[0,-1],[1,0],[0,1],[-1,0]][S.side]; let best=null,bs=0.2;
     for(const d of DIRS8){ const x=u.x+d[0], y=u.y+d[1]; if(!gmCoverOk(x,y)||Math.max(Math.abs(x-C.x),Math.abs(y-C.y))>=SIEGE.H) continue; const s=(d[0]*dir[0]+d[1]*dir[1])/Math.hypot(d[0],d[1]); if(s>bs){ bs=s; best=[x,y]; } }
     if(best&&RNG()<0.6) await execCmd(u,{k:'throw',i,x:best[0],y:best[1]}); } }
+/* Siege attackers' Breaching Charges (team intel only). In sight of defenders: blow the cover a visible defender hides
+   behind (or catch two). Otherwise, at the walls: breach the wall facing the group once it has closed up, away from any
+   breach already open (one breach per stretch of wall), near defenders the team knows about. */
+async function siegeAiCharge(u,vis,cheb){ const S=G.gm, C=S.core, H=SIEGE.H, i=u.utils.findIndex(q=>q.id==='charge'&&q.ch>0); if(i<0) return;
+  const U=UTILS.charge, R=U.radius, rg=throwRange(u,U);
+  const ok=(x,y)=>{ const d=Math.hypot(x-u.x,y-u.y); return d>=2.6&&d<=rg+0.01&&hasLOS(u.x,u.y,x,y)&&!G.units.some(v=>v.alive&&!isEnemy(u,v)&&inBlast(v,x,y,R)); };
+  if(vis.length){ let best=null,bs=0;
+    for(const t of vis){ if(t.downed||!ok(t.x,t.y)) continue; const n=vis.filter(v=>!v.downed&&inBlast(v,t.x,t.y,R)).length, cov=coverFrom(t.x,t.y,u.x,u.y);
+      if(n<2&&cov<2) continue; const sc=n*10+cov*4; if(sc>bs){ bs=sc; best=t; } }
+    if(best) await execCmd(u,{k:'throw',i,x:best.x,y:best.y}); return; }
+  if(cheb<=H||cheb>H+6) return;
+  const mates=G.units.filter(m=>m!==u&&m.team===u.team&&standing(m));
+  if(mates.length&&!mates.some(m=>Math.hypot(m.x-u.x,m.y-u.y)<=5)&&G.round-S.r0<3) return; // close up first
+  const gone=S.walls.filter(w=>{ const o=cell(w[0],w[1]), o0=S.grid0[idx(w[0],w[1])]; return o0&&o0.kind!=='door'&&(!o||o.flat); });
+  if(gone.some(w=>Math.hypot(w[0]-u.x,w[1]-u.y)<=4)) return; // a breach is already open right here: go through it
+  const I=intelOf(u.team), du=Math.hypot(u.x-C.x,u.y-C.y); let best=null,bs=-1e9;
+  for(const w of S.walls){ const o=cell(w[0],w[1]); if(!o||o.flat||o.kind==='door'||Math.hypot(w[0]-C.x,w[1]-C.y)>du||!ok(w[0],w[1])) continue;
+    if(gone.some(g=>Math.hypot(g[0]-w[0],g[1]-w[1])<=3.5)) continue;
+    let sc=-Math.hypot(w[0]-u.x,w[1]-u.y)+hash(w[0],w[1],G.round)*0.5;
+    for(const [id,e] of I){ if(e.r<G.round-1) continue; const t=G.units.find(z=>z.id===id); if(t&&standing(t)&&Math.hypot(e.x-w[0],e.y-w[1])<=R+1.5) sc+=4; }
+    if(sc>bs){ bs=sc; best=w; } }
+  if(best) await execCmd(u,{k:'throw',i,x:best[0],y:best[1]}); }
 /* visuals (never read by the sim): the hill and the next hill, the data core; their minimap marks; the HUD score chip */
 function gmZone(c,x,y,r,col,a,dash){ const p=iso(x+.5,y+.5), rx=r*TW/Math.SQRT2, ry=r*TH/Math.SQRT2;
   if(!dash){ c.fillStyle=C(col,1,a*.3); c.beginPath(); for(let dy=-3;dy<=3;dy++) for(let dx=-3;dx<=3;dx++){ if(Math.hypot(dx,dy)>r+0.01||!inMap(x+dx,y+dy)) continue; tilePath(c,x+dx,y+dy,.04); } c.fill(); }
@@ -8759,7 +8800,7 @@ function gmTop(){ const S=G.gm, chip=$('#hStormChip'), st=$('#hStorm'), me=G.pla
 /* mode select: cards and thumbnails (thumbnail flags: calm = no storm ring, fort = wall blocks, gm = drawn by gmThumbGround) */
 function gmCards(){ const K=MODES.koth, Sg=MODES.siege, Rb=MODES.rumble; return [
   {k:'koth',name:K.name,tag:'Teams of two',pc:'Up to 4 teams × 2',ds:K.desc,li:['Score a point each round you hold the gold ring alone','The hill moves every '+KOTH.every+' rounds, marked a round ahead','Respawn after 2 rounds · no storm']},
-  {k:'siege',name:Sg.name,tag:'Attack · defend',pc:'2 teams × 4',ds:Sg.desc,li:['Attack: breaching charges and a scout drone','Defend: extra smoke and barricades','Hold the core '+SIEGE.hold+' round ends, or survive '+SIEGE.len]},
+  {k:'siege',name:Sg.name,tag:'Attack · defend',pc:'2 teams × 4',ds:Sg.desc,li:['Attack: breaching charges and a scout drone','Defend: smoke and barricades instead of grenades','Hold the core '+siegeHoldTxt()+', or survive '+SIEGE.len]},
   {k:'rumble',name:Rb.name,tag:'Team deathmatch',pc:'Up to 4 teams × 2',ds:Rb.desc,li:['Small '+Rb.map+'×'+Rb.map+' arena, no storm','Respawn after 2 rounds, away from enemies','First to '+Rb.target+', or the most by round '+Rb.cap]}]; }
 const GM_THUMB={
   koth:{reg:'city',sd:23,r:5,calm:1,gm:'koth',hill:[5,5],skip:(x,y)=>Math.hypot(x-5,y-5)<3.2,u:[[4.6,4.4,'#3fd2ff'],[5.5,5.6,'#3fd2ff'],[8.1,3.0,'#ff4d6d'],[8.6,3.9,'#ff4d6d'],[2.0,8.0,'#ffe02b'],[2.9,8.6,'#ffe02b']]},
