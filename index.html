@@ -53,7 +53,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--signal);outline
 .brand{max-width:520px}
 .brand .kick{color:var(--amber);font-size:13px;font-weight:600;letter-spacing:.08em}
 .brand h1{margin:6px 0 0;font-size:clamp(72px,22vw,128px)}
-.brand h1 .t2{display:block;color:transparent;-webkit-text-stroke:1.5px rgba(230,240,250,.85);font-size:.62em;margin-top:-.06em}
+.brand h1 .t2{display:block;color:rgba(6,10,18,.45);-webkit-text-stroke:1.5px rgba(230,240,250,.9);text-shadow:0 2px 14px rgba(0,0,0,.6);font-size:.62em;margin-top:-.06em}
 .brand p{color:#b9c8d6;margin:10px 0 0;max-width:30ch;line-height:1.4}
 .spacer{flex:1}
 .opcard{display:flex;gap:14px;align-items:center;max-width:520px;padding:12px 14px;margin-bottom:14px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--signal);border-radius:3px}
@@ -1021,18 +1021,23 @@ function isBuildingish(x,y){ const c=cell(x,y); return c&&(c.kind==='building');
    Static objects and raised platforms are rasterised once into small sprites (per object, fog shade
    and zoom bucket) and blitted each frame; an LRU pixel budget bounds memory. buildGround() clears it,
    which covers every change to the grid (grenades) and every new map. */
-const RC={gen:0,spr:new Map(),ids:new WeakMap(),nid:0,px:0,budget:12e6,baking:false,soft:new Map(),
+const RC={gen:0,made:0,last:new Map(),any:new Map(),anyM:-1,spr:new Map(),ids:new WeakMap(),nid:0,px:0,budget:12e6,baking:false,soft:new Map(),
   fade:new Float32Array(MW*MH).fill(1),fadeT:0,fogKey:'',fogA:null,fogB:null,stormKey:'',stormP:null,plats:null,ov:null,ovKey:'',icons:{},reachM:new Uint8Array(MW*MH),focusM:new Uint8Array(MW*MH)};
-function sprClear(){ RC.gen++; for(const e of RC.spr.values()){ e.cv.width=e.cv.height=0; } RC.spr.clear(); RC.px=0; RC.plats=null; }
+// keeps the previous sprites as stand-ins (RC.any) so a grenade blast re-rasterises gradually instead of in one hitch
+function sprClear(){ RC.gen++; if(RC.anyM!==G.matchId){ RC.any=new Map(); RC.last.clear(); RC.anyM=G.matchId; } else { RC.any=new Map(); for(const [k,e] of RC.spr) RC.any.set(k.slice(0,k.indexOf('@')),e); }
+  RC.spr.clear(); RC.px=0; RC.plats=null; }
 function sprScale(){ const s=DPR*G.cam.z; return Math.min(3.2,Math.max(0.5,Math.pow(2,Math.ceil(Math.log2(Math.max(0.3,s))*2-0.2)/2))); }
 function sprite(key,x0,y0,w,h,draw){
   const sc=sprScale(), k=key+'@'+sc; let e=RC.spr.get(k);
   if(e){ RC.spr.delete(k); RC.spr.set(k,e); return e; }
+  // at most a few new rasterisations per frame; meanwhile reuse this object's sprite from another zoom bucket
+  if(RC.made>=8){ const f=RC.last.get(key)||RC.any.get(key); if(f&&f.cv.width) return f; }
+  RC.made++;
   const cw=Math.max(1,Math.ceil(w*sc)), ch=Math.max(1,Math.ceil(h*sc));
   const cvs=document.createElement('canvas'); cvs.width=cw; cvs.height=ch; const g=cvs.getContext('2d');
   g.setTransform(sc,0,0,sc,-x0*sc,-y0*sc); const zd=G.zDraw; G.zDraw=false; RC.baking=true;
   try{ draw(g); } finally { RC.baking=false; G.zDraw=zd; }
-  e={cv:cvs,x:x0,y:y0,w:cw/sc,h:ch/sc}; RC.spr.set(k,e); RC.px+=cw*ch;
+  e={cv:cvs,x:x0,y:y0,w:cw/sc,h:ch/sc}; RC.spr.set(k,e); RC.last.set(key,e); RC.px+=cw*ch;
   while(RC.px>RC.budget&&RC.spr.size>1){ const f=RC.spr.keys().next().value, v=RC.spr.get(f); RC.px-=v.cv.width*v.cv.height; v.cv.width=v.cv.height=0; RC.spr.delete(f); }
   return e;
 }
@@ -1436,6 +1441,7 @@ function drawWorld(c){
   // smooth pseudo-noise shake (no per-frame jitter pops)
   const sx=sk*0.5*(Math.sin(t*91.7)*0.6+Math.sin(t*57.3+1.3)*0.4), sy=sk*0.5*(Math.sin(t*83.1+0.7)*0.6+Math.sin(t*49.9+2.1)*0.4);
   c.save(); c.translate(VW/2,VH/2); c.scale(cam.z,cam.z); c.translate(-cam.x+sx,-cam.y+sy);
+  RC.made=0; if(RC.last.size>6000) RC.last.clear();
   const hw=VW/2/cam.z+48, hh=VH/2/cam.z+48, vx0=cam.x-hw, vx1=cam.x+hw, vy0=cam.y-hh, vy1=cam.y+hh+60;
   const onScreen=(x,y,w,h)=>x<vx1&&x+w>vx0&&y<vy1&&y+h>vy0;
   if(G.ground){ const src=(G.groundHalf&&DPR*cam.z<G.gScale*0.6)?G.groundHalf:G.ground; c.drawImage(src,-GOX,-GOY,G.ground.width/G.gScale,G.ground.height/G.gScale); }
