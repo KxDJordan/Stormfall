@@ -3508,7 +3508,7 @@ function drawHead(c,AR,cls,B,cm,ca,vis,vc,visX,t,ph,hd,L,rim,o,gcol){
     c.globalAlpha=ga; c.strokeStyle='rgba(255,226,150,.45)'; c.lineWidth=1.5; c.beginPath(); c.ellipse(.5,y,4,1.15,-.08,0,6.3); c.stroke(); c.strokeStyle='rgba(255,250,225,.95)'; c.lineWidth=.5; c.stroke(); c.globalCompositeOperation='source-over'; }
 }
 // attached (docked) drone: hovers just above the operative's helmet and follows it; purely visual
-function drawDrone(c,o,vis,vc,t,ph,fs){ paintDrone(c,o.x+fs*1.5,o.y-56,o.dm||'sparrow',o.ds||'default',t,ph,.62,{face:fs,zap:o.zap||0,lt:vc}); }
+function drawDrone(c,o,vis,vc,t,ph,fs){ paintDrone(c,o.x+fs*1.5,o.y-57,o.dm||'sparrow',o.ds||'default',t,ph,.7,{face:fs,zap:o.zap||0,lt:vc}); }
 /* ---------- Specialist drones: chassis sprites (model x skin x animation frame, cached), rotors and lights per frame ----------
    Geometry is in drone space (about 36 x 26 px, centre 0,0, nose toward +x). rot: rotor hubs [x,y,r]; lt: status light;
    duct: ducted rotors (Bulwark). The sprite holds the body, arms, pattern and emissive trims; rotors, the light, zap glow and
@@ -3598,7 +3598,7 @@ function drawDroneUnit(c,d){
   if(d.jam>0){ c.font='700 10px "Chakra Petch",sans-serif'; c.textAlign='center'; c.fillStyle='#ffb340'; c.fillText('⚡',p[0]+tot/2+6,y0+4); }
 }
 // wreck on the ground until it is rebuilt (or forever, once its Specialist is out)
-function drawDroneWreck(c,d){ const q=tileC(d.wx,d.wy); c.fillStyle='rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(q[0],q[1],10,4,0,0,6.3); c.fill(); paintDrone(c,q[0]+2,q[1]-3,d.model,d.skin,0,d.ph,.9,{wreck:true,tilt:.45,face:d.face}); c.fillStyle='rgba(20,22,26,.45)'; c.beginPath(); c.ellipse(q[0]+2,q[1]-3,9,4,0,0,6.3); c.fill(); }
+function drawDroneWreck(c,d){ if(d.vFall&&d.vFall.t<d.vFall.life) return; const q=tileC(d.wx,d.wy); c.fillStyle='rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(q[0],q[1],10,4,0,0,6.3); c.fill(); paintDrone(c,q[0]+2,q[1]-3,d.model,d.skin,0,d.ph,.9,{wreck:true,tilt:.45,face:d.face}); c.fillStyle='rgba(20,22,26,.45)'; c.beginPath(); c.ellipse(q[0]+2,q[1]-3,9,4,0,0,6.3); c.fill(); }
 // falling drone (fx 'dfall'): drops from its hover point to the ground, spinning
 function drawDroneFx(c){ for(const f of G.fx){ if(f.type!=='dfall') continue; const k=clamp(f.t/f.life,0,1), y=lerp(f.y,f.gy-3,k*k); paintDrone(c,f.x,y,f.m,f.s,G.time,0,1,{wreck:true,tilt:k*2.4,face:f.face}); } }
 /* ================= rendering: frame ================= */
@@ -3705,7 +3705,7 @@ function drawUnit(c,u){
     if(u.rupt){ c.globalCompositeOperation='lighter'; softDot(c,[255,70,50],p[0],p[1]-20,9,.25+.15*Math.sin(t*4+u.ph)); c.globalCompositeOperation='source-over'; }
   }
   if(!u.alive||u.drop>0||G.scene!=='game') return;
-  const y0=p[1]-(u.dr&&u.dr.st==='dock'?66:56); // the docked drone hovers between the helmet and the plate
+  const y0=p[1]-(u.dr&&u.dr.st==='dock'?74:56); // the docked drone hovers between the helmet and the plate
   c.textAlign='center';
   if(down){ c.font='700 11px "Chakra Petch",sans-serif'; c.fillStyle=u.swDown?'#5dff9a':'#ff6b78'; c.fillText(u.swDown?'SECOND WIND':'DOWNED · '+u.bleed,p[0],p[1]-26); return; }
   const n=u.maxHp, pw=4, gap=1.2, tot=n*(pw+gap)+u.shield*(pw+gap); const x0=p[0]-tot/2;
@@ -4421,6 +4421,7 @@ function drawWorld(c){
     if(Math.random()<0.3) part({x:p[0]+frand(-4,4),y:p[1]-z,z:4,vx:frand(-8,8),vy:frand(-4,4),vz:frand(30,60),life:frand(1.2,2),size:frand(6,10),col:[200,60,50],type:'smoke'}); }
   const ents=[]; const focus=G.units.filter(u=>u.alive&&(u.team===(G.player&&G.player.team)||shouldShow(u)||G.scene==='menu'));
   if(G.pending>=0) focus.push({x:G.pending%MW,y:(G.pending/MW)|0});
+  for(const d of G.drones) if(d.alive&&(G.scene!=='game'||shouldShow(d))) focus.push(d); // tall objects in front of a drone fade too
   updateFade(focus);
   for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const o=G.grid[idx(x,y)]; if(!o) continue; const b=objBox(o,x,y), z=bz(x,y); if(onScreen(b[0],b[1]-z,b[2],b[3])) ents.push({d:x+y,k:0,x,y,o,b,z}); }
   // raised platforms are depth-sorted with everything else (drawn just before anything on the same tile), so crates,
@@ -5405,7 +5406,7 @@ function droneWreck(d,src,anim,quiet){ const u=droneOwner(d);
   d.hp=0; d.st='dead'; d.alive=false; d.ap=0; d.shield=0; d.rb=DRONE.rebuild; d.wx=d.x; d.wy=d.y; d.mark=null;
   if(src&&src.isPlayer&&isEnemy(src,d)) cst(src,'droneKills');
   if(!quiet) feedLine(src&&src!==u&&isEnemy(src,d)?src.name+' destroyed '+d.name+'’s drone':d.name+'’s drone went down',mine(d)||mine(src));
-  if(anim){ const p=unitScreen(d), g=tileC(d.x,d.y); addFx({type:'dfall',x:p[0],y:p[1],gy:g[1],m:d.model,s:d.skin,col:d.col,face:d.face,life:.55});
+  if(anim){ const p=unitScreen(d), g=tileC(d.x,d.y); d.vFall=addFx({type:'dfall',x:p[0],y:p[1],gy:g[1],m:d.model,s:d.skin,col:d.col,face:d.face,life:.55});
     addFx({type:'flash',x:p[0],y:p[1],r:56,col:[255,210,150],life:.22}); addFx({type:'ring',x:p[0],y:p[1],r:34,col:[255,170,90],life:.35});
     for(let i=0;i<16;i++) part({x:p[0],y:p[1],vx:frand(-120,120),vy:frand(-100,40),life:frand(.3,.6),size:1.6,col:[255,220,150],type:'spark',grav:260});
     for(let i=0;i<7;i++) part({x:g[0]+frand(-4,4),y:g[1]+frand(-2,2),z:Math.max(4,g[1]-p[1]),vx:frand(-50,50),vy:frand(-25,15),vz:frand(20,90),life:frand(.8,1.3),size:frand(1.6,2.6),col:[58,62,70],type:'debris',grav:520});
@@ -6507,6 +6508,7 @@ function drawMinimap(){
   for(const L of lkpMarks()){ c.strokeStyle=C(L.e.col,1,L.a); c.lineWidth=1.5; c.setLineDash([2,2]); c.beginPath(); c.arc((L.m.x+.5)*s,(L.m.y+.5)*s,s*0.8,0,Math.PI*2); c.stroke(); c.setLineDash([]); c.fillStyle=C([255,255,255],1,L.a); c.font='700 '+Math.round(s*1.6)+'px sans-serif'; c.textAlign='center'; c.fillText('?',(L.m.x+.5)*s,(L.m.y+.5)*s+s*0.55); }
   for(const q of (G.tpings||[])){ if(!pingAlive(q)) continue; const P=PINGS[q.k], v=G.units.find(z=>z.id===q.by), px=((P.tile?q.x:v.x)+.5)*s, py=((P.tile?q.y:v.y)+.5)*s, r=s*1.3+Math.sin(G.time*5)*s*.25;
     c.fillStyle=C(P.col); c.strokeStyle='#fff'; c.lineWidth=1; c.beginPath(); c.moveTo(px,py-r); c.lineTo(px+r,py); c.lineTo(px,py+r); c.lineTo(px-r,py); c.closePath(); c.fill(); c.stroke(); }
+  for(const d of G.drones){ if(!d.alive||!shouldShow(d)) continue; const px=(d.x+.5)*s, py=(d.y+.5)*s, r=s*.55; c.fillStyle=mine(d)?'#7fe8ff':d.color; c.beginPath(); c.moveTo(px,py-r); c.lineTo(px+r,py); c.lineTo(px,py+r); c.lineTo(px-r,py); c.closePath(); c.fill(); } // deployed drones: small diamonds
   for(const u of G.units){ if(!u.alive||!shouldShow(u)) continue; c.fillStyle=u.isPlayer?'#3fd2ff':mine(u)?'#5dff9a':u.color; c.beginPath(); c.arc((u.x+.5)*s,(u.y+.5)*s,u.isPlayer?s*0.75:s*0.55,0,Math.PI*2); c.fill(); if(u.downed){ c.strokeStyle='#ff4d5e'; c.lineWidth=1.5; c.stroke(); } }
   const tl=screenToTileF(0,0), br=screenToTileF(VW,VH), tr=screenToTileF(VW,0), bl=screenToTileF(0,VH); c.strokeStyle='rgba(255,255,255,.35)'; c.lineWidth=1; c.beginPath(); c.moveTo(tl[0]*s,tl[1]*s); c.lineTo(tr[0]*s,tr[1]*s); c.lineTo(br[0]*s,br[1]*s); c.lineTo(bl[0]*s,bl[1]*s); c.closePath(); c.stroke();
 }
@@ -6529,6 +6531,8 @@ function onTap(sx,sy){
   if(G.pingMode){ G.pingMode=false; const tt=screenToTile(sx,sy); updatePingBtn(); if(inMap(tt[0],tt[1])) openPingTray(tt[0],tt[1]); return; }
   closePingTray(); if(!inputOpen()) return; const u=G.player;
   const hu=unitAtScreen(sx,sy);
+  // tapping your own deployed drone takes control of it (tapping it again while in control hands control back)
+  if(G.mode==='move'&&u.dr&&u.dr.alive&&dCanAct(u)){ const q=unitScreen(u.dr), s2=[(q[0]-G.cam.x)*G.cam.z+VW/2,(q[1]-G.cam.y)*G.cam.z+VH/2]; if(Math.hypot(s2[0]-sx,s2[1]-sy)<Math.max(20,20*G.cam.z)){ SFX.click(); onAction(G.dmode==='ctl'?(u.ap>0?'dop':'dctl'):'dctl'); return; } }
   if(G.mode==='target'){ if(hu){ const i=G.targets.indexOf(hu); if(i>=0){ G.tIdx=i; focusMid(u,hu); updateHUD(); SFX.click(); } } return; }
   if(G.mode==='move'&&hu&&isEnemy(u,hu)&&G.dmode==='ctl'){ if(!dWhy(u,'zap')&&dTargets(u,'zap').includes(hu)){ enterTarget('d_zap',hu); SFX.click(); return; } }
   else if(G.mode==='move'&&hu&&isEnemy(u,hu)&&!G.dmode){ if(u.ap>0&&!u.shot&&u.ammo>0&&!(u.W.heavy&&u.ap<2)&&canSee(u,hu)){ enterTarget('shoot',hu); SFX.click(); return; } }
@@ -7960,6 +7964,8 @@ function renderProfile(){
   const mw=Object.keys(WEAPONS).concat(Object.keys(SECONDARIES).filter(isPistol)).sort((a,b)=>((PROF.mast[b]||0)-(PROF.mast[a]||0)));
   $('#pMast').innerHTML=mw.map(k=>{ const m=mastInfo(k), nx=m.max?[]:mastUnlocks(k,m.l+1);
     return '<div class="mprow"><b>'+m.l+'</b><div><div>'+esc((WEAPONS[k]||SECONDARIES[k]).name)+(mfinFor(k)?' · '+MFIN[mfinFor(k)].name:'')+'</div><span class="xpbar"><i style="width:'+(m.max?100:(m.cur/m.need*100).toFixed(1))+'%"></i></span><small>'+(m.max?'Mastered':m.cur+'/'+m.need+' XP · next: '+nx.join(', '))+'</small></div><canvas data-pm="'+k+'" width="192" height="80"></canvas></div>'; }).join('');
+  { const m=dMastInfo(), nx=m.max?[]:Object.keys(DUPS).filter(k=>DUPS[k].m===m.l+1).map(k=>DUPS[k].name); // Specialist drone mastery (upgrades)
+    $('#pMast').insertAdjacentHTML('afterbegin','<div class="mprow"><b>'+m.l+'</b><div><div>Specialist drone · '+esc(DMODELS[(LO.drone&&LO.drone.m)||'sparrow'].name)+'</div><span class="xpbar"><i style="width:'+(m.max?100:(m.cur/m.need*100).toFixed(1))+'%"></i></span><small>'+(m.max?'Mastered':m.cur+'/'+m.need+' XP'+(nx.length?' · next: '+nx.join(', '):''))+'</small></div><canvas data-dpv="'+((LO.drone&&LO.drone.m)||'sparrow')+'" width="192" height="80"></canvas></div>'); document.querySelectorAll('#pMast canvas[data-dpv]').forEach(drawDpv); }
   document.querySelectorAll('#pMast canvas[data-pm]').forEach(cv2=>{ const k=cv2.dataset.pm; wpnOn(cv2,k,(mfinFor(k)||PROF.equip.finish)+((LO.att&&LO.att[k])?'+'+attIds(LO.att[k],k).join('.'):'')); });
   $('#pSet').innerHTML=setRows(false); renderReps(); renderBk();
   const KE=KILLS[PROF.equip.kill]||KILLS.default; $('#pKfx').innerHTML='<span>Kill effect</span><b style="color:'+RARITY[KE.r].col+'">'+esc(KE.name)+'</b><button class="btn sm" data-kfxstore>Change</button>';
@@ -8099,7 +8105,7 @@ function setupTutorial(){
   const D1=makeUnit(dl(),false,'TARGET','#ff9f1c',null,1), D2=makeUnit(dl(),false,'RUNNER','#ff4d5e',null,2);
   for(const D of [D1,D2]){ D.bot=true; D.diff=DIFFS.recruit; D.tutGuard=true; } P.tutGuard=true;
   placeUnit(P,TY.start[0],TY.start[1]); placeUnit(D1,TY.d1[0],TY.d1[1]); placeUnit(D2,TY.d2[0],TY.d2[1]); P.face=-1; D1.face=1; D2.face=1;
-  G.units=[P,D1,D2]; G.teamDiff={1:DIFFS.recruit,2:DIFFS.recruit}; TUT.d1=D1; TUT.d2=D2;
+  G.units=[P,D1,D2]; G.drones=G.units.filter(u=>u.dr).map(u=>u.dr); G.dmode=null; G.dstat=null; G.teamDiff={1:DIFFS.recruit,2:DIFFS.recruit}; TUT.d1=D1; TUT.d2=D2;
   G.intel={}; G.noise=[]; G.round=1; G.over=false; G.playerDead=false; G.spec=null; G.speed=1; G.rewarded=null; G.result=null; G.place=0; G.busy=true; G.mode='idle'; G.reach=null; G.pending=-1; G.turnRes=null; G.paused=false; G.turnMax=0;
   G.stats={shots:0,hits:0,grazes:0,dmg:0,kills:0,rounds:0,crates:0,drops:0,owHits:0,highHits:0,nadeHits:0,revives:0}; G.cstat=cstatNew(); G.cctx=null;
   G.reveals=[]; G.sensors=[]; G.lkp=new Map(); G.cues=[]; G.groundDirty=false;
