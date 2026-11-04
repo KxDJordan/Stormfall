@@ -22,11 +22,17 @@ It's live in two places:
 | Trios | up to 4 teams of 3     | 48×48 | wider storm that shrinks faster, 4 objectives |
 | Quads | up to 4 teams of 4     | 56×56 | extra early storm stage (round 3), 5 supply drops, 4 objectives |
 | Quick | up to 4, free for all  | 40×40 | tight storm, about six minutes |
+| Infection | up to 8, survivors vs Infected | 40×40 | one (two with 7+) turns in round 1; the Infected regenerate and get back up, anyone they take down rises as Infected; survivors hold out to round 15 |
+| Blackout | up to 8, free for all | 40×40 | night: 3.5-tile sight, flares, drones and muzzle flashes reveal from normal range |
 
 In the team modes a downed operative bleeds out in 2 turns unless an adjacent teammate revives them; a team is out
 when nobody on it is standing. Empty seats are filled by bots, and team pings / commands steer AI teammates. The map
 size comes from the mode, so it is the same on every client, for spectators and in replays. Classic modes keep
 generating the exact same 40×40 maps for a given seed.
+
+**Mutators** (waiting room, host or offline) stack on any mode: Low gravity (+1 mobility, grenades +3 tiles, drop off any
+ledge), Explosive everything (destroyed objects explode like oil drums), One-shot, Double storm speed, Melee only and
+Perma-smoke. They travel in the match config, so guests, spectators and replays play with the same set.
 
 ## Saving your progress
 
@@ -46,7 +52,7 @@ Without a connection (or without the backend) the game works exactly as before a
 
 ## Online play
 
-1. One player taps **Play with friends**, picks a mode card (Solo, Duos, Trios, Quads or Quick) and taps **Create lobby**, then shares
+1. One player taps **Play with friends**, picks a mode card (Solo, Duos, Trios, Quads, Quick, Infection or Blackout) and taps **Create lobby**, then shares
    the 5-letter room code (or the **Invite** link).
 2. Friends open the game, tap **Play with friends**, and enter the code under **Join** (or **Watch** to spectate).
    An invite link joins automatically.
