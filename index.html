@@ -532,7 +532,7 @@ button.sh,#mLvl{min-height:44px}
 .mprow>b{font-family:Teko,sans-serif;font-size:24px;text-align:center;color:var(--amber);font-weight:600}
 .mprow small{display:block;color:var(--muted);font-size:11.5px}
 .mprow .xpbar{margin-top:4px;height:4px}
-.mprow canvas{width:72px;height:30px}
+.mprow canvas{width:96px;height:40px}
 /* team pings */
 #bPing.on,#bEmote.on{background:rgba(63,210,255,.25)}
 #pingTray{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 96px);transform:translateX(-50%);width:min(360px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--line2);border-radius:6px;padding:10px;z-index:3}
@@ -740,6 +740,8 @@ button.sh,#mLvl{min-height:44px}
       <li>The storm shrinks every other round. Once the safe zone is small it stops shrinking and starts moving: the next zone is marked with a white ring (and on the minimap) two rounds ahead, then the storm slides there. Storm damage keeps rising, so keep moving with it. Supply drops are announced a round early; the pod holds the best loot in the match.</li>
       <li>The strip under the top bar shows the turn order for this round, then the round break with any storm or supply event. You are highlighted, teammates are green, and enemies you cannot see show as “?”.</li>
       <li>Duos: you drop with an AI partner. A downed operative bleeds out in 2 turns unless an adjacent teammate revives them.</li>
+      <li>Team pings: in Duos, tap 📍 then the map, or press and hold on the map, to ping (Enemy here, Move here, Watch this area, Loot here, Danger) or give a command (Hold, Regroup, Push, Fall back, Revive me). Only your team sees them; they fade after 2 rounds. An AI partner follows them (online, orders given on your own turn).</li>
+      <li>Weapon mastery: hits, damage and takedowns with a primary or sidearm level that weapon (1–10). Mastery unlocks its attachments (optic, barrel, magazine, underbarrel: picked per weapon in Loadout) and mastery finishes, up to the animated Stormcell.</li>
       <li>AI opponents carry gear matched to your level and only know what they can see or hear. Pick Recruit, Veteran or Elite on the Play screen (the host picks it online): it changes their aim, gear, memory, hearing and how cleverly they flank. An AI partner always plays Veteran.</li>
       <li>Six regions: Neo-Kowloon, Frostfall Station, Ember Wastes, Verdant Ruins, Ironhaven Docks and Blackwell Refinery. The map roulette after Deploy picks one you did not just play.</li>
       <li>Play online: one player hosts a room and shares the 5-letter code or invite link. Friends join from Play online; AI fills empty slots. If someone drops, AI takes over their operative.</li>
@@ -913,7 +915,7 @@ CLASSES.specialist.secs=['pistol','knife','silencer','baton','hatchet','machpist
 /* ================= weapon attachments =================
    One mod per slot, all modest. Primaries take every slot (minus w.noAtt); pistol sidearms take optic, barrel and magazine.
    An attachment unlocks at weapon mastery level `m` (pistols: `pm`; no pm = not for pistols). Effect fields:
-   win:[from,to,aim] aim inside a distance window · ext:n widens the optimal band by n tiles · opt:n aim inside the optimal band
+   win:[[from,to,aim],...] aim inside distance windows (to 99 = and beyond) · ext:n widens the optimal band by n tiles · opt:n aim inside the optimal band
    fall:n falloff per tile past the last range step (never below 0) · aim, crit, critDmg, clip (never below 1): flat changes
    mob: mobility · silent: shots make no noise (no AI intel, no sound cue) · freeRl: the first reload of the match costs no AP
    still:n aim when you have not moved this turn · mov:n aim on a shot after moving · rx:n aim on reaction shots.
@@ -921,9 +923,9 @@ CLASSES.specialist.secs=['pistol','knife','silencer','baton','hatchet','machpist
 const ATT_SLOTS=['optic','barrel','mag','under'], PISTOL_SLOTS=['optic','barrel','mag'];
 const ATT_SLOT_NAME={optic:'Optic',barrel:'Barrel',mag:'Magazine',under:'Underbarrel / stock'};
 const ATTACH={
-  reddot:{slot:'optic',name:'Reflex Sight',win:[1,4,5],m:2,pm:2},
+  reddot:{slot:'optic',name:'Reflex Sight',win:[[1,4,5]],m:2,pm:2},
   acog:{slot:'optic',name:'Combat Scope',ext:2,m:4},
-  scope:{slot:'optic',name:'Long Scope',opt:5,win:[1,3,-10],m:7},
+  scope:{slot:'optic',name:'Long Scope',win:[[7,99,5],[1,3,-5]],m:7},
   comp:{slot:'barrel',name:'Compensator',aim:5,crit:-5,m:3,pm:4},
   supp:{slot:'barrel',name:'Suppressor',silent:1,crit:-5,m:5,pm:6},
   longb:{slot:'barrel',name:'Long Barrel',ext:1,fall:-3,mob:-1,m:6},
@@ -957,19 +959,19 @@ function rtOpt(rt,n){ const sg=rtSeg(rt), best=Math.max(...sg.map(g=>g.v)); for(
 // apply attachment ids to a weapon object copy (from applyMk or a pistol's W); returns it with .att, .am (situational aim) and .amob
 function applyAtt(w,ids){ w.att=[]; w.am=null; w.amob=0; if(!ids||!ids.length) return w;
   for(const id of ids){ const A=ATTACH[id]; if(!A) continue; w.att.push(id);
-    if(A.ext) w.rt=rtExt(w.rt,A.ext); if(A.opt) w.rt=rtOpt(w.rt,A.opt); if(A.win) w.rt=rtAdd(w.rt,A.win[0],A.win[1],A.win[2]);
+    if(A.ext) w.rt=rtExt(w.rt,A.ext); if(A.opt) w.rt=rtOpt(w.rt,A.opt); if(A.win) for(const q of A.win) w.rt=rtAdd(w.rt,q[0],q[1],q[2]);
     if(A.fall) w.fall=Math.max(0,(w.fall||0)+A.fall); if(A.aim) w.aim+=A.aim; if(A.crit) w.crit=Math.max(0,w.crit+A.crit); if(A.critDmg) w.critDmg+=A.critDmg;
     if(A.clip) w.clip=Math.max(1,w.clip+A.clip); if(A.silent) w.silent=true; if(A.freeRl) w.freeRl=true; if(A.mob) w.amob+=A.mob;
     if(A.still||A.mov||A.rx){ w.am=w.am||{still:0,mov:0,rx:0}; w.am.still+=A.still||0; w.am.mov+=A.mov||0; w.am.rx+=A.rx||0; } }
   w.range=rangeFn(w.rt,w.fall); return w; }
 // card text generated from the numbers above
 function attDesc(A){ const t=[];
-  if(A.win) t.push(sgn(A.win[2])+' aim at '+A.win[0]+'–'+A.win[1]+' tiles'); if(A.ext) t.push('Optimal range +'+A.ext+' tile'+(A.ext>1?'s':'')); if(A.opt) t.push(sgn(A.opt)+' aim in the optimal band');
+  if(A.silent) t.push('Silent: shots make no noise for enemies to track'); if(A.freeRl) t.push('Your first reload of the match costs no AP');
+  if(A.win) for(const q of A.win) t.push(sgn(q[2])+' aim at '+(q[1]>=99?q[0]+'+':q[0]+'–'+q[1])+' tiles'); if(A.ext) t.push('Optimal range +'+A.ext+' tile'+(A.ext>1?'s':'')); if(A.opt) t.push(sgn(A.opt)+' aim in the optimal band');
   if(A.aim) t.push(sgn(A.aim)+' aim'); if(A.crit) t.push(sgn(A.crit)+'% crit'); if(A.critDmg) t.push(sgn(A.critDmg)+' crit damage'); if(A.clip) t.push(sgn(A.clip)+' round'+(Math.abs(A.clip)>1?'s':''));
   if(A.fall) t.push('falloff '+sgn(A.fall)+'/tile past range'); if(A.mob) t.push(sgn(A.mob)+' mobility');
   if(A.still) t.push(sgn(A.still)+' aim when you have not moved this turn'); if(A.mov) t.push(sgn(A.mov)+' aim on a shot after moving'); if(A.rx) t.push(sgn(A.rx)+' aim on overwatch and return fire');
-  if(A.silent) t.push('Silent: shots make no noise for enemies to track'); if(A.freeRl) t.push('Your first reload of the match costs no AP');
-  return t.join(', ')+'.'; }
+  const o=t.join(', '); return o.charAt(0).toUpperCase()+o.slice(1)+'.'; }
 for(const k in ATTACH) ATTACH[k].desc=attDesc(ATTACH[k]);
 
 /* ================= weapon mastery =================
@@ -981,7 +983,7 @@ const mNeed=l=>200+100*l;
 const MFIN={
   m_digi:{name:'Digital',m:2,c:'#59636f',pat:'digi',pc:[[89,99,111],[58,66,76],[140,150,162],[30,34,40]]},
   m_tiger:{name:'Tiger',m:4,c:'#b8742c',pat:'tiger',pc:[[196,122,46],[34,26,22],[232,170,84]]},
-  m_hex:{name:'Hex Weave',m:6,c:'#26303c',pat:'hex',pc:[[38,48,60],[24,30,38],[96,210,240]]},
+  m_hex:{name:'Hex Weave',m:6,c:'#34404e',pat:'hex',pc:[[54,66,80],[26,32,40],[96,210,240]]},
   m_dama:{name:'Damascus',m:8,c:'#7d8590',pat:'dama',pc:[[132,140,150],[72,78,88],[206,212,220]]},
   m_gold:{name:'Mastery Gold',m:9,c:'#d4ab3e',pat:'gold',pc:[[214,172,62],[138,98,28],[255,234,150]]},
   m_storm:{name:'Stormcell',m:10,c:'#18202e',pat:'storm',anim:6,pc:[[22,28,42],[12,16,26],[120,220,255]]}
@@ -2112,6 +2114,7 @@ function paintWeapon(g,D,fin,vis){
     if(p[0]==='l'){ g.strokeStyle=col(k); g.lineWidth=p[2]; g.beginPath(); g.moveTo(p[3],p[4]); g.lineTo(p[5],p[6]); g.stroke(); continue; }
     shape(p); g.fillStyle=(pat&&(k==='f'||k==='F'))?pat:(k==='f'&&sheen)?sheen:col(k); g.fill();
     if(pat&&k==='F'){ g.fillStyle='rgba(0,0,0,.36)'; g.fill(); } else if(pat&&k==='f'&&M){ g.globalAlpha=.35; g.fillStyle=sheen; g.fill(); g.globalAlpha=1; }
+    if(pat&&MF.anim&&(k==='f'||k==='F')){ g.globalCompositeOperation='lighter'; g.globalAlpha=.8; g.fillStyle=pat; g.fill(); g.globalAlpha=1; g.globalCompositeOperation='source-over'; } // emissive veins
     if(k==='v'){ g.globalCompositeOperation='lighter'; g.fillStyle=C(vc,1,.35); g.fill(); g.globalCompositeOperation='source-over'; }
     if(p[0]==='r'||p[0]==='R'){ const h=p[4]; g.fillStyle='rgba(255,255,255,'+(k==='s'?.45:k==='v'?.5:.2)+')'; g.fillRect(p[1]+.2,p[2]+.15,p[3]-.4,Math.min(.7,h*.28)); g.fillStyle='rgba(0,0,0,.26)'; g.fillRect(p[1],p[2]+h*.72,p[3],h*.28); }
     else if(k==='s'){ g.strokeStyle='rgba(255,255,255,.75)'; g.lineWidth=.45; g.beginPath(); g.moveTo(p[2],p[3]+.2); g.lineTo(p[4],p[5]+.2); g.stroke(); }
@@ -3196,7 +3199,9 @@ function pickup(u){
   u.ammo=u.W.clip; if(u.S&&u.S.clip) u.sAmmo=u.S.clip; if(q.drop&&u.S&&u.S.uses) u.sUses++;
   if(shouldShow(u)){ floatText(u,msg,[255,200,90],q.drop?18:20); const p=chest(u); for(let k=0;k<(q.drop?30:14);k++) part({x:p[0],y:p[1]+10,vx:frand(-40,40),vy:frand(-20,10),vz:frand(30,90),life:frand(.5,1),size:2,col:[255,200,90],type:'ember',grav:-20}); SFX.heal(); }
 }
-async function doReload(u){ const free=u.W.freeRl&&!u.frl; if(free) u.frl=true; else u.ap-=1; u.ammo=u.W.clip; // Speed Loader: first reload of the match is free
+// Speed Loader on the primary or the sidearm: a reload refills both, and the first one of the match costs no AP
+function freeReload(u){ return !u.frl&&!!(u.W.freeRl||(u.S&&u.S.W&&u.S.W.freeRl)); }
+async function doReload(u){ const free=freeReload(u); if(free) u.frl=true; else u.ap-=1; u.ammo=u.W.clip; // Speed Loader: first reload of the match is free
   if(free&&shouldShow(u)) floatText(u,'SPEED RELOAD',[127,232,255],16); if(u.S&&u.S.clip) u.sAmmo=u.S.clip; if(shouldShow(u)){ vAnim(u,'reload',.5); const p=unitScreen(u); part({x:p[0]+u.face*5,y:p[1],z:20,vx:u.face*frand(5,25),vy:frand(-5,5),vz:frand(10,40),life:1,size:2,col:[34,36,42],type:'casing',grav:400}); floatText(u,'RELOADED',[200,220,240],18); SFX.click(); await wait(500);} }
 async function doMedkit(u,util){ util.ch--; u.ap-=1; const amt=u.cls==='specialist'?UTILS.medkit.healSpec:UTILS.medkit.heal; const h=Math.min(amt,u.maxHp-u.hp); u.hp+=h; const sh=hasP(u,'p_medic')?2:0; u.shield+=sh;
   if(shouldShow(u)){ focusOn(u.x,u.y); vAnim(u,'heal',.65); floatText(u,'+'+h+' HP'+(sh?' +'+sh+' SHIELD':''),[93,255,154],22); healFx(u); if(sh) shieldFx(u,true); SFX.heal(); await wait(650); } }
@@ -3736,7 +3741,7 @@ function actionList(){
   A.push({id:'ow',label:'Overwatch',sub:'Ends turn',icon:'overwatch',off:!ap||!u.ammo,why:!u.ammo?'Out of ammo':''});
   A.push({id:'hunker',label:'Hunker',sub:'Ends turn',icon:'hunker',off:!ap});
   const full=u.ammo>=u.W.clip&&!(S&&S.clip&&u.sAmmo<S.clip);
-  A.push({id:'reload',label:'Reload',sub:u.W.freeRl&&!u.frl?'Free':'1 AP',icon:'reload',off:!ap||full,why:full?'Magazine full':''});
+  A.push({id:'reload',label:'Reload',sub:freeReload(u)?'Free':'1 AP',icon:'reload',off:!ap||full,why:full?'Magazine full':''});
   if(u.shot) for(const a of A) if(a.id!=='move'&&!a.free){ a.off=true; a.why='After shooting you can only move'; }
   A.push({id:'end',label:'End turn',sub:'',icon:'end',off:false,end:true});
   return A;
@@ -4860,7 +4865,7 @@ function drawMfSwatch(cv2,force){ const [k,f]=cv2.dataset.mfpv.split(':'); if(!f
   const at=draft&&draft.att&&draft.att[k]?attIds(draft.att[k],k).join('.'):''; wpnOn(cv2,k,(f||PROF.equip.finish)+(at?'+'+at:'')); }
 // a weapon sprite fitted into a small canvas (loadout swatches, profile mastery rows)
 function wpnOn(cv2,k,fin){ const D=WPN[k]; if(!D) return; const c=cv2.getContext('2d'), W=cv2.width, H=cv2.height; c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,W,H);
-  const b=D.box, s=Math.min(W*.85/(b[2]+8),H*.7/(b[3]+5)); c.translate(W/2-(b[0]+b[2]/2+2)*s,H/2-(b[1]+b[3]/2)*s); c.scale(s,s); WSC=s; drawWpn(c,k,fin,visorCol(),0,0,0); }
+  const b=D.box, s=Math.min(W*.8/(b[2]+4),H*.8/(b[3]+2)); c.translate(W/2-(b[0]+b[2]/2+1.5)*s,H/2-(b[1]+b[3]/2)*s); c.scale(s,s); WSC=s; drawWpn(c,k,fin,visorCol(),0,0,0); }
 function drawMfAnim(){ if(!draft) return; document.querySelectorAll('#loadout canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,false)); }
 $('#loadout').addEventListener('click',e=>{ if(!draft) return;
   const lk=e.target.closest('[data-mlock]'); if(lk){ e.stopPropagation(); SFX.click(); hintMeta(wName(lk.dataset.mw)+' mastery '+lk.dataset.mlock+' unlocks this. Land hits, deal damage and take enemies down with it.'); return; }
@@ -4976,7 +4981,7 @@ function renderProfile(){
   // weapon mastery: every primary and sidearm you have used, most mastered first
   const mw=Object.keys(WEAPONS).concat(Object.keys(SECONDARIES).filter(isPistol)).sort((a,b)=>((PROF.mast[b]||0)-(PROF.mast[a]||0)));
   $('#pMast').innerHTML=mw.map(k=>{ const m=mastInfo(k), nx=m.max?[]:mastUnlocks(k,m.l+1);
-    return '<div class="mprow"><b>'+m.l+'</b><div><div>'+esc((WEAPONS[k]||SECONDARIES[k]).name)+(mfinFor(k)?' · '+MFIN[mfinFor(k)].name:'')+'</div><span class="xpbar"><i style="width:'+(m.max?100:(m.cur/m.need*100).toFixed(1))+'%"></i></span><small>'+(m.max?'Mastered':m.cur+'/'+m.need+' XP · next: '+nx.join(', '))+'</small></div><canvas data-pm="'+k+'" width="144" height="60"></canvas></div>'; }).join('');
+    return '<div class="mprow"><b>'+m.l+'</b><div><div>'+esc((WEAPONS[k]||SECONDARIES[k]).name)+(mfinFor(k)?' · '+MFIN[mfinFor(k)].name:'')+'</div><span class="xpbar"><i style="width:'+(m.max?100:(m.cur/m.need*100).toFixed(1))+'%"></i></span><small>'+(m.max?'Mastered':m.cur+'/'+m.need+' XP · next: '+nx.join(', '))+'</small></div><canvas data-pm="'+k+'" width="192" height="80"></canvas></div>'; }).join('');
   document.querySelectorAll('#pMast canvas[data-pm]').forEach(cv2=>{ const k=cv2.dataset.pm; wpnOn(cv2,k,(mfinFor(k)||PROF.equip.finish)+((LO.att&&LO.att[k])?'+'+attIds(LO.att[k],k).join('.'):'')); });
   $('#pSet').innerHTML=setRows(false);
 }
