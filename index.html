@@ -116,7 +116,7 @@ button.sh::after{content:"+";font-size:18px;color:#fff;margin-left:2px}
 .sec>h3 small,.grp>h3 small,.qsec h3 small{font:500 12px/1.3 'Chakra Petch',sans-serif;color:var(--muted);letter-spacing:0}
 
 /* bottom navigation */
-.nav{position:fixed;left:0;right:0;bottom:0;z-index:15;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:15;display:grid;grid-template-columns:repeat(6,1fr);gap:2px;
   padding:6px calc(var(--sar) + 6px) calc(var(--sab) + 6px) calc(var(--sal) + 6px);background:#080d13;border-top:1px solid var(--line2)}
 .nav button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:54px;border-radius:var(--r2);color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
 .nav button svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -687,6 +687,132 @@ body.sheet-open .nav{display:none}
 
 .clsdesc{color:var(--text2);font-size:13.5px;line-height:1.45;margin:0}
 .mfoot:empty{display:none}
+/* ---------- name plates (title + banner), season pass, class challenges, tutorial coach ---------- */
+.np{position:relative;display:flex;flex-direction:column;justify-content:center;min-width:0;padding:4px 10px 4px 9px;border-left:3px solid var(--bc,var(--signal));border-radius:0 var(--r1) var(--r1) 0;overflow:hidden;isolation:isolate;background:var(--surf2)}
+.np>b{display:block;font:600 22px/.95 Teko,sans-serif;letter-spacing:.03em;padding-top:2px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np>small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--bc,var(--signal));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.np>small:empty{display:none}
+.np.bn-anim::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.18) 50%,transparent 65%);transform:translateX(-100%);animation:npshine 3.8s ease-in-out infinite;pointer-events:none}
+@keyframes npshine{0%,50%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.np.lg>b{font-size:32px;line-height:.9}
+.np.lg>small{font-size:11.5px}
+.np.sm>b{font-size:18px}
+.np .cl{font-style:normal;color:var(--text2);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opinfo .np{margin:2px 0 4px;padding-top:3px;padding-bottom:3px}
+.opinfo .np>b{font-size:25px}
+.wslot .sn.np{padding-top:3px;padding-bottom:3px;gap:0}
+.wslot .sn.np>b{font:600 19px/.95 Teko,sans-serif}
+#uPlate{padding:3px 8px 4px 7px;border-left-width:2px}
+#uPlate .nm{font:600 22px/.85 Teko,sans-serif}
+#uPlate>small{font-size:9.5px}
+#ePlate .np{margin:0 0 var(--s3)}
+.pcard .np{margin-bottom:4px}
+.pbtns{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2);margin-top:var(--s2)}
+.pbtns .btn,#howTut,#tePlay{flex-direction:column;gap:0;line-height:1.1}
+.pbtns .btn small,.mfoot .btn small{display:block;font-size:11px;font-weight:500;letter-spacing:0;opacity:.75;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:var(--s2)}
+.pk{display:flex;flex-direction:column;gap:6px;text-align:left;padding:8px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r2);min-height:var(--tap)}
+.pk .np{min-height:46px}
+.pk .pkh{display:flex;justify-content:space-between;gap:6px;font-size:11.5px;color:var(--muted)}
+.pk .pkh b{color:var(--rc,var(--text2));font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase}
+.pk.sel{border-color:var(--signal);background:linear-gradient(180deg,rgba(63,210,255,.14),rgba(63,210,255,.03))}
+.pk.lock{border-style:dashed}
+.pk.lock .np{opacity:.6}
+.pk .np>b{font-size:19px}
+.pk .pkh+.pkh span{font-size:11px;line-height:1.3}
+/* play screen pass chip */
+.passchip{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:var(--s3);align-items:center;width:100%;text-align:left;padding:7px 12px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--sc,var(--amber));border-radius:var(--r2);min-height:var(--tap)}
+@media (hover:hover){ .passchip:hover{border-color:var(--line2);border-left-color:var(--sc,var(--amber))} }
+.passchip .pc-t{display:flex;flex-direction:column;min-width:0}
+.passchip .pc-t small{color:var(--sc,var(--amber));font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.passchip .pc-t b{font:600 22px/.9 Teko,sans-serif;letter-spacing:.03em;padding-top:2px}
+.passchip .pc-b{display:flex;flex-direction:column;gap:4px;min-width:0}
+.passchip .pc-b small{color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.passchip .xpbar i,.ps-cur .xpbar i,.prow .xpbar i,.ps-t .xpbar i{background:linear-gradient(90deg,var(--sc,var(--amber)),#fff)}
+.passchip .pc-c{font-style:normal;min-width:24px;height:24px;display:grid;place-items:center;border-radius:12px;background:var(--amber);color:var(--amber-ink);font-weight:700;font-size:12px;padding:0 6px}
+/* pass screen */
+#pass{--sc:var(--amber)}
+.ps-cur{margin-bottom:var(--s3);display:flex;gap:var(--s4);align-items:center;padding:var(--s4);background:var(--surf);border:1px solid var(--line);border-left:3px solid var(--sc);border-radius:var(--r2)}
+.ps-tier{flex:none;width:76px;height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));border:1px solid var(--line2);clip-path:polygon(50% 0,100% 18%,100% 82%,50% 100%,0 82%,0 18%)}
+.ps-tier small{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.ps-tier b{font:600 48px/.85 Teko,sans-serif;color:var(--sc);padding-top:4px}
+.ps-prog{flex:1;min-width:0}
+.ps-prog small{display:block;color:var(--text2);font-size:12.5px;margin-top:6px}
+.ps-pv{max-width:860px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);background:var(--surf);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden}
+@media (min-width:520px){ .ps-pv{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)} }
+.ps-art{position:relative;min-height:150px;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 85%,rgba(255,255,255,.07),transparent 70%),#0a1018}
+.ps-art canvas{display:block;width:100%;height:auto;aspect-ratio:320/192}
+.ps-art .np{width:min(86%,300px);min-height:56px}
+.ps-art .big{font:600 64px/1 Teko,sans-serif;display:flex;align-items:center;gap:12px;padding:24px 0;border:0;background:none;min-height:0}
+.ps-art .big.cr{color:var(--amber)} .ps-art .big.sh{color:#dcc2ff}
+.ps-art .big.cr::before{content:"";width:22px;height:22px;border:4px solid var(--amber);transform:rotate(45deg);margin-top:-8px}
+.ps-art .big.sh::before{content:"";width:28px;height:28px;background:var(--shard);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);margin-top:-8px}
+.ps-pvi{display:flex;flex-direction:column;gap:4px;padding:var(--s3) var(--s4) var(--s4);justify-content:center;min-width:0}
+.ps-pvi small{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--rc,var(--muted))}
+.ps-pvi b{font:600 28px/.95 Teko,sans-serif;letter-spacing:.02em}
+.ps-pvi span{color:var(--text2);font-size:12.5px;line-height:1.4}
+.ps-pvi .btn{margin-top:6px;width:100%}
+.ps-pvi .own{color:var(--ok);font-weight:700;font-size:13px;margin-top:6px}
+.ps-track{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:4px 2px 12px;scroll-snap-type:x proximity;touch-action:pan-x pan-y;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.ps-t{position:relative;flex:none;width:96px;scroll-snap-align:center;display:flex;flex-direction:column;gap:4px;padding:6px 6px 8px;background:var(--surf);border:1px solid var(--line);border-top:3px solid var(--rc,var(--line2));border-radius:var(--r2);text-align:center;min-height:132px}
+.ps-t>small{font:600 18px/1 Teko,sans-serif;color:var(--muted);padding-top:2px}
+.ps-t .ic{height:58px;display:grid;place-items:center;border-radius:var(--r1);background:#0a1018;overflow:hidden}
+.ps-t .ic canvas{width:96px;height:58px;display:block}
+.ps-t .ic .np{width:100%;height:100%;padding:2px 5px}
+.ps-t .ic .np>b{font-size:13px}
+.ps-t .ic .np>small{font-size:8px}
+.ps-t .ic .cur{font:600 24px/1 Teko,sans-serif;min-height:30px}
+.ps-t>span{font-size:11px;line-height:1.25;color:var(--text2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.5em}
+.ps-t.lock{opacity:.62}
+.ps-t.got::after{content:"✓";position:absolute;top:6px;right:7px;color:var(--ok);font-weight:700;font-size:13px}
+.ps-t.claim{border-color:var(--amber);box-shadow:0 0 0 1px rgba(255,179,64,.45),0 0 18px rgba(255,179,64,.18)}
+.ps-t.claim>small{color:var(--amber)}
+.ps-t.cur>small{color:var(--sc)}
+.ps-t.sel{outline:2px solid var(--signal);outline-offset:1px}
+.ps-t.ex{background:linear-gradient(180deg,rgba(255,179,64,.12),var(--surf) 60%)}
+.ps-t .tg{position:absolute;top:5px;left:6px;font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber)}
+.ps-how{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px}
+.ps-how div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:7px 10px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r1);font-size:13px;color:var(--text2)}
+.ps-how b{color:var(--sc);font-weight:700;white-space:nowrap}
+/* results: pass + challenges */
+.prow{padding:8px 12px;margin-bottom:6px;background:linear-gradient(90deg,rgba(63,210,255,.12),rgba(63,210,255,0));border-left:3px solid var(--sc,var(--signal));font-size:13px}
+.prow.up{background:linear-gradient(90deg,rgba(63,210,255,.22),rgba(63,210,255,0))}
+.prow .mt{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}
+.prow .mt b{font:600 19px/1 Teko,sans-serif;color:var(--sc,var(--signal))}
+.prow small{display:block;margin-top:4px;color:var(--text2)}
+.crow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:7px 12px;margin-bottom:6px;background:var(--surf);border:1px solid var(--line);border-left:3px solid rgba(199,155,255,.6);border-radius:0 var(--r1) var(--r1) 0;font-size:12.5px}
+.crow.done{border-left-color:var(--shard);background:linear-gradient(90deg,rgba(199,155,255,.18),rgba(199,155,255,0) 70%),var(--surf)}
+.crow b{font-weight:600;color:var(--text)} .crow em{font-style:normal;color:var(--muted);white-space:nowrap}
+.crow .xpbar{grid-column:1/-1;height:4px} .crow .xpbar i{background:linear-gradient(90deg,var(--shard),#efe0ff)}
+.crow small{grid-column:1/-1;color:#dcc2ff}
+/* profile challenges */
+.chtabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;margin-bottom:var(--s2)}
+@media (max-width:560px){ .chtabs{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.chtabs button{min-width:0;padding:0 6px;white-space:nowrap}
+.chtabs button i{font-style:normal;opacity:.7;font-size:11px;margin-left:3px}
+.chprime{display:flex;gap:var(--s3);align-items:center;margin-top:var(--s2);padding:8px 10px;border:1px dashed var(--line2);border-radius:var(--r2);font-size:12.5px;color:var(--text2)}
+.chprime .np{flex:none;width:170px}
+.chprime.got{border-style:solid;border-color:rgba(199,155,255,.5)}
+/* tutorial coach marks */
+#coach{position:fixed;z-index:19;left:50%;transform:translateX(-50%);width:min(calc(100vw - 24px),440px);top:calc(var(--sat) + 96px);padding:12px 14px 12px;background:rgba(9,14,21,.97);border:1px solid var(--signal-line);border-left:3px solid var(--signal);border-radius:var(--r2);box-shadow:0 10px 30px rgba(0,0,0,.55);transition:top .25s var(--ease)}
+#coach .co-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:-6px 0 0}
+#coach .co-h small{color:var(--signal);font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+#coach .linkbtn{min-height:36px;font-size:12px}
+#coach b{display:block;font:600 24px/1 Teko,sans-serif;letter-spacing:.03em;padding-top:2px}
+#coach p{margin:4px 0 0;color:var(--text2);font-size:13.5px;line-height:1.45}
+#coach p em{font-style:normal;color:var(--text);font-weight:600}
+#coach .co-f{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;min-height:8px}
+#coach .co-dots{display:flex;gap:4px;flex-wrap:wrap}
+#coach .co-dots i{width:6px;height:6px;border-radius:50%;background:var(--line2)}
+#coach .co-dots i.on{background:var(--signal)}
+#coach .co-dots i.done{background:var(--signal-line)}
+#coachRing{position:fixed;z-index:18;pointer-events:none;border:3px solid var(--amber);border-radius:var(--r2);box-shadow:0 0 0 4px rgba(255,179,64,.3),0 0 26px rgba(255,179,64,.7),inset 0 0 18px rgba(255,179,64,.25);animation:coring 1.2s ease-in-out infinite}
+#coachRing.tile{border-radius:50%}
+@keyframes coring{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.06)}}
+#tutEnd .res{font-size:clamp(42px,11vw,72px);color:var(--signal)}
+#teRecap{margin-top:var(--s3)}
+#teRecap li{font-size:12.5px}
+@media (prefers-reduced-motion: reduce){ .np.bn-anim::after,#coachRing{animation:none!important} #coach{transition:none} }
 </style>
 </head>
 <body>
@@ -706,9 +832,10 @@ body.sheet-open .nav{display:none}
     </div>
     <div class="spacer"></div>
     <div class="playpanel">
+      <button class="passchip" id="mPass" aria-label="Open the season pass"><span class="pc-t"><small id="mPassS">Season</small><b id="mPassN">Tier 0</b></span><span class="pc-b"><span class="xpbar"><i id="mPassX"></i></span><small id="mPassL"></small></span><em class="pc-c hidden" id="mPassC">0</em></button>
       <button class="opcard" id="opcard" aria-label="Edit loadout">
         <canvas id="opc" width="128" height="152"></canvas>
-        <span class="opinfo"><small>Operative</small><span class="n" id="opName">NOMAD</span><span class="s" id="opSub"></span></span>
+        <span class="opinfo"><small>Operative</small><span class="np" id="opPlate"><b id="opName">NOMAD</b><small id="opTitle"></small></span><span class="s" id="opSub"></span></span>
         <span class="opedit">Edit</span>
       </button>
       <div class="modes" id="modes" role="radiogroup" aria-label="Mode"></div>
@@ -807,22 +934,50 @@ body.sheet-open .nav{display:none}
   </div></div>
 </section>
 
+<!-- SEASON PASS -->
+<section id="pass" class="screen sub mscreen hidden">
+  <header class="phead">
+    <div class="ph-t"><small id="psKick">Season pass</small><h2 class="display" id="psTitle">Season</h2></div>
+    <button class="btn sm" id="psClaimAll">Claim all</button>
+  </header>
+  <div class="lo-scroll" id="psScroll"><div class="lo-wrap wide">
+    <p class="pdesc" id="psDesc"></p>
+    <div class="ps-cur"><span class="ps-tier"><small>Tier</small><b id="psTier">0</b></span><div class="ps-prog"><div class="xprow"><span id="psXpT"></span><span id="psLeft"></span></div><span class="xpbar big"><i id="psXp"></i></span><small id="psNext"></small></div></div>
+    <div class="ps-track" id="psTrack" role="list" aria-label="Reward tiers"></div>
+    <div class="ps-pv" id="psPv"><div class="ps-art" id="psArt"><canvas id="psCv" width="320" height="192"></canvas></div><div class="ps-pvi"><small id="psPvK"></small><b id="psPvN"></b><span id="psPvS"></span><div id="psPvBtn"></div></div></div>
+    <div class="sec"><h3>Earning pass XP <small>1000 pass XP per tier · progress is free, nothing to buy</small></h3><div class="ps-how" id="psHow"></div></div>
+  </div></div>
+</section>
+
 <!-- PROFILE -->
 <section id="profile" class="screen sub mscreen hidden">
   <header class="phead"><div class="ph-t"><small>Career and settings</small><h2 class="display">Profile</h2></div></header>
   <div class="lo-scroll"><div class="lo-wrap">
-    <div class="pcard"><span class="lvlb" id="pLvl">1</span><div style="flex:1;min-width:0"><div class="pn" id="pName"></div><div class="ps" id="pXpT"></div><span class="xpbar big"><i id="pXp"></i></span></div></div>
+    <div class="pcard"><span class="lvlb" id="pLvl">1</span><div style="flex:1;min-width:0"><span class="np lg" id="pPlate"><b id="pName"></b><small id="pTitle"></small></span><div class="ps" id="pXpT"></div><span class="xpbar big"><i id="pXp"></i></span></div></div>
+    <div class="pbtns"><button class="btn sm" id="pPickT">Title<small id="pPickTs"></small></button><button class="btn sm" id="pPickB">Banner<small id="pPickBs"></small></button></div>
     <div class="sec"><h3>Career</h3><div class="endgrid" id="pStats"></div><div class="pkfx" id="pKfx"></div></div>
+    <div class="sec"><h3>Class challenges <small>played as that class · rewards titles and banners</small></h3><div class="seg chtabs" id="pChTabs" role="tablist" aria-label="Class"></div><div id="pChal"></div></div>
     <div class="sec"><h3>Weapon mastery <small>hits, damage and takedowns with a weapon level it up</small></h3><div id="pMast"></div></div>
     <div class="sec"><h3>Level rewards <small>gear unlocks</small></h3><div class="track" id="pTrack"></div></div>
     <div class="sec"><h3>Recent matches</h3><div id="pHist"></div></div>
+    <div class="sec"><h3>Training</h3><div class="setrow"><div>Guided tutorial<small id="pTutS">A short scripted match that teaches the basics</small></div><button class="btn sm" id="pTut">Play</button></div></div>
     <div class="sec"><h3>Settings</h3><div class="settings" id="pSet"></div></div>
   </div></div>
+  <div class="sheet hidden" id="prSheet">
+    <div class="sheet-bg" data-close></div>
+    <div class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="prShT">
+      <div class="sheet-grip"></div>
+      <div class="sheet-head"><div><small id="prShK">Name plate</small><h3 id="prShT"></h3></div><button class="iconbtn" data-close aria-label="Close">×</button></div>
+      <p class="sheet-sub" id="prShS"></p>
+      <div class="sheet-body" id="prShB"></div>
+    </div>
+  </div>
 </section>
 
 <nav class="nav" id="nav">
   <button data-nav="menu" class="sel"><svg viewBox="0 0 24 24"><path d="M12 2l3 6 6 1-4.5 4.5 1 6.5L12 17l-5.5 3 1-6.5L3 9l6-1z"/></svg>Play</button>
   <button data-nav="loadout"><svg viewBox="0 0 24 24"><path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Loadout</button>
+  <button data-nav="pass"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4zM9 8h6M9 12h6"/></svg>Pass<i class="dot hidden" id="pDot"></i></button>
   <button data-nav="quests"><svg viewBox="0 0 24 24"><path d="M9 5h11M9 12h11M9 19h11M4 5l1 1 2-2M4 12l1 1 2-2M4 19l1 1 2-2"/></svg>Quests<i class="dot hidden" id="qDot"></i></button>
   <button data-nav="store"><svg viewBox="0 0 24 24"><path d="M4 8h16l-1 12H5zM8 8V6a4 4 0 0 1 8 0v2"/></svg>Store</button>
   <button data-nav="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Profile</button>
@@ -864,7 +1019,7 @@ body.sheet-open .nav{display:none}
       <div class="tbtns"><button class="btn ghost" id="tCancel">Cancel</button><button class="btn primary fire" id="tFire">Fire</button></div>
     </div>
     <div class="unitp pe" id="unitp">
-      <div><div class="nm" id="uName"></div><div class="cl" id="uCls"></div></div>
+      <div class="np" id="uPlate"><b class="nm" id="uName"></b><small id="uTtl"></small><div class="cl" id="uCls"></div></div>
       <div class="mid"><div class="pips" id="uHp"></div><div class="meta"><span class="ap" id="uAp"></span><span id="uAmmo"></span><span class="swk hidden" id="uSw" title="">Second Wind</span><span class="st" id="uSt"></span></div><div class="ally hidden" id="uAlly"></div></div>
       <div class="tmr hidden" id="tmr"><b id="tmrN">30</b><i id="tmrB"></i><small>sec</small></div>
     </div>
@@ -928,9 +1083,11 @@ body.sheet-open .nav{display:none}
       <li>Six regions: Neo-Kowloon, Frostfall Station, Ember Wastes, Verdant Ruins, Ironhaven Docks and Blackwell Refinery. The map roulette after Deploy picks one you did not just play.</li>
       <li>Play online: one player hosts a room and shares the 5-letter code or invite link. Friends join from Play online and appear in the host’s waiting room, where the host adds bots and picks their difficulty. If someone drops, AI takes over their operative.</li>
       <li>Matches pay XP and credits. Levels unlock gear upgrades; credits and shards buy cosmetics.</li>
+      <li>Season pass (Pass tab): a free 45-tier track that resets every 6 weeks. Matches, the first win of the day and quest claims earn pass XP; tiers hold credits, shards, cosmetics, titles, banners and two season-exclusive items.</li>
+      <li>Class challenges (Profile): five goals per class, tracked in matches played as that class. They award titles (shown under your callsign) and banners (your name plate). Finish all five for the class’s prime title and banner.</li>
     </ul>
     </div>
-    <div class="mfoot"><button class="btn primary" id="howClose">Got it</button></div>
+    <div class="mfoot"><button class="btn primary" id="howTut">Play the tutorial<small>About 5 minutes · first run pays a reward</small></button><button class="btn" id="howClose">Got it</button></div>
   </div>
 </div>
 
@@ -940,13 +1097,36 @@ body.sheet-open .nav{display:none}
     <div class="mbody" style="padding-top:var(--s4)">
       <div class="display res" id="eRes">Victory</div>
       <p id="eSub"></p>
+      <div id="ePlate"></div>
       <div class="xpbox"><div class="xprow"><span>Level <b id="eLvl">1</b></span><span id="eXpT"></span></div><span class="xpbar big"><i id="eXp"></i></span></div>
       <div class="rewards" id="eRew"></div>
       <div id="eUnl"></div>
       <div id="eMast"></div>
+      <div id="ePass"></div>
+      <div id="eChal"></div>
       <div class="endgrid" id="eGrid"></div>
     </div>
     <div class="mfoot"><div class="endbtns"><button class="btn primary" id="eAgain">Play again</button><button class="btn" id="eShare">Share</button><button class="btn ghost" id="eMenu">Menu</button></div></div>
+  </div>
+</div>
+
+<!-- TUTORIAL: coach card + highlight ring over the live HUD, and the training-complete card -->
+<div id="coachRing" class="hidden" aria-hidden="true"></div>
+<div id="coach" class="hidden" role="dialog" aria-labelledby="coT">
+  <div class="co-h"><small id="coK">Training</small><button class="linkbtn" id="coSkip">Skip tutorial</button></div>
+  <b id="coT" aria-live="polite"></b><p id="coB"></p>
+  <div class="co-f"><span class="co-dots" id="coDots" aria-hidden="true"></span><button class="btn primary sm hidden" id="coNext">Next</button></div>
+</div>
+<div class="modal hidden" id="tutEnd" role="dialog" aria-modal="true" aria-labelledby="teT">
+  <div class="mbox">
+    <div class="mbody" style="padding-top:var(--s4)">
+      <div class="display res win" id="teT">Training complete</div>
+      <p id="teSub"></p>
+      <div id="tePlate"></div>
+      <div class="rewards" id="teRew"></div>
+      <ul class="howlist" id="teRecap"></ul>
+    </div>
+    <div class="mfoot"><button class="btn primary" id="tePlay">Play a real match</button><button class="btn ghost" id="teMenu">Menu</button></div>
   </div>
 </div>
 
@@ -1708,10 +1888,18 @@ function makeUnit(lo,isPlayer,name,color,prof,team){
     skin:eq?(cosHas('skin',eq.skin)?eq.skin:'default'):(RNG()<0.35?pick(AI_SKINS):'default'),finish:eq?(cosHas('finish',eq.finish)?eq.finish:'default'):(RNG()<0.3?pick(AI_FINS):'default'),
     trail:eq?(cosHas('trail',eq.trail)?eq.trail:'default'):aiCos(name,AI_TRAILS,3),visor:eq?(cosHas('visor',eq.visor)?eq.visor:'cyan'):aiCos(name,AI_VISORS,4),
     kfx:eq?(cosHas('kill',eq.kill)?eq.kill:'default'):aiCos(name,AI_KFX,6)}; // kill effect (visual only)
+  // name plate (cosmetic, never read by the sim): your own picks, or a remote spec's cleaned ids; AI has none
+  u.ttl=prof?(prof.own?(hasK(TITLES,prof.title)?prof.title:''):myTitle()):''; u.bnr=prof?(prof.own?bnKey(prof.banner):myBanner()):'';
   u.hp=u.maxHp; return u;
 }
 // per-weapon mastery counters for this match (local player's own actions only; never read by the sim)
 function mstat(k){ G.mstat=G.mstat||{}; return G.mstat[k]||(G.mstat[k]={hits:0,dmg:0,kills:0}); }
+/* Challenge counters for the local player (G.cstat). Like G.stats/G.mstat they are written by the sim but never read by
+   it, so they cannot change a lockstep match. G.cctx is the kind of the local player's current command (prim / sec / abil /
+   util / obj), so a takedown knows what caused it; reaction shots (overwatch, return fire) count as primary. */
+function cstatNew(){ return {k_prim:0,k_sec:0,k_abil:0,k_util:0,k_obj:0,rfHits:0,crits:0,breach:0,doors:0,tiles:0,cover:0,booms:0,abil:0,utils:0,dmgTaken:0}; }
+function cst(u,k,n){ if(u&&u.isPlayer&&G.cstat) G.cstat[k]=(G.cstat[k]||0)+(n==null?1:n); }
+function cmdCtx(c){ const k=c&&c.k; return k==='fire'?(c.kind==='shoot'?'prim':'abil'):k==='sec'?'sec':k==='act'?'abil':k==='throw'||k==='util'?'util':k==='obj'?'obj':null; }
 function placeUnit(u,x,y){ u.x=u.rx=x; u.y=u.ry=y; u.rz=ez(x,y); }
 function throwRange(u,U){ return U.range+(U.dev?0:(u.cls==='grenadier'?2:0)+(hasP(u,'g_launch')?3:0)); }
 function faceTo(u,x,y){ const a=iso(u.x,u.y),b=iso(x,y); if(Math.abs(b[0]-a[0])>1) u.face=b[0]>a[0]?1:-1; }
@@ -1776,6 +1964,7 @@ function setupMatch(lo,mk,net,pre){
   for(let k=0;k<crateN;k++){ let best=-1,bd=-1; for(let t=0;t<50;t++){ const c=pick(floors); if(!inR(c)||taken.has(c)||G.crates.some(q=>idx(q.x,q.y)===c)) continue; let md=99; for(const s of [...taken].concat(G.crates.map(q=>idx(q.x,q.y)))) md=Math.min(md,Math.hypot(c%MW-s%MW,((c/MW)|0)-((s/MW)|0))); if(md>bd){bd=md;best=c;} } if(best>=0) G.crates.push({x:best%MW,y:(best/MW)|0,ph:RNG()*6}); }
   G.intel={}; G.noise=[]; G.round=0; G.over=false; G.playerDead=false; G.spec=null; G.speed=1; G.rewarded=null; G.result=null; G.place=0; G.busy=true; G.mode='idle'; G.reach=null; G.pending=-1; G.turnRes=null; G.paused=false; G.turnMax=0;
   G.stats={shots:0,hits:0,grazes:0,dmg:0,kills:0,rounds:0,crates:0,drops:0,owHits:0,highHits:0,nadeHits:0,revives:0};
+  G.cstat=cstatNew(); G.cctx=null; // challenge / pass counters (local player only, write-only from the sim)
   G.reveals=[]; G.sensors=[]; G.lkp=new Map(); G.cues=[]; G.groundDirty=false;
   G.scene='game';
   // weather, objectives and footprints: rolled last so the seeded order of everything above is unchanged
@@ -4285,6 +4474,8 @@ function frame(now){
   if(!$('#loadout').classList.contains('hidden')) { drawPreview(); drawMfAnim(); }
   // menu previews animate: operative card, and the store tiles on screen (every other frame)
   if(!$('#menu').classList.contains('hidden')) drawOpCard();
+  if(TUT.on) tutTick();
+  if(!$('#pass').classList.contains('hidden')&&(pvF=!pvF)) passAnim();
   if(!$('#store').classList.contains('hidden')&&(pvF=!pvF)) document.querySelectorAll('#stGrid canvas[data-pv],#stGrid canvas[data-set]').forEach(cv2=>{ const r=cv2.getBoundingClientRect(); if(r.bottom>0&&r.top<VH) (cv2.dataset.set?drawSetPreview(cv2):drawCosPreview(cv2)); });
   requestAnimationFrame(frame);
 }
@@ -4346,11 +4537,12 @@ function applyDamage(t,d,src,o){
   if(t.rupt&&src&&src!==t) d+=t.rupt; // Rupture (Grenadier perk): +1 damage from every hit
   let dmg=o.pierce?d:Math.max(1,d-t.armor); const total=dmg; let abs=0;
   if(t.shield>0){ abs=Math.min(t.shield,dmg); t.shield-=abs; dmg-=abs; }
-  t.hp-=dmg; t.flash=0.3;
+  t.hp-=dmg; t.flash=0.3; cst(t,'dmgTaken',dmg);
   if(src&&src.isPlayer&&isEnemy(src,t)) G.stats.dmg+=total;
   if(ms){ ms.dmg+=total; if(t.hp<=0) ms.kills++; }
   if(t.isPlayer) buzz(o.crit?[30,30,50]:35);
   if(o.anim){ hitFx(t,abs); floatText(t,(o.graze?'GRAZE ':o.crit?'CRIT ':'')+'−'+total,o.graze?[190,215,255]:o.crit?[255,180,60]:[255,255,255],o.crit?24:o.graze?18:20); SFX.hit(); if(o.crit) G.cam.shake=Math.max(G.cam.shake,6); }
+  if(t.tutGuard&&t.hp<1) t.hp=1;
   if(t.hp<=0){ t.hp=0; if(G.M.team>1&&G.units.some(m=>m!==t&&m.team===t.team&&standing(m))) down(t,src,o.anim,o.how); else if(G.M.team===1&&t.sw>0) swDown(t,src,o.anim); else kill(t,src,o.anim,o.how); }
 }
 function down(t,src,anim,how){
@@ -4375,7 +4567,7 @@ function kill(t,src,anim,how){
   t.vDeathS=src&&src!==t?(iso(t.x,t.y)[0]>=iso(src.x,src.y)[0]?1:-1):-t.face; // visual: which way the body falls
   t.alive=false; t.downed=false; t.swDown=false; t.deadT=0.001; t.overwatch=false; t.hunker=false;
   bountyKill(t,src);
-  if(src&&src!==t&&isEnemy(src,t)){ src.kills++; src.tk=(src.tk||0)+1; if(src.isPlayer){ G.stats.kills++; floatText(src,'+'+killValue(src)+' CR',[255,179,64],17); buzz(25); } else if(Math.random()<0.3&&shouldShow(src)) bubble(src,fpick(TAUNTS)); }
+  if(src&&src!==t&&isEnemy(src,t)){ src.kills++; src.tk=(src.tk||0)+1; if(src.isPlayer){ G.stats.kills++; cst(src,'k_'+(G.cctx||'prim')); floatText(src,'+'+killValue(src)+' CR',[255,179,64],17); buzz(25); } else if(Math.random()<0.3&&shouldShow(src)) bubble(src,fpick(TAUNTS)); }
   feedLine(src&&src!==t?(src.name+' eliminated '+t.name+(how?' ('+how+')':'')):(t.name+(how==='bled out'?' bled out':how==='explosion'?' was caught in a blast':' was lost to the storm')),mine(t)||mine(src));
   const p=chest(t);
   // the killer's kill effect (visual only; bleed-outs, storm and blasts with no killer get the standard one)
@@ -4403,7 +4595,7 @@ async function fireShot(a,t,o){
   // o.W fires a secondary (pistol or throw); its ammo is u.sAmmo (pistol clip) or u.sUses (throws left), named by o.ammoKey
   const W=o.W||a.W, prim=!o.W, ak=o.ammoKey||'ammo';
   a[ak]=Math.max(0,a[ak]-(o.ammoCost||1)); faceTo(a,t.x,t.y);
-  if(a.isPlayer){ G.stats.shots++; if(hit) G.stats.hits++; if(res==='graze') G.stats.grazes++; if(hit&&info.elevAdv) G.stats.highHits++; if(hit&&o.reaction) G.stats.owHits++; if(hit&&mastTracked(W.id)) mstat(W.id).hits++; }
+  if(a.isPlayer){ G.stats.shots++; if(hit) G.stats.hits++; if(res==='graze') G.stats.grazes++; if(hit&&info.elevAdv) G.stats.highHits++; if(hit&&o.reaction) G.stats.owHits++; if(hit&&mastTracked(W.id)) mstat(W.id).hits++; if(hit&&o.rf) cst(a,'rfHits'); if(crit) cst(a,'crits'); }
   const anim=shouldShow(a)||shouldShow(t); const kind=o.fxk||W.fx;
   if(anim){ animShot(a,o.reaction?.26:.48,kind,!prim,o.label); focusMid(a,t); if(o.reaction) floatText(a,o.rf?'RETURN FIRE':'OVERWATCH',o.rf?[255,214,90]:[127,232,255],18); else if(o.label) floatText(a,o.label,[255,190,80],18); await wait(o.reaction?260:480); if(!a.alive||!t.alive) return false; shotFX(a,t,hit,kind); await wait(FXDUR[kind]||150); }
   else if(!W.silent&&G.player&&!G.fullVis&&viewers().some(v=>Math.hypot(a.x-v.x,a.y-v.y)<17)) ping(a.x,a.y); // a suppressed shot out of sight gives no ripple
@@ -4449,7 +4641,7 @@ async function moveUnit(u,path){
     const anim=shouldShow(u)||tileShown(nx,ny);
     faceTo(u,nx,ny);
     if(anim){ if(!(G.spec&&G.spec.follow)) focusOn(nx,ny); const diag=nx!==u.x&&ny!==u.y, climb=hi(nx,ny)!==hi(u.x,u.y); await new Promise(res=>G.tweens.push({u,fx:u.rx,fy:u.ry,tx:nx,ty:ny,fz:u.rz,tz:ez(nx,ny),t:0,dur:climb?0.32:diag?0.2:0.15,res})); }
-    const ox=u.x, oy=u.y; placeUnit(u,nx,ny); if(hasP(u,'r_slip')) u.slip=true;
+    const ox=u.x, oy=u.y; placeUnit(u,nx,ny); cst(u,'tiles'); if(hasP(u,'r_slip')) u.slip=true;
     if(wxNow().prints){ G.prints.push({x:nx,y:ny,dx:nx-ox,dy:ny-oy,id:u.id,team:u.team,r:G.round}); if(G.prints.length>360) G.prints.splice(0,G.prints.length-360); } // snow tracks
     if(u.team===(G.player&&G.player.team)) computeVis();
     pickup(u);
@@ -4695,13 +4887,13 @@ async function damageTerr(x,y,d,src,anim){
 async function breakTerr(x,y,src,anim){
   const o=cell(x,y); if(!o) return; const T=TERR[o.kind];
   if(T&&T.boom){ await detonate(x,y,src); return; }
-  G.grid[idx(x,y)]=stageNext(o); terrChanged(true,x,y,0);
+  G.grid[idx(x,y)]=stageNext(o); cst(src,'cover'); terrChanged(true,x,y,0);
   if(anim||tileShown(x,y)){ floatText(tileDummy(x,y),o.kind==='door'?'DOOR BREACHED':o.t===2?'COVER DAMAGED':'COVER DESTROYED',[255,190,90],17); terrBits(x,y,null,18); SFX.noise(.35,'lowpass',700,.5); G.cam.shake=Math.max(G.cam.shake,4); }
 }
 // explosive barrels and tanks: blast damage, then the blast knocks terrain down a stage and sets off other explosives
 async function detonate(x,y,src){
   const o=cell(x,y), B=o&&TERR[o.kind]&&TERR[o.kind].boom; if(!B) return;
-  G.grid[idx(x,y)]=Object.assign(mkTerr('debris',o),{scorch:1}); G.decals.push({x:x+.5,y:y+.5,r:B.r*0.8}); terrChanged(true,x,y,B.r);
+  cst(src,'booms'); G.grid[idx(x,y)]=Object.assign(mkTerr('debris',o),{scorch:1}); G.decals.push({x:x+.5,y:y+.5,r:B.r*0.8}); terrChanged(true,x,y,B.r);
   const hitU=G.units.filter(v=>v.alive&&Math.hypot(v.x-x,v.y-y)<=B.r+0.01);
   const anim=tileShown(x,y)||hitU.some(shouldShow);
   if(anim){ const p=tileC(x,y); G.cam.tx=p[0]; G.cam.ty=p[1]; explode(x,y,B.r,false); floatText(tileDummy(x,y),TERR[o.kind].name.toUpperCase()+' EXPLODES',[255,150,60],18); }
@@ -4718,7 +4910,7 @@ async function terrBlast(cx,cy,r,src){
   for(let y=Math.floor(cy-r);y<=Math.ceil(cy+r);y++) for(let x=Math.floor(cx-r);x<=Math.ceil(cx+r);x++){
     if(!inMap(x,y)||Math.hypot(x-cx,y-cy)>r+0.01) continue; const o=G.grid[idx(x,y)]; if(!o) continue;
     if(TERR[o.kind]&&TERR[o.kind].boom){ boom.push([x,y]); continue; }
-    const n=stageNext(o); if(n!==o){ G.grid[idx(x,y)]=n; ch=true; } }
+    const n=stageNext(o); if(n!==o){ G.grid[idx(x,y)]=n; ch=true; cst(src,'cover'); } }
   const lost=(G.sensors||[]).filter(s=>Math.hypot(s.x-cx,s.y-cy)<=r+0.01);
   if(lost.length){ G.sensors=G.sensors.filter(s=>!lost.includes(s)); for(const s of lost) if(tileShown(s.x,s.y)) floatText(tileDummy(s.x,s.y),'SENSOR DESTROYED',[255,140,120],15); }
   if(ch) terrChanged(true,cx,cy,r);
@@ -5024,8 +5216,12 @@ async function pObj(){ if(!inputOpen()) return; const q=G.objT&&G.objT[G.oIdx]; 
 function enterThrow(util){ G.mode='throw'; G.throwUtil=util; G.throwTile=-1; G.pending=-1; G.pendingPath=null; G.cam.tz=Math.min(G.cam.tz,defaultZ()*0.85); hint('Tap a tile to aim'); updateHUD(); }
 /* Every player action is a command. Locally it runs through execCmd straight away; online the same
    command is sent to the other clients, which run it through execCmd when that unit's turn reaches it. */
-async function playCmd(c){ c.r=G.round; if(NET.on) netSendCmd(c); await execCmd(G.player,c); afterAction(); }
+async function playCmd(c){ c.r=G.round; if(NET.on) netSendCmd(c); await execCmd(G.player,c); if(TUT.on) tutCmd(c); afterAction(); }
 async function execCmd(u,c){
+  if(!u||!u.isPlayer||!c) return execCmd0(u,c);
+  const k=cmdCtx(c), p=G.cctx; G.cctx=k; if(k==='abil') cst(u,'abil'); else if(k==='util') cst(u,'utils'); else if(c.k==='breach') cst(u,'breach'); else if(c.k==='door') cst(u,'doors');
+  try{ return await execCmd0(u,c); } finally { G.cctx=p; } }
+async function execCmd0(u,c){
   const byId=id=>G.units.find(x=>x.id===id);
   if(c.k==='move'){ if(!Array.isArray(c.path)) return; u.ap-=c.ap; await moveUnit(u,c.path); u.moved=true; if(u.shot) u.ap=0; }
   else if(c.k==='fire'){ const t=byId(c.t), k=c.kind; if(!t) return;
@@ -5055,7 +5251,7 @@ async function execCmd(u,c){
   else u.ap=0;
 }
 async function pFire(){
-  if(!inputOpen()) return; const u=G.player, t=G.targets[G.tIdx], k=G.tKind; if(!t) return;
+  if(!inputOpen()) return; const u=G.player, t=G.targets[G.tIdx], k=G.tKind; if(!t) return; if(TUT.on&&!tutAllow(k)) return;
   G.busy=true; G.mode='idle'; updateHUD();
   let c={k:'fire',kind:k,t:t.id}; if(k==='slash') c.path=G.slashPaths&&G.slashPaths.get(t);
   if(k==='sec'||k==='hands'){ const s=G.secMap&&G.secMap.get(t); c={k:'sec',t:t.id}; if(s&&s.path&&s.path.length>1) c.path=s.path; if(k==='hands') c.free=1; }
@@ -5063,17 +5259,17 @@ async function pFire(){
   await playCmd(c);
 }
 async function pThrow(){
-  if(!inputOpen()||G.throwTile<0) return; const u=G.player, util=G.throwUtil; const tx=G.throwTile%MW, ty=(G.throwTile/MW)|0;
+  if(!inputOpen()||G.throwTile<0) return; if(TUT.on&&!tutAllow('throw')) return; const u=G.player, util=G.throwUtil; const tx=G.throwTile%MW, ty=(G.throwTile/MW)|0;
   G.busy=true; G.mode='idle'; updateHUD();
   await playCmd({k:'throw',i:u.utils.indexOf(util),x:tx,y:ty});
 }
 async function pMove(){
-  if(!inputOpen()||G.pending<0) return; const u=G.player; const cost=G.reach.dist[G.pending]; const ap=cost<=u.mob+1e-6?1:2; if(ap>u.ap) return;
+  if(!inputOpen()||G.pending<0) return; if(TUT.on&&!tutAllow('move')) return; const u=G.player; const cost=G.reach.dist[G.pending]; const ap=cost<=u.mob+1e-6?1:2; if(ap>u.ap) return;
   const path=G.pendingPath; G.busy=true; G.mode='idle'; G.pending=-1; G.pendingPath=null; updateHUD();
   await playCmd({k:'move',path,ap});
 }
 function onAction(id){
-  const u=G.player; if(!inputOpen()) return;
+  const u=G.player; if(!inputOpen()) return; if(TUT.on&&!tutAllow(id)) return;
   if(id==='move'){ pMove(); return; }
   if(id==='door'){ const dr=adjDoor(u); if(dr){ G.busy=true; G.mode='idle'; playCmd({k:'door',x:dr.x,y:dr.y}); } return; }
   if(u.shot&&id!=='end'){ hint('After shooting you can only move'); return; }
@@ -5472,7 +5668,7 @@ function updateHUD(){
   if(G.playerDead){ up.classList.add('hidden'); $('#actions').classList.add('hidden'); $('#tgt').classList.add('hidden'); $('#spec').classList.toggle('hidden',!!G.over||!G.spec); fillSpec(); return; }
   up.classList.remove('hidden'); $('#spec').classList.add('hidden');
   up.classList.toggle('downed',!!u.downed);
-  $('#uName').textContent=u.name; $('#uCls').textContent=CLASSES[u.cls].name+' · '+WEAPONS[u.wid].short+(weaponMkU(u)>1?' Mk '+(weaponMkU(u)===2?'II':'III'):'')+(u.S?' + '+u.S.short:'');
+  setPlate($('#uPlate'),u.name,u.ttl,u.bnr); $('#uCls').textContent=CLASSES[u.cls].name+' · '+WEAPONS[u.wid].short+(weaponMkU(u)>1?' Mk '+(weaponMkU(u)===2?'II':'III'):'')+(u.S?' + '+u.S.short:'');
   let ph=''; for(let i=0;i<u.maxHp;i++) ph+='<i class="pip'+(i<u.hp?' on':'')+'"></i>'; for(let i=0;i<u.shield;i++) ph+='<i class="pip sh"></i>'; $('#uHp').innerHTML=ph;
   $('#uAp').innerHTML='<i class="'+(u.ap>=1?'on':'')+'"></i><i class="'+(u.ap>=2?'on':'')+'"></i>'+(u.ap>=3?'<i class="on"></i>':'');
   $('#uAmmo').textContent='Ammo '+u.ammo+'/'+u.W.clip+(u.S&&u.S.clip?' · '+u.S.short+' '+u.sAmmo+'/'+u.S.clip:u.S&&u.S.uses?' · '+u.S.short+' ×'+u.sUses:'');
@@ -5805,6 +6001,18 @@ const KILLS={default:{name:'Standard',price:0,r:'c',d:'Sparks and the ELIMINATED
   meteor:{name:'Extinction event',price:400,cur:'sh',r:'l',d:'A meteor streaks in and leaves a burning crater.'},
   voxel:{name:'Total deletion',price:750,cur:'sh',r:'m',d:'Scanned out of existence into voxels and falling code.'},
   ascend:{name:'Ascension',price:850,cur:'sh',r:'m',ach:{k:'wins',n:50},d:'A golden spirit with wings rises in a pillar of light.'}};
+/* season pass exclusives (pass: the SEASONS key): never sold, only granted by the pass track. Looks reuse existing render
+   paths: skin materials (SKMAT patterns and motes), visor shapes, finish materials (sk) and trail effects (TFX aliases). */
+Object.assign(SKMAT,{p_stormcall:{pat:'hex',c:[[38,32,78],[26,22,56],[78,66,150]],trim:1,trimc:[170,150,255],shim:.6,mote:{k:'star',col:[190,175,255],n:3}},
+  p_ashfall:{ps:0.3,pat:'rust',c:[[56,50,48],[210,96,32],[96,42,20],[126,116,110]],pl:1,mote:{k:'ember',col:[255,120,40],n:4},aura:[255,90,20]},
+  p_abyssal:{pat:'circuit',c:[[8,40,48],[20,120,120],[46,240,208],[6,12,16]],gc:[[46,240,208]],gl:'circuitG',fr:8,fps:7,pl:1,glo:[.85,1,0],mote:{k:'rise',col:[46,240,208],n:4},aura:[20,200,180]}});
+Object.assign(SKINS,{p_stormcall:{name:'Stormcall',price:0,r:'e',pass:'storm',b:{m:[38,32,78],d:[20,16,44],a:[170,150,255]}},
+  p_ashfall:{name:'Ashfall',price:0,r:'l',pass:'ash',b:{m:[56,50,48],d:[26,22,20],a:[255,110,30]}},
+  p_abyssal:{name:'Abyssal',price:0,r:'l',pass:'tide',b:{m:[10,44,52],d:[4,18,22],a:[46,240,208]}}});
+Object.assign(VISORS,{p_cinder:{name:'Cinder eye',c:'#ff5a1f',price:0,r:'e',sh:'cyclops',pass:'ash'},p_tide:{name:'Tidal band',c:'#2ef0d0',price:0,r:'e',sh:'band',pass:'tide'}});
+FINISHES.p_rime={name:'Rime',c:'#cfefff',price:0,r:'e',sk:'frost',pass:'white'}; FINISHES.p_rime.anim=SKMAT.frost.fr;
+Object.assign(TRAILS,{p_tempest:{name:'Tempest',c:'#b8a8ff',price:0,r:'l',pass:'storm'},p_glacier:{name:'Glacier fall',c:'#d8f6ff',price:0,r:'l',pass:'white'}});
+TFX.p_tempest=TFX.lightning; TFX.p_glacier=TFX.comet;
 const COS={skin:SKINS,visor:VISORS,finish:FINISHES,trail:TRAILS,kill:KILLS};
 const COS_LABEL={skin:'Armor skin',visor:'Visor',finish:'Weapon finish',trail:'Drop trail',kill:'Kill effect'};
 const cosHas=(cat,k)=>!!(COS[cat]&&typeof k==='string'&&Object.prototype.hasOwnProperty.call(COS[cat],k));
@@ -5835,7 +6043,7 @@ function buySet(k){ const q=setQuote(k); if(q.owned) return true; const have=q.c
   if(q.cur==='sh') PROF.shards-=q.price; else PROF.credits-=q.price; for(const id of q.miss) PROF.cos.push(id); for(const id of q.ids){ const [c,key]=id.split(':'); PROF.equip[c]=key; } saveProf(); return true; }
 // how an item is earned, for store cards: "Level 12", "Win 25 matches", or ''
 const ACH_TXT={wins:'Win # matches',kills:'Get # eliminations',matches:'Play # matches',top3:'Finish top 3 # times'};
-function cosHow(cat,key){ const it=COS[cat]&&COS[cat][key]; if(!it) return ''; if(it.lvl) return 'Free at level '+it.lvl; if(it.ach) return ACH_TXT[it.ach.k].replace('#',it.ach.n); return ''; }
+function cosHow(cat,key){ const it=COS[cat]&&COS[cat][key]; if(!it) return ''; if(it.pass){ const S=SEASONS.find(x=>x.key===it.pass); return 'Season pass exclusive'+(S?' ('+S.name+')':''); } if(it.lvl) return 'Free at level '+it.lvl; if(it.ach) return ACH_TXT[it.ach.k].replace('#',it.ach.n); return ''; }
 function cosEarned(it){ return !!(it&&((it.lvl&&level()>=it.lvl)||(it.ach&&((PROF.career&&PROF.career[it.ach.k])||0)>=it.ach.n))); }
 // grant level / career cosmetics (runs on save; quiet on load). Returns the names that were new.
 function syncCos(quiet){ try{ if(!PROF||!PROF.cos) return []; }catch(e){ return []; } const got=[];
@@ -5843,7 +6051,8 @@ function syncCos(quiet){ try{ if(!PROF||!PROF.cos) return []; }catch(e){ return 
   if(got.length&&!quiet&&typeof toast==='function') toast('Cosmetic unlocked',got.join(', '),'lvl'); return got; }
 // AI picks: non-premium pools (one seeded pick per unit, as before) and a hashed visor shape / trail (no RNG calls)
 function aiCos(name,list,salt){ let h=salt; for(const ch of String(name)) h=(Math.imul(h,31)+ch.charCodeAt(0))|0; return list[Math.floor(hash(h,salt,77)*list.length)]; }
-const AI_SKINS=Object.keys(SKINS).filter(k=>'cre'.includes(SKINS[k].r)), AI_FINS=Object.keys(FINISHES).filter(k=>'cre'.includes(FINISHES[k].r)), AI_VISORS=Object.keys(VISORS).filter(k=>'cre'.includes(VISORS[k].r)), AI_TRAILS=Object.keys(TRAILS).filter(k=>'cre'.includes(TRAILS[k].r));
+const aiPool=T=>Object.keys(T).filter(k=>'cre'.includes(T[k].r)&&!T[k].pass); // AI never wears season pass exclusives
+const AI_SKINS=aiPool(SKINS), AI_FINS=aiPool(FINISHES), AI_VISORS=aiPool(VISORS), AI_TRAILS=aiPool(TRAILS);
 // AI kill effects: hashed from the name like trails (no RNG call); about half keep the standard one
 const AI_KFX=Object.keys(KILLS).filter(k=>'cr'.includes(KILLS[k].r)).concat(new Array(9).fill('default'));
 const PACKS=[{id:'p1',sh:100,price:'$0.99',name:'Pouch'},{id:'p2',sh:550,price:'$4.99',name:'Crate',tag:'+10% bonus'},{id:'p3',sh:1200,price:'$9.99',name:'Vault',tag:'Best value'}];
@@ -5923,12 +6132,173 @@ function refreshQuests(){ const q=PROF.q; if(q.dk!==dayKey()){ q.dk=dayKey(); q.
 function claimable(){ refreshQuests(); return PROF.q.daily.concat(PROF.q.weekly).filter(x=>!x.c&&x.p>=qDef(x.id).g).length; }
 function fmtLeft(ms){ const h=Math.floor(ms/3600000), m=Math.floor(ms%3600000/60000); return h>=24?Math.floor(h/24)+'d '+(h%24)+'h':h+'h '+m+'m'; }
 
+/* ================= titles and banners =================
+   A title is a line of text under your callsign; a banner is the name plate behind it (pure CSS, generated from this data
+   by bannerCss). Earned from level (lvl), class challenges (CHAL), the season pass (SEASONS) and the tutorial. Shown on the
+   Play card, waiting room, online lobby (mySpec/cleanSpec carry known ids only), results and the in-match unit panel. */
+const TITLES={
+  t_recruit:{name:'Recruit',lvl:1,r:'c'},t_operative:{name:'Operative',lvl:5,r:'c'},t_veteran:{name:'Veteran',lvl:15,r:'r'},t_elite:{name:'Elite',lvl:25,r:'e'},t_legend:{name:'Living legend',lvl:40,r:'l'},
+  t_graduate:{name:'Graduate',r:'c'},
+  t_blade:{name:'Bladedancer',r:'r'},t_path:{name:'Pathfinder',r:'r'},t_vanguard:{name:'Vanguard',r:'r'},
+  t_counter:{name:'Counter-sniper',r:'r'},t_sentinel:{name:'Sentinel',r:'r'},t_immov:{name:'Immovable',r:'e'},
+  t_sidearm:{name:'Sidearm savant',r:'e'},t_demo:{name:'Demolisher',r:'r'},t_bullet:{name:'Bulletstorm',r:'r'},
+  t_medic:{name:'Field medic',r:'r'},t_quarter:{name:'Quartermaster',r:'r'},t_overclock:{name:'Overclocked',r:'r'},
+  t_p_ranger:{name:'Ranger prime',r:'l'},t_p_sharpshooter:{name:'Sharpshooter prime',r:'l'},t_p_grenadier:{name:'Grenadier prime',r:'l'},t_p_specialist:{name:'Specialist prime',r:'l'},
+  t_s_storm1:{name:'Stormcaller',r:'r'},t_s_storm2:{name:'Eye of the storm',r:'e'},t_s_ash1:{name:'Ashborn',r:'r'},t_s_ash2:{name:'Cinder sovereign',r:'e'},
+  t_s_white1:{name:'Whiteout',r:'r'},t_s_white2:{name:'Frostbound',r:'e'},t_s_tide1:{name:'Tidebreaker',r:'r'},t_s_tide2:{name:'Abyss walker',r:'e'}
+};
+// st: plain | glow | stripe | grid | chevron | dots | scan | split; c1 accent, c2 base; anim: a light sweep crosses the plate
+const BANNERS={
+  bn_std:{name:'Standard',st:'plain',c1:'#3fd2ff',c2:'#0d151f',r:'c',lvl:1},bn_signal:{name:'Signal',st:'glow',c1:'#3fd2ff',c2:'#08202c',r:'c',lvl:3},bn_grid:{name:'Field grid',st:'grid',c1:'#5dff9a',c2:'#0b1a12',r:'c',lvl:8},bn_gold:{name:'Gold standard',st:'glow',c1:'#ffb340',c2:'#2a1a04',r:'l',lvl:30,anim:1},
+  bn_boot:{name:'Bootcamp',st:'chevron',c1:'#c8b26a',c2:'#1a1c10',r:'c'},
+  bn_breach:{name:'Breach and clear',st:'stripe',c1:'#ffb340',c2:'#15110a',r:'r'},bn_edge:{name:'Cutting edge',st:'split',c1:'#ff4d5e',c2:'#1a0b0e',r:'r'},
+  bn_overlook:{name:'Overlook',st:'scan',c1:'#7dff6a',c2:'#0c180c',r:'r'},bn_cross:{name:'Crosshair',st:'dots',c1:'#ff6a6a',c2:'#1a0c0c',r:'r'},
+  bn_shrapnel:{name:'Shrapnel',st:'dots',c1:'#ff9a3c',c2:'#1c1108',r:'r'},bn_blast:{name:'Blast radius',st:'glow',c1:'#ff6a1a',c2:'#1e0c04',r:'e'},
+  bn_uplink:{name:'Uplink',st:'grid',c1:'#5ce8ff',c2:'#06161c',r:'r'},bn_tandem:{name:'Tandem',st:'split',c1:'#b38cff',c2:'#0b1a1e',r:'e'},
+  bn_p_ranger:{name:'Ranger prime',st:'chevron',c1:'#7dff9a',c2:'#0a1a10',r:'l',anim:1},bn_p_sharpshooter:{name:'Sharpshooter prime',st:'scan',c1:'#c79bff',c2:'#140c22',r:'l',anim:1},
+  bn_p_grenadier:{name:'Grenadier prime',st:'stripe',c1:'#ff8a3d',c2:'#1c0e06',r:'l',anim:1},bn_p_specialist:{name:'Specialist prime',st:'grid',c1:'#3fd2ff',c2:'#04161e',r:'l',anim:1},
+  bn_s_storm1:{name:'Stormfront',st:'glow',c1:'#9d8cff',c2:'#100c24',r:'r'},bn_s_storm2:{name:'Supercell',st:'scan',c1:'#b8a8ff',c2:'#0c0a20',r:'e',anim:1},
+  bn_s_ash1:{name:'Ashfall',st:'glow',c1:'#ff7a2a',c2:'#1c0d06',r:'r'},bn_s_ash2:{name:'Firestorm',st:'stripe',c1:'#ff5a1f',c2:'#1a0a04',r:'e',anim:1},
+  bn_s_white1:{name:'Snowblind',st:'dots',c1:'#d8f6ff',c2:'#0e1a24',r:'r'},bn_s_white2:{name:'Permafrost',st:'glow',c1:'#e8fbff',c2:'#0c1824',r:'e',anim:1},
+  bn_s_tide1:{name:'Undertow',st:'scan',c1:'#2ef0d0',c2:'#041818',r:'r'},bn_s_tide2:{name:'Riptide',st:'chevron',c1:'#2ef0d0',c2:'#051a1e',r:'e',anim:1}
+};
+function bannerCss(B){ const h=x=>'rgba('+hexc(B.c1).join(',')+','+x+')', shade='linear-gradient(90deg,rgba(6,10,15,.74),rgba(6,10,15,.4) 55%,rgba(6,10,15,.06))', base='linear-gradient('+B.c2+','+B.c2+')';
+  const L={plain:'linear-gradient(90deg,'+h(.14)+','+h(0)+' 80%)',
+    glow:'radial-gradient(ellipse 70% 140% at 88% 50%,'+h(.55)+','+h(.08)+' 60%,'+h(0)+' 75%)',
+    stripe:'repeating-linear-gradient(-45deg,'+h(.4)+' 0 7px,'+h(.04)+' 7px 14px)',
+    grid:'linear-gradient('+h(.32)+' 1px,transparent 1px) 0 0/11px 11px,linear-gradient(90deg,'+h(.32)+' 1px,transparent 1px) 0 0/11px 11px,radial-gradient(ellipse at 90% 50%,'+h(.35)+',transparent 70%)',
+    chevron:'repeating-linear-gradient(60deg,'+h(.3)+' 0 4px,transparent 4px 16px),repeating-linear-gradient(-60deg,'+h(.3)+' 0 4px,transparent 4px 16px)',
+    dots:'radial-gradient('+h(.6)+' 1.3px,transparent 1.9px) 0 0/9px 9px,radial-gradient(ellipse at 85% 50%,'+h(.3)+',transparent 70%)',
+    scan:'repeating-linear-gradient(0deg,'+h(.35)+' 0 1px,transparent 1px 4px),linear-gradient(90deg,'+h(0)+' 30%,'+h(.45)+')',
+    split:'linear-gradient(112deg,transparent 0 58%,'+h(.85)+' 58% 61%,'+h(.28)+' 61% 100%)'}[B.st]||'linear-gradient(transparent,transparent)';
+  return shade+','+L+','+base; }
+function plateCssText(){ return Object.keys(BANNERS).map(k=>'.bn-'+k+'{background:'+bannerCss(BANNERS[k])+';--bc:'+BANNERS[k].c1+'}').join('\n'); }
+const hasK=(o,k)=>typeof k==='string'&&Object.prototype.hasOwnProperty.call(o,k);
+function titleName(id){ return hasK(TITLES,id)?TITLES[id].name:''; }
+function bnKey(id){ return hasK(BANNERS,id)?id:'bn_std'; }
+// name plate markup: banner background, callsign, title line. o.cls adds classes, o.sub replaces the title line.
+function plateHtml(name,title,banner,o){ o=o||{}; const B=BANNERS[bnKey(banner)], t=o.sub!=null?o.sub:titleName(title);
+  return '<span class="np bn-'+bnKey(banner)+(B.anim?' bn-anim':'')+(o.cls?' '+o.cls:'')+'"><b>'+esc(name)+'</b>'+(t?'<small>'+esc(t)+'</small>':'')+'</span>'; }
+function titleOwned(id){ const T=hasK(TITLES,id)&&TITLES[id]; return !!T&&((T.lvl&&level()>=T.lvl)||PROF.id.tt.includes(id)); }
+function bannerOwned(id){ const B=hasK(BANNERS,id)&&BANNERS[id]; return !!B&&((B.lvl&&level()>=B.lvl)||PROF.id.bn.includes(id)); }
+function myTitle(){ return titleOwned(PROF.id.title)?PROF.id.title:''; }
+function myBanner(){ return bannerOwned(PROF.id.banner)?PROF.id.banner:'bn_std'; }
+function grantTitle(id){ if(!hasK(TITLES,id)||PROF.id.tt.includes(id)) return false; PROF.id.tt.push(id); return true; }
+function grantBanner(id){ if(!hasK(BANNERS,id)||PROF.id.bn.includes(id)) return false; PROF.id.bn.push(id); return true; }
+// where a title or banner comes from, for the picker
+function idHow(kind,id){ const X=kind==='title'?TITLES[id]:BANNERS[id]; if(!X) return ''; if(X.lvl) return X.lvl>1?'Reach level '+X.lvl:'Default';
+  if(id==='t_graduate'||id==='bn_boot') return 'Finish the training';
+  for(const c of CHAL) if(c.rw[kind]===id) return CLASSES[c.cls].name+' challenge: '+c.t;
+  for(const k in CHAL_PRIME) if(CHAL_PRIME[k][kind]===id) return 'Complete every '+CLASSES[k].name+' challenge';
+  for(const S of SEASONS){ const i=(kind==='title'?S.titles:S.banners).indexOf(id); if(i>=0) return 'Season pass: '+S.name+', tier '+(kind==='title'?[5,30]:[15,40])[i]; }
+  return ''; }
+
+/* ================= class mastery challenges =================
+   Per-class goals tracked across matches from the local player's own counters (G.stats + G.cstat), only for matches played
+   as that class. s: a counter key of the match summary, or f(m) returning how much one match adds. Completing one pays
+   credits and a title or banner; completing all five of a class grants that class's prime title and banner. */
+const CHAL=[
+  {id:'r_breach',cls:'ranger',t:'Breach 15 doors',g:15,s:'breach',rw:{banner:'bn_breach',cr:300}},
+  {id:'r_blade',cls:'ranger',t:'Get 8 eliminations with Blade Strike or a class perk action',g:8,s:'k_abil',rw:{title:'t_blade',cr:300}},
+  {id:'r_sec',cls:'ranger',t:'Get 10 eliminations with your secondary',g:10,s:'k_sec',rw:{banner:'bn_edge',cr:300}},
+  {id:'r_miles',cls:'ranger',t:'Move 400 tiles',g:400,s:'tiles',rw:{title:'t_path',cr:300}},
+  {id:'r_top3',cls:'ranger',t:'Finish in the top 3 five times',g:5,s:'top3',rw:{title:'t_vanguard',cr:400}},
+  {id:'s_rf',cls:'sharpshooter',t:'Land 25 return-fire hits',g:25,s:'rfHits',rw:{title:'t_counter',cr:300}},
+  {id:'s_high',cls:'sharpshooter',t:'Land 30 hits from high ground',g:30,s:'highHits',rw:{banner:'bn_overlook',cr:300}},
+  {id:'s_ow',cls:'sharpshooter',t:'Land 15 overwatch shots',g:15,s:'owOnly',rw:{title:'t_sentinel',cr:300}},
+  {id:'s_crit',cls:'sharpshooter',t:'Land 20 critical hits',g:20,s:'crits',rw:{banner:'bn_cross',cr:300}},
+  {id:'s_still',cls:'sharpshooter',t:'Win 3 matches moving 20 tiles or fewer',g:3,f:m=>m.win&&m.tiles<=20?1:0,rw:{title:'t_immov',cr:500}},
+  {id:'g_sec',cls:'grenadier',t:'Win a match where every elimination is with your secondary',g:1,f:m=>m.win&&m.kills>0&&m.k_sec===m.kills?1:0,rw:{title:'t_sidearm',cr:500}},
+  {id:'g_nade',cls:'grenadier',t:'Hit 40 enemies with grenades',g:40,s:'nadeHits',rw:{banner:'bn_shrapnel',cr:300}},
+  {id:'g_cover',cls:'grenadier',t:'Destroy or damage 40 pieces of cover',g:40,s:'cover',rw:{title:'t_demo',cr:300}},
+  {id:'g_boom',cls:'grenadier',t:'Set off 8 explosives',g:8,s:'booms',rw:{banner:'bn_blast',cr:300}},
+  {id:'g_hail',cls:'grenadier',t:'Use Hail of Bullets or a class perk action 15 times',g:15,s:'abil',rw:{title:'t_bullet',cr:300}},
+  {id:'p_rev',cls:'specialist',t:'Revive 10 teammates',g:10,s:'revives',rw:{title:'t_medic',cr:400}},
+  {id:'p_zap',cls:'specialist',t:'Use Combat Protocol or a class perk action 25 times',g:25,s:'abil',rw:{banner:'bn_uplink',cr:300}},
+  {id:'p_util',cls:'specialist',t:'Use 30 utilities',g:30,s:'utils',rw:{title:'t_quarter',cr:300}},
+  {id:'p_duo',cls:'specialist',t:'Win 2 Duos matches',g:2,f:m=>m.win&&m.mode==='duos'?1:0,rw:{banner:'bn_tandem',cr:500}},
+  {id:'p_dmg',cls:'specialist',t:'Deal 500 damage',g:500,s:'dmg',rw:{title:'t_overclock',cr:300}}
+];
+const CHAL_PRIME={ranger:{title:'t_p_ranger',banner:'bn_p_ranger'},sharpshooter:{title:'t_p_sharpshooter',banner:'bn_p_sharpshooter'},grenadier:{title:'t_p_grenadier',banner:'bn_p_grenadier'},specialist:{title:'t_p_specialist',banner:'bn_p_specialist'}};
+function chalP(c){ return Math.min(c.g,(PROF.chal&&PROF.chal[c.id])||0); }
+function chalDone(c){ return chalP(c)>=c.g; }
+function rwTxt(rw){ const o=[]; if(rw.title) o.push('Title “'+titleName(rw.title)+'”'); if(rw.banner) o.push(BANNERS[rw.banner].name+' banner'); if(rw.cr) o.push(rw.cr+' CR'); return o.join(' · '); }
+function grantRw(rw){ if(rw.title) grantTitle(rw.title); if(rw.banner) grantBanner(rw.banner); if(rw.cr) PROF.credits+=rw.cr; }
+// one finished match (local summary m) -> progress; returns [{c, b, a, done}] for the challenges that moved (.prime when a class is complete)
+function chalApply(m){ const out=[]; PROF.chal=PROF.chal||{};
+  for(const c of CHAL){ if(c.cls!==m.cls||chalDone(c)) continue; const inc=c.f?c.f(m):+(m[c.s]||0); if(!(inc>0)) continue;
+    const b=chalP(c); PROF.chal[c.id]=Math.min(c.g,b+inc); const a=chalP(c); out.push({c,b,a,done:a>=c.g}); if(a>=c.g) grantRw(c.rw); }
+  const P=CHAL_PRIME[m.cls]; if(P&&out.some(x=>x.done)&&CHAL.filter(c=>c.cls===m.cls).every(chalDone)&&!PROF.id.tt.includes(P.title)){ grantRw(P); out.prime=P; }
+  return out; }
+
+/* ================= season pass =================
+   Free reward track, rolling 6-week seasons counted from SEASON_EPOCH (the season and its theme come from the date, so every
+   device agrees). 45 tiers of 1000 pass XP. Pass XP comes from matches (placement, eliminations, damage, rounds, revives,
+   supply drops, objectives when a mode has them), the first win of each day and quest claims. Rewards: credits, shards,
+   catalog cosmetics (seeded picks for the season, any COS category), the theme's titles and banners, and two pass-exclusive
+   cosmetics per theme (COS items with pass:<theme>, never sold). A cosmetic you already own pays out instead (PASS_DUP). */
+const SEASON_EPOCH=Date.UTC(2026,0,5), SEASON_DAYS=42, PASS_TIERS=45, PASS_STEP=1000;
+const SEASONS=[
+  {key:'storm',name:'Stormcall',sub:'The sky splits. Ride the lightning.',col:'#9d8cff',items:['skin:p_stormcall','trail:p_tempest'],titles:['t_s_storm1','t_s_storm2'],banners:['bn_s_storm1','bn_s_storm2']},
+  {key:'ash',name:'Ashfall',sub:'The refineries burn. Walk through the smoke.',col:'#ff7a2a',items:['visor:p_cinder','skin:p_ashfall'],titles:['t_s_ash1','t_s_ash2'],banners:['bn_s_ash1','bn_s_ash2']},
+  {key:'white',name:'Whiteout',sub:'Frostfall goes dark. Trust the cold.',col:'#bfefff',items:['finish:p_rime','trail:p_glacier'],titles:['t_s_white1','t_s_white2'],banners:['bn_s_white1','bn_s_white2']},
+  {key:'tide',name:'Tidebreak',sub:'The docks flood. Hold the line.',col:'#2ef0d0',items:['visor:p_tide','skin:p_abyssal'],titles:['t_s_tide1','t_s_tide2'],banners:['bn_s_tide1','bn_s_tide2']}
+];
+// tier template (1..45): currency, a catalog cosmetic of a rarity, the theme's titles (5, 30), banners (15, 40) and items (25, 45)
+const PASS_TPL=[['cr',250],['cos','c'],['sh',15],['cr',300],['title',0],['cr',300],['cos','c'],['sh',20],['cr',350],['cos','r'],
+  ['cr',350],['sh',25],['cos','c'],['cr',400],['banner',0],['cr',400],['cos','r'],['sh',30],['cr',450],['cos','e'],
+  ['cr',450],['sh',30],['cos','r'],['cr',500],['item',0],['cr',500],['sh',40],['cos','r'],['cr',550],['title',1],
+  ['cr',550],['cos','e'],['sh',40],['cr',600],['cos','l'],['cr',600],['sh',50],['cos','e'],['cr',650],['banner',1],
+  ['cr',700],['sh',60],['cos','l'],['cr',800],['item',1]];
+const PASS_DUP={c:['cr',150],r:['cr',300],e:['sh',40],l:['sh',80],m:['sh',150]};
+const PASS_XP={place:[400,250,150],kill:75,dmg:3,dmgCap:300,round:10,revive:50,drop:50,obj:100,firstWin:500,daily:250,weekly:1000};
+function seasonNow(t){ t=t==null?Date.now():t; const L=SEASON_DAYS*864e5, n=Math.floor((t-SEASON_EPOCH)/L), st=SEASON_EPOCH+n*L; return {n,num:n+1,start:st,end:st+L,th:SEASONS[((n%SEASONS.length)+SEASONS.length)%SEASONS.length]}; }
+const PTRACK=new Map();
+function passTrack(n){ if(PTRACK.has(n)) return PTRACK.get(n);
+  const S=seasonNow(SEASON_EPOCH+n*SEASON_DAYS*864e5+1).th, sd=seedOf('season'+n), pool={}, used={};
+  for(const cat of Object.keys(COS)) for(const k of Object.keys(COS[cat])){ const it=COS[cat][k]; if(it.pass||!it.price||it.lvl||it.ach||!'crel'.includes(it.r||'c')) continue; (pool[it.r||'c']=pool[it.r||'c']||[]).push(cat+':'+k); }
+  for(const r in pool) pool[r]=pool[r].map((id,i)=>[hash(i,sd,13),id]).sort((a,b)=>a[0]-b[0]).map(e=>e[1]);
+  const T=PASS_TPL.map((e,i)=>{ const tier=i+1, k=e[0];
+    if(k==='cos'){ const P=pool[e[1]]||[], j=used[e[1]]=(used[e[1]]||0)+1; return P.length?{tier,k:'cos',id:P[(j-1)%P.length]}:{tier,k:'cr',n:300}; }
+    if(k==='item') return {tier,k:'cos',id:S.items[e[1]],ex:true};
+    if(k==='title') return {tier,k:'title',id:S.titles[e[1]]};
+    if(k==='banner') return {tier,k:'banner',id:S.banners[e[1]]};
+    return {tier,k,n:e[1]}; });
+  PTRACK.set(n,T); return T; }
+function passTier(xp){ return Math.min(PASS_TIERS,Math.floor((xp==null?PROF.pass.xp:xp)/PASS_STEP)); }
+function cosOf(id){ const [c,k]=String(id).split(':'); return COS[c]&&Object.prototype.hasOwnProperty.call(COS[c],k)?{cat:c,key:k,it:COS[c][k]}:null; }
+function passRwName(R){ if(R.k==='cr') return R.n+' credits'; if(R.k==='sh') return R.n+' shards'; if(R.k==='title') return 'Title “'+titleName(R.id)+'”'; if(R.k==='banner') return BANNERS[R.id].name+' banner';
+  const o=cosOf(R.id); return o?o.it.name+' '+(COS_LABEL[o.cat]||o.cat).toLowerCase():'Reward'; }
+function passRwRar(R){ if(R.k==='cos'){ const o=cosOf(R.id); return o?o.it.r||'c':'c'; } if(R.k==='title') return TITLES[R.id].r; if(R.k==='banner') return BANNERS[R.id].r; return R.k==='sh'?'e':'c'; }
+// grant a tier's reward; returns a short description of what was received
+function passGrant(R){
+  if(R.k==='cr'){ PROF.credits+=R.n; return '+'+R.n+' CR'; } if(R.k==='sh'){ PROF.shards+=R.n; return '+'+R.n+' shards'; }
+  if(R.k==='title'){ grantTitle(R.id); return 'Title “'+titleName(R.id)+'”'; } if(R.k==='banner'){ grantBanner(R.id); return BANNERS[R.id].name+' banner'; }
+  const o=cosOf(R.id); if(!o) return ''; if(PROF.cos.includes(R.id)){ const d=PASS_DUP[o.it.r||'c']||PASS_DUP.c; if(d[0]==='cr') PROF.credits+=d[1]; else PROF.shards+=d[1]; return o.it.name+' (owned): +'+d[1]+(d[0]==='cr'?' CR':' shards'); }
+  PROF.cos.push(R.id); return o.it.name+' unlocked'; }
+function passClaimable(){ if(!PROF.pass) return []; const t=passTier(); return passTrack(PROF.pass.n).filter(R=>R.tier<=t&&!PROF.pass.cl.includes(R.tier)); }
+function passClaim(tier){ const R=passTrack(PROF.pass.n)[tier-1]; if(!R||tier>passTier()||PROF.pass.cl.includes(tier)) return ''; PROF.pass.cl.push(tier); return passGrant(R); }
+// new season: rewards you reached but did not claim are delivered, then the track resets (owned rewards stay)
+function passSync(){ const S=seasonNow(); if(!PROF.pass||typeof PROF.pass!=='object') PROF.pass={n:S.n,xp:0,cl:[],fw:''}; if(PROF.pass.n===S.n) return false;
+  const got=passClaimable().map(R=>{ PROF.pass.cl.push(R.tier); return passGrant(R); }); PROF.pass={n:S.n,xp:0,cl:[],fw:PROF.pass.fw||''};
+  if(got.length&&typeof toast==='function') setTimeout(()=>toast('Last season’s rewards delivered',got.length+' unclaimed reward'+(got.length>1?'s':'')),600); return true; }
+function passAdd(n){ passSync(); const b=PROF.pass.xp, t0=passTier(b); PROF.pass.xp=Math.min(PASS_TIERS*PASS_STEP,b+Math.max(0,n|0)); return {b,a:PROF.pass.xp,t0,t1:passTier()}; }
+// pass XP lines for a finished match (r result, s G.stats, fR the small-field scaling grantRewards uses)
+function passLines(r,s,fR){ const X=PASS_XP, L=[], half=Math.max(1,Math.ceil(r.of/2));
+  L.push(['Placement #'+r.place,Math.round((r.win?X.place[0]:r.place<=half?X.place[1]:X.place[2])*fR)]);
+  if(s.kills) L.push(['Eliminations ×'+s.kills,s.kills*X.kill]); if(s.dmg) L.push(['Damage dealt',Math.min(X.dmgCap,s.dmg*X.dmg)]);
+  if(s.rounds) L.push(['Rounds survived',s.rounds*X.round]); if(s.revives) L.push(['Revives ×'+s.revives,s.revives*X.revive]); if(s.drops) L.push(['Supply drops',s.drops*X.drop]);
+  const ob=['obj','objs','objectives','objHits'].map(k=>s[k]).find(v=>typeof v==='number'&&v>0); if(ob) L.push(['Objectives ×'+ob,ob*X.obj]);
+  if(r.win&&PROF.pass.fw!==dayKey()){ PROF.pass.fw=dayKey(); L.push(['First win of the day',X.firstWin]); }
+  return L; }
+
 /* ================= profile ================= */
-let PROF=loadProf(); syncCos(true);
+let PROF=loadProf(); syncCos(true); passSync();
 function loadProf(){
   let s=null; try{ s=JSON.parse(localStorage.getItem('stormfall_profile')||'null'); }catch(e){}
   const p={v:3,credits:250,shards:0,xp:0,owned:[],cos:['skin:default','visor:cyan','finish:default','trail:default','kill:default'],equip:{skin:'default',visor:'cyan',finish:'default',trail:'default',kill:'default'},
-    q:{dk:'',daily:[],wk:'',weekly:[]},settings:{sound:true,haptics:true,timer:30,shake:true,oneTap:false},career:{matches:0,wins:0,kills:0,dmg:0,top3:0},history:[],mode:'solo',diff:'veteran',wr:{},seenBrief:false,mast:{},mfin:{}};
+    q:{dk:'',daily:[],wk:'',weekly:[]},settings:{sound:true,haptics:true,timer:30,shake:true,oneTap:false},career:{matches:0,wins:0,kills:0,dmg:0,top3:0},history:[],mode:'solo',diff:'veteran',wr:{},seenBrief:false,mast:{},mfin:{},
+    id:{title:'t_recruit',banner:'bn_std',tt:[],bn:[]},chal:{},pass:null,tut:{done:false,seen:false}};
   if(s&&typeof s==='object'){
     if(typeof s.credits==='number') p.credits=Math.max(0,s.credits|0);
     if(typeof s.shards==='number') p.shards=Math.max(0,s.shards|0);
@@ -5944,6 +6314,12 @@ function loadProf(){
     if(DIFFS[s.diff]) p.diff=s.diff;
     if(s.wr&&typeof s.wr==='object') for(const k in MODES) if(Array.isArray(s.wr[k])) p.wr[k]=s.wr[k].filter(d=>DIFFS[d]).slice(0,MODES[k].players);
     p.seenBrief=!!s.seenBrief;
+    // titles and banners (owned ids + picks), class challenge progress, season pass state, tutorial
+    if(s.id&&typeof s.id==='object'){ const I=s.id; if(Array.isArray(I.tt)) p.id.tt=I.tt.filter(x=>hasK(TITLES,x)); if(Array.isArray(I.bn)) p.id.bn=I.bn.filter(x=>hasK(BANNERS,x));
+      if(I.title===''||hasK(TITLES,I.title)) p.id.title=I.title; if(hasK(BANNERS,I.banner)) p.id.banner=I.banner; }
+    if(s.chal&&typeof s.chal==='object') for(const c of CHAL) if(typeof s.chal[c.id]==='number') p.chal[c.id]=clamp(s.chal[c.id]|0,0,c.g);
+    if(s.pass&&typeof s.pass==='object'&&typeof s.pass.n==='number') p.pass={n:s.pass.n|0,xp:clamp(s.pass.xp|0,0,PASS_TIERS*PASS_STEP),cl:Array.isArray(s.pass.cl)?s.pass.cl.filter(t=>t>=1&&t<=PASS_TIERS):[],fw:typeof s.pass.fw==='string'?s.pass.fw:''};
+    if(s.tut&&typeof s.tut==='object') p.tut={done:!!s.tut.done,seen:!!s.tut.seen};
     // weapon mastery XP and per-weapon mastery finish picks (profiles from before mastery start empty)
     if(s.mast&&typeof s.mast==='object') for(const k in s.mast) if(mastTracked(k)&&typeof s.mast[k]==='number') p.mast[k]=Math.max(0,s.mast[k]|0);
     if(s.mfin&&typeof s.mfin==='object') for(const k in s.mfin) if(mastTracked(k)&&MFIN[s.mfin[k]]) p.mfin[k]=s.mfin[k];
@@ -5987,8 +6363,12 @@ function grantRewards(){
   st['cls_'+G.player.cls]=1;
   const done=[];
   for(const q of PROF.q.daily.concat(PROF.q.weekly)){ const d=qDef(q.id); if(!d||q.c) continue; const was=q.p>=d.g; q.p=Math.min(d.g,q.p+(st[d.s]||0)); if(!was&&q.p>=d.g) done.push(d.t); }
+  // class challenges (from the local player's own counters) and season pass XP
+  const cs=G.cstat||cstatNew(), cm=Object.assign({},s,cs,{cls:G.player.cls,win:!!r.win,place:r.place,of:r.of,mode:M.key,top3:st.top3,owOnly:Math.max(0,(s.owHits||0)-(cs.rfHits||0))});
+  const chal=chalApply(cm);
+  passSync(); const pl=passLines(r,s,fR), pxp=pl.reduce((a,l)=>a+l[1],0), pass=Object.assign(passAdd(pxp),{lines:pl,xp:pxp});
   saveProf();
-  G.rewarded={lines,total,xp,before,after,unl,shards,done,mast};
+  G.rewarded={lines,total,xp,before,after,unl,shards,done,mast,chal,pass};
   return G.rewarded;
 }
 function showEnd(){
@@ -5997,6 +6377,7 @@ function showEnd(){
   $('#eRes').textContent=title; $('#eRes').className='display res '+(r.win?'win':'lose');
   const reg=G.R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
   $('#eSub').textContent=(r.win?'Last '+(G.M.team>1?'team':'operative')+' standing':'You placed #'+r.place+' of '+r.of)+' in '+reg+', '+G.M.name+'.'+(r.winner?' '+r.winner+' won the match.':'');
+  $('#ePlate').innerHTML=plateHtml(G.player.name,G.player.ttl,G.player.bnr); endProgressHtml(rw);
   const a=rw.after; $('#eLvl').textContent=a.l; $('#eXpT').textContent='+'+rw.xp+' XP';
   const bar=$('#eXp'); bar.style.transition='none'; bar.style.width=(rw.before.cur/rw.before.need*100)+'%'; void bar.offsetWidth; bar.style.transition='';
   setTimeout(()=>{ bar.style.width=(a.l>rw.before.l?100:a.cur/a.need*100)+'%'; if(a.l>rw.before.l) setTimeout(()=>{ bar.style.transition='none'; bar.style.width='0%'; void bar.offsetWidth; bar.style.transition=''; bar.style.width=(a.cur/a.need*100)+'%'; },950); },120);
@@ -6019,18 +6400,19 @@ function showEnd(){
 function toast(title,sub,kind){ const box=$('#toasts'); const el=document.createElement('div'); el.className='toast '+(kind||''); el.innerHTML='<div><b></b><small></small></div>'; el.querySelector('b').textContent=title; el.querySelector('small').textContent=sub||''; box.appendChild(el); setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); },350); },2800); }
 
 /* ================= navigation ================= */
-const META=['menu','loadout','quests','store','profile'];
+const META=['menu','loadout','pass','quests','store','profile'];
 let curScreen='menu';
 function show(id,on){ $(id).classList.toggle('hidden',!on); }
 function go(s){
   if(s!=='loadout'&&curScreen==='loadout'&&draft){ draft.name=($('#callsign').value||'NOMAD'); LO=sanitize(draft); saveLO(); }
   if(s!=='loadout'&&typeof loPick!=='undefined'&&loPick) closePicker();
+  if(typeof prPick!=='undefined'&&prPick) closePick();
   curScreen=s; for(const m of META) show('#'+m,m===s); show('#nav',true); show('#lobby',false);
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('sel',b.dataset.nav===s));
-  if(s==='menu') refreshMenu(); else if(s==='loadout') openLoadout(); else if(s==='store') renderStore(); else if(s==='quests') renderQuests(); else if(s==='profile') renderProfile();
+  if(s==='menu') refreshMenu(); else if(s==='loadout') openLoadout(); else if(s==='store') renderStore(); else if(s==='quests') renderQuests(); else if(s==='profile') renderProfile(); else if(s==='pass'){ psSel=0; psScrolled=false; renderPass(); }
   updateNavDot();
 }
-function updateNavDot(){ const d=$('#qDot'); if(d) d.classList.toggle('hidden',!claimable()); }
+function updateNavDot(){ const d=$('#qDot'); if(d) d.classList.toggle('hidden',!claimable()); const p=$('#pDot'); if(p&&PROF.pass) p.classList.toggle('hidden',!passClaimable().length); }
 $('#nav').addEventListener('click',e=>{ const b=e.target.closest('[data-nav]'); if(!b) return; SFX.init(); SFX.click(); buzz(6); go(b.dataset.nav); });
 
 /* ================= lobby ================= */
@@ -6038,12 +6420,12 @@ $('#howRange').textContent='Every weapon has an optimal range where its aim is b
 let LO=loadLO();
 function loadLO(){ try{ const s=JSON.parse(localStorage.getItem('stormfall_loadout')||'null'); if(s) return sanitize(s); }catch(e){} return sanitize({name:'NOMAD',cls:'ranger',weapon:'shotgun',armor:'light',utils:['frag','medkit']}); }
 function saveLO(){ try{ localStorage.setItem('stormfall_loadout',JSON.stringify(LO)); }catch(e){} }
-function toMenu(){ show('#hud',false); show('#end',false); G.over=true; G.turnRes=null; setupMenuScene(); go('menu'); }
+function toMenu(){ if(TUT.on) tutStop(); show('#tutEnd',false); show('#hud',false); show('#end',false); G.over=true; G.turnRes=null; setupMenuScene(); go('menu'); }
 function refreshMenu(){
   LO=sanitize(LO);
   const li=lvlInfo(); $('#mLvlN').textContent=li.l; $('#mName').textContent=LO.name; $('#mXp').style.width=(li.cur/li.need*100)+'%'; $('#mXpT').textContent=li.cur+' / '+li.need+' XP';
   $('#mCr').textContent=PROF.credits; $('#mSh').textContent=PROF.shards;
-  $('#opName').textContent=LO.name; const Cl=CLASSES[LO.cls], mk=weaponMk(LO.weapon);
+  setPlate($('#opPlate'),LO.name,myTitle(),myBanner()); passChip(); const Cl=CLASSES[LO.cls], mk=weaponMk(LO.weapon);
   $('#opSub').innerHTML=Cl.name+' with '+WEAPONS[LO.weapon].name+(mk>1?' Mk '+(mk===2?'II':'III'):'')+' + '+SECONDARIES[LO.sec].name+'<br>'+ARMORS[LO.armor].name+', '+LO.utils.map(u=>UTILS[u].short).join(' + ')+(LO.perk?', '+PERKS[LO.perk].name:'');
   $('#modes').innerHTML=Object.values(MODES).map(m=>'<button role="radio" aria-checked="'+(PROF.mode===m.key)+'" class="mode'+(PROF.mode===m.key?' sel':'')+'" data-mode="'+m.key+'">'+m.name+'<small>'+m.short+'</small></button>').join('');
   const wb=wrBots(PROF.mode), ds=[...new Set(wb)]; $('#modeDesc').textContent=MODES[PROF.mode].desc;
@@ -6129,7 +6511,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=11, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=12, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 // matchmaking defaults to the free public PeerJS server; set window.STORMFALL_PEER={host,port,path,secure} before this script to use your own
 const peerOpts=()=>Object.assign({debug:0},window.STORMFALL_PEER||{});
 function peerReady(){
@@ -6140,7 +6522,8 @@ function peerReady(){
 }
 function mySpec(){ LO=sanitize(LO); const o=[]; for(const id of ['mk2_'+LO.weapon,'mk3_'+LO.weapon,'ar_'+LO.armor,'w_'+LO.weapon,'a_'+LO.armor,LO.perk,'s_'+LO.sec,'ct1','ct2','ct3','ct4','ct5']) if(id&&own(id)) o.push(id);
   return {name:LO.name,lo:{cls:LO.cls,weapon:LO.weapon,armor:LO.armor,utils:LO.utils.slice(),perk:LO.perk,sec:LO.sec,tree:LO.tree[LO.cls].slice(),att:specAtt()},own:o,color:visorCol(),skin:PROF.equip.skin,visor:PROF.equip.visor,finish:PROF.equip.finish,trail:PROF.equip.trail,kill:PROF.equip.kill,
-    mfin:{p:mfinFor(LO.weapon),s:isPistol(LO.sec)?mfinFor(LO.sec):null},lv:level()}; }
+    mfin:{p:mfinFor(LO.weapon),s:isPistol(LO.sec)?mfinFor(LO.sec):null},lv:level(),
+    title:myTitle(),banner:myBanner()}; } // name plate: cosmetic ids, checked against TITLES / BANNERS by cleanSpec
 // the attachments of the two weapons you carry, as {weapon:{slot:id}} (sanitize already checked your mastery)
 function specAtt(){ const o={}; for(const k of [LO.weapon,LO.sec]) if(LO.att&&LO.att[k]) o[k]=Object.assign({},LO.att[k]); return o; }
 /* A remote spec's attachments: known ids that fit the weapon's slots, one per slot, only for the weapons it carries.
@@ -6162,7 +6545,9 @@ function cleanSpec(sp,pid){ sp=sp&&typeof sp==='object'?sp:{}; const lo=sp.lo&&t
     own,
     color:/^#[0-9a-f]{6}$/i.test(sp.color)?sp.color:'#eef4fa',skin:cosHas('skin',sp.skin)?sp.skin:'default',visor:cosHas('visor',sp.visor)?sp.visor:'cyan',finish:cosHas('finish',sp.finish)?sp.finish:'default',trail:cosHas('trail',sp.trail)?sp.trail:'default',kill:cosHas('kill',sp.kill)?sp.kill:'default',lv,
     mfin:{p:sp.mfin&&MFIN[sp.mfin.p]&&lv>=MFIN[sp.mfin.p].m-2?sp.mfin.p:null,s:sp.mfin&&MFIN[sp.mfin.s]&&lv>=MFIN[sp.mfin.s].m-2?sp.mfin.s:null}};
-  r.lo.att=cleanAtt(lo.att,lv,[r.lo.weapon,r.lo.sec]); return r; }
+  r.lo.att=cleanAtt(lo.att,lv,[r.lo.weapon,r.lo.sec]);
+  r.title=hasK(TITLES,sp.title)?sp.title:''; r.banner=bnKey(typeof sp.banner==='string'?sp.banner:''); // known ids only
+  return r; }
 
 /* per-unit command queues: a remote unit's turn waits on its queue */
 function netNext(id){ const q=NET.q.get(id); if(q&&q.length) return Promise.resolve(q.shift()); return new Promise(r=>NET.w.set(id,r)); }
@@ -6219,7 +6604,7 @@ function hostDrop(pid){
   const u=G.units.find(x=>x.net===pid); if(u){ netRelay({t:'cmd',m:NET.m,u:u.id,c:{k:'ai'}}); netPush(u.id,{k:'ai'}); }
   if(p) toast('Player left',p.name); netLobby();
 }
-function netLobby(){ netRelay({t:'lobby',mode:NET.mode,bots:normBots(NET.mode,NET.players.length,NET.bots),players:NET.players.map(p=>({pid:p.pid,name:p.name,cls:p.lo.cls,color:p.color}))}); renderOnline(); }
+function netLobby(){ netRelay({t:'lobby',mode:NET.mode,bots:normBots(NET.mode,NET.players.length,NET.bots),players:NET.players.map(p=>({pid:p.pid,name:p.name,cls:p.lo.cls,color:p.color,title:p.title,banner:p.banner}))}); renderOnline(); }
 function netStart(){
   if(!NET.host||!NET.code) return; NET.players[0]=cleanSpec(mySpec(),NET.me);
   const M=MODES[NET.mode]; if(NET.players.length>M.players){ netStatus(M.name+' holds '+M.players+' players. Pick another mode.'); return; }
@@ -6330,7 +6715,7 @@ $('#bOnline').addEventListener('click',()=>{ SFX.init(); SFX.click(); openOnline
 window.addEventListener('pagehide',()=>{ if(NET.on) netLeave(); });
 $('#bDeploy').addEventListener('click',()=>{ SFX.init(); SFX.click(); buzz(6); openLobby(false); });
 $('#opcard').addEventListener('click',()=>{ SFX.click(); go('loadout'); });
-$('#bHow').addEventListener('click',()=>show('#how',true));
+$('#bHow').addEventListener('click',()=>{ howButtons(); show('#how',true); });
 $('#howClose').addEventListener('click',()=>{ show('#how',false); if(!PROF.seenBrief){ PROF.seenBrief=true; saveProf(); } });
 $('#mLvl').addEventListener('click',()=>go('profile'));
 $('#mSh').addEventListener('click',()=>{ stTab='Shards'; go('store'); });
@@ -6349,9 +6734,9 @@ const RANK='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1.5 8.5L6 5l4.
 function dRank(k){ return '<span class="rank r'+(DKEYS.indexOf(k)+1)+'">'+RANK+RANK+RANK+'</span>'; }
 function wrBots(mk){ const b=PROF.wr[mk]; return normBots(mk,1,Array.isArray(b)?b:defaultBots(mk)); }
 function lbCtx(){
-  if(LB.online){ const humans=NET.players.map((p,i)=>({name:p.name,cls:p.cls||(p.lo&&p.lo.cls),color:p.color,me:p.pid===NET.me,host:i===0}));
+  if(LB.online){ const humans=NET.players.map((p,i)=>({name:p.name,cls:p.cls||(p.lo&&p.lo.cls),color:p.color,me:p.pid===NET.me,host:i===0,title:p.pid===NET.me?myTitle():p.title,banner:p.pid===NET.me?myBanner():p.banner}));
     return {mode:NET.mode,humans,bots:normBots(NET.mode,humans.length,NET.bots),edit:NET.host}; }
-  return {mode:PROF.mode,humans:[{name:LO.name,cls:LO.cls,color:visorCol(),me:true}],bots:wrBots(PROF.mode),edit:true}; }
+  return {mode:PROF.mode,humans:[{name:LO.name,cls:LO.cls,color:visorCol(),me:true,title:myTitle(),banner:myBanner()}],bots:wrBots(PROF.mode),edit:true}; }
 function lbSetBots(b,fill){ if(LB.online){ if(!NET.host) return; NET.bots=normBots(NET.mode,NET.players.length,b,fill); netLobby(); }
   else { PROF.wr[PROF.mode]=normBots(PROF.mode,1,b,fill); saveProf(); renderLobby(); } }
 function lbSetMode(mk){ if(!MODES[mk]) return; if(LB.online){ if(!NET.host) return; NET.mode=mk; const w=PROF.wr[mk]; NET.bots=(Array.isArray(w)?w:defaultBots(mk)).slice(); netLobby(); }
@@ -6370,7 +6755,7 @@ function renderLobby(){
   const ds=[...new Set(bots)];
   $('#wrCount').innerHTML='<b>'+(per>1?nT+'<i>/'+maxT+'</i></b><span>teams</span>':n+'<i>/'+M.players+'</i></b><span>operatives</span>')+'<em>'+nH+' human'+(nH===1?'':'s')+' · '+bots.length+' bot'+(bots.length===1?'':'s')+(bots.length?' · '+(ds.length===1?DIFFS[ds[0]].name:'mixed'):'')+'</em>';
   // slots: humans then bots; duos groups them into teams of two
-  const hRow=h=>'<div class="wslot hum"><i class="av" style="--c:'+esc(h.color||'#3fd2ff')+'">'+esc((h.name||'?')[0])+'</i><div class="sn"><b>'+esc(h.name)+'</b><small>'+esc((CLASSES[h.cls]||CLASSES.ranger).name)+(h.host&&LB.online?' · host':'')+'</small></div><span class="who'+(h.me?' me':'')+'">'+(h.me?'You':'Player')+'</span></div>';
+  const hRow=h=>{ const bk=bnKey(h.banner); return '<div class="wslot hum"><i class="av" style="--c:'+esc(h.color||'#3fd2ff')+'">'+esc((h.name||'?')[0])+'</i><div class="sn np bn-'+bk+(BANNERS[bk].anim?' bn-anim':'')+'"><b>'+esc(h.name)+'</b><small>'+esc(titleName(h.title))+'</small><i class="cl">'+esc((hasK(CLASSES,h.cls)?CLASSES[h.cls]:CLASSES.ranger).name)+(h.host&&LB.online?' · host':'')+'</i></div><span class="who'+(h.me?' me':'')+'">'+(h.me?'You':'Player')+'</span></div>'; };
   const bRow=(d,i,partner)=>{ const D=DIFFS[d];
     return '<div class="wslot bot d-'+d+(ed?'':' ro')+'"><i class="av bot">AI</i><div class="sn"><b>'+(partner?'Partner':'Bot '+(i+1))+'</b><small>'+dRank(d)+(partner?'AI partner · ':'')+D.name+'</small></div>'
       +(ed?'<div class="dseg" role="radiogroup" aria-label="Difficulty for bot '+(i+1)+'">'+DKEYS.map(k=>'<button role="radio" aria-checked="'+(k===d)+'" class="'+(k===d?'sel ':'')+'k-'+k+'" data-bd="'+i+':'+k+'" title="'+DIFFS[k].name+': '+esc(DIFFS[k].desc)+'"><span class="dl">'+DIFFS[k].name+'</span>'+dRank(k)+'</button>').join('')+'</div>'
@@ -6588,7 +6973,7 @@ let stTab='Featured';
 const ST_TABS=['Featured','Sets','Skins','Visors','Finishes','Trails','Kill FX','Shards'];
 const ST_DESC={Sets:'Matching skin, visor, drop trail, weapon finish and kill effect. 25% off whatever you don’t own yet.','Kill FX':'Plays on every enemy you eliminate.',Featured:'Today’s rotation. 25% off, refreshes daily.',Skins:'Armor colorways for every class.',Visors:'Visor, chest stripe and ground ring color.',Finishes:'Weapon paint.',Trails:'The beam you leave behind on drop-in.',Shards:'Premium currency for rare cosmetics. You also earn shards from level-ups and weekly quests.'};
 // store rows; r/rar/rc = rarity key, name and colour, how = free-unlock text ('' when only sold)
-function baseItems(cat){ const T=COS[cat]; return Object.keys(T).map(k=>{ const r=T[k].r||'c'; return {id:cat+':'+k,cat,key:k,name:T[k].name,price:T[k].price,cur:T[k].cur||'cr',r,rar:RARITY[r].name,rc:RARITY[r].col,how:cosHow(cat,k)}; }); }
+function baseItems(cat){ const T=COS[cat]; return Object.keys(T).filter(k=>!T[k].pass||PROF.cos.includes(cat+':'+k)).map(k=>{ const r=T[k].r||'c'; return {id:cat+':'+k,cat,key:k,name:T[k].name,price:T[k].price,cur:T[k].cur||'cr',r,rar:RARITY[r].name,rc:RARITY[r].col,how:cosHow(cat,k)}; }); }
 // category tabs show today's featured discount too, so an item costs the same wherever you buy it
 function cosItems(cat){ const f=new Map(featured().map(it=>[it.id,it])); return baseItems(cat).map(it=>f.get(it.id)||it); }
 function featured(){ const all=['skin','visor','finish','trail','kill'].flatMap(baseItems).filter(i=>i.price>0); const s=seedOf(dayKey()+'f'); return all.map((it,i)=>[hash(i,s,9),it]).sort((a,b)=>a[0]-b[0]).slice(0,4).map(e=>Object.assign({},e[1],{old:e[1].price,price:Math.ceil(e[1].price*0.75)})); }
@@ -6687,8 +7072,8 @@ function renderQuests(){
   $('#qClaimAll').classList.toggle('hidden',!claimable());
 }
 function claimQuest(id,kind,quiet){ const list=kind==='daily'?PROF.q.daily:PROF.q.weekly; const q=list.find(x=>x.id===id); const d=q&&qDef(q.id); if(!q||q.c||q.p<d.g) return 0;
-  const before=level(); const R=QREW[kind]; q.c=true; PROF.credits+=R.cr; PROF.xp+=R.xp; PROF.shards+=R.sh; const after=level(); if(after>before){ PROF.shards+=10*(after-before); const ul=[]; for(let l=before+1;l<=after;l++) (UNLOCKS[l]||[]).forEach(x=>ul.push(unlockName(x))); toast('Level '+after+' reached',ul.length?ul.join(', '):'+'+(10*(after-before))+' shards','lvl'); }
-  if(!quiet) toast('Quest complete','+'+R.cr+' CR, +'+R.xp+' XP'+(R.sh?', +'+R.sh+' shards':'')); return 1; }
+  const before=level(); const R=QREW[kind]; q.c=true; PROF.credits+=R.cr; PROF.xp+=R.xp; PROF.shards+=R.sh; const px=passAdd(kind==='daily'?PASS_XP.daily:PASS_XP.weekly); if(px.t1>px.t0&&!quiet) setTimeout(()=>toast('Pass tier '+px.t1,'New reward in Pass','lvl'),400); const after=level(); if(after>before){ PROF.shards+=10*(after-before); const ul=[]; for(let l=before+1;l<=after;l++) (UNLOCKS[l]||[]).forEach(x=>ul.push(unlockName(x))); toast('Level '+after+' reached',ul.length?ul.join(', '):'+'+(10*(after-before))+' shards','lvl'); }
+  if(!quiet) toast('Quest complete','+'+R.cr+' CR, +'+R.xp+' XP'+(R.sh?', +'+R.sh+' shards':'')+', +'+(kind==='daily'?PASS_XP.daily:PASS_XP.weekly)+' pass XP'); return 1; }
 $('#quests').addEventListener('click',e=>{ const b=e.target.closest('[data-claim]'); if(!b||b.classList.contains('off')) return; if(claimQuest(b.dataset.claim,b.dataset.kind)){ saveProf(); SFX.heal(); buzz([20,30,20]); renderQuests(); updateNavDot(); } });
 $('#qClaimAll').addEventListener('click',()=>{ let n=0; for(const q of PROF.q.daily) n+=claimQuest(q.id,'daily',true); for(const q of PROF.q.weekly) n+=claimQuest(q.id,'weekly',true); if(n){ saveProf(); SFX.heal(); toast('Claimed '+n+' quest'+(n>1?'s':''),''); renderQuests(); updateNavDot(); } });
 
@@ -6702,7 +7087,8 @@ function setRows(compact){
 function onSetClick(e,rerender){ const b=e.target.closest('[data-set]'); if(b){ const k=b.dataset.set; PROF.settings[k]=!PROF.settings[k]; saveProf(); applySettings(); SFX.click(); if(k==='haptics'&&PROF.settings.haptics) buzz(20); rerender(); return true; }
   const t=e.target.closest('[data-timer]'); if(t){ PROF.settings.timer=+t.dataset.timer; saveProf(); SFX.click(); rerender(); return true; } return false; }
 function renderProfile(){
-  const li=lvlInfo(); $('#pLvl').textContent=li.l; $('#pName').textContent=LO.name; $('#pXpT').textContent=li.cur+' / '+li.need+' XP to level '+(li.l+1); $('#pXp').style.width=(li.cur/li.need*100)+'%';
+  const li=lvlInfo(); $('#pLvl').textContent=li.l; setPlate($('#pPlate'),LO.name,myTitle(),myBanner()); $('#pPickTs').textContent=titleName(myTitle())||'None'; $('#pPickBs').textContent=BANNERS[myBanner()].name; renderChal();
+  $('#pTutS').textContent=PROF.tut.done?'Replay the scripted training match any time (the reward is paid once).':'A short scripted match that teaches the basics. Pays 500 CR, 50 shards, a title and a banner.'; $('#pTut').textContent=PROF.tut.done?'Replay':'Play'; $('#pXpT').textContent=li.cur+' / '+li.need+' XP to level '+(li.l+1); $('#pXp').style.width=(li.cur/li.need*100)+'%';
   const c=PROF.career; $('#pStats').innerHTML='<div><b>'+c.matches+'</b>matches</div><div><b>'+c.wins+'</b>wins</div><div><b>'+c.top3+'</b>top 3 finishes</div><div><b>'+c.kills+'</b>eliminations</div><div><b>'+c.dmg+'</b>damage dealt</div><div><b>'+(c.matches?(c.kills/c.matches).toFixed(1):'0.0')+'</b>eliminations per match</div>';
   const lv=Object.keys(UNLOCKS).map(Number).sort((a,b)=>a-b); let nextShown=false;
   $('#pTrack').innerHTML=lv.map(l=>{ const got=li.l>=l; let cls=got?'got':''; if(!got&&!nextShown){ cls='next'; nextShown=true; } return '<div class="trow '+cls+'"><b>'+l+'</b><span>'+UNLOCKS[l].map(unlockName).join(', ')+'</span></div>'; }).join('');
@@ -6717,6 +7103,274 @@ function renderProfile(){
 }
 $('#pKfx').addEventListener('click',e=>{ if(e.target.closest('[data-kfxstore]')){ stTab='Kill FX'; SFX.click(); go('store'); } });
 $('#pSet').addEventListener('click',e=>onSetClick(e,renderProfile));
+
+/* ================= name plates, season pass screen, challenges and pickers (UI) ================= */
+function setPlate(el,name,title,banner){ if(!el) return; const b=bnKey(banner);
+  for(const c of [...el.classList]) if(c.startsWith('bn-')) el.classList.remove(c); el.classList.add('np','bn-'+b); if(BANNERS[b].anim) el.classList.add('bn-anim');
+  const n=el.querySelector('b'), t=el.querySelector('small'); if(n) n.textContent=name; if(t) t.textContent=titleName(title); }
+const RAR_COL=r=>(RARITY[r]||RARITY.c).col;
+function passChip(){ passSync(); const S=seasonNow(), t=passTier(), inT=t>=PASS_TIERS?PASS_STEP:PROF.pass.xp-t*PASS_STEP, n=passClaimable().length;
+  const b=$('#mPass'); if(!b) return; b.style.setProperty('--sc',S.th.col);
+  $('#mPassS').textContent='Season '+S.num+' · '+S.th.name; $('#mPassN').textContent=t>=PASS_TIERS?'Max tier':'Tier '+t; $('#mPassX').style.width=(inT/PASS_STEP*100)+'%';
+  $('#mPassL').textContent=(t>=PASS_TIERS?'All rewards reached':(PASS_STEP-inT)+' XP to tier '+(t+1))+' · '+fmtLeft(S.end-Date.now())+' left';
+  const c=$('#mPassC'); c.textContent=n; c.classList.toggle('hidden',!n); b.setAttribute('aria-label','Season pass, tier '+t+(n?', '+n+' reward'+(n>1?'s':'')+' to claim':'')); }
+// one reward's icon: a static cosmetic preview, a mini name plate, or the amount
+function passIcon(R){ if(R.k==='cos') return '<canvas data-pv="'+R.id+'" width="320" height="192"></canvas>';
+  if(R.k==='title') return plateHtml(LO.name,R.id,myBanner()); if(R.k==='banner') return plateHtml(LO.name,'',R.id,{sub:BANNERS[R.id].name});
+  return '<span class="cur '+R.k+'">'+R.n+'</span>'; }
+let psSel=0, psScrolled=false;
+function renderPass(){
+  passSync(); const S=seasonNow(), P=PROF.pass, tr=passTrack(P.n), t=passTier(), cl=passClaimable();
+  $('#pass').style.setProperty('--sc',S.th.col);
+  $('#psKick').textContent='Season '+S.num+' · '+fmtLeft(S.end-Date.now())+' left'; $('#psTitle').textContent=S.th.name;
+  $('#psDesc').textContent=S.th.sub+' Free track: play matches and finish quests to rank up. Ends '+new Date(S.end).toLocaleDateString(undefined,{month:'short',day:'numeric'})+'; unclaimed rewards are delivered then.';
+  const inT=t>=PASS_TIERS?PASS_STEP:P.xp-t*PASS_STEP;
+  $('#psTier').textContent=t; $('#psXpT').textContent=t>=PASS_TIERS?'Max tier':inT+' / '+PASS_STEP+' pass XP'; $('#psLeft').textContent=t>=PASS_TIERS?'':(PASS_STEP-inT)+' to tier '+(t+1);
+  $('#psXp').style.width=(inT/PASS_STEP*100)+'%'; $('#psNext').textContent=t<PASS_TIERS?'Next: tier '+(t+1)+', '+passRwName(tr[t]):'Every reward reached this season.';
+  const ca=$('#psClaimAll'); ca.classList.toggle('hidden',!cl.length); ca.textContent='Claim all ('+cl.length+')';
+  if(!psSel||psSel>PASS_TIERS) psSel=cl.length?cl[0].tier:Math.min(PASS_TIERS,t+1);
+  $('#psTrack').innerHTML=tr.map(R=>{ const st=P.cl.includes(R.tier)?'got':R.tier<=t?'claim':'lock', r=passRwRar(R);
+    return '<button role="listitem" class="ps-t '+st+(R.tier===t+1?' cur':'')+(R.tier===psSel?' sel':'')+(R.ex?' ex':'')+'" style="--rc:'+RAR_COL(r)+'" data-tier="'+R.tier+'" aria-label="Tier '+R.tier+': '+esc(passRwName(R))+(st==='got'?', claimed':st==='claim'?', ready to claim':', locked')+'">'
+      +(R.ex?'<span class="tg">Exclusive</span>':'')+'<small>'+R.tier+'</small><span class="ic">'+passIcon(R)+'</span><span>'+esc(passRwName(R))+'</span></button>'; }).join('');
+  document.querySelectorAll('#psTrack canvas[data-pv]').forEach(drawCosPreview);
+  const X=PASS_XP; $('#psHow').innerHTML=[['Win a match',X.place[0]],['Top half finish',X.place[1]],['Any other finish',X.place[2]],['Each elimination',X.kill],['Each damage point','3 (max '+X.dmgCap+')'],['Each round survived',X.round],['Revive or supply drop',X.revive],['Objective (modes that have them)',X.obj],['First win of the day',X.firstWin],['Daily quest claimed',X.daily],['Weekly quest claimed',X.weekly]].map(e=>'<div><span>'+e[0]+'</span><b>+'+e[1]+'</b></div>').join('');
+  passPreview();
+  if(!psScrolled){ psScrolled=true; const el=document.querySelector('#psTrack [data-tier="'+psSel+'"]'), tk=$('#psTrack'); if(el&&tk) tk.scrollLeft=Math.max(0,el.offsetLeft-tk.clientWidth/2+el.offsetWidth/2); }
+}
+function passPreview(){ const R=passTrack(PROF.pass.n)[psSel-1]; if(!R) return; const t=passTier(), got=PROF.pass.cl.includes(R.tier), can=!got&&R.tier<=t, r=passRwRar(R), art=$('#psArt'), cv=$('#psCv');
+  art.querySelectorAll(':scope>:not(canvas)').forEach(e=>e.remove()); cv.classList.toggle('hidden',R.k!=='cos');
+  if(R.k==='cos'){ cv.dataset.pv=R.id; drawCosPreview(cv); } else art.insertAdjacentHTML('beforeend',R.k==='title'||R.k==='banner'?passIcon(R):'<span class="big '+R.k+'">'+R.n+'</span>');
+  const o=R.k==='cos'?cosOf(R.id):null, owned=o&&PROF.cos.includes(R.id);
+  $('#psPv').style.setProperty('--rc',RAR_COL(r));
+  $('#psPvK').textContent='Tier '+R.tier+' · '+RARITY[r].name+(R.ex?' · season exclusive':'')+(o?' · '+(COS_LABEL[o.cat]||o.cat):R.k==='title'?' · title':R.k==='banner'?' · banner':'');
+  $('#psPvN').textContent=R.k==='cos'?o.it.name:R.k==='title'?titleName(R.id):R.k==='banner'?BANNERS[R.id].name:passRwName(R);
+  const dup=o&&!got&&owned?PASS_DUP[o.it.r||'c']:null;
+  $('#psPvS').textContent=got?'Claimed.':can?(dup?'You already own this: claiming pays '+dup[1]+(dup[0]==='cr'?' credits':' shards')+' instead.':'Ready to claim.'):'Reach tier '+R.tier+' to unlock ('+Math.max(0,R.tier*PASS_STEP-PROF.pass.xp)+' pass XP to go).';
+  let btn=''; if(can) btn='<button class="btn primary" data-psclaim="'+R.tier+'">Claim</button>';
+  else if(got){ const eq=R.k==='cos'?(owned&&PROF.equip[o.cat]!==o.key):R.k==='title'?myTitle()!==R.id:R.k==='banner'?myBanner()!==R.id:false;
+    btn=eq?'<button class="btn" data-pseq="'+R.tier+'">Equip</button>':(R.k==='cos'||R.k==='title'||R.k==='banner')?'<span class="own">Equipped</span>':''; }
+  $('#psPvBtn').innerHTML=btn; }
+function passAnim(){ const cv=$('#psCv'); if(cv&&!cv.classList.contains('hidden')&&cv.dataset.pv) drawCosPreview(cv); }
+function passClaimUI(list){ const got=list.map(x=>passClaim(x)).filter(Boolean); if(!got.length) return; saveProf(); SFX.heal(); buzz([20,30,20]);
+  toast(got.length>1?'Claimed '+got.length+' rewards':'Tier '+list[0]+' claimed',got.slice(0,3).join(', ')+(got.length>3?'…':''),'lvl'); renderPass(); updateNavDot(); }
+$('#pass').addEventListener('click',e=>{
+  const c=e.target.closest('[data-psclaim]'); if(c){ passClaimUI([+c.dataset.psclaim]); return; }
+  const q=e.target.closest('[data-pseq]'); if(q){ const R=passTrack(PROF.pass.n)[+q.dataset.pseq-1]; if(R){ if(R.k==='cos'){ const o=cosOf(R.id); if(o) PROF.equip[o.cat]=o.key; } else if(R.k==='title') PROF.id.title=R.id; else if(R.k==='banner') PROF.id.banner=R.id; saveProf(); SFX.click(); toast('Equipped',passRwName(R)); passPreview(); } return; }
+  if(e.target.closest('#psClaimAll')){ passClaimUI(passClaimable().map(R=>R.tier)); return; }
+  const t=e.target.closest('[data-tier]'); if(t){ psSel=+t.dataset.tier; SFX.click(); document.querySelectorAll('#psTrack .ps-t').forEach(b=>b.classList.toggle('sel',b===t)); passPreview(); } });
+$('#mPass').addEventListener('click',()=>{ SFX.click(); buzz(6); go('pass'); });
+
+// results: pass progress line and the class challenges that moved
+function endProgressHtml(rw){ let h=''; const P=rw.pass, S=seasonNow();
+  if(P){ const up=P.t1>P.t0, n=passClaimable().length, inT=P.t1>=PASS_TIERS?PASS_STEP:P.a-P.t1*PASS_STEP;
+    h+='<div class="prow'+(up?' up':'')+'" style="--sc:'+S.th.col+'"><div class="mt"><b>Pass tier '+(up?P.t0+' → '+P.t1:P.t1)+'</b><span>+'+P.xp+' pass XP</span></div><span class="xpbar"><i style="width:'+(inT/PASS_STEP*100).toFixed(1)+'%"></i></span>'
+      +'<small>'+P.lines.map(l=>esc(l[0])+' +'+l[1]).join(' · ')+(n?' · <b>'+n+' reward'+(n>1?'s':'')+' to claim in Pass</b>':'')+'</small></div>'; }
+  $('#ePass').innerHTML=h;
+  const C=rw.chal||[]; $('#eChal').innerHTML=C.slice(0,4).map(x=>'<div class="crow'+(x.done?' done':'')+'"><b>'+esc(CLASSES[x.c.cls].name+': '+x.c.t)+'</b><em>'+x.a+' / '+x.c.g+'</em><span class="xpbar"><i style="width:'+(x.a/x.c.g*100).toFixed(1)+'%"></i></span>'+(x.done?'<small>Challenge complete: '+esc(rwTxt(x.c.rw))+'</small>':'')+'</div>').join('')
+    +(C.prime?'<div class="crow done"><b>'+esc(CLASSES[G.player.cls].name)+' mastered</b><em>5 / 5</em><small>'+esc(rwTxt(C.prime))+'</small></div>':'');
+  for(const x of C) if(x.done) setTimeout(()=>toast('Challenge complete',rwTxt(x.c.rw),'lvl'),900);
+  if(C.prime) setTimeout(()=>toast(CLASSES[G.player.cls].name+' mastered',rwTxt(C.prime),'lvl'),1300);
+  if(P&&P.t1>P.t0) setTimeout(()=>toast('Pass tier '+P.t1,'New reward'+(P.t1-P.t0>1?'s':'')+' to claim in Pass','lvl'),1100); }
+
+// profile: class challenges, title and banner pickers
+let chCls=null, prPick=null;
+function renderChal(){ const cls=chCls||LO.cls;
+  $('#pChTabs').innerHTML=Object.keys(CLASSES).map(k=>{ const L=CHAL.filter(c=>c.cls===k), d=L.filter(chalDone).length; return '<button role="tab" aria-selected="'+(k===cls)+'" class="'+(k===cls?'sel':'')+'" data-chcls="'+k+'">'+CLASSES[k].name+'<i>'+d+'/'+L.length+'</i></button>'; }).join('');
+  const L=CHAL.filter(c=>c.cls===cls), P=CHAL_PRIME[cls], all=L.every(chalDone);
+  $('#pChal').innerHTML=L.map(c=>{ const p=chalP(c), d=p>=c.g; return '<div class="crow'+(d?' done':'')+'"><b>'+esc(c.t)+'</b><em>'+(d?'Done':p+' / '+c.g)+'</em><span class="xpbar"><i style="width:'+(p/c.g*100).toFixed(1)+'%"></i></span><small>'+esc(rwTxt(c.rw))+'</small></div>'; }).join('')
+    +'<div class="chprime'+(all?' got':'')+'">'+plateHtml(LO.name,P.title,P.banner)+'<span>'+(all?'Mastered. The '+esc(titleName(P.title))+' title and banner are yours.':'Complete all five to earn the '+esc(titleName(P.title))+' title and banner.')+'</span></div>'; }
+function openPick(kind){ prPick=kind; fillPick(); document.body.classList.add('sheet-open'); const sh=$('#prSheet'); sh.classList.remove('hidden'); requestAnimationFrame(()=>sh.classList.add('on')); $('#prShB').scrollTop=0; }
+function closePick(){ prPick=null; document.body.classList.remove('sheet-open'); const sh=$('#prSheet'); sh.classList.remove('on'); sh.classList.add('hidden'); $('#prShB').innerHTML=''; }
+function fillPick(){ const kind=prPick, T=kind==='title'?TITLES:BANNERS, own=kind==='title'?titleOwned:bannerOwned, cur=kind==='title'?myTitle():myBanner(), RO='clerm';
+  const ids=Object.keys(T).sort((a,b)=>(own(b)-own(a))||(RO.indexOf(T[a].r)-RO.indexOf(T[b].r)));
+  const n=ids.filter(own).length; $('#prShK').textContent='Name plate · '+n+' of '+ids.length+' unlocked'; $('#prShT').textContent=kind==='title'?'Title':'Banner';
+  $('#prShS').textContent=kind==='title'?'Shown under your callsign on your operative card, in rooms, on results and in matches.':'The plate behind your callsign. Other players see it in online rooms.';
+  const card=(id,ok)=>{ const r=id?T[id].r:'c'; return '<button class="pk'+(id===cur?' sel':'')+(ok?'':' lock')+'" style="--rc:'+RAR_COL(r)+'" data-pk="'+id+'"'+(ok?'':' aria-disabled="true"')+'>'
+      +(kind==='title'?plateHtml(LO.name,id,myBanner()):plateHtml(LO.name,myTitle(),id))+'<span class="pkh"><span>'+(id?esc(kind==='title'?T[id].name:T[id].name):'No title')+'</span><b>'+(id===cur?'Equipped':ok?(id?RARITY[r].name:''):'Locked')+'</b></span>'+(ok?'':'<span class="pkh"><span>'+esc(idHow(kind,id))+'</span></span>')+'</button>'; };
+  $('#prShB').innerHTML='<div class="pkgrid">'+(kind==='title'?card('',true):'')+ids.map(id=>card(id,own(id))).join('')+'</div>'; }
+$('#prSheet').addEventListener('click',e=>{ if(e.target.closest('[data-close]')){ closePick(); return; }
+  const b=e.target.closest('[data-pk]'); if(!b) return; const id=b.dataset.pk, kind=prPick;
+  if(kind==='title'?(id===''||titleOwned(id)):bannerOwned(id)){ if(kind==='title') PROF.id.title=id; else PROF.id.banner=id; saveProf(); SFX.click(); buzz(6); fillPick(); renderProfile(); }
+  else { SFX.tone(200,140,.15,.06,'square'); toast('Locked',idHow(kind,id)); } });
+$('#prSheet').addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.preventDefault(); closePick(); } });
+$('#pPickT').addEventListener('click',()=>{ SFX.click(); openPick('title'); });
+$('#pPickB').addEventListener('click',()=>{ SFX.click(); openPick('banner'); });
+$('#pChTabs').addEventListener('click',e=>{ const b=e.target.closest('[data-chcls]'); if(!b) return; chCls=b.dataset.chcls; SFX.click(); renderChal(); });
+
+/* ================= guided tutorial =================
+   Offline only. A fixed seed and a handcrafted yard (setupTutorial) with two training dummies that never take a turn of their
+   own: the script (tutRun) moves or fires them through execCmd at set moments. Your actions still go playCmd -> execCmd like
+   any match; the coach card (#coach) and highlight ring (#coachRing) point at the live HUD or a map tile, and each step
+   advances when you do the thing it asks (TUT.allow blocks other actions with a hint). The dummies and you are guarded at 1 HP
+   (u.tutGuard) until the last step. To add a lesson: push a coach() + tutWait() pair in tutRun and its key in TUT_KEYS. */
+const TUT={on:false,cur:null,allow:null,log:[],mark:0,enemy:false,turns:0,next:null,d1:null,d2:null};
+const TUT_SEED=0x5f0a11, TUT_C=19.5;
+const TUT_KEYS=['hud','move','cover','enemy','aim','ow','owhit','rf','nade','throw','broken','door','door2','util','storm','finish'];
+// yard layout (absolute tiles): your start, the cover spot, the dummies, the runner's route, the doorway
+const TY={start:[21,24],cover:[19,21],d1:[17,15],d2:[12,18],run:[[12,18],[12,19],[12,20],[12,21],[13,21],[14,21]],sand:[17,16],door:[23,20],doorAdj:[22,20]};
+function tutLoadout(){ return {name:LO.name,cls:'ranger',weapon:'rifle',armor:'medium',utils:['frag','medkit'],sec:CLASSES.ranger.secs[0],tree:[0,0,0,0,0],perk:null,att:{}}; }
+function setupTutorial(){
+  seedRNG(TUT_SEED); UID=0;
+  G.M=Object.assign({},MODES.quick,{key:'tutorial',name:'Training',players:3,team:1,startR:9.5,fill:1,drops:[]}); G.SC=G.M.storm;
+  G.matchId++; G.timers=[]; G.tweens=[]; G.fx=[]; G.parts=[]; G.texts=[]; G.pings=[]; G.bubbles=[]; G.cmd={}; G.tpings=[]; G.mstat={};
+  G.region='city'; G.R=REG.city; G.rosterTxt='Training';
+  const g=new Array(MW*MH).fill(null), elev=new Uint8Array(MW*MH), floorT=new Uint8Array(MW*MH);
+  const put=(x,y,t,kind,h,ex)=>{ g[idx(x,y)]=Object.assign({t,kind,h:h||0,v:RNG()},ex||{}); };
+  put(19,20,2,'container',38,{col:CONT_COLS[1],g:9001}); put(20,20,2,'container',38,{col:CONT_COLS[1],g:9001}); // your full cover
+  for(const x of [16,17,18]) put(x,16,1,'sandbag');                                                                 // the dummy's half cover
+  for(const y of [17,18,19]) put(13,y,2,'container',38,{col:CONT_COLS[2],g:9002});                                  // the runner hides here
+  for(let y=17;y<=23;y++) for(let x=23;x<=27;x++){ const e=x===23||x===27||y===17||y===23; if(e) put(x,y,2,'wall',44); else floorT[idx(x,y)]=1; } // a small building
+  g[idx(25,17)]={t:1,kind:'window',h:0,v:RNG()}; g[idx(27,20)]={t:1,kind:'window',h:0,v:RNG()};
+  g[idx(TY.door[0],TY.door[1])]={t:2,kind:'door',h:44,v:RNG(),pass:true,ax:0,hp:TERR.door.hp}; put(25,20,1,'desk');
+  // the yard's edge: props along the storm line so the drill area reads as a range
+  [[10,13,'crates'],[11,26,'barrier'],[15,28,'crates'],[24,27,'barrier'],[28,25,'crates'],[29,15,'barrier'],[22,11,'crates'],[16,11,'barrier'],[9,20,'planter'],[30,20,'planter']].forEach(e=>put(e[0],e[1],1,e[2]));
+  put(26,12,1,'car',0,{col:CAR_COLS[0]}); put(9,24,1,'car',0,{col:CAR_COLS[3]});
+  for(const o of g) if(o&&TERR[o.kind]&&o.hp==null) o.hp=TERR[o.kind].hp;
+  G.grid=g; G.lanes={x:[],y:[]}; G.elev=elev; G.floorT=floorT; G.losCache.fill(0);
+  G.decals=[]; G.smoke=[]; G.crates=[]; G.units=[]; G.seen.fill(0); G.drop=null;
+  G.storm={cx:TUT_C,cy:TUT_C,r:9.5,nextR:7.5,stage:0,anim:null,ncx:TUT_C,ncy:TUT_C};
+  const P=makeUnit(tutLoadout(),true,LO.name,visorCol(),PROF,0); P.human=true; G.player=P;
+  const dl=()=>({cls:'ranger',weapon:'rifle',armor:'light',utils:['medkit'],sec:CLASSES.ranger.secs[0],tree:[0,0,0,0,0],perk:null,att:{},lv:1});
+  const D1=makeUnit(dl(),false,'TARGET','#ff9f1c',null,1), D2=makeUnit(dl(),false,'RUNNER','#ff4d5e',null,2);
+  for(const D of [D1,D2]){ D.bot=true; D.diff=DIFFS.recruit; D.tutGuard=true; } P.tutGuard=true;
+  placeUnit(P,TY.start[0],TY.start[1]); placeUnit(D1,TY.d1[0],TY.d1[1]); placeUnit(D2,TY.d2[0],TY.d2[1]); P.face=-1; D1.face=1; D2.face=1;
+  G.units=[P,D1,D2]; G.teamDiff={1:DIFFS.recruit,2:DIFFS.recruit}; TUT.d1=D1; TUT.d2=D2;
+  G.intel={}; G.noise=[]; G.round=1; G.over=false; G.playerDead=false; G.spec=null; G.speed=1; G.rewarded=null; G.result=null; G.place=0; G.busy=true; G.mode='idle'; G.reach=null; G.pending=-1; G.turnRes=null; G.paused=false; G.turnMax=0;
+  G.stats={shots:0,hits:0,grazes:0,dmg:0,kills:0,rounds:0,crates:0,drops:0,owHits:0,highHits:0,nadeHits:0,revives:0}; G.cstat=cstatNew(); G.cctx=null;
+  G.reveals=[]; G.sensors=[]; G.lkp=new Map(); G.cues=[]; G.groundDirty=false;
+  G.scene='game'; computeVis(); buildGround(); G.bg=null; initWeather();
+}
+function tutStart(){
+  if(NET.on){ if(!confirm('Leave the online room and start the tutorial?')) return; netLeave(); }
+  SFX.init(); applySettings(); LO=sanitize(LO);
+  for(const m of META) show('#'+m,false); show('#nav',false); show('#lobby',false); show('#end',false); show('#how',false); show('#tutEnd',false); $('#feed').innerHTML=''; closeEmotes(); closePingTray(); G.pingMode=false;
+  if(!PROF.seenBrief||!PROF.tut.seen){ PROF.seenBrief=true; PROF.tut.seen=true; saveProf(); }
+  Object.assign(TUT,{on:true,cur:null,allow:[],log:[],mark:0,enemy:false,turns:0,next:null});
+  setupTutorial(); show('#hud',true); updateHUD(); tutRun(G.matchId);
+}
+function tutStop(){ TUT.on=false; TUT.cur=null; TUT.allow=null; if(TUT.next){ const n=TUT.next; TUT.next=null; n(); } $('#coach').classList.add('hidden'); $('#coachRing').classList.add('hidden'); }
+const frameP=()=>new Promise(r=>requestAnimationFrame(()=>r()));
+const tutLive=mid=>TUT.on&&G.matchId===mid&&G.scene==='game';
+function tutDid(k){ return TUT.log.slice(TUT.mark).includes(k); }
+function tutCmd(c){ if(TUT.on&&c&&c.k) TUT.log.push(c.k); }
+// a player action the current step does not ask for: blocked with a pointer back to the coach card ('end' is always allowed)
+function tutAllow(id){ if(!TUT.on||id==='end'||!TUT.allow||TUT.allow.includes(id)) return true;
+  hint(TUT.cur&&TUT.cur.t?'Training: '+TUT.cur.t.toLowerCase()+' first':'Not yet'); SFX.tone(220,160,.12,.05,'square'); buzz(12); return false; }
+// your turn in the yard: full AP and ammo every turn, no timer
+function tutNewTurn(){ const P=G.player; if(!TUT.on||G.turnRes||!standing(P)||G.over) return; TUT.turns++;
+  P.ap=2; P.moved=false; P.shot=false; P.overwatch=false; P.hunker=false; P.ammo=P.W.clip; if(P.S&&P.S.clip) P.sAmmo=P.S.clip; P.doorR=-1;
+  G.turnU=P; playerTurn(P); G.turnMax=0; G.turnLeft=0; updateHUD(); if(TUT.turns>1) setTimeout(()=>{ if(TUT.on) hint('New turn: 2 AP'); },350); }
+async function tutClose(mid){ while(tutLive(mid)&&G.turnRes&&G.busy) await frameP(); if(G.turnRes) finishPlayerTurn(); G.busy=true; }
+async function tutFresh(mid){ await tutClose(mid); if(tutLive(mid)){ TUT.enemy=false; tutNewTurn(); } }
+async function tutWait(pred,mid){ while(tutLive(mid)&&!pred()){ if(!G.turnRes&&!TUT.enemy) tutNewTurn(); await frameP(); } return tutLive(mid); }
+// show a coach card: o.t title, o.b text, o.at a HUD selector, o.tile [x,y] or o.unit for a map target, o.next waits for Next
+function coach(o){ TUT.cur=o; TUT.mark=TUT.log.length; const i=TUT_KEYS.indexOf(o.key);
+  $('#coK').textContent='Training'+(i>=0?' · '+(i+1)+' of '+TUT_KEYS.length:''); $('#coT').textContent=o.t; $('#coB').innerHTML=o.b;
+  $('#coDots').innerHTML=TUT_KEYS.map((k,j)=>'<i class="'+(j===i?'on':j<i?'done':'')+'"></i>').join('');
+  $('#coach').classList.remove('hidden'); $('#coNext').classList.toggle('hidden',!o.next); TUT.scrolled=false; tutTick();
+  if(o.next) return new Promise(r=>{ TUT.next=r; setTimeout(()=>{ const b=$('#coNext'); if(b&&TUT.on) b.focus({preventScroll:true}); },50); });
+  return Promise.resolve(); }
+$('#coNext').addEventListener('click',()=>{ SFX.click(); const n=TUT.next; TUT.next=null; if(n) n(); });
+$('#coSkip').addEventListener('click',()=>{ if(!TUT.on) return; if(!confirm('Skip the tutorial? You can replay it any time from Profile or How to play.')) return; tutStop(); toMenu(); });
+function tileScr(x,y,lift){ const p=iso(x+.5,y+.5); p[1]-=ez(x,y)+(lift||0); return [(p[0]-G.cam.x)*G.cam.z+VW/2,(p[1]-G.cam.y)*G.cam.z+VH/2]; }
+// per frame: keep the ring on its target (HUD element, tile or unit) and the card out of its way
+function tutTick(){ const o=TUT.cur, ring=$('#coachRing'), card=$('#coach'); if(!o){ ring.classList.add('hidden'); return; }
+  let r=null, tile=false;
+  if(o.at){ const el=document.querySelector(o.at); if(el&&el.getClientRects().length){ const b=el.getBoundingClientRect();
+      const bar=el.closest('.actions'); if(bar&&!TUT.scrolled){ TUT.scrolled=true; const bb=bar.getBoundingClientRect(); if(b.left<bb.left||b.right>bb.right) bar.scrollLeft+=b.left-bb.left-(bb.width-b.width)/2; }
+      if(b.width) r={x:b.left-4,y:b.top-4,w:b.width+8,h:b.height+8}; } }
+  else if(o.unit&&o.unit.alive||o.tile){ const z=G.cam.z; tile=true;
+    if(o.unit){ const u=o.unit, p=unitScreen(u), s=[(p[0]-G.cam.x)*z+VW/2,(p[1]-G.cam.y)*z+VH/2], w=46*z, h=70*z; r={x:s[0]-w/2,y:s[1]-h+10*z,w,h}; }
+    else { const s=tileScr(o.tile[0],o.tile[1]), w=TW*z*1.2, h=TH*z*1.2; r={x:s[0]-w/2,y:s[1]-h/2,w,h}; } }
+  if(r){ ring.classList.remove('hidden'); ring.classList.toggle('tile',tile); ring.style.left=r.x+'px'; ring.style.top=r.y+'px'; ring.style.width=r.w+'px'; ring.style.height=r.h+'px'; } else ring.classList.add('hidden');
+  const to=$('#torder'), top0=Math.max(70,(to&&to.getBoundingClientRect().bottom)||90)+8, ch=card.offsetHeight||140, bt=document.querySelector('#hud .bottom'), bTop=bt?bt.getBoundingClientRect().top:VH-200;
+  let y=top0; if(r&&r.y<top0+ch+12&&r.y+r.h>top0-4) y=Math.max(top0,Math.min(bTop-ch-10,r.y+r.h+12)); card.style.top=Math.round(y)+'px'; }
+async function tutRun(mid){
+  const P=G.player, D1=TUT.d1, D2=TUT.d2, at=(u,t)=>u.x===t[0]&&u.y===t[1], go_=()=>tutLive(mid);
+  banner('Training','A short drill on the basics. Skip any time.','',2400); focusOn(P.x,P.y,defaultZ()); await wait(1200); if(!go_()) return;
+  tutNewTurn();
+  await coach({key:'hud',t:'Your operative',b:'Pips are <em>hit points</em>. The two bars are <em>action points (AP)</em>: you get 2 every turn. Ammo and status sit beside them.',at:'#unitp',next:1}); if(!go_()) return;
+  // moving and AP, then cover
+  TUT.allow=['move'];
+  await coach({key:'move',t:'Move with AP',b:'Tap the marked tile once to <em>preview</em> the move. <em>Blue</em> tiles cost 1 AP, <em>yellow</em> dash tiles cost 2.',tile:TY.cover});
+  if(!await tutWait(()=>G.pending===idx(TY.cover[0],TY.cover[1])||at(P,TY.cover),mid)) return;
+  if(!at(P,TY.cover)){ await coach({key:'cover',t:'Read the cover',b:'The shields on that tile show its cover: a <em>full shield</em> blocks 40 aim, a <em>half shield</em> 20. Tap the tile again to move there.',tile:TY.cover});
+    if(!await tutWait(()=>at(P,TY.cover),mid)) return; }
+  // shooting and hit chance
+  await tutFresh(mid); focusMid(P,D1); TUT.allow=['shoot'];
+  await coach({key:'enemy',t:'Enemy in sight',b:'A training dummy behind sandbags (<em>half cover</em>). Tap <em>Shoot</em>, or tap the dummy.',at:'#actions [data-act="shoot"]'});
+  if(!await tutWait(()=>G.mode==='target'||tutDid('fire'),mid)) return;
+  if(!tutDid('fire')){ await coach({key:'aim',t:'Hit chance',b:'Your aim minus cover, range and other modifiers. A miss inside the <em>graze</em> band still grazes for half damage; <em>crits</em> hit harder, mostly against targets in the open. Tap <em>Fire</em>.',at:'#tgt'});
+    if(!await tutWait(()=>tutDid('fire'),mid)) return; }
+  await wait(500); if(!go_()) return;
+  // overwatch: the runner crosses your sight on the enemy turn
+  await tutFresh(mid); TUT.allow=['ow'];
+  await coach({key:'ow',t:'Overwatch',b:'Ends your turn on watch: the first enemy that moves where you can see takes a <em>reaction shot</em> (−15 aim). Tap <em>Overwatch</em>.',at:'#actions [data-act="ow"]'});
+  if(!await tutWait(()=>tutDid('ow'),mid)) return;
+  TUT.enemy=true; await tutClose(mid); if(!go_()) return;
+  coach({key:'ow',t:'Enemy turn',b:'Something moves on your left…'});
+  G.turnU=D2; updateTurnOrder(); turnTag(D2.name+' · enemy turn','enemy'); await wait(700); if(!go_()) return;
+  D2.ap=2; D2.moved=false; await execCmd(D2,{k:'move',path:TY.run.map(p=>p.slice()),ap:1}); if(!go_()) return; await wait(700); if(!go_()) return;
+  G.turnU=null; P.overwatch=false; focusOn(D2.x,D2.y); updateHUD();
+  await coach({key:'owhit',t:'Reaction shot',b:'Your overwatch fired the moment the runner stepped into view. Reaction shots take −15 aim, so cover still matters for both sides.',unit:D2,next:1}); if(!go_()) return;
+  // return fire
+  G.turnU=D1; updateTurnOrder(); turnTag(D1.name+' · enemy turn','enemy'); focusMid(P,D1);
+  coach({key:'rf',t:'Enemy turn',b:'The dummy shoots at you. You are in <em>full cover</em> from it.',unit:D1}); await wait(1100); if(!go_()) return;
+  D1.ap=2; D1.ammo=D1.W.clip; D1.disorient=0; await execCmd(D1,{k:'fire',kind:'shoot',t:P.id}); if(!go_()) return; await wait(500); if(!go_()) return;
+  G.turnU=null; updateHUD();
+  await coach({key:'rf',t:'Return fire',b:'In full cover from a shooter that can see you, you <em>fire back automatically</em>, once per enemy turn (−15 aim). Enemies in full cover do the same: flank them or break their cover first.',unit:P,next:1}); if(!go_()) return;
+  // grenades and destructible cover
+  await tutFresh(mid); P.utils[0].ch=Math.max(1,P.utils[0].ch); updateHUD(); focusMid(P,D1); TUT.allow=['u0','throw'];
+  await coach({key:'nade',t:'Grenades',b:'Throwables cost 1 AP, ignore cover and <em>knock it down a stage</em>. Tap <em>Frag</em>.',at:'#actions [data-act="u0"]'});
+  if(!await tutWait(()=>G.mode==='throw'||tutDid('throw'),mid)) return;
+  if(!tutDid('throw')){ await coach({key:'throw',t:'Aim the throw',b:'Tap the dummy’s tile to aim (the blast radius shows), then tap it again to throw.',tile:TY.d1});
+    if(!await tutWait(()=>tutDid('throw'),mid)) return; }
+  await wait(600); if(!go_()) return;
+  await coach({key:'broken',t:'Destructible cover',b:'The blast broke the sandbags down a stage: full cover becomes half, half becomes rubble. Missed shots chip cover too, and red fuel barrels explode.',tile:TY.sand,next:1}); if(!go_()) return;
+  // doors
+  await tutFresh(mid); focusOn(TY.doorAdj[0],TY.doorAdj[1]); TUT.allow=['move'];
+  await coach({key:'door',t:'Doors',b:'Buildings have doors. A closed door is full cover and blocks sight. Move to the marked tile next to the door.',tile:TY.doorAdj});
+  if(!await tutWait(()=>!!adjDoor(P)&&!G.busy,mid)) return;
+  TUT.allow=['door','breach'];
+  const dr=adjDoor(P), shut=dr&&dr.o.t===2;
+  await coach({key:'door2',t:'Open or breach',b:'<em>Open</em> is free (once a turn). <em>Breach</em> costs 1 AP, smashes the door and stuns anyone right behind it. Try one.',at:shut?'#actions [data-act="breach"]':'#actions [data-act="door"]'});
+  if(!await tutWait(()=>tutDid('door')||tutDid('breach'),mid)) return;
+  await wait(500); if(!go_()) return;
+  // utilities
+  await tutFresh(mid); if(P.hp>P.maxHp-2) P.hp=Math.max(1,P.maxHp-3); P.utils[1].ch=Math.max(1,P.utils[1].ch); updateHUD(); TUT.allow=['u1'];
+  await coach({key:'util',t:'Utilities',b:'You are hurt. Utilities cost 1 AP: smoke, flashbangs, shield cells, drones and more. Tap <em>Medkit</em> to heal.',at:'#actions [data-act="u1"]'});
+  if(!await tutWait(()=>tutDid('util'),mid)) return;
+  await wait(400); if(!go_()) return;
+  // the storm
+  TUT.enemy=true; await tutClose(mid); if(!go_()) return; TUT.cur=null; $('#coach').classList.add('hidden');
+  { const st=G.storm, r0=st.r; banner('Storm closing','The safe zone shrinks to the white ring.','warn',2000); SFX.storm(); buzz([40,60,40]);
+    const c=iso(st.cx,st.cy); G.cam.tx=c[0]; G.cam.ty=c[1]; G.cam.tz=Math.max(0.5,defaultZ()*0.6);
+    await new Promise(res=>G.tweens.push({t:0,dur:1.6,fn:k=>{ st.r=lerp(r0,7.5,ease(k)); },res})); st.r=7.5; st.nextR=5.5; st.stage=1; updateTop(); await wait(500); }
+  if(!go_()) return;
+  await coach({key:'storm',t:'The storm',b:'It closes every other round. Outside the white ring you take damage at the start of each turn, more every stage. Late in a match it moves: follow the ring.',at:'#hStormChip',next:1}); if(!go_()) return;
+  // finish
+  await tutFresh(mid); TUT.allow=null; D1.tutGuard=false; D1.hp=Math.max(1,Math.min(D1.hp,2)); D1.shield=0; focusMid(P,D1); updateHUD();
+  await coach({key:'finish',t:'Finish the drill',b:'The dummy is on its last hit points. Eliminate it with anything you learned: shoot, throw, or <em>Blade Strike</em> (dash and cut).',unit:D1});
+  if(!await tutWait(()=>!D1.alive,mid)) return;
+  tutComplete(mid);
+}
+function tutComplete(mid){
+  const first=!PROF.tut.done; G.over=true; if(G.turnRes) finishPlayerTurn(); TUT.cur=null; TUT.allow=null; $('#coach').classList.add('hidden'); $('#coachRing').classList.add('hidden');
+  banner('Training complete','You know the basics. Time to drop.','win',2400); SFX.heal(); buzz([40,60,40,60,120]);
+  let px=null; if(first){ PROF.tut.done=true; PROF.credits+=500; PROF.shards+=50; grantTitle('t_graduate'); grantBanner('bn_boot'); if(PROF.id.title==='t_recruit') PROF.id.title='t_graduate'; if(PROF.id.banner==='bn_std') PROF.id.banner='bn_boot'; px=passAdd(500); }
+  PROF.tut.seen=true; PROF.seenBrief=true; saveProf();
+  $('#teSub').textContent=first?'Drill finished. Here is something for the road.':'Drill finished. The training reward was already claimed.';
+  $('#tePlate').innerHTML=plateHtml(LO.name,myTitle(),myBanner());
+  $('#teRew').innerHTML=first?'<div><span>Credits</span><span>+500 CR</span></div><div><span>Shards</span><span>+50</span></div><div><span>Title</span><span>Graduate</span></div><div><span>Banner</span><span>Bootcamp</span></div><div class="tot"><span>Season pass</span><span>+500 pass XP'+(px&&px.t1>px.t0?' · tier '+px.t1:'')+'</span></div>':'<div><span>Rewards</span><span>Already claimed</span></div>';
+  $('#teRecap').innerHTML=['Blue tiles 1 AP, yellow 2 AP. Shooting first leaves a move.','Full cover −40 aim, half −20. Flank to dodge return fire.','Overwatch ends your turn and shoots the first mover.','Grenades break cover; doors open free or breach for 1 AP.','Stay inside the white ring.'].map(t=>'<li>'+t+'</li>').join('');
+  setTimeout(()=>{ if(G.matchId!==mid) return; TUT.on=false; $('#hud').classList.add('hidden'); show('#tutEnd',true); const b=$('#tePlay'); if(b) b.focus({preventScroll:true}); },2200);
+}
+$('#tePlay').addEventListener('click',()=>{ show('#tutEnd',false); toMenu(); openLobby(false); });
+$('#teMenu').addEventListener('click',()=>{ show('#tutEnd',false); toMenu(); });
+$('#howTut').addEventListener('click',()=>{ SFX.init(); SFX.click(); show('#how',false); tutStart(); });
+$('#pTut').addEventListener('click',()=>{ SFX.click(); tutStart(); });
+function howButtons(){ const t=$('#howTut'), c=$('#howClose'), done=PROF.tut.done; t.className='btn'+(done?'':' primary'); c.className='btn'+(done?' primary':' ghost');
+  t.querySelector('small').textContent=done?'Replay the scripted drill':'About 5 minutes · pays a reward the first time'; }
 
 /* ================= in-match controls ================= */
 $('#bPause').addEventListener('click',()=>{ if(G.scene!=='game') return; G.paused=!NET.on; $('#pauseSet').innerHTML=setRows(true); $('#pause').classList.remove('hidden'); });
@@ -6739,8 +7393,9 @@ $('#spLeave').addEventListener('click',()=>{ if(G.over||!G.playerDead) return; G
 window.__stormfall={G,setupMatch,runMatch,onAction,pFire,pMove,pThrow,enterTarget,actionList,sanitize,update,render,startMatch,PROF:()=>PROF,go,renderStore,renderQuests,renderProfile,grantRewards,claimQuest,sendEmote};
 
 /* ================= boot ================= */
+{ const st=document.createElement('style'); st.id='bannerCss'; st.textContent=plateCssText(); document.head.appendChild(st); } // name plate banners from BANNERS
 applySettings(); refreshQuests(); resize(); setupMenuScene(); go('menu');
-if(!PROF.seenBrief) show('#how',true);
+if(!PROF.seenBrief){ howButtons(); show('#how',true); }
 requestAnimationFrame(t=>{ lastT=t; frame(t); });
 })();
 
