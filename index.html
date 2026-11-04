@@ -1386,7 +1386,7 @@ body.sheet-open #sfInv{display:none}
       <li>A platform or building edge right next to you is full cover against attackers below its top, but none against anyone standing on it or higher. Rooftops themselves give no cover: you trade protection for aim and sight.</li>
       <li>Buildings with interiors have doors and windows. Windows are half cover you can see through. A closed door is full cover and blocks sight; walking through one opens it (+1 move). Next to a door you can open or close it (free, once a turn) or Breach it (1 AP: smashes it and stuns enemies right behind it).</li>
       <li>Cover breaks. A missed shot at someone behind crates, cars, fences, windows or sandbags hits the cover instead (half the weapon’s minimum damage), and you can shoot objects directly (never misses, 1 ammo). At 0 HP full cover drops to half cover and half cover to rubble. Grenades knock everything in the blast down a stage.</li>
-      <li>Red fuel barrels and white fuel tanks explode when destroyed, hurting everyone nearby and setting off other explosives in the blast. Shoot them when an enemy hides next to one.</li>
+      <li>Fuel barrels, oil drums and fuel tanks explode when destroyed, hurting everyone nearby and setting off other explosives in the blast. Shoot them when an enemy hides next to one.</li>
       <li>Return fire: an operative in full cover from its attacker shoots back once per enemy turn (reaction shot, −15 aim, 1 ammo) if it survives, can see the shooter and has ammo. Not while downed, disoriented, hunkered or on overwatch. Flank to avoid it.</li>
       <li>Information: gunfire and explosions out of sight within 14 tiles of your team show as ripples, edge arrows and minimap pings, and enemies leave a “?” marker where you last saw, heard or sensed them, fading over 2 rounds. The Scout Drone reveals an area until the end of next round; the Motion Sensor pings enemies that move near it for 4 rounds.</li>
       <li>Grenades and other throwables cost 1 AP. Shooting or throwing a grenade before you move leaves 1 AP for a move; attacking after a move, overwatch and hunker end your turn. The railgun and gauss rifle need both AP.</li>
@@ -1565,7 +1565,7 @@ const TERR={
   door:{name:'Door',hp:4},
   fuel:{name:'Fuel barrel',hp:2,boom:{r:1.6,dmg:[3,5]}},
   ftank:{name:'Fuel tank',hp:5,boom:{r:2.2,dmg:[4,6]}},
-  crates:{name:'Crates',hp:4}, crate:{name:'Supply crate',hp:4}, barrels:{name:'Drums',hp:4}, planter:{name:'Planter',hp:4},
+  crates:{name:'Crates',hp:4}, crate:{name:'Supply crate',hp:4}, barrels:{name:'Oil drums',hp:3,boom:{r:1.5,dmg:[2,3]}}, planter:{name:'Planter',hp:4},
   barrier:{name:'Barrier',hp:5}, sandbag:{name:'Sandbags',hp:5}, icerock:{name:'Ice block',hp:4}, desk:{name:'Desk',hp:2},
   fence:{name:'Fence',hp:2}, car:{name:'Car',hp:6,next:'wreck'}, wreck:{name:'Wreck',hp:5}, window:{name:'Window',hp:2,next:'sill'},
   sill:{name:'Window frame',hp:3}, container:{name:'Container',hp:10}, rubble:{name:'Rubble',hp:4}, ruinlow:{name:'Low wall',hp:5}, rocks:{name:'Rocks',hp:6}
@@ -7509,7 +7509,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=18, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=19, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
