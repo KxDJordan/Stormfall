@@ -6218,10 +6218,10 @@ function renderProfile(){
 $('#pSet').addEventListener('click',e=>onSetClick(e,renderProfile));
 
 /* ================= in-match controls ================= */
-$('#bPause').addEventListener('click',()=>{ if(G.scene!=='game') return; G.paused=!NET.on; $('#pauseSet').innerHTML=setRows(true); $('#pause').classList.remove('hidden'); });
+$('#bPause').addEventListener('click',()=>{ if(G.scene!=='game') return; G.paused=!NET.on||!!(G.watch&&G.watch.kind==='replay'); $('#pQuit').textContent=G.watch?(G.watch.kind==='replay'?'Stop the replay':'Stop watching'):'Abandon match'; $('#pauseSet').innerHTML=setRows(true); $('#pause').classList.remove('hidden'); });
 $('#pauseSet').addEventListener('click',e=>onSetClick(e,()=>{ $('#pauseSet').innerHTML=setRows(true); }));
 $('#pResume').addEventListener('click',()=>{ G.paused=false; $('#pause').classList.add('hidden'); });
-$('#pQuit').addEventListener('click',()=>{ $('#pause').classList.add('hidden'); G.paused=false; if(NET.on&&!G.over) netLeave(); toMenu(); });
+$('#pQuit').addEventListener('click',()=>{ $('#pause').classList.add('hidden'); G.paused=false; if(G.watch){ exitWatch(); return; } if(NET.on&&!G.over) netLeave(); toMenu(); });
 $('#bEmote').addEventListener('click',()=>{ if($('#emoteTray').classList.contains('hidden')) openEmotes(); else closeEmotes(); });
 $('#emoteTray').addEventListener('click',e=>{ const b=e.target.closest('[data-em]'); if(!b) return; sendEmote(b.dataset.em); closeEmotes(); });
 // team pings: the 📍 button arms ping mode (next map tap opens the ping menu there); a long press on the map does the same
@@ -6265,7 +6265,7 @@ function clkTurn(u,on){ if(!(G.tm&&G.tm.b)) return;
 function clkReport(u,bk){ G.clk[u.id]={b:Math.max(0,+bk||0)}; if(G.clkAct&&G.clkAct.id===u.id) G.clkAct.at=performance.now(); }
 const fmtClock=s=>{ s=Math.max(0,Math.ceil(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
 let clkSig='';
-function updateClocks(){ const el=$('#clocks'); if(!el) return; const on=G.scene==='game'&&!G.over&&!!(G.tm&&G.tm.b);
+function updateClocks(){ const el=$('#clocks'); if(!el) return; const on=G.scene==='game'&&!G.over&&!!(G.tm&&G.tm.b)&&(NET.on||!!G.watch); // offline: the turn timer box already shows your bank
   if(!on){ if(clkSig!==''){ clkSig=''; el.innerHTML=''; el.classList.add('hidden'); } return; }
   const now=performance.now(), parts=[];
   for(const u of G.units){ const k=G.clk[u.id]; if(!k||!u.alive) continue; let b=k.b, cur=false;
@@ -6371,7 +6371,7 @@ function playReplay(rep,o){ o=o||{}; if(!rep){ toast('Replay unavailable',''); r
       setupMatch(c.lo,c.mode,null,{seed:c.seed>>>0,region:REG[c.region]?c.region:'city',slots:c.slots.slice(0,8),rp:c.rp&&typeof c.rp==='object'?Object.assign({},c.rp,{own:Array.isArray(c.rp.own)?c.rp.own:[]}):null,lv:clamp(c.lv|0,1,40)}); }
     else { const cfg=netCfgClean(c); if(!cfg) throw new Error('bad cfg'); setupMatch(null,cfg.mode,Object.assign({},cfg,{me:rep.me||cfg.players[0].pid})); }
     G.tm=rep.cfg.tm?{t:rep.cfg.tm.t|0,b:rep.cfg.tm.b|0}:{t:0,b:0}; tmInit();
-    G.watch={kind:'replay',rep,ok:0,bad:0,total:(rep.h||[]).length,other:!!(rep.b&&rep.b!==BUILD)}; watchSetup();
+    G.watch={kind:'replay',rep,ok:0,bad:0,total:(rep.h||[]).length,other:!!(rep.b&&rep.b!==BUILD),from:o.from||''}; watchSetup();
     for(const id in rep.cmds) for(const cmd of rep.cmds[id]) netPush(+id,cmd);
   }catch(e){ console.error(e); toMenu(); toast('That replay could not be loaded','It may be damaged or from another version.'); return; }
   show('#hud',true); updateHUD(); runMatch();
@@ -6383,7 +6383,7 @@ function replayJumpFinal(){ const W=G.watch; if(!W||W.kind!=='replay') return; c
 function replayCheck(h){ const W=G.watch, i=G.hlog.length-1; if(i>=W.total) return;
   if(W.rep.h[i]===h){ if(!W.bad) W.ok=i+1; } else if(!W.bad){ W.bad=G.round; toast('Replay out of sync','Round '+G.round+' differs from the recorded match.'); } }
 function exitWatch(){ const W=G.watch; ffStop(); G.matchId++; G.watch=null; show('#wend',false);
-  if(W&&W.kind==='spec'&&inRoom()){ toMenu(); openOnline(); return; } toMenu(); if(W&&W.kind==='replay') go('profile'); }
+  if(W&&(W.kind==='spec'||W.from==='end')&&inRoom()){ toMenu(); openOnline(); return; } toMenu(); if(W&&W.kind==='replay'&&W.from!=='end') go('profile'); }
 function watchEnd(why){ const W=G.watch; if(!W||W.ended) return; W.ended=true; ffStop();
   if(why!=='over'){ G.over=true; G.matchId++; } $('#spec').classList.add('hidden'); show('#hud',false);
   const r=G.result, rp=W.kind==='replay';
@@ -6398,7 +6398,7 @@ function watchEnd(why){ const W=G.watch; if(!W||W.ended) return; W.ended=true; f
   else { if(inRoom()) B.push('<button class="btn primary" data-we="room">Back to room</button>'); B.push('<button class="btn ghost" data-we="menu">'+(inRoom()?'Leave room':'Menu')+'</button>'); }
   $('#weB').innerHTML='<div class="rpmb">'+B.join('')+'</div>'; show('#wend',true); }
 $('#wend').addEventListener('click',e=>{ const b=e.target.closest('[data-we]'); if(!b) return; SFX.click(); const a=b.dataset.we, W=G.watch;
-  if(a==='again'||a==='final'){ const rep=W&&W.rep; show('#wend',false); playReplay(rep,{final:a==='final'}); return; }
+  if(a==='again'||a==='final'){ const rep=W&&W.rep; show('#wend',false); playReplay(rep,{final:a==='final',from:W&&W.from}); return; }
   if(a==='done'){ exitWatch(); return; }
   if(a==='room'){ show('#wend',false); G.watch=null; toMenu(); openOnline(); return; }
   if(a==='menu'){ show('#wend',false); if(NET.on) netLeave(); G.watch=null; toMenu(); } });
@@ -6445,7 +6445,7 @@ $('#rpm').addEventListener('click',async e=>{ const b=e.target.closest('[data-rp
 $('#rpmFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f) return; if(f.size>4e6){ $('#rpmStat').textContent='That file is too large.'; return; } f.text().then(t=>{ $('#rpmTxt').value=t; rpImportText(t); }); });
 $('#rpmClose').addEventListener('click',()=>show('#rpm',false));
 $('#rpImport').addEventListener('click',()=>{ SFX.init(); SFX.click(); openRpImport(); });
-$('#eReplay').addEventListener('click',()=>{ if(!REC||!REC.h.length) return; SFX.click(); show('#end',false); playReplay(REC,{final:true}); });
+$('#eReplay').addEventListener('click',()=>{ if(!REC||!REC.h.length) return; SFX.click(); show('#end',false); playReplay(REC,{final:true,from:'end'}); });
 
 /* ================= daily challenge =================
    One seeded match per UTC day, the same for everyone: the seed comes from the date and fixes the map, region, spawns, the
