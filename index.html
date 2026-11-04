@@ -1063,6 +1063,55 @@ body.sheet-open #sfInv{display:none}
 @media (min-width:820px){ #sfInvBadge{top:calc(var(--sat) + 194px)} } /* below the minimap */
 #sfInvBadge i{font-style:normal;min-width:18px;height:18px;border-radius:9px;background:var(--signal);color:var(--signal-ink);font-size:11px;line-height:18px;text-align:center}
 @media (prefers-reduced-motion:reduce){ .ivcard{animation:none} }
+/* ================= performance & accessibility (settings: Graphics + Accessibility) =================
+   Driven from JS (paApply) via attributes on <html>: data-cb (colour-blind palette), data-ts + --ts (text size; px
+   font sizes are rewritten to calc(N * var(--ts)) the first time a size other than Normal is picked), .pa-hc (high
+   contrast), .pa-lh (left thumb), .pa-rm (reduced motion forced on). New UI can rely on var(--ts) for font sizes. */
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.pa-h{margin:10px 2px 0;font:600 calc(20px * var(--ts,1))/1 Teko,sans-serif;letter-spacing:.06em;color:var(--signal);text-transform:uppercase}
+.setrow .seg{flex-wrap:wrap;max-width:100%}
+.setrow .seg.pa4 button{padding:0 9px;min-width:0}
+#paCap{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + 196px);display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none;max-width:calc(100% - 24px)}
+#paCap div{padding:3px 10px;background:rgba(0,0,0,.82);border:1px solid rgba(255,255,255,.35);border-radius:4px;font-size:calc(13px * var(--ts,1));font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#paCap div b{color:#ffd65a;font-weight:700}
+.act.pa-arm,#tFire.pa-arm{outline:2px solid var(--amber);outline-offset:-2px}
+.act.pa-holding,#tFire.pa-holding{position:relative;overflow:hidden}
+.act.pa-holding::before,#tFire.pa-holding::before{content:"";position:absolute;left:0;bottom:0;height:4px;width:0;background:var(--amber);animation:paHold var(--pa-hold,500ms) linear forwards}
+@keyframes paHold{to{width:100%}}
+/* text size: chips and action buttons grow instead of clipping on a 390px screen */
+html[data-ts] .act{width:auto;min-width:68px;height:auto;min-height:70px;padding:4px 7px}
+html[data-ts] .topbar .chip{padding:0 6px}
+html[data-ts="xl"] .topbar{gap:4px}
+html[data-ts="xl"] .topbar .topbtn{width:34px}
+html[data-ts="xl"] .topbar .chip.wx{width:32px}
+html[data-ts] .unitp>div:first-child{max-width:38%}
+html[data-ts] .tmr{width:auto;min-width:46px}
+/* high contrast */
+html.pa-hc{--panel:rgba(0,0,0,.97);--panel-solid:#000;--surf:#000;--surf2:#0b0b0b;--surf3:#151515;--line:rgba(255,255,255,.6);--line2:rgba(255,255,255,.8);--line3:#fff;--text:#fff;--text2:#fff;--muted:#e2e8ee;--dim:#c4ccd4}
+html.pa-hc .act,html.pa-hc .chip,html.pa-hc .topbtn,html.pa-hc .unitp,html.pa-hc .tgt,html.pa-hc .setrow,html.pa-hc .btn,html.pa-hc .tchip,html.pa-hc .seg{border-width:2px}
+html.pa-hc .act.off{opacity:.6;border-style:dashed}
+html.pa-hc .fe,html.pa-hc #hint,html.pa-hc #turnTag,html.pa-hc #banner .bs{background:#000;border-color:#fff}
+html.pa-hc #banner .bt{text-shadow:0 0 3px #000,0 0 3px #000,0 2px 0 #000}
+html.pa-hc .seg button.sel{outline:2px solid #fff;outline-offset:-2px}
+/* left thumb: the action bar and target buttons mirror (End turn and Fire on the left) */
+html.pa-lh .actions{flex-direction:row-reverse}
+html.pa-lh .act.end{margin-left:0;margin-right:auto}
+html.pa-lh .tbtns{grid-template-columns:2fr 1fr}
+html.pa-lh .tbtns #tCancel{order:2}
+html.pa-lh .unitp{flex-direction:row-reverse}
+html.pa-lh .spec .r2{direction:rtl}
+html.pa-lh #emoteTray{right:auto;left:calc(var(--sal) + 10px);align-items:flex-start}
+/* colour-blind palettes: --ok / --hostile / --pa-warn come from the palette (set inline by paApply) */
+html[data-cb] #tRow span[style*="5dff9a"]{color:var(--ok)!important}
+html[data-cb] .ally,html[data-cb] .ally span{color:var(--pa-ally)}
+html[data-cb] #tHit[data-band="hi"]{color:var(--ok)}
+html[data-cb] #tHit[data-band="mid"]{color:var(--pa-warn)}
+html[data-cb] #tHit[data-band="lo"]{color:var(--hostile)}
+html[data-cb] #tHit[data-band]::after{font:600 calc(13px * var(--ts,1))/1 'Chakra Petch',sans-serif;margin-left:4px;vertical-align:top}
+html[data-cb] #tHit[data-band="hi"]::after{content:"\25B2"} html[data-cb] #tHit[data-band="mid"]::after{content:"\25C6"} html[data-cb] #tHit[data-band="lo"]::after{content:"\25BC"}
+html[data-cb] #torder .tk.ally::after{content:"";position:absolute;right:1px;top:1px;width:5px;height:5px;border-radius:50%;background:currentColor}
+html[data-cb] #torder .tk.foe:not(.unk)::after{content:"";position:absolute;right:0;top:0;border:4px solid transparent;border-top-color:currentColor;border-right-color:currentColor}
+html.pa-rm .toast,html.pa-rm .toast.lvl,html.pa-rm .toast.lvl::after,html.pa-rm .tmr.warn b,html.pa-rm .fe,html.pa-rm #torder .tk.down::after,html.pa-rm #torder .tk.ff::before,html.pa-rm .spin{animation:none!important}
 </style>
 </head>
 <body>
@@ -2810,7 +2859,7 @@ function vpDiag(){ let on=/[?&]vp=1/.test(location.search); try{ on=on||!!PROF.s
     +'\n--app-h '+getComputedStyle(document.documentElement).getPropertyValue('--app-h').trim()+'\nhtml '+r('html')+' body '+r('body')+'\ncanvas '+r('#gc')+' nav '+r('#nav')+' hud '+r('#hud .bottom')
     +'\nsafe t'+cs.paddingTop+' b'+cs.paddingBottom+' l'+cs.paddingLeft+' r'+cs.paddingRight+'\nstandalone '+navigator.standalone+' mode '+dm+' dpr '+devicePixelRatio; }
 setInterval(()=>{ try{ if(PROF.settings.vpinfo||/[?&]vp=1/.test(location.search)) vpDiag(); }catch(e){} },1000);
-function resize(){ setAppH(); DPR=Math.min(2,window.devicePixelRatio||1); cv.style.width=''; cv.style.height='';
+function resize(){ setAppH(); DPR=Math.min(perfDpr(),window.devicePixelRatio||1); cv.style.width=''; cv.style.height='';
   const r=cv.getBoundingClientRect(); VW=Math.round(r.width)||window.innerWidth||390; VH=Math.round(r.height)||window.innerHeight||800;
   const w=Math.round(VW*DPR), h=Math.round(VH*DPR); if(cv.width===w&&cv.height===h&&G.bg) return;
   cv.width=w; cv.height=h; G.bg=null; initWeather(); }
@@ -2891,7 +2940,7 @@ function buildGround(rect){
       const sx=Math.max(0,Math.floor((a+GOX)*sc/2)*2), sy=Math.max(0,Math.floor((c0+GOY)*sc/2)*2), sw=Math.min(G.ground.width-sx,Math.ceil((b-a)*sc)+4), sh=Math.min(G.ground.height-sy,Math.ceil((c1-c0)*sc)+4);
       if(sw>0&&sh>0) G.groundHalf.getContext('2d').drawImage(G.ground,sx,sy,sw,sh,sx/2,sy/2,sw/2,sh/2); }
     return; }
-  let sc=Math.min(2,Math.max(1,DPR)); if(w*h*sc*sc>12e6) sc=Math.sqrt(12e6/(w*h)); G.gScale=sc;
+  let sc=Math.min(2,Math.max(1,DPR)); if(w*h*sc*sc>perfGroundPx()) sc=Math.sqrt(perfGroundPx()/(w*h)); G.gScale=sc;
   const cvs=document.createElement('canvas'); cvs.width=w*sc|0; cvs.height=h*sc|0; const g=cvs.getContext('2d');
   g.scale(sc,sc); g.translate(GOX,GOY);
   // slab
@@ -4491,9 +4540,9 @@ function drawUnit(c,u){
   const ally=G.player&&G.scene==='game'&&u.team===G.player.team;
   if(u.drop>0){ const tr=TRAILS[u.trail]||TRAILS.default, tc=tr.c?hexc(tr.c):u.col; drawTrailFx(c,p[0],p[1],tc,u.trail,t+u.ph,1,{gy:p[1]+u.drop*420+(u.rz||0)-(u.dOff?u.dOff[1]*u.drop:0),d:u.drop}); if(Math.random()<.5) trailPart(p,tc,u.trail); }
   if(u.alive&&u.drop<=0&&G.scene==='game'){
-    c.fillStyle=u.isPlayer?C(u.col,1,.14):ally?'rgba(93,255,154,.1)':C(u.col,1,.08); c.beginPath(); c.ellipse(p[0],p[1],u.isPlayer?17:15,u.isPlayer?8:7,0,0,Math.PI*2); c.fill();
+    c.fillStyle=u.isPlayer?C(u.col,1,.14):ally?tcolA('ally',.1):C(u.col,1,.08); c.beginPath(); c.ellipse(p[0],p[1],u.isPlayer?17:15,u.isPlayer?8:7,0,0,Math.PI*2); c.fill();
     if(u.isPlayer){ c.strokeStyle=C(u.col,1,.85); c.lineWidth=2; c.setLineDash([6,4]); c.lineDashOffset=-t*12; c.beginPath(); c.ellipse(p[0],p[1],17,8,0,0,Math.PI*2); c.stroke(); c.setLineDash([]); }
-    else { c.strokeStyle=ally?'rgba(93,255,154,.8)':C(u.col,1,.55); c.lineWidth=ally?2:1.5; c.beginPath(); c.ellipse(p[0],p[1],15,7,0,0,Math.PI*2); c.stroke(); }
+    else { c.strokeStyle=ally?tcolA('ally',.8):C(u.col,1,.55); c.lineWidth=ally?2:1.5; c.beginPath(); c.ellipse(p[0],p[1],15,7,0,0,Math.PI*2); c.stroke(); }
     if(down){ const r=20+Math.sin(t*5)*3; c.strokeStyle='rgba(255,77,94,'+(0.5+0.4*Math.sin(t*5))+')'; c.lineWidth=2.5; c.beginPath(); c.ellipse(p[0],p[1],r,r*0.48,0,0,Math.PI*2); c.stroke(); }
     if(G.mode==='target'&&G.targets[G.tIdx]===u){ c.strokeStyle='rgba(255,77,94,.95)'; c.lineWidth=2; const r=20+Math.sin(t*6)*2; c.beginPath(); c.ellipse(p[0],p[1],r,r*0.48,0,0,Math.PI*2); c.stroke(); for(let a=0;a<4;a++){ const an=a*Math.PI/2+t; c.beginPath(); c.moveTo(p[0]+Math.cos(an)*(r+3),p[1]+Math.sin(an)*(r+3)*0.48); c.lineTo(p[0]+Math.cos(an)*(r+9),p[1]+Math.sin(an)*(r+9)*0.48); c.stroke(); } }
   }
@@ -4519,10 +4568,10 @@ function drawUnit(c,u){
   c.textAlign='center';
   if(down){ c.font='700 11px "Chakra Petch",sans-serif'; c.fillStyle=u.infDown?'#9dff3a':u.swDown?'#5dff9a':'#ff6b78'; c.fillText(u.infDown?'TURNING':u.swDown?'SECOND WIND':'DOWNED · '+u.bleed,p[0],p[1]-26); return; }
   const n=u.maxHp, pw=4, gap=1.2, tot=n*(pw+gap)+u.shield*(pw+gap); const x0=p[0]-tot/2;
-  c.fillStyle='rgba(4,8,14,.72)'; rr(c,x0-2.5,y0-2.5,tot+4,9,2.5); c.fill(); c.strokeStyle=u.isPlayer?'rgba(63,210,255,.55)':ally?'rgba(93,255,154,.45)':C(u.col,1,.45); c.lineWidth=1; c.stroke();
-  for(let i=0;i<n;i++){ c.fillStyle=i<u.hp?(ally?'#5dff9a':'#ff4d5e'):'rgba(255,255,255,.15)'; c.fillRect(x0+i*(pw+gap),y0,pw,4); }
+  c.fillStyle='rgba(4,8,14,.72)'; rr(c,x0-2.5,y0-2.5,tot+4,9,2.5); c.fill(); c.strokeStyle=u.isPlayer?'rgba(63,210,255,.55)':ally?tcolA('ally',.45):C(u.col,1,.45); c.lineWidth=1; c.stroke();
+  for(let i=0;i<n;i++){ c.fillStyle=i<u.hp?(ally?tcol('hpAlly'):tcol('hpFoe')):'rgba(255,255,255,.15)'; c.fillRect(x0+i*(pw+gap),y0,pw,4); }
   for(let i=0;i<u.shield;i++){ c.fillStyle='#6fd0ff'; c.fillRect(x0+(n+i)*(pw+gap),y0,pw,4); }
-  if(!u.isPlayer){ c.font='600 10px "Chakra Petch",sans-serif'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,.65)'; c.strokeText(u.name,p[0],y0-6); c.fillStyle=ally?'#9ff0c8':u.color; c.fillText(u.name,p[0],y0-6); }
+  if(!u.isPlayer){ c.font='600 10px "Chakra Petch",sans-serif'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,.65)'; c.strokeText(u.name,p[0],y0-6); c.fillStyle=ally?tcol('allyName'):u.color; c.fillText(u.name,p[0],y0-6); }
   let ix=p[0]+tot/2+8;
   if(u.overwatch){ c.strokeStyle='#7fe8ff'; c.lineWidth=1.4; c.beginPath(); c.ellipse(ix,y0+2,5,3,0,0,Math.PI*2); c.stroke(); c.fillStyle='#7fe8ff'; c.beginPath(); c.arc(ix,y0+2,1.5,0,Math.PI*2); c.fill(); ix+=12; }
   if(u.hunker){ c.fillStyle='#9fd7ff'; c.beginPath(); c.moveTo(ix,y0-3); c.lineTo(ix+4,y0-1); c.lineTo(ix+4,y0+3); c.lineTo(ix,y0+7); c.lineTo(ix-4,y0+3); c.lineTo(ix-4,y0-1); c.closePath(); c.fill(); ix+=12; }
@@ -5405,7 +5454,7 @@ function drawCueArrows(c){
     if(sx>=l&&sx<=r&&sy>=top&&sy<=bot) continue;
     const cx=VW/2, cy=(top+bot)/2, dx=sx-cx, dy=sy-cy, sc=Math.min(dx?((dx>0?r:l)-cx)/dx:1e9,dy?((dy>0?bot:top)-cy)/dy:1e9), ax=cx+dx*sc, ay=cy+dy*sc, an=Math.atan2(dy,dx), col=CUE_COL[q.kind]||CUE_COL.shot, a=1-k;
     c.save(); c.translate(ax,ay); c.rotate(an); c.fillStyle=C(col,1,.9*a); c.strokeStyle='rgba(0,0,0,'+(.6*a)+')'; c.lineWidth=2; c.beginPath(); c.moveTo(10,0); c.lineTo(-6,-8); c.lineTo(-3,0); c.lineTo(-6,8); c.closePath(); c.stroke(); c.fill(); c.restore();
-    c.font='700 10px "Chakra Petch",sans-serif'; c.textAlign='center'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,'+(.7*a)+')'; const lb=q.kind==='blast'?'BLAST':q.kind==='sensor'?'SENSOR':'SHOTS', ly=ay-Math.sin(an)*16+4, lx=ax-Math.cos(an)*20; c.strokeText(lb,lx,ly); c.fillStyle=C(col,1,a); c.fillText(lb,lx,ly); }
+    c.font='700 10px "Chakra Petch",sans-serif'; c.textAlign='center'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,'+(.7*a)+')'; const lb=q.kind==='blast'?'BLAST':q.kind==='sensor'?'SENSOR':q.kind==='step'?'STEPS':'SHOTS', ly=ay-Math.sin(an)*16+4, lx=ax-Math.cos(an)*20; c.strokeText(lb,lx,ly); c.fillStyle=C(col,1,a); c.fillText(lb,lx,ly); }
 }
 function tileC(x,y){ const s=iso(x+.5,y+.5); s[1]-=ez(x,y); return s; }
 
@@ -5555,7 +5604,7 @@ function drawSmoke(c){
 function addFx(f){ f.t=0; G.fx.push(f); return f; }
 // particle types drawn with normal blending (1: smoke/debris/casing, 2: tumbling cosmetic pieces); all others are additive
 const PNORM={smoke:1,debris:1,casing:1,coin:2,petal:2,confetti:2};
-function part(o){ if(G.parts.length>=600) return; G.parts.push(Object.assign({z:0,vz:0,vx:0,vy:0,t:0,life:1,size:2,grav:0,type:'spark'},o)); }
+function part(o){ if(G.parts.length>=perfPartCap()||!perfKeep()) return; G.parts.push(Object.assign({z:0,vz:0,vx:0,vy:0,t:0,life:1,size:2,grav:0,type:'spark'},o)); }
 function floatText(u,txt,col,size){ const p=unitScreen(u); G.texts.push({x:p[0],y:p[1]-64,txt,col:col||[255,255,255],size:size||18,t:0,life:1.5}); }
 function ping(x,y,col){ G.pings.push({x,y,t:0,col:col||[255,170,60]}); }
 // muzzle flashes per weapon: a directional cone plus a star, sized by weapon class; casings eject from ballistic guns
@@ -5962,7 +6011,7 @@ async function moveUnit(u,path){
     faceTo(u,nx,ny);
     if(anim){ if(!(G.spec&&G.spec.follow)) focusOn(nx,ny); const diag=nx!==u.x&&ny!==u.y, l0=lvAt(u.x,u.y), l1=lvAt(nx,ny), climb=l0!==l1, lad=climb&&Math.max(l0,l1)>=2;
       await new Promise(res=>G.tweens.push({u,fx:u.rx,fy:u.ry,tx:nx,ty:ny,fz:u.rz,tz:ez(nx,ny),t:0,dur:lad?0.28+Math.abs(l1-l0)*0.16:climb?0.32:diag?0.2:0.15,lad:lad?(l1>l0?0.4:0.6):0,res})); }
-    const ox=u.x, oy=u.y; placeUnit(u,nx,ny); cst(u,'tiles'); if(hasP(u,'r_slip')) u.slip=true;
+    const ox=u.x, oy=u.y; placeUnit(u,nx,ny); if(!anim) paStep(u); cst(u,'tiles'); if(hasP(u,'r_slip')) u.slip=true;
     if(wxNow().prints){ G.prints.push({x:nx,y:ny,dx:nx-ox,dy:ny-oy,id:u.id,team:u.team,r:G.round}); if(G.prints.length>360) G.prints.splice(0,G.prints.length-360); } // snow tracks
     if(u.team===(G.player&&G.player.team)) computeVis();
     pickup(u);
@@ -6863,7 +6912,7 @@ function flyStep(gdt){ const F=G.fly; if(!F) return; if(F.mid!==G.matchId||G.sce
   F.t+=gdt; const t=F.t;
   if(gdt>0&&!FF.on) for(const f of F.list){ if(t>f.end) continue; f.beam=Math.max(0,f.beam-gdt*1.4); f.pop=Math.max(0,(f.pop||0)-gdt);
     const g=rideGround(f,t), a=[g[0],g[1]-rideAlt(f,t)], hv=rideHead(f), back=(RMOD[f.m].len||60)*RIDE_SC;
-    if(RIDE_HELI[f.m]&&!F.rm){ f.wash+=gdt; while(f.wash>.08){ f.wash-=.08; const an=frand(0,6.28), r=frand(10,40); part({x:g[0]+Math.cos(an)*r,y:g[1]+Math.sin(an)*r*.5,z:2,vx:Math.cos(an)*frand(50,110),vy:Math.sin(an)*frand(25,55),vz:frand(5,20),life:frand(.5,.9),size:frand(7,12),col:G.R.dust||[150,150,160],type:'smoke'}); } }
+    if(RIDE_HELI[f.m]&&!F.rm&&perfFly()){ f.wash+=gdt; while(f.wash>.08){ f.wash-=.08; const an=frand(0,6.28), r=frand(10,40); part({x:g[0]+Math.cos(an)*r,y:g[1]+Math.sin(an)*r*.5,z:2,vx:Math.cos(an)*frand(50,110),vy:Math.sin(an)*frand(25,55),vz:frand(5,20),life:frand(.5,.9),size:frand(7,12),col:G.R.dust||[150,150,160],type:'smoke'}); } }
     if(f.m==='biplane'||f.m==='dragon'||f.m==='pod'){ f.puff+=gdt; while(f.puff>.05){ f.puff-=.05; const x=a[0]-hv[0]*back, y=a[1]-hv[1]*back;
       if(f.m==='biplane') part({x:x+frand(-3,3),y:g[1],z:g[1]-y+frand(-3,3),vx:frand(-6,6),vy:0,vz:frand(-4,4),life:frand(1,1.5),size:frand(5,8),col:[226,228,232],type:'smoke'});
       else if(f.m==='dragon') part({x:a[0]+hv[0]*78+frand(-6,6),y:a[1]-18+hv[1]*78+frand(-4,4),vx:frand(-30,30),vy:frand(10,40),life:frand(.4,.8),size:2.2,col:f.K.pat==='frost'?[200,240,255]:Math.random()<.5?[255,200,90]:[255,110,40],type:'ember',grav:-10});
@@ -6885,13 +6934,13 @@ function drawRideGround(c){ const F=G.fly; if(!F||F.mid!==G.matchId) return; con
   for(const f of F.list){ const al=rideAlpha(f,t); if(al<=0) continue; const q=rideTile(f,t), g=iso(q[0],q[1]); if(g[0]<v[0]||g[0]>v[1]||g[1]<v[2]||g[1]>v[3]) continue;
     const h=iso(f.d[0],f.d[1]), n=iso(-f.d[1],f.d[0]), k=RIDE_SC/45, fade=1-Math.min(.6,(rideAlt(f,t)-RIDE_ALT)/400);
     c.save(); c.globalAlpha=.4*al*fade; c.transform(h[0]*k,h[1]*k,n[0]*k,n[1]*k,g[0],g[1]); c.drawImage(rideShadow(f.m),-100,-60,200,120); c.restore();
-    if(RIDE_HELI[f.m]&&!F.rm){ c.strokeStyle='rgba(235,235,225,'+(.22*al)+')'; c.lineWidth=1.5; for(let r=0;r<2;r++){ const ph=((t*1.6+r*.5)%1), R=30+ph*70; c.globalAlpha=1-ph; c.beginPath(); c.ellipse(g[0],g[1],R,R*.5,0,0,6.283); c.stroke(); } c.globalAlpha=1; } } }
+    if(RIDE_HELI[f.m]&&!F.rm&&perfFly()){ c.strokeStyle='rgba(235,235,225,'+(.22*al)+')'; c.lineWidth=1.5; for(let r=0;r<2;r++){ const ph=((t*1.6+r*.5)%1), R=30+ph*70; c.globalAlpha=1-ph; c.beginPath(); c.ellipse(g[0],g[1],R,R*.5,0,0,6.283); c.stroke(); } c.globalAlpha=1; } } }
 function drawRideAir(c){ const F=G.fly; if(!F||F.mid!==G.matchId) return; const t=F.t, v=rideView();
   const L=F.list.map(f=>[rideGround(f,t)[1],f]).sort((a,b)=>a[0]-b[0]);
   for(const e of L){ const f=e[1], al=rideAlpha(f,t); if(al<=0) continue; const a=rideAir(f,t); if(a[0]<v[0]-200||a[0]>v[1]+200||a[1]<v[2]-200||a[1]>v[3]+200) continue;
     const hv=rideHead(f), flip=hv[0]<0, tilt=clamp(Math.atan2(hv[1],Math.abs(hv[0]))*.55,-.32,.32)+Math.sin(t*1.7+f.ph)*.025, M=RMOD[f.m], sc=(M.sc||1)*RIDE_SC;
     // contrails: straight ribbons behind the engines, as long as the distance flown (max 460 px), fading with age
-    if(M.con){ const len=Math.min(460,f.V*45*t), col=M.ct==='plasma'?f.K.a:M.ct==='gold'?[255,226,150]:[240,244,250];
+    if(M.con&&perfFly()){ const len=Math.min(460,f.V*45*t), col=M.ct==='plasma'?f.K.a:M.ct==='gold'?[255,226,150]:[240,244,250];
       if(M.ct==='plasma'){ c.globalCompositeOperation='lighter'; }
       for(const pt of M.con){ const x0=a[0]+(flip?-pt[0]:pt[0])*sc, y0=a[1]+pt[1]*sc;
         for(let k=0;k<4;k++){ c.strokeStyle=C(col,1,(M.ct==='plasma'?.5:.42)*al*(1-k/4)); c.lineWidth=(M.ct==='plasma'?3:2)+k*1.6; c.beginPath(); c.moveTo(x0-hv[0]*len*k/4,y0-hv[1]*len*k/4); c.lineTo(x0-hv[0]*len*(k+1)/4,y0-hv[1]*len*(k+1)/4); c.stroke(); } }
@@ -7903,7 +7952,7 @@ function drawMinimap(){
   for(const q of (G.tpings||[])){ if(!pingAlive(q)) continue; const P=PINGS[q.k], v=G.units.find(z=>z.id===q.by), px=((P.tile?q.x:v.x)+.5)*s, py=((P.tile?q.y:v.y)+.5)*s, r=s*1.3+Math.sin(G.time*5)*s*.25;
     c.fillStyle=C(P.col); c.strokeStyle='#fff'; c.lineWidth=1; c.beginPath(); c.moveTo(px,py-r); c.lineTo(px+r,py); c.lineTo(px,py+r); c.lineTo(px-r,py); c.closePath(); c.fill(); c.stroke(); }
   for(const d of G.drones){ if(!d.alive||!shouldShow(d)) continue; const px=(d.x+.5)*s, py=(d.y+.5)*s, r=s*.55; c.fillStyle=mine(d)?'#7fe8ff':d.color; c.beginPath(); c.moveTo(px,py-r); c.lineTo(px+r,py); c.lineTo(px,py+r); c.lineTo(px-r,py); c.closePath(); c.fill(); } // deployed drones: small diamonds
-  for(const u of G.units){ if(!u.alive||!shouldShow(u)) continue; c.fillStyle=u.isPlayer?'#3fd2ff':mine(u)?'#5dff9a':u.color; c.beginPath(); c.arc((u.x+.5)*s,(u.y+.5)*s,u.isPlayer?Math.max(s*0.75,W/MAP0*0.62):Math.max(s*0.55,W/MAP0*0.45),0,Math.PI*2); c.fill(); if(u.downed){ c.strokeStyle='#ff4d5e'; c.lineWidth=1.5; c.stroke(); } }
+  for(const u of G.units){ if(!u.alive||!shouldShow(u)) continue; c.fillStyle=u.isPlayer?tcol('self'):mine(u)?tcol('ally'):u.color; c.beginPath(); c.arc((u.x+.5)*s,(u.y+.5)*s,u.isPlayer?Math.max(s*0.75,W/MAP0*0.62):Math.max(s*0.55,W/MAP0*0.45),0,Math.PI*2); c.fill(); if(u.downed){ c.strokeStyle='#ff4d5e'; c.lineWidth=1.5; c.stroke(); } }
   if(G.M.night) boMinimap(c,s); // flares and gunfire pulses
   const tl=screenToTileF(0,0), br=screenToTileF(VW,VH), tr=screenToTileF(VW,0), bl=screenToTileF(0,VH); c.strokeStyle='rgba(255,255,255,.35)'; c.lineWidth=1; c.beginPath(); c.moveTo(tl[0]*s,tl[1]*s); c.lineTo(tr[0]*s,tr[1]*s); c.lineTo(br[0]*s,br[1]*s); c.lineTo(bl[0]*s,bl[1]*s); c.closePath(); c.stroke();
 }
@@ -11004,6 +11053,262 @@ function socialBoot(){
   socInvDrop(x=>x.exp<=Date.now()); socBadge();
   if(!API_BASE) return;
   setInterval(socTick,2000); setTimeout(socTick,1500); }
+
+
+
+
+/* ================= performance & accessibility =================
+   Settings > Graphics (Auto / High / Balanced / Performance, 30 fps cap, battery saver) and Settings > Accessibility.
+   Everything here is presentation only: it never reads or advances the seeded RNG and never writes sim state (visual
+   randomness uses Math.random). All settings live in PROF.settings, so they ride along in the save backup and cloud save.
+
+   Helpers for effects code (use these instead of hard-coding counts or team colours):
+     fxBudget(n)        how many particles to spawn for a burst of n at the current graphics level (>=1 when n>=1)
+     perf.level()       'high' | 'balanced' | 'perf' (Auto resolved)
+     perf.particles()   particle multiplier (1 / .6 / .3);  perf.glows(), perf.shadows(), perf.fly(), perf.kfx()
+                        booleans for optional glow sprites, soft unit shadows, drop-ship detail, kill-effect extras
+     part()/addFx()     already capped centrally: part() drops by multiplier and cap; addFx() hides decorative fx over
+                        the per-level budget (fx with a .res callback, 'nade', 'pod' and 'kfx' are never hidden)
+     a11y.reduce()      true when motion should be reduced (setting, or the system preference when set to System)
+     a11y.palette()     null, or the active colour-blind palette {self, ally, foe, foes[], storm, good, warn, bad}
+     tcol(k) / tcolA(k,a)  team colours for drawing: k = 'self' | 'ally' | 'foe' | 'hpAlly' | 'hpFoe' | 'allyName'
+                        (hex / rgba string; the default palette returns the original colours). Unit u.col / u.color
+                        and G.R.storm are swapped to the palette while render() and the minimap draw, so code that
+                        already colours by u.col follows the palette with no change.
+     a11y.say(text, urgent)  screen-reader announcement (aria-live polite / assertive)
+     buzz(p)            haptics honour the Off / Low / Full intensity setting */
+const PA_LV={
+  high:    {name:'High',       dpr:2,  pm:1,  pc:600,fxc:1e9,wx:1,  fly:1,shadow:1,glow:1,kfx:1,mm:.15,gpx:12e6,gsc:2,  fade:1,spr:12e6},
+  balanced:{name:'Balanced',   dpr:1.5,pm:.6, pc:320,fxc:60, wx:.6, fly:1,shadow:1,glow:1,kfx:1,mm:.25,gpx:8e6, gsc:1.5,fade:2,spr:8e6},
+  perf:    {name:'Performance',dpr:1,  pm:.3, pc:140,fxc:28, wx:.3, fly:0,shadow:0,glow:0,kfx:0,mm:.5, gpx:4e6, gsc:1,  fade:4,spr:5e6}};
+const PA_ORDER=['perf','balanced','high'];
+const PA={fn:0,lastF:0,idle:false,idleTO:0,lastIn:performance.now(),sF:[],sR:[],slowN:0,evals:0,applied:null,mmd:{},stepT:{},srRes:null,srHp:null,srMid:-1,srT:0,arm:null,armT:0,pass:null,holdT:0,caps:[],motionRules:null,fontsDone:false};
+function paSet(){ try{ return PROF.settings; }catch(e){ return {}; } }
+function paPick(v,ok,d){ return ok.includes(v)?v:d; }
+function gfxLevel(){ const s=paSet(), g=s.gfx; if(g==='high'||g==='balanced'||g==='perf') return g; return PA_LV[s.gfxA]?s.gfxA:'high'; }
+const perf={
+  level:gfxLevel, L:()=>PA_LV[gfxLevel()],
+  particles:()=>perf.L().pm, glows:()=>!!perf.L().glow, shadows:()=>!!perf.L().shadow, fly:()=>!!perf.L().fly, kfx:()=>!!perf.L().kfx,
+  fps30:()=>!!paSet().fps30, idle:()=>paSet().idle!==false, auto:()=>!PA_LV[paSet().gfx]};
+function fxBudget(n){ n=n|0; return n<=0?0:Math.max(1,Math.round(n*perf.particles())); }
+// hooks read by existing code (hoisted, so they work from any call site)
+function perfDpr(){ try{ return perf.L().dpr; }catch(e){ return 2; } }
+function perfGroundPx(){ try{ return perf.L().gpx; }catch(e){ return 12e6; } }
+function perfPartCap(){ try{ return perf.L().pc; }catch(e){ return 600; } }
+function perfKeep(){ try{ const m=perf.L().pm; return m>=1||Math.random()<m; }catch(e){ return true; } }
+function perfFly(){ try{ return perf.fly(); }catch(e){ return true; } }
+
+/* ---------- colour-blind palettes (Okabe-Ito based) ---------- */
+const PA_PAL={
+  deut:{name:'Deuteranopia',self:'#56c8ff',ally:'#4f8dff',foe:'#ffa300',foes:['#ffa300','#f0e442','#ff6a00','#f2f2f2','#d98cff'],storm:[200,110,255],good:'#4f9dff',warn:'#f0e442',bad:'#ff8a00'},
+  prot:{name:'Protanopia',self:'#56c8ff',ally:'#4f8dff',foe:'#ffc20a',foes:['#ffc20a','#f2f2f2','#e69f00','#f0e442','#c7a0ff'],storm:[190,120,255],good:'#4f9dff',warn:'#f2f2f2',bad:'#ffc20a'},
+  trit:{name:'Tritanopia',self:'#7fe8ff',ally:'#16e0c8',foe:'#ff3b5c',foes:['#ff3b5c','#ff8ab4','#f2f2f2','#d55e00','#ff5ad5'],storm:[255,255,255],good:'#16e0c8',warn:'#ff8ab4',bad:'#ff3b5c'}};
+const PA_DEF={self:'#3fd2ff',ally:'#5dff9a',foe:'#ff4d5e',hpAlly:'#5dff9a',hpFoe:'#ff4d5e',allyName:'#9ff0c8'};
+const a11y={
+  palette:()=>PA_PAL[paSet().cb]||null,
+  reduce:()=>{ const m=paSet().motion; if(m==='reduce') return true; if(m==='full') return false; return paSysReduce(); },
+  shapes:()=>{ const s=paSet(); return s.shapes===true||(s.shapes!==false&&!!PA_PAL[s.cb]); },
+  say:(t,urgent)=>paSay(t,urgent)};
+function tcol(k){ const P=a11y.palette(); if(!P) return PA_DEF[k]||'#ffffff'; return k==='hpAlly'||k==='allyName'?P.ally:k==='hpFoe'?P.foe:P[k]||PA_DEF[k]||'#ffffff'; }
+function tcolA(k,a){ return C(hexc(tcol(k)),1,a); }
+const PA_MM=window.matchMedia?window.matchMedia.bind(window):null;
+function paSysReduce(){ try{ return !!(PA_MM&&PA_MM('(prefers-reduced-motion: reduce)').matches); }catch(e){ return false; } }
+// explicit Motion setting overrides prefers-reduced-motion for the game's own matchMedia checks
+if(PA_MM) try{ window.matchMedia=function(q){ const m=paSet().motion; if(/prefers-reduced-motion/.test(String(q))&&(m==='reduce'||m==='full')){ const want=/reduce/.test(q)===(m==='reduce');
+  return {matches:want,media:String(q),onchange:null,addListener(){},removeListener(){},addEventListener(){},removeEventListener(){},dispatchEvent(){ return false; }}; } return PA_MM(q); }; }catch(e){}
+
+/* ---------- CSS switches: text size, motion media rules ---------- */
+function paRules(fn){ for(const sh of document.styleSheets){ let rs; try{ rs=sh.cssRules; }catch(e){ continue; } const walk=list=>{ for(const r of list){ fn(r); if(r.cssRules&&!(r instanceof CSSStyleRule)) walk(r.cssRules); } }; walk(rs); } }
+function paFontVars(){ if(PA.fontsDone) return; PA.fontsDone=true;
+  paRules(r=>{ if(!(r instanceof CSSStyleRule)) return; const v=r.style.getPropertyValue('font-size'); if(!v||!/px/.test(v)||/em|%|--ts|vw|vh/.test(v)) return; // viewport-sized display titles already fit
+    r.style.setProperty('font-size','calc('+v+' * var(--ts,1))',r.style.getPropertyPriority('font-size')); }); }
+function paMotionRules(){ if(PA.motionRules) return PA.motionRules; PA.motionRules=[]; paRules(r=>{ if(r instanceof CSSMediaRule&&/prefers-reduced-motion/.test(r.media.mediaText)) PA.motionRules.push({r,t:r.media.mediaText}); }); return PA.motionRules; }
+
+/* ---------- apply ---------- */
+function paApply(){
+  const s=paSet(), de=document.documentElement, lv=gfxLevel(), L=PA_LV[lv];
+  // graphics: render scale, sprite / ground budgets, weather density (only rebuilt when the level changes)
+  if(PA.applied!==lv){ const first=PA.applied===null; PA.applied=lv; RC.budget=L.spr;
+    if(!first){ try{ G.bg=null; resize(); initWeather(); if(G.grid&&G.ground) buildGround(); }catch(e){} } }
+  // colour-blind palette
+  const P=PA_PAL[s.cb]; if(P){ de.dataset.cb=s.cb; de.style.setProperty('--ok',P.good); de.style.setProperty('--hostile',P.bad); de.style.setProperty('--pa-warn',P.warn); de.style.setProperty('--pa-ally',P.ally); }
+  else { delete de.dataset.cb; for(const k of ['--ok','--hostile','--pa-warn','--pa-ally']) de.style.removeProperty(k); }
+  // text size
+  const ts=paPick(s.ts,['n','l','xl'],'n'); if(ts!=='n'){ paFontVars(); de.dataset.ts=ts; de.style.setProperty('--ts',ts==='l'?'1.15':'1.3'); } else { delete de.dataset.ts; de.style.removeProperty('--ts'); }
+  de.classList.toggle('pa-hc',!!s.hc); de.classList.toggle('pa-lh',s.hand==='l');
+  // motion: rewrite the stylesheet's prefers-reduced-motion blocks so the setting wins over the system preference
+  const m=paPick(s.motion,['system','reduce','full'],'system'); de.classList.toggle('pa-rm',m==='reduce');
+  for(const q of paMotionRules()){ try{ q.r.media.mediaText=m==='system'?q.t:m==='reduce'?'all':'not all'; }catch(e){} }
+  de.style.setProperty('--pa-hold','500ms');
+  const cap=document.getElementById('paCap'); if(cap) cap.classList.toggle('hidden',!s.cap);
+}
+const PA_applySettings=applySettings; applySettings=function(){ PA_applySettings.apply(this,arguments); try{ paApply(); }catch(e){} };
+
+/* ---------- graphics levers on existing functions (wrappers: no change to their code) ---------- */
+const PA_initWeather=initWeather; initWeather=function(){ PA_initWeather.apply(this,arguments); const m=perf.L().wx; if(m<1) G.weather.length=Math.round(G.weather.length*m); };
+const PA_buildGround=buildGround; buildGround=function(rect){ const d=DPR; if(!rect) DPR=Math.min(DPR,perf.L().gsc); try{ return PA_buildGround.apply(this,arguments); } finally { DPR=d; } };
+const PA_FX_KEEP={nade:1,pod:1,kfx:1};
+const PA_addFx=addFx; addFx=function(f){ const r=PA_addFx.apply(this,arguments);
+  if(f&&!f.res&&!PA_FX_KEEP[f.type]){ const cap=perf.L().fxc; if(cap<1e8){ let n=0; for(const q of G.fx) if(!q.hid) n++; if(n>cap) f.hid=1; }
+    if(a11y.reduce()&&(f.type==='flash'||f.type==='rays')&&f.r>70){ f.r=70; } }
+  return r; };
+const PA_drawFx=drawFx; drawFx=function(c){ const all=G.fx; let any=false; for(const f of all) if(f.hid){ any=true; break; } if(!any) return PA_drawFx.apply(this,arguments);
+  G.fx=all.filter(f=>!f.hid); try{ return PA_drawFx.apply(this,arguments); } finally { G.fx=all; } };
+const PA_soldierOf=soldierOf; soldierOf=function(){ const o=PA_soldierOf.apply(this,arguments); if(o&&!perf.shadows()) o.noShadow=true; return o; };
+const PA_lavaGlow=lavaGlow; lavaGlow=function(){ if(perf.glows()) return PA_lavaGlow.apply(this,arguments); };
+const PA_updateFade=updateFade; updateFade=function(){ const k=perf.L().fade; if(k>1&&PA.fn%k&&RC.fadeT>0) return; return PA_updateFade.apply(this,arguments); };
+for(const k in KFX){ const K=KFX[k]; if(typeof K.fx==='function'){ const f=K.fx; K.fx=function(){ if(!perf.kfx()) return; return f.apply(this,arguments); }; } }
+CUE_COL.step=[200,226,255];
+
+/* ---------- colour-blind swap while drawing (restored right after: the sim never sees it) ---------- */
+function paSwap(){ const P=a11y.palette(); if(!P||G.scene!=='game'||!G.player||!G.units) return null;
+  const me=G.player.team, foeT=[...new Set(G.units.filter(u=>u.team!==me).map(u=>u.team))].sort((a,b)=>a-b), ffa=foeT.length===G.units.filter(u=>u.team!==me).length, saved=[];
+  const pick=(o,team,self)=>{ const h=self?P.self:team===me?P.ally:ffa?P.foe:P.foes[Math.max(0,foeT.indexOf(team))%P.foes.length]; saved.push([o,o.col,o.color]); o.col=hexc(h); o.color=h; };
+  for(const u of G.units) pick(u,u.team,u===G.player);
+  for(const d of G.drones||[]) if(d&&d.team!=null) pick(d,d.team,false);
+  if(G.R){ saved.push([G.R,'storm',G.R.storm]); G.R.storm=P.storm; }
+  return saved; }
+function paUnswap(saved){ if(!saved) return; for(let i=saved.length-1;i>=0;i--){ const e=saved[i]; if(e[1]==='storm'){ e[0].storm=e[2]; continue; } e[0].col=e[1]; e[0].color=e[2]; } }
+const PA_render=render; render=function(){ const sv=paSwap(); try{ return PA_render.apply(this,arguments); } finally { paUnswap(sv); } };
+const PA_drawMinimap=drawMinimap; drawMinimap=function(){ const sv=paSwap(); try{ PA_drawMinimap.apply(this,arguments); if(sv&&a11y.shapes()) paMiniMarks(); } finally { paUnswap(sv); } };
+const PA_updateTurnOrder=updateTurnOrder; updateTurnOrder=function(){ const sv=paSwap(); try{ return PA_updateTurnOrder.apply(this,arguments); } finally { paUnswap(sv); } };
+function paMiniMarks(){ const m=$('#minimap'), c=m.getContext('2d'), s=m.width/MW;
+  for(const u of G.units){ if(!u.alive||!shouldShow(u)||mine(u)) continue; const x=(u.x+.5)*s, y=(u.y+.5)*s, r=Math.max(s*1.1,m.width/MAP0*0.8);
+    c.strokeStyle='#05080c'; c.lineWidth=1.5; c.fillStyle=u.color; c.beginPath(); c.moveTo(x,y-r); c.lineTo(x+r,y); c.lineTo(x,y+r); c.lineTo(x-r,y); c.closePath(); c.fill(); c.stroke(); } }
+// ally / enemy shape markers so colour is never the only cue: enemies get crosshair ticks and a down-pointing
+// triangle, allies a ring with a plus
+const PA_drawUnit=drawUnit; drawUnit=function(c,u){ PA_drawUnit.apply(this,arguments);
+  if(!a11y.shapes()||G.scene!=='game'||!G.player||!u.alive||u.drop>0||u.isPlayer) return;
+  const p=unitScreen(u), ally=u.team===G.player.team, y=p[1]-(u.dr&&u.dr.st==='dock'?74:56)-(u.downed?4:22), col=u.color;
+  c.lineWidth=1.6; c.strokeStyle='rgba(0,0,0,.85)';
+  if(ally){ c.fillStyle=col; c.beginPath(); c.arc(p[0],y,4.5,0,Math.PI*2); c.fill(); c.stroke(); c.strokeStyle='#05080c'; c.lineWidth=1.4; c.beginPath(); c.moveTo(p[0]-2.6,y); c.lineTo(p[0]+2.6,y); c.moveTo(p[0],y-2.6); c.lineTo(p[0],y+2.6); c.stroke(); }
+  else { c.fillStyle=col; c.beginPath(); c.moveTo(p[0]-5.5,y-4); c.lineTo(p[0]+5.5,y-4); c.lineTo(p[0],y+4.5); c.closePath(); c.fill(); c.stroke();
+    c.strokeStyle=col; c.lineWidth=2; c.beginPath(); for(const a of [0,Math.PI/2,Math.PI,Math.PI*1.5]){ const cx=Math.cos(a), sy=Math.sin(a); c.moveTo(p[0]+cx*15,p[1]+sy*7); c.lineTo(p[0]+cx*21,p[1]+sy*10); } c.stroke(); } };
+
+/* ---------- target panel: hit-chance band (coloured by the palette and marked with a shape) ---------- */
+const PA_fillTargetPanel=fillTargetPanel; fillTargetPanel=function(){ const r=PA_fillTargetPanel.apply(this,arguments); try{ const e=$('#tHit'), t=e.textContent, n=parseInt(t,10);
+  if(/%$/.test(t)&&!isNaN(n)){ e.dataset.band=n>=70?'hi':n>=40?'mid':'lo'; e.setAttribute('aria-label',n+' percent, '+(n>=70?'high':n>=40?'medium':'low')+' chance'); } else { delete e.dataset.band; e.removeAttribute('aria-label'); } }catch(e){} return r; };
+
+/* ---------- frame loop: Auto level, 30 fps cap, idle pause (battery) ---------- */
+function paQ(a,f){ a=a.slice().sort((x,y)=>x-y); return a[Math.min(a.length-1,Math.floor(a.length*f))]||0; }
+function paAuto(dt,rt){
+  if(!perf.auto()||document.hidden||dt<=0||dt>2000) return;
+  PA.sF.push(dt); PA.sR.push(rt); PA.sT=(PA.sT||0)+dt; if(PA.sF.length<90&&!(PA.sT>=3000&&PA.sF.length>=6)) return; PA.sT=0;
+  const tgt=perf.fps30()?1000/30:1000/60, f75=paQ(PA.sF,.75), r75=paQ(PA.sR,.75); PA.sF=[]; PA.sR=[]; PA.evals++;
+  const cur=PA_ORDER.indexOf(gfxLevel()), slow=f75>tgt*1.55||r75>tgt*.85;
+  let to=cur;
+  if(slow){ PA.slowN++; if(cur>0&&PA.slowN>=(PA.evals<=2?1:2)){ to=cur-1; PA.slowN=0; } }
+  else { PA.slowN=0; if(cur<2&&G.scene!=='game'&&f75<tgt*1.15&&r75<tgt*.3) to=cur+1; } // only step up on the menus, never mid-match
+  if(to!==cur){ paSet().gfxA=PA_ORDER[to]; try{ saveProf(); }catch(e){} paApply(); } }
+function paBusy(){ if(TUT.on||FF.on||G.busy&&G.scene==='game') return true;
+  if(G.tweens.length||G.fx.length||G.parts.length||G.timers.length||G.texts.length||G.pings.length||G.bubbles.length||G.fly) return true;
+  if(G.scene==='game'){ const c=G.cam; if(Math.abs(c.tx-c.x)>.5||Math.abs(c.ty-c.y)>.5||Math.abs(c.tz-c.z)>.002) return true; }
+  return false; }
+function paIdleOk(now){ return perf.idle()&&!PA.noIdle&&now-PA.lastIn>(G.scene==='game'?8000:15000)&&!paBusy(); }
+function paWake(){ PA.lastIn=performance.now(); if(!PA.idle) return; PA.idle=false; clearTimeout(PA.idleTO); lastT=performance.now(); PA.lastF=0; requestAnimationFrame(frame); }
+function paIdleTick(){ if(!PA.idle) return; const now=performance.now(); let left=Math.min(1,(now-PA.idleAt)/1000); PA.idleAt=now;
+  try{ while(left>1e-4){ const d=Math.min(.05,left); update(d); left-=d; } if(G.scene==='game'){ updateTurnOrder(); updateClocks(); } }catch(e){}
+  lastT=now; if(!paIdleOk(now)){ paWake(); return; } PA.idleTO=setTimeout(paIdleTick,250); }
+const PA_frame=frame; frame=function(now){
+  if(PA.idle) return; // a stale callback after the loop went idle
+  if(perf.fps30()&&PA.lastF&&now-PA.lastF<1000/30-4){ requestAnimationFrame(frame); return; }
+  const dt=PA.lastF?now-PA.lastF:0; PA.lastF=now; PA.fn++;
+  const t0=performance.now(); PA_frame.apply(this,arguments); const rt=performance.now()-t0;
+  if(mmT===0.15){ const m=perf.L().mm; if(m>0.15) mmT=m; } // minimap / turn order redraw rate
+  paAuto(dt,rt);
+  if(paIdleOk(performance.now())){ PA.idle=true; PA.idleAt=performance.now(); PA.idleTO=setTimeout(paIdleTick,250); } };
+for(const ev of ['pointerdown','touchstart','keydown','wheel','mousemove']) window.addEventListener(ev,paWake,{capture:true,passive:true});
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) paWake(); });
+
+/* ---------- reduced motion, screen reader polling ---------- */
+const PA_update=update; update=function(dt){ const r=PA_update.apply(this,arguments);
+  if(a11y.reduce()){ G.cam.shake=0; if(G.flashA>.06) G.flashA=.06; }
+  paSR(); paCapTick(); return r; };
+function paSay(t,urgent){ if(paSet().sr===false||!t) return; const el=document.getElementById(urgent?'paAlert':'paLive'); if(!el) return; el.textContent=''; setTimeout(()=>{ el.textContent=t; },30); }
+function paSR(){ const now=performance.now(); if(now-PA.srT<250) return; PA.srT=now;
+  if(G.scene!=='game'||!G.player||G.watch){ PA.srRes=null; PA.srHp=null; return; }
+  const u=G.player;
+  if(G.turnRes&&G.turnRes!==PA.srRes&&!G.playerDead){ PA.srRes=G.turnRes; paSay('Your turn. Round '+G.round+'. '+u.ap+' action points. Health '+u.hp+' of '+u.maxHp+'.'); }
+  const hp=u.hp+(u.shield||0);
+  if(PA.srHp!=null&&PA.srMid===G.matchId&&hp<PA.srHp) paSay('You took '+(PA.srHp-hp)+' damage. Health '+Math.max(0,u.hp)+' of '+u.maxHp+(!u.alive?'. You were eliminated.':u.downed?'. You are down.':'.'),true);
+  PA.srHp=hp; PA.srMid=G.matchId; }
+const PA_updateHUD=updateHUD; updateHUD=function(){ const r=PA_updateHUD.apply(this,arguments); try{ if(G.scene!=='game'||!G.player) return r; const u=G.player;
+  $('#uHp').setAttribute('aria-label','Health '+u.hp+' of '+u.maxHp+(u.shield?', shield '+u.shield:'')); $('#uAp').setAttribute('aria-label',u.ap+' action points');
+  document.querySelectorAll('#actions button[data-act]').forEach(b=>{ const sp=b.querySelectorAll('span'), off=b.classList.contains('off'); b.setAttribute('aria-label',(sp[0]?sp[0].textContent:b.dataset.act)+(sp[1]&&sp[1].textContent?', '+sp[1].textContent:'')+(off?', unavailable'+(b.dataset.why?': '+b.dataset.why:''):'')); if(off) b.setAttribute('aria-disabled','true'); }); }catch(e){} return r; };
+
+/* ---------- sound captions: text for every heard cue, plus footsteps of unseen enemies within 5 tiles ---------- */
+const PA_CAP={shot:'Gunfire',blast:'Explosion',sensor:'Sensor ping',step:'Footsteps'};
+function paDir(x,y){ const u=G.player; if(!u) return ''; const a=iso(x+.5,y+.5), b=iso(u.x+.5,u.y+.5), dx=a[0]-b[0], dy=a[1]-b[1];
+  const i=Math.round((Math.atan2(dy,dx)/(Math.PI/4))+8)%8, d=Math.hypot(x-u.x,y-u.y);
+  return ['→ right','↘ down-right','↓ below','↙ down-left','← left','↖ up-left','↑ above','↗ up-right'][i]+' · '+(d<6?'close':d<11?'near':'far'); }
+function paCaption(x,y,kind){ if(!paSet().cap) return; const el=document.getElementById('paCap'); if(!el) return;
+  const t=PA_CAP[kind]||'Sound', d=document.createElement('div'); d.innerHTML='<b>['+t+']</b> '+paDir(x,y); el.appendChild(d); PA.caps.push({el:d,t:performance.now()}); while(el.children.length>3) el.removeChild(el.firstChild); }
+function paCapTick(){ if(!PA.caps.length) return; const now=performance.now(); PA.caps=PA.caps.filter(c=>{ if(now-c.t>4000){ if(c.el.parentNode) c.el.parentNode.removeChild(c.el); return false; } return true; }); }
+const PA_cueAt=cueAt; cueAt=function(x,y,kind){ const last=G.cues[G.cues.length-1]; const r=PA_cueAt.apply(this,arguments); if(G.cues[G.cues.length-1]!==last) paCaption(x,y,kind); return r; };
+function paStep(u){ try{ if(!paSet().cap||G.scene!=='game'||!G.player||G.fullVis||FF.on||!u||mine(u)||shouldShow(u)) return;
+  if(!viewers().some(v=>Math.hypot(v.x-u.x,v.y-u.y)<=5)) return; const t=G.time; if(PA.stepT[u.id]!=null&&t-PA.stepT[u.id]<1.2&&t>=PA.stepT[u.id]) return; PA.stepT[u.id]=t;
+  G.cues.push({x:u.x,y:u.y,kind:'step',t}); if(G.cues.length>24) G.cues.shift(); paCaption(u.x,u.y,'step'); SFX.noise(.06,'lowpass',380,.05); }catch(e){} }
+
+/* ---------- haptics intensity ---------- */
+function hapLevel(){ const s=paSet(); return paPick(s.hapt,['off','low','full'],s.haptics===false?'off':'full'); }
+const PA_buzz=buzz; buzz=function(p){ const l=hapLevel(); if(l==='off') return; if(l==='low') p=Array.isArray(p)?p.map((v,i)=>i%2?v:Math.max(4,Math.round(v*.35))):Math.max(4,Math.round((+p||0)*.35)); return PA_buzz.call(this,p); };
+
+/* ---------- confirm actions: double-tap or press-and-hold on the action bar and Fire ---------- */
+const PA_CONF='#actions button[data-act], #tFire';
+function paConf(){ return paPick(paSet().confirm,['off','double','hold'],'off'); }
+function paKey(b){ return b.id||('act:'+b.dataset.act); }
+document.addEventListener('click',e=>{ const m=paConf(); if(m==='off'||!e.target.closest) return; const b=e.target.closest(PA_CONF); if(!b||b.classList.contains('off')) return;
+  if(PA.pass===b){ PA.pass=null; return; }
+  if(e.detail===0&&e.isTrusted) return; // keyboard / assistive activation: no gesture to confirm with
+  if(m==='double'){ const k=paKey(b); if(PA.arm===k&&performance.now()-PA.armT<1600){ PA.arm=null; b.classList.remove('pa-arm'); return; }
+    e.stopPropagation(); e.preventDefault(); document.querySelectorAll('.pa-arm').forEach(x=>x.classList.remove('pa-arm')); PA.arm=k; PA.armT=performance.now(); b.classList.add('pa-arm'); try{ hint('Tap again to confirm'); }catch(_){} return; }
+  e.stopPropagation(); e.preventDefault(); if(!PA.held) try{ hint('Press and hold to confirm'); }catch(_){} PA.held=false; },true);
+function paHoldEnd(){ clearTimeout(PA.holdT); document.querySelectorAll('.pa-holding').forEach(x=>x.classList.remove('pa-holding')); }
+document.addEventListener('pointerdown',e=>{ if(paConf()!=='hold'||!e.target.closest) return; const b=e.target.closest(PA_CONF); if(!b||b.classList.contains('off')) return;
+  paHoldEnd(); b.classList.add('pa-holding'); PA.holdT=setTimeout(()=>{ b.classList.remove('pa-holding'); PA.held=true; PA.pass=b; buzz(15); b.click(); },500); },true);
+for(const ev of ['pointerup','pointercancel','pointerleave']) document.addEventListener(ev,e=>{ if(ev==='pointerleave'&&!(e.target.closest&&e.target.closest(PA_CONF))) return; paHoldEnd(); },true);
+
+/* ---------- settings rows (appended to Settings and the pause menu) ---------- */
+function paSeg(k,label,sub,opts,cur,cls){ return '<div class="setrow"><div>'+label+(sub?'<small>'+sub+'</small>':'')+'</div><div class="seg'+(cls?' '+cls:'')+'" role="radiogroup" aria-label="'+label+'">'
+  +opts.map(o=>'<button data-pa="'+k+':'+o[0]+'" role="radio" aria-checked="'+(cur===o[0])+'" class="'+(cur===o[0]?'sel':'')+'">'+o[1]+'</button>').join('')+'</div></div>'; }
+function paTog(k,label,sub,on){ return '<div class="setrow"><div>'+label+(sub?'<small>'+sub+'</small>':'')+'</div><button class="tog'+(on?' on':'')+'" data-pat="'+k+'" role="switch" aria-checked="'+on+'" aria-label="'+label+'"></button></div>'; }
+function paRows(){ const s=paSet(), g=PA_LV[s.gfx]?s.gfx:'auto';
+  return '<div class="pa-h">Graphics</div>'
+    +paSeg('gfx','Quality',g==='auto'?'Auto: '+PA_LV[gfxLevel()].name+' (measured on this device)':'Performance: lower resolution, fewer particles and glows, simpler flyover',[['auto','Auto'],['high','High'],['balanced','Bal.'],['perf','Perf.']],g,'pa4')
+    +paTog('fps30','30 fps cap','Smoother on hot phones, saves battery',!!s.fps30)
+    +paTog('idle','Battery saver','Pause the animation when nothing moves and you are idle',perf.idle())
+    +'<div class="pa-h">Accessibility</div>'
+    +paSeg('cb','Colour vision','Team colours, rings, health bars, hit chance, storm, minimap',[['off','Off'],['deut','Deut.'],['prot','Prot.'],['trit','Trit.']],PA_PAL[s.cb]?s.cb:'off','pa4')
+    +paTog('shapes','Ally / enemy markers','Shapes over operatives, so colour is not the only cue',a11y.shapes())
+    +paSeg('ts','Text size','',[['n','Normal'],['l','Large'],['xl','Larger']],paPick(s.ts,['n','l','xl'],'n'))
+    +paTog('hc','High contrast','Solid panels, bright borders and text',!!s.hc)
+    +paSeg('motion','Motion','Screen shake, flashes, animated UI. System follows your phone',[['system','System'],['reduce','Reduced'],['full','Full']],paPick(s.motion,['system','reduce','full'],'system'))
+    +paSeg('hand','Thumb side','Mirrors the action bar and Fire / Cancel',[['r','Right'],['l','Left']],s.hand==='l'?'l':'r')
+    +paSeg('confirm','Confirm actions','Prevents misclicks on the action bar and Fire',[['off','Off'],['double','Double-tap'],['hold','Hold']],paConf())
+    +paTog('cap','Sound captions','Text and direction for gunfire, blasts and nearby footsteps you cannot see',!!s.cap)
+    +paTog('sr','Screen reader announcements','Turn start, damage taken, eliminations',s.sr!==false)
+    +paSeg('hapt','Haptics','Vibration on supported phones',[['off','Off'],['low','Low'],['full','Full']],hapLevel()); }
+const PA_setRows=setRows; setRows=function(compact){ let h=PA_setRows.apply(this,arguments);
+  h=h.replace(/<div class="setrow"><div>Haptics<small>[^<]*<\/small><\/div><button[^>]*data-set="haptics"[^>]*><\/button><\/div>/,''); return h+paRows(); };
+const PA_onSetClick=onSetClick; onSetClick=function(e,rerender){ const b=e.target.closest&&e.target.closest('[data-pa],[data-pat]');
+  if(b){ const s=PROF.settings; if(b.dataset.pat){ const k=b.dataset.pat; s[k]=k==='shapes'?!a11y.shapes():k==='idle'?!perf.idle():k==='sr'?s.sr===false:!s[k]; }
+    else { const i=b.dataset.pa.indexOf(':'), k=b.dataset.pa.slice(0,i), v=b.dataset.pa.slice(i+1); s[k]=v; if(k==='hapt') s.haptics=v!=='off'; if(k==='gfx'&&v==='auto'){ PA.sF=[]; PA.sR=[]; PA.sT=0; PA.evals=0; } }
+    saveProf(); applySettings(); SFX.click(); if(b.dataset.pa==='hapt:low'||b.dataset.pa==='hapt:full') buzz(30); rerender(); return true; }
+  return PA_onSetClick.apply(this,arguments); };
+
+/* ---------- static labels and live regions ---------- */
+(function paInit(){
+  const mk=(id,live)=>{ const d=document.createElement('div'); d.id=id; d.className='sr-only'; d.setAttribute('aria-live',live); d.setAttribute('role',live==='assertive'?'alert':'status'); document.body.appendChild(d); };
+  mk('paLive','polite'); mk('paAlert','assertive');
+  const cap=document.createElement('div'); cap.id='paCap'; cap.setAttribute('aria-hidden','true'); const hud=$('#hud'); if(hud) hud.appendChild(cap);
+  const lab=(sel,role,l)=>{ const e=$(sel); if(!e) return; if(role) e.setAttribute('role',role); if(l) e.setAttribute('aria-label',l); };
+  lab('#gc','img','Battlefield'); lab('#minimap','img','Minimap'); lab('#unitp','group','Your operative'); lab('#actions','toolbar','Actions'); lab('#tgt','group','Target'); lab('#feed','log','Kill feed');
+  lab('#hStormChip',null,'Storm'); lab('#turnTag','status',null);
+  const f=$('#feed'); if(f&&window.MutationObserver) new MutationObserver(ms=>{ for(const m of ms) for(const n of m.addedNodes) if(n.textContent) paSay(n.textContent); }).observe(f,{childList:true});
+  try{ paApply(); }catch(e){}
+})();
+window.__pa={perf,a11y,fxBudget,tcol,tcolA,PA,PA_LV,paApply};
+/* ================= end performance & accessibility ================= */
 
 /* ================= debug hooks (used for automated checks) ================= */
 window.__stormfall={G,setupMatch,runMatch,onAction,pFire,pMove,pThrow,enterTarget,actionList,sanitize,update,render,startMatch,PROF:()=>PROF,go,renderStore,renderQuests,renderProfile,grantRewards,claimQuest,sendEmote};
