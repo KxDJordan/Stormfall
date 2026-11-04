@@ -632,6 +632,7 @@ body.sheet-open .nav{display:none}
 .chip.storm{flex:0 1 auto;max-width:340px;min-width:0;margin-right:auto;overflow:hidden;border-color:rgba(255,179,64,.45);color:var(--amber)}
 .chip.storm span{display:block;overflow:hidden;text-overflow:ellipsis}
 .chip.storm.hot{background:rgba(120,30,10,.82);color:#ffd2a0;border-color:var(--amber)}
+.chip.storm.gm{border-color:rgba(255,200,70,.55);color:#ffd36b} .chip.storm.gm.hot{background:rgba(80,20,30,.82);color:#ffb3bd;border-color:#ff4d5e}
 .chip.wx{width:40px;padding:0;justify-content:center;color:#cfe6ff;font:inherit;cursor:pointer}
 .chip.wx svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .chip.wx.rain{color:#8fb8ff}.chip.wx.snow{color:#eaf4ff}.chip.wx.sand{color:#ffc27a}.chip.wx.fog{color:#c4cfda}.chip.wx.clear{color:#ffe08a}
@@ -1404,6 +1405,9 @@ body.sheet-open #sfInv{display:none}
       <li>The strip under the top bar shows the turn order for this round, then the round break with any storm or supply event. You are highlighted, teammates are green, and enemies you cannot see show as “?”.</li>
       <li>Duos: teams of two; with an odd number of humans the last one drops with an AI partner. A downed operative bleeds out in 2 turns unless an adjacent teammate revives them.</li>
       <li>Trios and Quads: squads of three (up to 12 operatives on a 48×48 map) or four (up to 16 on a 56×56 map), four squads at most. Empty seats in your squad are AI squadmates. Downs and revives work as in Duos: a squad is out when nobody on it is left standing (anyone still down is eliminated with it). The storm starts wider and shrinks faster (Quads adds an early stage in round 3), there are more crates, supply drops (five in Quads) and four objectives. Unseen enemy turns play fast; the turn-order strip marks one with an amber arrow.</li>
+      <li>King of the Hill: teams of two on a 32×32 map with no storm. At the end of each round, a team with operatives inside the gold ring and no enemy in it scores a point (both sides inside: contested, nobody scores). The hill moves every 5 rounds; its next spot shows as a dashed ring a round ahead. First team to 8 wins; after round 24 the most points (then the most operatives standing) wins. No downs: an eliminated operative redeploys at the start of the round after next, away from enemies and the hill, with full health, ammo and utilities.</li>
+      <li>Siege: two teams of four, best of three rounds, sides swap after each. Defenders start inside a walled compound in the middle of the map (doors, windows, sandbags, crates) around the data core. Attackers win a round by holding the core (the cyan ring) with no defender in it at 2 round ends, or by taking out every defender; defenders win by holding out for 10 rounds or wiping the attackers. Attackers carry 2 Breaching Charges (blow walls, doors and cover in a 1.5-tile blast clean away, 2–3 damage) and a Scout Drone; defenders carry 2 extra smoke grenades and 2 Barricades (drop a sandbag wall, half cover, on an empty ground tile within 2 tiles, not on the core). No storm, downs and revives as in Duos.</li>
+      <li>Rumble: teams of two in a 24×24 arena, no storm. Eliminations score for the killer’s team; first to 12 wins (or the most after round 24). Respawns as in King of the Hill.</li>
       <li>Team pings: in Duos, Trios and Quads, tap 📍 then the map, or press and hold on the map, to ping (Enemy here, Move here, Watch this area, Loot here, Danger) or give a command (Hold, Regroup, Push, Fall back, Revive me). Only your team sees them; they fade after 2 rounds. An AI partner or squadmates follow them (online, orders given on your own turn).</li>
       <li>Specialist drone: it rides docked just above the Specialist (no vision, can’t be hit) until you tap <em>Deploy</em> (free, once a turn) and pick a tile. Deployed, it is its own unit with its own drone AP each turn (2; 3 with the Extended battery): fly it, zap, mark, or use its model action. Combat Protocol, Aid Protocol, Capacitor Discharge, Chain Lightning, Guardian, Haywire, Overclock, Drone Shield and Restoration all need it deployed. It sees for your team, can be shot, blown up, zapped and caught by overwatch, takes 1 storm damage a round outside the zone, and never counts as an operative (turn order, victory, objectives). Tap <em>Drone</em> to control it, <em>Operative</em> to switch back, <em>Recall</em> to dock it. Destroyed: <em>Rebuild</em> (1 AP) after 2 of your turns. Chassis: Sparrow (scout, Scan), Striker (Burst, harder zaps), Mender (Heal Pulse), Bulwark (Shield Projector, 6 HP), Jammer (Jam). Drone mastery unlocks upgrades; drone skins are in the Store.</li>
       <li>Weapon mastery: hits, damage and takedowns with a primary or sidearm level that weapon (1–10). Mastery unlocks its attachments (optic, barrel, magazine, underbarrel: picked per weapon in Loadout) and mastery finishes, up to the animated Stormcell.</li>
@@ -1550,6 +1554,11 @@ const UTILS={
   drone:{name:'Scout Drone',short:'Drone',charges:1,range:10,radius:4,dev:true,blind:true,shop:true,info:'Flies to a tile and reveals everything within 4 tiles, even through walls, until the end of next round. Your team sees enemies there; you still need your own line of sight to shoot them. Costs 1 AP and keeps your turn going'},
   sensor:{name:'Motion Sensor',short:'Sensor',charges:1,range:5,radius:5,rounds:4,dev:true,shop:true,info:'Placed device. For 4 rounds it pings every enemy that moves within 5 tiles of it and marks where they were. Explosions destroy it. Costs 1 AP and keeps your turn going'}
 };
+// Siege kit (never in a class pool or the shop: handed out per side at the start of each Siege round, see siegeKit)
+Object.assign(UTILS,{
+  charge:{name:'Breaching Charge',short:'Charge',charges:2,range:5,radius:1.5,bdmg:[2,3],gmk:1,info:'Siege attackers. Blows every wall, door, window and piece of cover within 1.5 tiles clean away (walkable rubble) and deals 2–3 damage to anyone in the blast, you included'},
+  barricade:{name:'Barricade',short:'Barricade',charges:2,range:2,radius:0,dev:true,gmk:1,cover:true,hitL:'tile of half cover',info:'Siege defenders. Drops a sandbag barricade (half cover, 5 HP) on an empty ground tile within 2 tiles, not on the data core. Costs 1 AP and keeps your turn going'}
+});
 // utility descriptions are generated from the numbers above
 for(const k in UTILS){ const U=UTILS[k], t=[];
   if(U.dmg) t.push(U.dmg[0]+'–'+U.dmg[1]+(U.arc?' armor-piercing':'')+' damage in a '+U.radius+'-tile radius');
@@ -1893,6 +1902,7 @@ const SFX={ac:null,on:true,nb:null,
 const MAP0=40;
 let MW=MAP0, MH=MAP0, CX=(MW-1)/2;
 const TW=64, TH=32, PAD=70, SLAB=54, ZMIN=0.42, ZMAX=2.4, EZ=24;
+const CALM={rounds:[999],radii:[99],dmg:[0,0],minR:99}; // objective modes: no storm (its circle lies past the map edge)
 const MODES={
   solo:{key:'solo',name:'Solo',short:'Up to 8',desc:'Free for all, up to eight operatives. Last one standing wins.',players:8,team:1,storm:STORM,startR:30,drops:[3,6,9,12],place:[0,300,200,150,110,80,60,40,25],xp:[0,450,330,260,200,160,130,100,80]},
   duos:{key:'duos',name:'Duos',short:'Teams of 2',desc:'Teams of two, up to four teams. Drop with a partner who can revive you.',players:8,team:2,storm:STORM,startR:30,drops:[3,6,9,12],place:[0,300,180,100,50],xp:[0,450,300,190,120]},
@@ -1905,7 +1915,15 @@ const MODES={
   quads:{key:'quads',name:'Quads',short:'Teams of 4',desc:'Teams of four, up to four teams on the biggest map. Sixteen operatives, one squad standing.',players:16,team:4,map:56,
     storm:{rounds:[3,5,7,9,11,13,15,16],radii:[31,23,16,10.5,7,4.6,3.2,2.5],dmg:[0,1,1,1,2,2,3,4,5],moveFrom:6,minR:2.5,every:2,dmgMax:10},startR:42,drops:[3,5,8,11,14],obj:[3,6,9,12],
     place:[0,340,200,120,60],xp:[0,490,330,210,140]},
-  quick:{key:'quick',name:'Quick',short:'Up to 4',desc:'Up to four operatives and a tight storm. About six minutes.',players:4,team:1,storm:{rounds:[3,5,7,9,11],radii:[11.5,8,5.5,3.5,2.5],dmg:[0,1,2,2,3,4,5],moveFrom:3,minR:2,every:2,dmgMax:10},startR:16,drops:[2,5,8],place:[0,180,100,60,30],xp:[0,300,200,130,90]}
+  quick:{key:'quick',name:'Quick',short:'Up to 4',desc:'Up to four operatives and a tight storm. About six minutes.',players:4,team:1,storm:{rounds:[3,5,7,9,11],radii:[11.5,8,5.5,3.5,2.5],dmg:[0,1,2,2,3,4,5],moveFrom:3,minR:2,every:2,dmgMax:10},startR:16,drops:[2,5,8],place:[0,180,100,60,30],xp:[0,300,200,130,90]},
+  // Objective modes (gm: rules in the "objective modes" block): no storm, no public objectives. resp: rounds out before a
+  // respawn (no downs: hits that drop you eliminate you). target: points to win, cap: last round (then the score decides).
+  koth:{key:'koth',name:'King of the Hill',tab:'KotH',short:'Hold the hill',desc:'Teams of two fight over a moving hill. Hold it alone at the end of a round to score; first team to 8 wins.',players:8,team:2,map:32,storm:CALM,startR:99,drops:[4,9,14,19],obj:[],
+    gm:'koth',resp:2,target:8,cap:24,place:[0,300,180,100,50],xp:[0,450,300,190,120]},
+  siege:{key:'siege',name:'Siege',short:'Attack / defend',desc:'Four attackers breach a walled compound and seize the data core; four defenders hold it. Best of three, sides swap.',players:8,team:4,map:32,storm:CALM,startR:99,drops:[],obj:[],
+    gm:'siege',place:[0,300,130],xp:[0,450,240]},
+  rumble:{key:'rumble',name:'Rumble',short:'Team deathmatch',desc:'Teams of two in a small arena with respawns. First team to 12 eliminations wins.',players:8,team:2,map:24,storm:CALM,startR:99,drops:[3,8,13,18],obj:[],
+    gm:'rumble',resp:2,target:12,cap:24,place:[0,280,170,95,50],xp:[0,420,280,180,115]}
 };
 const MAXP=Math.max(...Object.values(MODES).map(m=>m.players)); // the largest roster (Quads: 16)
 /* AI difficulty (hostile AI only; an AI partner on a human's team always plays Veteran). Veteran is the original AI.
@@ -2693,6 +2711,7 @@ function setupMatch(lo,mk,net,pre){
   const ks=shuffle(['uplink','vault','med','bounty']); if(ks[0]==='bounty'){ ks[0]=ks[1]; ks[1]='bounty'; }
   G.objQ=(G.M.obj||(G.M.key==='quick'?[2,5]:[3,6,9])).map((r,i)=>({round:r+ri(0,1),k:ks[i],done:false}));
   G.sites=[]; G.scans=[]; G.prints=[]; G.siteN=0;
+  G.gm=null; if(G.M.gm) gmSetup(); // objective modes (King of the Hill, Siege, Rumble): their RNG calls come after everything above
   computeVis(); buildGround(); G.bg=null; initWeather();
 }
 
@@ -2706,7 +2725,7 @@ function setupMenuScene(){
   const centre=floors.filter(i=>Math.hypot(i%MW-MW/2,((i/MW)|0)-MH/2)<6);
   for(let k=0;k<6;k++){ const s=pick(centre.length?centre:floors); if(G.units.some(u=>idx(u.x,u.y)===s)) continue; const lo=randomLoadout(); const r=RIVALS[k]; const u=makeUnit(lo,false,r[0],k===0?visorCol():r[1],null,k); placeUnit(u,s%MW,(s/MW)|0); u.face=Math.random()<.5?1:-1; G.units.push(u); }
   const cf=pick(floors); G.crates.push({x:cf%MW,y:(cf/MW)|0,ph:0,drop:true});
-  G.wx=null; G.sites=[]; G.scans=[]; G.prints=[]; G.objQ=[];
+  G.wx=null; G.sites=[]; G.scans=[]; G.prints=[]; G.objQ=[]; G.gm=null;
   G.vis.fill(1); G.seen.fill(1); G.over=true; G.fullVis=true; G.reveals=[]; G.sensors=[]; G.lkp=new Map(); G.cues=[];
   buildGround(); G.bg=null; initWeather();
   const c=iso(MW/2,MH/2); G.cam.x=G.cam.tx=c[0]; G.cam.y=G.cam.ty=c[1]; G.cam.z=G.cam.tz=VW<600?0.62:0.85;
@@ -5169,6 +5188,7 @@ function drawWorld(c){
   drawHighlights(c);
   drawRideGround(c); // drop ship shadows and rotor wash (intro)
   if(st) drawStormRing(c,true);
+  if(G.gm&&G.scene==='game') gmDraw(c);
   if(G.drop&&!G.drop.landed){ const d=G.drop, p=iso(d.x+.5,d.y+.5), z=ez(d.x,d.y), pu=.5+.5*Math.sin(t*5);
     c.save(); c.translate(0,-z); c.strokeStyle='rgba(255,80,60,'+(0.5+0.4*pu)+')'; c.lineWidth=2.5; for(let r=0;r<2;r++){ const rr2=18+r*14+pu*6; c.beginPath(); c.ellipse(p[0],p[1],rr2,rr2*0.5,0,0,Math.PI*2); c.stroke(); }
     c.globalCompositeOperation='lighter'; const g=c.createLinearGradient(p[0],p[1]-260,p[0],p[1]); g.addColorStop(0,'rgba(255,60,40,0)'); g.addColorStop(1,'rgba(255,80,60,.5)'); c.fillStyle=g; c.fillRect(p[0]-2,p[1]-260,4,260); c.globalCompositeOperation='source-over';
@@ -5784,7 +5804,7 @@ function applyDamage(t,d,src,o){
   if(t.isPlayer) buzz(o.crit?[30,30,50]:35);
   if(o.anim){ hitFx(t,abs); floatText(t,(o.graze?'GRAZE ':o.crit?'CRIT ':'')+'−'+total,o.graze?[190,215,255]:o.crit?[255,180,60]:[255,255,255],o.crit?24:o.graze?18:20); SFX.hit(); if(o.crit) G.cam.shake=Math.max(G.cam.shake,6); }
   if(t.tutGuard&&t.hp<1) t.hp=1;
-  if(t.hp<=0){ t.hp=0; if(G.M.team>1&&G.units.some(m=>m!==t&&m.team===t.team&&standing(m))) down(t,src,o.anim,o.how); else if(G.M.team===1&&t.sw>0) swDown(t,src,o.anim); else kill(t,src,o.anim,o.how); }
+  if(t.hp<=0){ t.hp=0; if(G.M.team>1&&!G.M.resp&&G.units.some(m=>m!==t&&m.team===t.team&&standing(m))) down(t,src,o.anim,o.how); else if(G.M.team===1&&t.sw>0) swDown(t,src,o.anim); else kill(t,src,o.anim,o.how); }
 }
 function down(t,src,anim,how){
   t.downed=true; t.hp=0; t.bleed=2; t.overwatch=false; t.hunker=false; t.shield=0; t.dnBy=src&&src!==t&&isEnemy(src,t)?src.id:null; // the elimination goes to whoever downed them
@@ -5797,6 +5817,7 @@ function down(t,src,anim,how){
 }
 function finishOff(m){ m.alive=false; m.downed=false; m.deadT=0.001; if(m.isPlayer) playerOut(); }
 function playerOut(){
+  if(G.gm&&gmPlayerOut()) return; // respawn modes: out for two rounds, not for the match
   G.playerDead=true; computeVis();
   if(G.over) return;
   if(teamStanding(G.player.team)){ banner('Eliminated',(G.M.team>2?'Your squad fights':'Your partner fights')+' on. Spectating.','lose',2400); }
@@ -5827,7 +5848,7 @@ function kill(t,src,anim,how){
   }
   if(t.isPlayer) playerOut();
   updateTop();
-  if(teamsLeft()<=1) endMatch(!!(G.player&&teamStanding(G.player.team)));
+  if(G.gm) gmKill(t,src); else if(teamsLeft()<=1) endMatch(!!(G.player&&teamStanding(G.player.team)));
 }
 async function fireShot(a,t,o){
   o=o||{}; if(!a.alive||a.downed||!t.alive) return false;
@@ -6075,6 +6096,7 @@ async function doThrow(u,util,tx,ty){
   if(anim){ const a0=tileC(u.x,u.y), b0=tileC(tx,ty); G.cam.tx=(a0[0]+b0[0])/2; G.cam.ty=(a0[1]+b0[1])/2; floatText(u,U.name.toUpperCase(),[255,190,80],17); vAnim(u,'throw',.62,{rel:.35,col:util.id==='smoke'?'#dddddd':util.id==='flash'?'#ffffff':util.id==='plasma'||util.id==='arc'||U.dev?'#7fe8ff':'#ff6a3d'}); await wait(350);
     const a=muzzle(u); await new Promise(res=>addFx({type:'nade',a,b:b0,h:60+Math.hypot(tx-u.x,ty-u.y)*10,col:util.id==='smoke'?'#ddd':util.id==='flash'?'#fff':util.id==='plasma'||util.id==='arc'||U.dev?'#7fe8ff':'#ff6a3d',life:U.dev?.7:.55,res})); }
   if(U.dev){ await deployDevice(u,util,tx,ty,anim); return; }
+  if(util.id==='charge'){ await gmCharge(u,tx,ty,anim); return; }
   if(U.dmg){ makeNoise(u); G.noise.push({id:u.id,team:u.team,x:tx,y:ty,r:G.round,blast:true}); soundCue(tx,ty,'blast',null); }
   const hitU=G.units.filter(v=>v.alive&&inBlast(v,tx,ty,U.radius||0)), hitD=G.drones.filter(v=>v.alive&&inBlast(v,tx,ty,U.radius||0));
   if(U.dmg){
@@ -6096,7 +6118,7 @@ async function doThrow(u,util,tx,ty){
 }
 // Scout Drone / Motion Sensor: sim state per team (G.reveals, G.sensors), read by computeVis, updateIntel and moveUnit
 async function deployDevice(u,util,tx,ty,anim){
-  const U=UTILS[util.id];
+  const U=UTILS[util.id]; if(U.cover){ await gmBarricade(u,tx,ty,anim); return; }
   if(util.id==='drone'){ G.reveals=(G.reveals||[]).filter(r=>r.until>=G.round); G.reveals.push({team:u.team,x:tx,y:ty,r:U.radius,until:G.round+1,uid:u.id}); }
   else { G.sensors=(G.sensors||[]).filter(s=>s.until>=G.round); G.sensors.push({team:u.team,x:tx,y:ty,r:U.radius,until:G.round+U.rounds-1,uid:u.id,hits:0}); }
   computeVis();
@@ -6459,8 +6481,10 @@ async function runMatch(){
     await stormPhase(); if(G.over||G.matchId!==mid) break;
     await supplyPhase(); if(G.over||G.matchId!==mid) break;
     await objectivePhase(); if(G.over||G.matchId!==mid) break;
-    for(const u of G.units){ if(G.over||G.matchId!==mid) break; if(!u.alive) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); const b=!G.over&&bountyOn(); if(b&&b.t===u.id) bountyPing(b); }
+    if(G.gm){ await gmRoundStart(); if(G.over||G.matchId!==mid) break; } // objective modes: respawns, hill moves, round banners
+    for(const u of G.units){ if(G.over||G.matchId!==mid||(G.gm&&G.gm.halt)) break; if(!u.alive) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); const b=!G.over&&bountyOn(); if(b&&b.t===u.id) bountyPing(b); }
     G.turnU=null;
+    if(G.gm){ await gmRoundEnd(); if(G.over||G.matchId!==mid) break; } // objective modes: scoring, Siege round changes, the end
     { const n=G.smoke.length; G.smoke=G.smoke.filter(s=>s.until>G.round); if(G.smoke.length!==n) computeVis(); }
     for(const t in G.cmd) if(G.cmd[t].until<=G.round) delete G.cmd[t]; // team orders (pings / quick chat) expire
   }
@@ -6815,7 +6839,7 @@ function refreshReach(){ const u=G.player, d=u.dr;
 function finishPlayerTurn(){ const r=G.turnRes; if(!r) return; tmTurnEnd(); G.turnRes=null; G.mode='idle'; G.dmode=null; G.reach=null; G.pending=-1; G.pendingPath=null; updateHUD(); r(); }
 function afterAction(){
   const u=G.player; G.busy=false;
-  if(G.over||!standing(u)){ finishPlayerTurn(); return; }
+  if(G.over||!standing(u)||(G.gm&&G.gm.halt)){ finishPlayerTurn(); return; }
   computeVis();
   if(u.ap<=0&&!dCanAct(u)){ G.mode='idle'; G.busy=true; updateHUD(); later(300,finishPlayerTurn); return; } // busy: no input while the turn closes
   // drone control: after a launch go straight to the drone; leave control when it cannot act; with no AP of your own left, the drone is all you have
@@ -7039,6 +7063,7 @@ function knownThreats(u){
   return out;
 }
 function goalFor(u){
+  if(G.gm){ const g=gmGoal(u); if(g) return g; }
   const m=intelOf(u.team); let best=null,bd=1e9;
   for(const [id,e] of m){ if(e.r<G.round-teamDiff(u.team).mem-2) continue; const t=G.units.find(z=>z.id===id); if(!t||!standing(t)) continue; const d=Math.hypot(e.x-u.x,e.y-u.y); if(d<bd){ bd=d; best=[e.x,e.y]; } }
   if(best) return best;
@@ -7087,6 +7112,7 @@ function aiScoreTile(u,x,y,threats,cost){
     if(C&&L.human){ if(C.k==='regroup'||C.k==='fallback'||C.k==='revive'){ lim=2.5; w=9; } else if(C.k!=='hold'&&C.k!=='danger'){ lim=8; w=3; } }
     if(d>lim) s-=(d-lim)*w; }
   if(C) s+=cmdScore(u,C,x,y,threats);
+  if(G.gm) s+=gmTileScore(u,x,y);
   return s+RNG()*D.noise;
 }
 // AI objective values (public information only: site positions, type and progress)
@@ -7185,7 +7211,7 @@ async function aiRevive(u){
 // the AI's turn, then whatever drone AP is left (zap, support, reposition or recall after the operative has acted)
 async function aiTurn(u,mid){ await aiTurn0(u,mid); if(standing(u)&&!G.over&&G.matchId===mid) await aiDrone(u,()=>!standing(u)||G.over||G.matchId!==mid,true); }
 async function aiTurn0(u,mid){
-  const stale=()=>!standing(u)||G.over||G.matchId!==mid;
+  const stale=()=>!standing(u)||G.over||G.matchId!==mid||!!(G.gm&&G.gm.halt);
   // an unseen unit's turn is a short pause (shorter with 12-16 operatives: the turn-order strip marks it fast-forwarded)
   if(shouldShow(u)){ turnTag(u.name+' · '+CLASSES[u.cls].name,mine(u)?'you':'enemy'); focusOn(u.x,u.y); await wait(380); } else { turnTag('Hostile activity','enemy'); await wait(G.units.length>8?35:70); }
   if(stale()) return;
@@ -7198,6 +7224,7 @@ async function aiTurn0(u,mid){
   await aiDrone(u,stale,false); if(stale()) return; // the drone goes first: deploy, zap, support (its own drone AP)
   await aiPerkPre(u,stale); if(stale()||u.ap<=0) return;
   await aiUtilPre(u); if(stale()||u.ap<=0) return;
+  if(G.gm){ await gmAiPre(u); if(stale()||u.ap<=0) return; } // Siege: breaching charges and barricades
   // standing on an objective at turn start: work it first (1 AP), then fight or reposition with the other
   if(await aiSite(u,null)){ if(stale()||u.ap<=0) return; }
   let atk=aiBestAttack(u);
@@ -7378,6 +7405,7 @@ function updateTop(){
   const out=!G.watch&&G.player&&standing(G.player)&&outsideStorm(G.player.x,G.player.y);
   st.textContent=out?'In the storm!':G.drop&&!G.drop.landed?'Drop inbound':nxt?(nxt-G.round===1?(mvs?'Storm moves next round':'Storm next round'):(mvs?'Storm moves in ':'Storm in ')+(nxt-G.round)+' rounds'):'Storm at max';
   chip.classList.toggle('hot',!!out);
+  if(G.gm) gmTop(); else if(chip.classList.contains('gm')){ chip.classList.remove('gm'); chip.removeAttribute('title'); $('#hAlive').parentNode.classList.remove('hidden'); }
   if(G.playerDead&&!G.over) fillSpec();
 }
 /* turn order strip (HUD only; reads sim state, never writes it). Order is G.units; enemies you cannot see show as "?". */
@@ -7501,7 +7529,7 @@ function fillThrowPanel(){
   $('#tName').textContent=U.name; $('#tSub').textContent=U.desc+' Range '+throwRange(u,U)+'.';
   if(U.dev){ // never count units in the area: that would leak what fog hides
     $('#tSub').textContent=U.info+'. Range '+throwRange(u,U)+' tiles.';
-    $('#tHit').textContent=String(U.radius); $('#tHitL').textContent=util.id==='drone'?'tile reveal radius':'tile detection radius';
+    $('#tHit').textContent=String(U.radius); $('#tHitL').textContent=U.hitL||(util.id==='drone'?'tile reveal radius':'tile detection radius'); if(U.cover) $('#tHit').textContent='1';
     $('#tRow').innerHTML=G.throwTile<0?'<span>Tap a tile in range'+(U.blind?' (sight not needed)':'')+'</span>':'<span>Tap '+(util.id==='drone'?'Launch':'Place')+', or the tile again, to confirm</span>';
     $('#tMods').textContent='Costs 1 AP and keeps your turn going.'; $('#tChips').innerHTML='';
     const fb=$('#tFire'); fb.textContent=util.id==='drone'?'Launch':'Place'; fb.classList.toggle('off',G.throwTile<0); return; }
@@ -7528,6 +7556,7 @@ function drawMinimap(){
     if(mv){ c.strokeStyle='rgba(255,255,255,.55)'; c.lineWidth=1; c.beginPath(); c.moveTo(st.cx*s,st.cy*s); c.lineTo(nx*s,ny*s); c.stroke(); c.fillStyle='#fff'; c.beginPath(); c.arc(nx*s,ny*s,1.6,0,Math.PI*2); c.fill(); } }
   for(const q of G.crates){ if(!q.drop&&!G.seen[idx(q.x,q.y)]&&!G.fullVis) continue; c.fillStyle=q.drop?'#ff5a3c':'#ffb340'; const r=q.drop?0.9:0.5; c.fillRect((q.x+.5-r/2)*s,(q.y+.5-r/2)*s,s*r,s*r); }
   if(G.drop&&!G.drop.landed){ const pu=.5+.5*Math.sin(G.time*6); c.strokeStyle='rgba(255,90,60,'+(0.5+0.5*pu)+')'; c.lineWidth=2; c.beginPath(); c.arc((G.drop.x+.5)*s,(G.drop.y+.5)*s,s*(1.2+pu),0,Math.PI*2); c.stroke(); }
+  if(G.gm) gmMini(c,s);
   // objectives (public): sites as diamonds in their colour, the bounty's last ping as a red ring with a crown dot
   for(const q of G.sites||[]){ if(q.done) continue; const T=OBJ[q.k];
     if(q.k==='bounty'){ if(q.px==null||G.round-q.pr>1) continue; const pu=.5+.5*Math.sin(G.time*5); c.strokeStyle='rgba(255,77,94,'+(0.6+0.4*pu)+')'; c.lineWidth=2; c.beginPath(); c.arc((q.px+.5)*s,(q.py+.5)*s,s*(1.4+pu*.6),0,Math.PI*2); c.stroke(); c.fillStyle='#ffcf4a'; c.beginPath(); c.arc((q.px+.5)*s,(q.py+.5)*s,s*.55,0,Math.PI*2); c.fill(); continue; }
@@ -7570,7 +7599,7 @@ function onTap(sx,sy){
   else if(G.mode==='move'&&hu&&isEnemy(u,hu)&&!G.dmode){ if(u.ap>0&&!u.shot&&u.ammo>0&&!(u.W.heavy&&u.ap<2)&&canSee(u,hu)){ enterTarget('shoot',hu); SFX.click(); return; } }
   const tt=screenToTile(sx,sy), tx=tt[0], ty=tt[1];
   if(G.mode==='obj'){ const i=(G.objT||[]).findIndex(q=>q[0]===tx&&q[1]===ty); if(i>=0){ if(i===G.oIdx){ pObj(); return; } G.oIdx=i; SFX.click(); updateHUD(); } return; }
-  if(G.mode==='throw'){ if(!inMap(tx,ty)) return; const U=UTILS[G.throwUtil.id]; if(Math.hypot(tx-u.x,ty-u.y)<=throwRange(u,U)&&(G.vis[idx(tx,ty)]||U.blind)&&!(U.dev&&solidT(tx,ty))){ const i=idx(tx,ty); if(G.throwTile===i){ pThrow(); return; } G.throwTile=i; SFX.click(); updateHUD(); } else hint('Out of range'); return; }
+  if(G.mode==='throw'){ if(!inMap(tx,ty)) return; const U=UTILS[G.throwUtil.id]; if(Math.hypot(tx-u.x,ty-u.y)<=throwRange(u,U)&&(G.vis[idx(tx,ty)]||U.blind)&&!(U.dev&&solidT(tx,ty))&&!(U.cover&&!gmCoverOk(tx,ty))){ const i=idx(tx,ty); if(G.throwTile===i){ pThrow(); return; } G.throwTile=i; SFX.click(); updateHUD(); } else hint('Out of range'); return; }
   if(G.mode==='move'){ if(!inMap(tx,ty)||!G.reach){ return; } const i=idx(tx,ty), d=G.reach.dist[i];
     if(isFinite(d)&&d>0){ if(G.pending===i){ pMove(); return; } G.pending=i; G.pendingPath=buildPath(G.reach,i); SFX.click(); buzz(8);
       if(PROF.settings.oneTap){ pMove(); return; } hint('Tap again to move'); updateHUD(); }
@@ -8176,6 +8205,258 @@ function loadProf(){
 function saveProf(){ syncCos(); try{ localStorage.setItem('stormfall_profile',JSON.stringify(PROF)); }catch(e){} try{ cloudDirty(); }catch(e){} } // cloudDirty: debounced cloud push (never awaited)
 function applySettings(){ SFX.on=!!PROF.settings.sound; }
 
+/* ================= objective modes: King of the Hill, Siege, Rumble =================
+   MODES[k].gm names the rules; G.gm holds their sim state (null in every other mode). gmSetup runs at the end of
+   setupMatch, after all the classic setup RNG calls; runMatch calls gmRoundStart after the objective phase and gmRoundEnd
+   after the last turn of a round; kill() hands eliminations to gmKill instead of the last-team-standing check. Everything
+   here derives from cfg.mode and the seeded RNG (hash() for tie-breaks), so clients, spectators and replays agree, and
+   simHash covers it through gmHash. G.gm.halt: the round (Siege) or the match is decided; turns close on every client.
+   Respawns (King of the Hill, Rumble): no downs; an eliminated operative is back at the start of the round after next,
+   on a ground tile far from enemies (and away from the hill), with full health, ammo and utilities. */
+const KOTH={r:2.5,every:5,gap:8};               // hill radius (tiles, from the centre tile) and rounds per hill
+const SIEGE={len:10,hold:2,wins:2,core:1.5,H:5}; // rounds per Siege round, round ends on the core to take it, wins for the match, core radius, compound half-size
+const GM_KEYS=['koth','siege','rumble'];
+ICON.charge=ICON.breach;
+ICON.barricade='<svg viewBox="0 0 24 24"><path d="M3 20h18M4 20v-4h16v4M6 16v-4h12v4M8 12V8h8v4"/></svg>';
+function gmSetup(){
+  const k=G.M.gm, T=[...new Set(G.units.map(u=>u.team))].sort((a,b)=>a-b), S={k,teams:T,score:{},halt:null,resp:G.M.resp||0};
+  for(const t of T) S.score[t]=0;
+  G.gm=S;
+  for(const u of G.units){ u.ut0=u.utils.map(q=>({id:q.id,ch:q.ch})); u.sh0=u.shield; u.rsp=null; } // the loadout a respawn / new Siege round restores
+  if(k==='koth'){ S.hill=hillPick(null); S.next=null; S.hr=1; S.last=null; }
+  else if(k==='siege') siegeSetup();
+}
+const gmMine=t=>!!G.player&&!G.watch&&G.player.team===t;
+function gmTeam(t){ return gmMine(t)?'Your team':teamLabel(t); }
+function gmTeamCol(t){ if(gmMine(t)) return [63,210,255]; const u=G.units.find(v=>v.team===t); return u?u.col:[255,255,255]; }
+function gmHash(add){ const S=G.gm; for(const t of S.teams) add(S.score[t]|0); add(S.halt?1+(S.halt.win|0):0);
+  if(S.hill) add(S.hill.x*97+S.hill.y); if(S.next) add(S.next.x*97+S.next.y+S.next.r*7919);
+  if(S.k==='siege'){ add(S.sr); add(S.att); add(S.prog); add(S.r0); add(S.side); }
+  for(const u of G.units) add(u.rsp==null?-1:u.rsp); }
+// a fresh operative (respawn, new Siege round); the caller places it
+function gmRevive(u){
+  Object.assign(u,{alive:true,downed:false,swDown:false,hp:u.maxHp,shield:u.sh0|0,ammo:u.W.clip,sAmmo:u.S.clip||0,sUses:u.S.uses||0,cd:{},bleed:0,disorient:0,overwatch:false,hunker:false,
+    moved:false,shot:false,ap:0,dnBy:null,deadT:0,mark:null,rupt:0,flash:0,drop:0,inRide:false,dOff:null,vKfx:null,vKfxDn:false,roam:null,_goal:null,rsp:null});
+  u.utils=(u.ut0||u.utils).map(q=>({id:q.id,ch:q.ch}));
+  const d=u.dr; if(d) Object.assign(d,{st:'dock',alive:false,hp:d.maxHp,shield:0,ap:0,rb:0,jam:0,wx:null,mark:null,depR:-1});
+}
+// where an operative comes back in: open ground far from standing enemies (and out of their sight), near its team, off the hill
+function gmSpawnSpot(u){ const S=G.gm, foes=G.units.filter(v=>standing(v)&&isEnemy(u,v)), mates=G.units.filter(v=>standing(v)&&v!==u&&v.team===u.team), H=S.k==='koth'?S.hill:null, N=S.k==='koth'?S.next:null, L=[];
+  for(let i=0;i<MW*MH;i++){ if(G.grid[i]||G.lvl[i]||G.surf[i]===1) continue; const x=i%MW,y=(i/MW)|0; if(x<1||y<1||x>MW-2||y>MH-2||unitAt(x,y)||droneOn(x,y)||G.crates.some(q=>q.x===x&&q.y===y)) continue;
+    let md=99; for(const f of foes) md=Math.min(md,Math.hypot(f.x-x,f.y-y)); let s=Math.min(md,12)*2;
+    for(const h of [H,N]){ if(!h) continue; const d=Math.hypot(x-h.x,y-h.y), lim=KOTH.r+6.5; s-=d<lim?40+(lim-d)*4:Math.max(0,d-lim-5)*0.6; }
+    if(mates.length){ let dm=99; for(const m of mates) dm=Math.min(dm,Math.hypot(m.x-x,m.y-y)); if(dm<=6) s+=3; }
+    L.push([s+hash(x,y,G.round*7+u.id)*1.5,i]); }
+  if(!L.length) return -1;
+  L.sort((a,b)=>b[0]-a[0]||a[1]-b[1]); const top=L.slice(0,24);
+  for(const c of top){ const x=c[1]%MW,y=(c[1]/MW)|0; if(foes.some(f=>Math.hypot(f.x-x,f.y-y)<=11&&hasLOS(f.x,f.y,x,y))) c[0]-=8; }
+  top.sort((a,b)=>b[0]-a[0]||a[1]-b[1]); return top[0][1]; }
+async function gmRespawns(){ const due=G.units.filter(u=>!u.alive&&u.rsp!=null&&u.rsp<=G.round); if(!due.length) return;
+  let me=false;
+  for(const u of due){ const i=gmSpawnSpot(u); if(i<0) continue; gmRevive(u); placeUnit(u,i%MW,(i/MW)|0); u.face=hash(u.x,u.y,u.id)<.5?1:-1; u.drop=1; dropLand(u,0.6);
+    feedLine(u.name+' redeployed',mine(u)); if(u.isPlayer&&!G.watch) me=true; }
+  if(me){ const p=G.player; G.playerDead=false; G.spec=null; G.speed=1; $('#spSpeed').textContent='1×'; $('#spec').classList.add('hidden'); focusOn(p.x,p.y,defaultZ()); banner('Back in the fight','You dropped in away from the enemy.','win',1600); buzz(25); }
+  computeVis(); updateHUD(); await wait(me?900:500); }
+function gmPlayerOut(){ const S=G.gm; if(!S.resp) return false;
+  G.playerDead=true; computeVis(); if(G.over) return true;
+  banner('Eliminated','You redeploy in '+S.resp+' rounds.','lose',2000);
+  G.spec={follow:null}; G.speed=1; $('#spSpeed').textContent='1×'; buzz([80,50,80]); updateHUD(); return true; }
+function gmKill(t,src){ const S=G.gm; if(G.over) return;
+  if(S.resp&&!S.halt) t.rsp=G.round+S.resp;
+  if(S.k==='rumble'&&!S.halt&&src&&src!==t&&isEnemy(src,t)){ const n=S.score[src.team]=(S.score[src.team]|0)+1; if(n>=G.M.target) S.halt={win:src.team}; }
+  if(S.k==='siege'&&!S.halt) for(const tm of [S.att,S.def]) if(!teamStanding(tm)){ S.halt={win:tm===S.att?S.def:S.att,how:'wipe'}; break; }
+  updateTop(); }
+// teams by result: the winner first, then score, survivors, team order
+function gmRank(win){ const S=G.gm, alive=t=>G.units.filter(u=>u.team===t&&standing(u)).length;
+  return S.teams.slice().sort((a,b)=>(b===win)-(a===win)||(S.score[b]|0)-(S.score[a]|0)||alive(b)-alive(a)||a-b); }
+async function gmRoundStart(){ const S=G.gm, my=G.player?G.player.team:-1;
+  if(S.resp) await gmRespawns();
+  if(S.k==='koth'){
+    if(S.next&&G.round>=S.next.r){ S.hill={x:S.next.x,y:S.next.y}; S.next=null; S.hr=G.round; S.last=null; banner('The hill has moved','Hold the gold ring with no enemy in it at the end of the round.','warn',2000); focusOn(S.hill.x,S.hill.y); SFX.tone(520,820,.3,.07,'triangle'); await wait(1000); }
+    else if(G.round===1){ banner('Take the hill','Hold the gold ring with no enemy in it at the end of a round: +1 point. First to '+G.M.target+'.','',2800); focusOn(S.hill.x,S.hill.y); await wait(1300); }
+    if(!S.next&&G.round-S.hr===KOTH.every-1){ const h=hillPick(S.hill); S.next={x:h.x,y:h.y,r:G.round+1}; banner('The hill moves next round','Its next spot is the dashed ring.','warn',1800); focusOn(h.x,h.y); await wait(900); }
+  }
+  else if(S.k==='rumble'&&G.round===1){ banner('Rumble','First team to '+G.M.target+' eliminations wins. Respawn after 2 rounds.','',2600); await wait(1000); }
+  else if(S.k==='siege'&&G.round===S.r0){ const C=S.core;
+    banner('Round '+S.sr+(S.sr>1?' · sides swapped':''),my===S.att&&!G.watch?'You attack: breach the compound and hold the data core at '+SIEGE.hold+' round ends.':my===S.def&&!G.watch?'You defend: keep them off the data core for '+SIEGE.len+' rounds.':'Attackers need the data core; defenders must hold '+SIEGE.len+' rounds.','',3000);
+    focusOn(C.x,C.y); await wait(1400); }
+  updateTop(); }
+async function gmRoundEnd(){ const S=G.gm;
+  if(S.k==='siege'){ await siegeRoundEnd(); return; }
+  if(S.k==='koth'&&!S.halt) await kothScore();
+  if(!S.halt&&G.round>=G.M.cap) S.halt={win:gmRank(null)[0],cap:1};
+  if(S.halt) gmFinish(); else updateTop(); }
+async function kothScore(){ const S=G.gm, H=S.hill, my=G.player?G.player.team:-1;
+  const inZ=[...new Set(G.units.filter(u=>standing(u)&&Math.hypot(u.x-H.x,u.y-H.y)<=KOTH.r+0.01).map(u=>u.team))].sort((a,b)=>a-b);
+  if(inZ.length===1){ const t=inZ[0], n=++S.score[t]; S.last={t,r:G.round}; feedLine(gmTeam(t)+' held the hill · '+n+'/'+G.M.target,t===my);
+    floatText(tileDummy(H.x,H.y),'+1 '+(gmMine(t)?'YOUR TEAM':'HILL'),gmMine(t)?[93,255,154]:[255,200,70],22); if(n>=G.M.target) S.halt={win:t}; await wait(gmMine(t)?650:300); }
+  else if(inZ.length>1){ S.last={c:1,r:G.round}; feedLine('The hill is contested: no score',inZ.includes(my)); floatText(tileDummy(H.x,H.y),'CONTESTED',[255,110,90],22); await wait(400); }
+  else S.last=null; }
+function gmFinish(){
+  if(G.over) return; const S=G.gm, win=S.halt.win, order=gmRank(win), wl=teamLabel(win), mid=G.matchId;
+  G.over=true; G.turnRes=null; computeVis(); turnTag('',''); $('#spec').classList.add('hidden');
+  const why=S.k==='siege'?'Siege won '+S.score[win]+'–'+Math.min(...S.teams.map(t=>S.score[t]|0)):S.halt.cap?'Round limit: most '+(S.k==='koth'?'hill points':'eliminations'):S.k==='koth'?'First to '+G.M.target+' hill points':'First to '+G.M.target+' eliminations';
+  if(G.watch){ G.result={win:false,place:0,of:order.length,winner:wl}; banner(wl+' win',why+'.','win',2400); recSave(); setTimeout(()=>{ if(G.matchId===mid) watchEnd('over'); },2600); return; }
+  if(NET.host&&NET.cfg&&!NET.done){ NET.done=true; netLobby(); }
+  const my=G.player?G.player.team:-1, w=my===win; G.place=Math.max(1,order.indexOf(my)+1);
+  G.result={win:w,place:w?1:G.place,of:order.length,winner:w?null:wl}; recSave(); $('#tmr').classList.add('hidden');
+  if(w){ banner('Victory',why+'.','win',2400); buzz([40,60,40,60,120]); } else banner(wl+' win',why+'. You placed #'+G.place+' of '+order.length+'.','lose',2400);
+  setTimeout(()=>{ if(G.matchId===mid) showEnd(); },2600); }
+function gmEndSub(r,reg){ const S=G.gm, my=G.player?G.player.team:-1, M=G.M, ms=S.score[my]|0;
+  if(S.k==='siege'){ const o=S.teams.find(t=>t!==my); return (r.win?'Your team won the Siege ':'Your team lost the Siege ')+ms+'–'+(S.score[o]|0)+' in '+reg+'.'+(r.winner?' '+r.winner+' won the match.':''); }
+  const u=S.k==='koth'?'hill point':'elimination', ws=S.score[gmRank(null)[0]]|0;
+  return (r.win?'Your team won with ':'Your team placed #'+r.place+' of '+r.of+' with ')+ms+' '+u+(ms===1?'':'s')+' in '+reg+', '+M.name+'.'+(r.winner?' '+r.winner+' won with '+ws+'.':''); }
+/* King of the Hill: a seeded spot with mostly open, walkable ground around it, near the middle; each new hill at least
+   KOTH.gap tiles from the last */
+function hillPick(prev){ const R=KOTH.r, m=Math.ceil(R)+2, c=(MW-1)/2, cand=[], wide=[];
+  for(let y=m;y<MH-m;y++) for(let x=m;x<MW-m;x++){ if(G.grid[idx(x,y)]||G.surf[idx(x,y)]===1) continue; const dc=Math.hypot(x-c,y-c); if(dc>MW*0.36) continue;
+    let n=0,t=0; for(let dy=-3;dy<=3;dy++) for(let dx=-3;dx<=3;dx++){ if(Math.hypot(dx,dy)>R+0.01) continue; t++; const o=G.grid[idx(x+dx,y+dy)]; if(!o||o.pass) n++; }
+    if(n<t*0.7) continue; wide.push(idx(x,y)); if(prev?Math.hypot(x-prev.x,y-prev.y)>=KOTH.gap:dc<=4.5) cand.push(idx(x,y)); }
+  const L=cand.length?cand:wide.length?wide:[idx(Math.round(c),Math.round(c))], i=pick(L); return {x:i%MW,y:(i/MW)|0}; }
+/* Siege: a walled compound in the middle of the map (the clearing around it is rebuilt from the region map), the data
+   core on its centre tile. Doors in the middle of each wall, two windows per wall, crates and sandbags inside. */
+function siegeSetup(){ const S=G.gm, c=Math.floor(MW/2), H=SIEGE.H, K=H+1;
+  S.core={x:c,y:c}; S.sr=1; S.att=S.teams[0]; S.def=S.teams[1]; S.prog=0; S.r0=1; S.walls=[]; S.side=0;
+  const inA=(x,y)=>Math.abs(x-c)<=K&&Math.abs(y-c)<=K;
+  for(let y=c-K;y<=c+K;y++) for(let x=c-K;x<=c+K;x++){ const i=idx(x,y); G.grid[i]=null; G.elev[i]=0; G.lvl[i]=0; G.lad[i]=0; G.surf[i]=0; G.floorT[i]=Math.max(Math.abs(x-c),Math.abs(y-c))<H?1:0; }
+  for(let y=c-K-1;y<=c+K+1;y++) for(let x=c-K-1;x<=c+K+1;x++){ if(!inMap(x,y)||inA(x,y)) continue; const i=idx(x,y); DIRS4.forEach((d,k)=>{ if(inA(x+d[0],y+d[1])) G.lad[i]&=~(1<<k); }); }
+  const put=(x,y,o)=>{ G.grid[idx(x,y)]=Object.assign({h:0,v:hash(x,y,77)},o); };
+  for(let k=-H;k<=H;k++) for(const [x,y,ax] of [[c+k,c-H,1],[c+k,c+H,1],[c-H,c+k,0],[c+H,c+k,0]]){ const m=Math.abs(k);
+    if(m===0) put(x,y,{t:2,kind:'door',h:44,pass:true,ax,hp:TERR.door.hp}); else if(m===3) put(x,y,{t:1,kind:'window',hp:TERR.window.hp}); else put(x,y,{t:2,kind:'wall',h:44});
+    if(!S.walls.some(w=>w[0]===x&&w[1]===y)) S.walls.push([x,y]); }
+  for(const d of [[-2,-2],[2,-2],[-2,2],[2,2]]) put(c+d[0],c+d[1],{t:1,kind:'sandbag',hp:TERR.sandbag.hp});
+  for(const d of [[0,-3],[0,3],[-3,0],[3,0]]) put(c+d[0],c+d[1],{t:1,kind:'crates',hp:TERR.crates.hp});
+  G.crates=G.crates.filter(q=>!G.grid[idx(q.x,q.y)]); losClear();
+  S.grid0=G.grid.map(o=>o?Object.assign({},o):null); S.crates0=G.crates.map(q=>Object.assign({},q));
+  siegePlace(); }
+// side kits: attackers carry breaching charges and a scout drone, defenders extra smoke and barricades
+function siegeKit(u,att){ const add=(id,n)=>{ const q=u.utils.find(z=>z.id===id); if(q) q.ch+=n; else u.utils.push({id,ch:n}); };
+  if(att){ add('charge',2); add('drone',1); } else { add('smoke',2); add('barricade',2); } }
+// attackers: grouped at a seeded side, 8 tiles out from the wall in line with its door; defenders spread around the core
+function siegePlace(){ const S=G.gm, c=S.core.x, H=SIEGE.H, side=ri(0,3), dir=[[0,-1],[1,0],[0,1],[-1,0]][side]; S.side=side;
+  const taken=new Set(), ok=(x,y)=>{ const i=idx(x,y); return !G.grid[i]&&!G.lvl[i]&&G.surf[i]!==1&&!taken.has(i)&&!G.crates.some(q=>q.x===x&&q.y===y); };
+  const near=(x0,y0,f)=>{ const L=[]; for(let i=0;i<MW*MH;i++){ const x=i%MW,y=(i/MW)|0; if(x<1||y<1||x>MW-2||y>MH-2||!f(x,y)) continue; L.push([Math.hypot(x-x0,y-y0)+hash(x,y,S.sr*5+side)*0.3,i]); } return L.sort((a,b)=>a[0]-b[0]||a[1]-b[1]); };
+  const cheb=(x,y)=>Math.max(Math.abs(x-c),Math.abs(y-c)), ax=clamp(c+dir[0]*(H+8),2,MW-3), ay=clamp(c+dir[1]*(H+8),2,MH-3);
+  const LA=near(ax,ay,(x,y)=>ok(x,y)&&cheb(x,y)>H+2), LD=near(c,c,(x,y)=>ok(x,y)&&cheb(x,y)<H&&Math.hypot(x-c,y-c)>SIEGE.core+0.01).slice(0,30), dpos=[];
+  for(const u of G.units){ const att=u.team===S.att; let i=-1;
+    if(att){ const e=LA.find(q=>!taken.has(q[1])); if(e) i=e[1]; }
+    else { let bs=-1; for(const q of LD){ if(taken.has(q[1])) continue; let md=9; for(const t of dpos) md=Math.min(md,Math.hypot(q[1]%MW-t%MW,((q[1]/MW)|0)-((t/MW)|0))); if(md>bs+0.01){ bs=md; i=q[1]; } } if(i>=0) dpos.push(i); }
+    if(i<0) i=(LA.concat(LD).find(q=>!taken.has(q[1]))||[0,idx(c,c)])[1];
+    taken.add(i); gmRevive(u); siegeKit(u,att); placeUnit(u,i%MW,(i/MW)|0); u.face=(dir[0]+dir[1]>0)===att?-1:1; }
+  if(G.player&&!G.watch){ G.playerDead=false; G.spec=null; G.speed=1; $('#spec').classList.add('hidden'); } }
+// a new Siege round: the compound and pickups as they were at the start, everyone back in, sides as set by the caller
+function siegeReset(){ const S=G.gm;
+  G.grid=S.grid0.map(o=>o?Object.assign({},o):null); G.crates=S.crates0.map(q=>Object.assign({},q));
+  G.smoke=[]; G.drop=null; G.reveals=[]; G.sensors=[]; G.noise=[]; G.intel={}; G.prints=[]; G.scans=[]; G.decals=[]; G.lkp=new Map(); G.cues=[]; G.place=0; G.cmd={};
+  siegePlace(); losClear(); G.seen.fill(0); buildGround(); G.groundDirty=false;
+  for(const u of G.units){ u.drop=1; dropLand(u,0.7); }
+  computeVis(); }
+async function siegeRoundEnd(){ const S=G.gm, C=S.core, my=G.player?G.player.team:-1;
+  if(!S.halt){ const inZ=G.units.filter(u=>standing(u)&&Math.hypot(u.x-C.x,u.y-C.y)<=SIEGE.core+0.01), a=inZ.some(u=>u.team===S.att), d=inZ.some(u=>u.team===S.def);
+    if(a&&!d){ S.prog++; feedLine((gmMine(S.att)?'Your team is':'The attackers are')+' uploading the data core · '+S.prog+'/'+SIEGE.hold,true); floatText(tileDummy(C.x,C.y),'UPLINK '+S.prog+'/'+SIEGE.hold,[90,220,255],22); if(S.prog>=SIEGE.hold) S.halt={win:S.att,how:'core'}; await wait(650); }
+    else if(a&&d){ feedLine('The data core is contested',true); floatText(tileDummy(C.x,C.y),'CONTESTED',[255,110,90],22); await wait(400); }
+    if(!S.halt&&G.round-S.r0+1>=SIEGE.len) S.halt={win:S.def,how:'time'}; }
+  if(!S.halt){ updateTop(); return; }
+  const w=S.halt.win, role=w===S.att?'Attackers':'Defenders', why=S.halt.how==='core'?'seized the data core':S.halt.how==='time'?'held out for '+SIEGE.len+' rounds':'wiped out the other side';
+  S.score[w]=(S.score[w]|0)+1; feedLine('Round '+S.sr+': '+role.toLowerCase()+' '+why,true);
+  if(S.score[w]>=SIEGE.wins){ gmFinish(); return; }
+  const o=S.teams.find(t=>t!==my), sc=my>=0&&!G.watch?(S.score[my]|0)+'–'+(S.score[o]|0):S.teams.map(t=>S.score[t]|0).join('–');
+  banner(gmMine(w)?'Round won':G.watch||my<0?role+' win round '+S.sr:'Round lost',role+' '+why+'. Score '+sc+'.',gmMine(w)?'win':'lose',2400); await wait(2600);
+  S.sr++; const att=S.sr>=3?S.teams[ri(0,1)]:S.def; S.att=att; S.def=S.teams.find(t=>t!==att); S.prog=0; S.halt=null; S.r0=G.round+1;
+  siegeReset(); updateTop(); updateHUD(); await wait(800); }
+// Siege kit actions
+function gmCoverOk(x,y){ if(!inMap(x,y)) return false; const i=idx(x,y), S=G.gm;
+  return !G.grid[i]&&!G.lvl[i]&&G.surf[i]!==1&&!unitAt(x,y)&&!droneOn(x,y)&&!G.crates.some(q=>q.x===x&&q.y===y)&&!(G.drop&&G.drop.x===x&&G.drop.y===y)&&!(S&&S.core&&Math.hypot(x-S.core.x,y-S.core.y)<=SIEGE.core+0.01); }
+async function gmBarricade(u,x,y,anim){ if(!gmCoverOk(x,y)) return;
+  G.grid[idx(x,y)]={t:1,kind:'sandbag',h:0,v:hash(x,y,91),hp:TERR.sandbag.hp}; terrChanged(true,x,y,0);
+  if(anim){ floatText(tileDummy(x,y),'BARRICADE',[200,220,160],16); terrBits(x,y,[150,130,90],10); SFX.land(); await wait(450); } }
+async function gmCharge(u,tx,ty,anim){ const U=UTILS.charge, R=U.radius, boom=[];
+  makeNoise(u); G.noise.push({id:u.id,team:u.team,x:tx,y:ty,r:G.round,blast:true}); soundCue(tx,ty,'blast',null);
+  if(anim){ explode(tx,ty,R,false,'charge'); floatText(tileDummy(tx,ty),'BREACH',[255,190,80],20); G.cam.shake=Math.max(G.cam.shake,12); SFX.boom(); } else if(G.player&&!G.fullVis) ping(tx,ty,[255,120,40]);
+  G.decals.push({x:tx+.5,y:ty+.5,r:R});
+  for(let y=Math.floor(ty-R);y<=Math.ceil(ty+R);y++) for(let x=Math.floor(tx-R);x<=Math.ceil(tx+R);x++){ if(!inMap(x,y)||Math.hypot(x-tx,y-ty)>R+0.01) continue; const i=idx(x,y), o=G.grid[i];
+    if(!o||o.roof||o.flat||o.kind==='lava') continue; if(TERR[o.kind]&&TERR[o.kind].boom){ boom.push([x,y]); continue; }
+    G.grid[i]=o.kind==='door'?null:Object.assign(mkTerr('debris',o),{scorch:1}); cst(u,'cover'); if(anim||tileShown(x,y)) terrBits(x,y,null,10); }
+  terrChanged(true,tx,ty,R);
+  G.sensors=(G.sensors||[]).filter(s=>Math.hypot(s.x-tx,s.y-ty)>R+0.01);
+  for(const v of G.units.filter(v=>v.alive&&inBlast(v,tx,ty,R))) applyDamage(v,rollDmg(U.bdmg),u,{anim:anim||shouldShow(v),how:'charge'});
+  for(const v of G.drones.filter(v=>v.alive&&inBlast(v,tx,ty,R))) applyDamage(v,rollDmg(U.bdmg),u,{anim:anim||shouldShow(v)});
+  for(const b of boom) await detonate(b[0],b[1],u);
+  if(anim) await wait(750); }
+/* AI: where to stand (added to aiScoreTile), where to head with nothing in sight (goalFor), and Siege kit use */
+function gmTileScore(u,x,y){ const S=G.gm;
+  // the hill scores at the end of this round; an announced next hill only pulls a little (it scores from next round)
+  if(S.k==='koth'){ const z=(h,a,b)=>{ const d=Math.hypot(x-h.x,y-h.y); return d<=KOTH.r+0.01?a-d*2:-(d-KOTH.r)*b; }; return z(S.hill,60,2.6)+(S.next?0.3*z(S.next,60,2.6):0); }
+  if(S.k==='siege'){ const C=S.core, d=Math.hypot(x-C.x,y-C.y), on=d<=SIEGE.core+0.01;
+    if(u.team===S.att) return on?28:-d*1.3;
+    return (on?6:0)-Math.max(0,d-4.2)*5; }
+  // Rumble: keep closing on the nearest enemy (the arena is small; nobody wins it from a corner)
+  let md=99; for(const v of G.units) if(standing(v)&&isEnemy(u,v)) md=Math.min(md,Math.hypot(v.x-x,v.y-y)); return -Math.max(0,md-5)*0.9; }
+function gmGoal(u){ const S=G.gm; if(S.k==='koth') return [S.hill.x,S.hill.y]; if(S.k==='siege') return [S.core.x,S.core.y];
+  // Rumble: a small arena, so head for the nearest enemy (the arena is loud: a hunt, not a hide-and-seek)
+  let b=null,bd=1e9; for(const v of G.units){ if(!standing(v)||!isEnemy(u,v)) continue; const d=Math.hypot(v.x-u.x,v.y-u.y); if(d<bd){ bd=d; b=[v.x,v.y]; } } return b; }
+async function gmAiPre(u){ const S=G.gm; if(S.k!=='siege'||u.ap<1||u.shot||visibleEnemies(u).length) return;
+  const C=S.core, cheb=Math.max(Math.abs(u.x-C.x),Math.abs(u.y-C.y));
+  if(u.team===S.att){ const i=u.utils.findIndex(q=>q.id==='charge'&&q.ch>0); if(i<0||cheb<=SIEGE.H||cheb>SIEGE.H+5) return;
+    const rg=throwRange(u,UTILS.charge), du=Math.hypot(u.x-C.x,u.y-C.y); let best=null,bs=-1e9;
+    for(const w of S.walls){ const o=cell(w[0],w[1]); if(!o||o.flat) continue; const d=Math.hypot(w[0]-u.x,w[1]-u.y); if(d>rg+0.01||d<2.6||Math.hypot(w[0]-C.x,w[1]-C.y)>du) continue;
+      if(G.units.some(v=>v.alive&&v.team===u.team&&inBlast(v,w[0],w[1],UTILS.charge.radius))||!hasLOS(u.x,u.y,w[0],w[1])) continue;
+      const sc=-d-(o.kind==='door'?3:0)+hash(w[0],w[1],G.round)*0.5; if(sc>bs){ bs=sc; best=w; } }
+    if(best&&RNG()<0.55) await execCmd(u,{k:'throw',i,x:best[0],y:best[1]}); return; }
+  if(u.team===S.def&&G.round-S.r0<3&&cheb<SIEGE.H){ const i=u.utils.findIndex(q=>q.id==='barricade'&&q.ch>0); if(i<0) return;
+    const dir=[[0,-1],[1,0],[0,1],[-1,0]][S.side]; let best=null,bs=0.2;
+    for(const d of DIRS8){ const x=u.x+d[0], y=u.y+d[1]; if(!gmCoverOk(x,y)||Math.max(Math.abs(x-C.x),Math.abs(y-C.y))>=SIEGE.H) continue; const s=(d[0]*dir[0]+d[1]*dir[1])/Math.hypot(d[0],d[1]); if(s>bs){ bs=s; best=[x,y]; } }
+    if(best&&RNG()<0.6) await execCmd(u,{k:'throw',i,x:best[0],y:best[1]}); } }
+/* visuals (never read by the sim): the hill and the next hill, the data core; their minimap marks; the HUD score chip */
+function gmZone(c,x,y,r,col,a,dash){ const p=iso(x+.5,y+.5), rx=r*TW/Math.SQRT2, ry=r*TH/Math.SQRT2;
+  if(!dash){ c.fillStyle=C(col,1,a*.3); c.beginPath(); for(let dy=-3;dy<=3;dy++) for(let dx=-3;dx<=3;dx++){ if(Math.hypot(dx,dy)>r+0.01||!inMap(x+dx,y+dy)) continue; tilePath(c,x+dx,y+dy,.04); } c.fill(); }
+  c.globalCompositeOperation='lighter'; if(dash){ c.setLineDash([10,7]); c.lineDashOffset=-G.time*12; }
+  c.strokeStyle=C(col,1,a*.35); c.lineWidth=dash?3:10; c.beginPath(); c.ellipse(p[0],p[1],rx+4,ry+2,0,0,Math.PI*2); c.stroke();
+  c.strokeStyle=C(col,1,a); c.lineWidth=dash?2:3; c.stroke(); c.setLineDash([]); c.globalCompositeOperation='source-over'; return p; }
+function gmLabel(c,p,txt,col){ c.font='700 12px "Chakra Petch",sans-serif'; c.textAlign='center'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,.65)'; c.strokeText(txt,p[0],p[1]); c.fillStyle=C(col); c.fillText(txt,p[0],p[1]); }
+function gmDraw(c){ const S=G.gm, t=G.time, pu=.5+.5*Math.sin(t*3);
+  if(S.k==='koth'){ const H=S.hill, L=S.last, held=L&&L.r===G.round-1, col=held&&L.c?[255,96,80]:held?gmTeamCol(L.t):[255,200,70];
+    const p=gmZone(c,H.x,H.y,KOTH.r+.1,col,.7+.3*pu,false), z=ez(H.x,H.y);
+    c.strokeStyle='rgba(30,20,0,.8)'; c.lineWidth=3; c.beginPath(); c.moveTo(p[0],p[1]-z); c.lineTo(p[0],p[1]-z-46); c.stroke();
+    c.fillStyle=C(col); c.beginPath(); c.moveTo(p[0],p[1]-z-46); c.lineTo(p[0]+18,p[1]-z-40+Math.sin(t*4)*2); c.lineTo(p[0],p[1]-z-33); c.closePath(); c.fill();
+    gmLabel(c,[p[0],p[1]+KOTH.r*TH/Math.SQRT2+16],held&&L.c?'CONTESTED':'HILL',col);
+    if(S.next){ const q=gmZone(c,S.next.x,S.next.y,KOTH.r+.1,[235,240,255],.55+.25*pu,true); gmLabel(c,[q[0],q[1]+4],'NEXT HILL',[235,240,255]); } }
+  else if(S.k==='siege'){ const C0=S.core, p=gmZone(c,C0.x,C0.y,SIEGE.core+.1,[90,220,255],.55+.3*pu,false), z=ez(C0.x,C0.y);
+    c.save(); c.translate(0,-z); c.globalCompositeOperation='lighter'; const g=c.createLinearGradient(p[0],p[1]-70,p[0],p[1]); g.addColorStop(0,'rgba(90,220,255,0)'); g.addColorStop(1,'rgba(90,220,255,'+(0.35+0.2*pu)+')'); c.fillStyle=g; c.fillRect(p[0]-5,p[1]-70,10,70);
+    c.fillStyle='rgba(150,240,255,.9)'; c.beginPath(); c.moveTo(p[0],p[1]-30); c.lineTo(p[0]+9,p[1]-20); c.lineTo(p[0],p[1]-10); c.lineTo(p[0]-9,p[1]-20); c.closePath(); c.fill(); c.globalCompositeOperation='source-over'; c.restore();
+    gmLabel(c,[p[0],p[1]+SIEGE.core*TH/Math.SQRT2+16],'DATA CORE'+(S.prog?' '+S.prog+'/'+SIEGE.hold:''),[120,230,255]); } }
+function gmMini(c,s){ const S=G.gm, pu=.5+.5*Math.sin(G.time*4), arc=(x,y,r,col,dash)=>{ c.strokeStyle=col; c.lineWidth=2; if(dash) c.setLineDash([3,2]); c.beginPath(); c.arc((x+.5)*s,(y+.5)*s,r*s,0,Math.PI*2); c.stroke(); c.setLineDash([]); };
+  if(S.k==='koth'){ const H=S.hill; c.fillStyle='rgba(255,200,70,'+(0.25+0.2*pu)+')'; c.beginPath(); c.arc((H.x+.5)*s,(H.y+.5)*s,KOTH.r*s,0,Math.PI*2); c.fill(); arc(H.x,H.y,KOTH.r,'#ffc846'); if(S.next) arc(S.next.x,S.next.y,KOTH.r,'rgba(255,255,255,.85)',true); }
+  else if(S.k==='siege'){ const C0=S.core, px=(C0.x+.5)*s, py=(C0.y+.5)*s, r=s*1.6; c.fillStyle='#5adcff'; c.beginPath(); c.moveTo(px,py-r); c.lineTo(px+r,py); c.lineTo(px,py+r); c.lineTo(px-r,py); c.closePath(); c.fill(); arc(C0.x,C0.y,SIEGE.core+.5,'rgba(90,220,255,'+(0.5+0.4*pu)+')'); } }
+// the score chip: the storm chip's slot (no storm in these modes) shows the score; the "teams left" chip is hidden for room
+function gmTop(){ const S=G.gm, chip=$('#hStormChip'), st=$('#hStorm'), me=G.player, my=me&&!G.watch?me.team:-1; chip.classList.add('gm'); chip.classList.remove('hot'); $('#hAlive').parentNode.classList.add('hidden');
+  if(S.k==='siege'){ const o=S.teams.find(t=>t!==my), left=Math.max(1,SIEGE.len-(G.round-S.r0)), role=my===S.att?'Atk':my===S.def?'Def':'';
+    st.textContent=(my>=0?(S.score[my]|0)+'–'+(S.score[o]|0):S.teams.map(t=>S.score[t]|0).join('–'))+' · '+(S.prog?'Core '+S.prog+'/'+SIEGE.hold:(role?role+' ':'')+left);
+    chip.title='Siege round '+S.sr+' of 3 (rounds won: '+(my>=0?'yours first':'by team')+'). '+(role?(role==='Atk'?'Attacking':'Defending')+', ':'')+left+' round'+(left>1?'s':'')+' left. Data core '+S.prog+'/'+SIEGE.hold+'.'; return; }
+  const sc=t=>S.score[t]|0, rival=Math.max(0,...S.teams.filter(t=>t!==my).map(sc)), lab=S.k==='koth'?'Hill ':'KO ';
+  if(me&&!me.alive&&me.rsp!=null&&!G.watch&&!G.over){ st.textContent='Back in '+Math.max(1,me.rsp-G.round)+' · '+sc(my)+'–'+rival; chip.classList.add('hot'); }
+  else st.textContent=my>=0?lab+sc(my)+'–'+rival+' /'+G.M.target:'Top '+Math.max(...S.teams.map(sc))+' /'+G.M.target;
+  chip.title=(S.k==='koth'?'Hill points':'Eliminations')+(my>=0?': your team, then the best rival team':'')+'. First to '+G.M.target+(S.k==='koth'&&S.next?'. The hill moves next round.':''); }
+/* mode select: cards and thumbnails (thumbnail flags: calm = no storm ring, fort = wall blocks, gm = drawn by gmThumbGround) */
+function gmCards(){ const K=MODES.koth, Sg=MODES.siege, Rb=MODES.rumble; return [
+  {k:'koth',name:K.name,tag:'Teams of two',pc:'Up to 4 teams × 2',ds:K.desc,li:['Score a point each round you hold the gold ring alone','The hill moves every '+KOTH.every+' rounds, marked a round ahead','Respawn after 2 rounds · no storm']},
+  {k:'siege',name:Sg.name,tag:'Attack · defend',pc:'2 teams × 4',ds:Sg.desc,li:['Attack: breaching charges and a scout drone','Defend: extra smoke and barricades','Hold the core '+SIEGE.hold+' round ends, or survive '+SIEGE.len]},
+  {k:'rumble',name:Rb.name,tag:'Team deathmatch',pc:'Up to 4 teams × 2',ds:Rb.desc,li:['Small '+Rb.map+'×'+Rb.map+' arena, no storm','Respawn after 2 rounds, away from enemies','First to '+Rb.target+', or the most by round '+Rb.cap]}]; }
+const GM_THUMB={
+  koth:{reg:'city',sd:23,r:5,calm:1,gm:'koth',hill:[5,5],skip:(x,y)=>Math.hypot(x-5,y-5)<3.2,u:[[4.6,4.4,'#3fd2ff'],[5.5,5.6,'#3fd2ff'],[8.1,3.0,'#ff4d6d'],[8.6,3.9,'#ff4d6d'],[2.0,8.0,'#ffe02b'],[2.9,8.6,'#ffe02b']]},
+  siege:{reg:'desert',sd:27,r:5,calm:1,gm:'siege',skip:(x,y)=>x>=2&&x<=8&&y>=2&&y<=8,
+    fort:[[3,3,24],[4,3,24],[6,3,24],[7,3,24],[3,4,24],[3,6,12,1],[3,7,24],[4,7,24],[6,7,24],[7,7,24],[7,4,24],[7,6,12,1]],
+    u:[[4.4,4.6,'#3fd2ff'],[5.6,5.4,'#3fd2ff'],[5.5,4.3,'#3fd2ff'],[1.2,4.6,'#ff4d6d'],[0.8,5.8,'#ff4d6d'],[5.0,1.0,'#ff4d6d']]},
+  rumble:{reg:'lavalab',sd:29,r:5,calm:1,gm:'rumble',u:[[2.6,3.0,'#3fd2ff'],[3.4,2.2,'#3fd2ff'],[6.8,6.6,'#ff4d6d'],[7.5,5.6,'#ff4d6d'],[2.4,7.4,'#ffe02b'],[7.6,2.6,'#5dff9a']]}};
+function gmThumbGround(g,D0,D,s){ const ell=(x,y,r)=>{ const p=D(x,y); g.beginPath(); g.ellipse(p[0],p[1],r*s*Math.SQRT2,r*s*Math.SQRT2/2,0,0,Math.PI*2); return p; };
+  if(D0.gm==='koth'){ const h=D0.hill; ell(h[0],h[1],2.4); g.fillStyle='rgba(255,200,70,.22)'; g.fill(); g.strokeStyle='rgba(255,200,70,.35)'; g.lineWidth=10; g.stroke(); g.strokeStyle='#ffc846'; g.lineWidth=3; g.stroke();
+    ell(7.6,7.4,1.6); g.setLineDash([9,7]); g.strokeStyle='rgba(235,240,255,.75)'; g.lineWidth=2.5; g.stroke(); g.setLineDash([]); }
+  else if(D0.gm==='siege'){ ell(5,5,1.3); g.fillStyle='rgba(90,220,255,.25)'; g.fill(); g.strokeStyle='#5adcff'; g.lineWidth=3; g.stroke();
+    const p=D(5,5), gr=g.createLinearGradient(p[0],p[1]-90,p[0],p[1]); gr.addColorStop(0,'rgba(90,220,255,0)'); gr.addColorStop(1,'rgba(90,220,255,.7)'); g.fillStyle=gr; g.fillRect(p[0]-6,p[1]-90,12,90);
+    const a=D(1.2,4.6), b=D(3,5); g.strokeStyle='rgba(255,190,80,.9)'; g.lineWidth=3; g.setLineDash([6,5]); g.beginPath(); g.moveTo(a[0],a[1]); g.quadraticCurveTo((a[0]+b[0])/2,a[1]-40,b[0],b[1]); g.stroke(); g.setLineDash([]); }
+  else { for(const [a,b] of [[[3.4,2.2],[7.5,5.6]],[[2.4,7.4],[6.8,6.6]]]){ const p=D(a[0],a[1]), q=D(b[0],b[1]); g.strokeStyle='rgba(255,200,120,.85)'; g.lineWidth=2.5; g.beginPath(); g.moveTo(p[0],p[1]-30); g.lineTo(q[0],q[1]-30); g.stroke(); }
+    const p=D(7.6,2.6), gr=g.createLinearGradient(p[0],p[1]-140,p[0],p[1]); gr.addColorStop(0,'rgba(93,255,154,0)'); gr.addColorStop(1,'rgba(93,255,154,.55)'); g.fillStyle=gr; g.fillRect(p[0]-9,p[1]-140,18,140); } }
+
 /* ================= rewards ================= */
 function grantRewards(){
   if(G.rewarded) return G.rewarded;
@@ -8223,6 +8504,7 @@ function showEnd(){
   $('#eRes').textContent=title; $('#eRes').className='display res '+(r.win?'win':'lose');
   const reg=G.R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
   $('#eSub').textContent=(r.win?'Last '+(G.M.team>2?'squad':G.M.team>1?'team':'operative')+' standing':(G.M.team>2?'Your squad placed #':'You placed #')+r.place+' of '+r.of+(G.M.team>2?' squads':''))+' in '+reg+', '+G.M.name+'.'+(r.winner?' '+r.winner+' won the match.':'');
+  if(G.gm) $('#eSub').textContent=gmEndSub(r,reg);
   $('#ePlate').innerHTML=plateHtml(G.player.name,G.player.ttl,G.player.bnr); endProgressHtml(rw);
   const a=rw.after; $('#eLvl').textContent=a.l; $('#eXpT').textContent='+'+rw.xp+' XP';
   const bar=$('#eXp'); bar.style.transition='none'; bar.style.width=(rw.before.cur/rw.before.need*100)+'%'; void bar.offsetWidth; bar.style.transition='';
@@ -8430,7 +8712,7 @@ function showEmote(u,k){ const e=EMOTES.find(x=>x.k===k); if(!u||!e||!u.alive) r
 async function netTurn(u,mid){
   if(shouldShow(u)){ turnTag(u.name+' · '+CLASSES[u.cls].name,mine(u)?'you':'enemy'); focusOn(u.x,u.y); } else turnTag('Waiting for '+u.name,'enemy');
   clkTurn(u,true);
-  while(standing(u)&&(u.ap>0||dCanAct(u))&&!G.over&&G.matchId===mid){ // a deployed drone with drone AP keeps the turn open (same test as afterAction)
+  while(standing(u)&&(u.ap>0||dCanAct(u))&&!G.over&&G.matchId===mid&&!(G.gm&&G.gm.halt)){ // a deployed drone with drone AP keeps the turn open (same test as afterAction)
     const c=await netNext(u.id); if(G.matchId!==mid) return;
     if(c&&c.k!=='ai'&&c.r!==G.round) continue; // stale command from an earlier turn
     if(c&&typeof c.bk==='number') clkReport(u,c.bk); // chess clock: the acting client's own bank (display only)
@@ -8623,7 +8905,7 @@ function renderOnline(){
    Quick; Create lobby hosts an online room for that mode (netHost reads PROF.mode), and Join with code / Watch join one.
    Thumbnails are small iso scenes drawn once per mode and cached: deterministic hash() noise, never the seeded RNG. */
 const MS={friends:false,sel:'solo',art:{},wheel:0,wlock:0,st:null,lockT:0};
-function msKeys(){ return MS.friends?['solo','duos','trios','quads','quick']:['solo','duos','trios','quads','quick','daily','tutorial']; }
+function msKeys(){ return MS.friends?['solo','duos','trios','quads','quick'].concat(GM_KEYS):['solo','duos','trios','quads','quick'].concat(GM_KEYS,['daily','tutorial']); }
 function msCards(){ const dk=dailyKey(), dd=dyLoad().days[dk], R=REG[dailyRegion(dk)], rn=R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
   const L=[
     {k:'solo',name:'Solo',tag:'Free for all',pc:'Up to 8 players',ds:MODES.solo.desc,li:['Last operative standing wins','Second Wind: get back up once','Storm closes in from round '+MODES.solo.storm.rounds[0]]},
@@ -8631,6 +8913,7 @@ function msCards(){ const dk=dailyKey(), dd=dyLoad().days[dk], R=REG[dailyRegion
     {k:'trios',name:'Trios',tag:'Teams of three',pc:'Up to 4 teams × 3',ds:MODES.trios.desc,li:['Bigger '+MODES.trios.map+'×'+MODES.trios.map+' map, up to '+MODES.trios.players+' operatives','Revive downed squadmates','Command AI squadmates with pings']},
     {k:'quads',name:'Quads',tag:'Teams of four',pc:'Up to 4 teams × 4',ds:MODES.quads.desc,li:['Biggest '+MODES.quads.map+'×'+MODES.quads.map+' map, up to '+MODES.quads.players+' operatives','Extra storm stage: first shrink in round '+MODES.quads.storm.rounds[0],'Pick your squad and seat in the lobby']},
     {k:'quick',name:'Quick',tag:'Fast match',pc:'Up to 4 players',ds:MODES.quick.desc,li:['Small zone, storm from round '+MODES.quick.storm.rounds[0],'Fewer crates, faster fights','About six minutes']}];
+  L.push(...gmCards());
   if(MS.friends){ L[0].li[2]='Friends join with a code, bots fill up'; L[1].li[1]='Friends pick their team and seat'; L[2].li[2]='Friends pick their squad and seat'; L[3].li[2]='Up to '+MODES.quads.players+' players in one room'; }
   else L.push(
     {k:'daily',name:'Daily',tag:'Daily · '+fmtDay(dk),amber:1,pc:'8 players · Elite AI',ds:'Today in '+rn+'. The same map, spawns and bots for everyone.',
@@ -8646,7 +8929,7 @@ function msThumb(k){ const dk=k==='daily'?dailyRegion(dailyKey()):'', key=k+dk; 
     quads:{reg:'quarry',sd:19,r:4.9,ring:4,u:[[1.6,2.6,'#3fd2ff'],[2.6,1.8,'#3fd2ff'],[2.7,3.2,'#3fd2ff'],[3.6,2.3,'#3fd2ff'],[6.4,6.6,'#ff4d6d'],[7.5,6.0,'#ff4d6d'],[7.4,7.3,'#ff4d6d'],[8.4,6.7,'#ff4d6d'],[1.7,7.3,'#ffe02b'],[2.6,6.6,'#ffe02b'],[2.6,8.1,'#ffe02b'],[3.5,7.4,'#ffe02b']]},
     quick:{reg:'arctic',sd:11,r:2.7,u:[[4.0,4.3,'#3fd2ff'],[6.2,4.8,'#ff4d6d'],[4.9,6.4,'#ffe02b']]},
     daily:{reg:dk||'city',sd:13,r:4.1,amber:1,u:[[3.0,4.6,'#3fd2ff'],[6.6,3.0,'#ff7a86'],[7.1,6.6,'#ff7a86'],[4.2,7.4,'#ff7a86']]},
-    tutorial:{reg:'city',sd:5,r:5.2,path:1,u:[[2.4,6.4,'#3fd2ff'],[6.9,3.0,'#ff7a86'],[7.4,4.6,'#ff7a86']]}}[k];
+    tutorial:{reg:'city',sd:5,r:5.2,path:1,u:[[2.4,6.4,'#3fd2ff'],[6.9,3.0,'#ff7a86'],[7.4,4.6,'#ff7a86']]}}[k]||GM_THUMB[k];
   const R=REG[D0.reg]||REG.city, W=640, H=360, N=10, s=30, cv=document.createElement('canvas'); cv.width=W; cv.height=H; const g=cv.getContext('2d');
   const D=(x,y)=>[W/2+(x-y)*s,42+(x+y)*s*0.5], quad=(a,b,c2,d)=>{ g.beginPath(); g.moveTo(a[0],a[1]); g.lineTo(b[0],b[1]); g.lineTo(c2[0],c2[1]); g.lineTo(d[0],d[1]); g.closePath(); };
   const sk=g.createLinearGradient(0,0,0,H); sk.addColorStop(0,R.sky[0]); sk.addColorStop(.55,R.sky[1]); sk.addColorStop(1,R.sky[2]); g.fillStyle=sk; g.fillRect(0,0,W,H);
@@ -8657,21 +8940,23 @@ function msThumb(k){ const dk=k==='daily'?dailyRegion(dailyKey()):'', key=k+dk; 
   g.strokeStyle=R.grid; g.lineWidth=1; for(let i=0;i<=N;i++){ let p=D(i,0),q=D(i,N); g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(q[0],q[1]); g.stroke(); p=D(0,i); q=D(N,i); g.beginPath(); g.moveTo(p[0],p[1]); g.lineTo(q[0],q[1]); g.stroke(); }
   // the storm: tint outside the safe circle, then its ring
   const sc=D(N/2,N/2), rx=D0.r*s*Math.SQRT2, ry=rx/2, st=R.storm;
-  g.save(); quad(D(0,0),D(N,0),D(N,N),D(0,N)); g.ellipse(sc[0],sc[1],rx,ry,0,0,Math.PI*2); g.fillStyle=C(st,1,.2); g.fill('evenodd'); g.restore();
+  if(!D0.calm){ g.save(); quad(D(0,0),D(N,0),D(N,N),D(0,N)); g.ellipse(sc[0],sc[1],rx,ry,0,0,Math.PI*2); g.fillStyle=C(st,1,.2); g.fill('evenodd'); g.restore();
   g.strokeStyle=C(st,1,.3); g.lineWidth=9; g.beginPath(); g.ellipse(sc[0],sc[1],rx,ry,0,0,Math.PI*2); g.stroke();
-  g.strokeStyle=C(st,1,.95); g.lineWidth=3; g.stroke();
+  g.strokeStyle=C(st,1,.95); g.lineWidth=3; g.stroke(); }
+  if(D0.gm) gmThumbGround(g,D0,D,s);
   // tutorial: the blue move tiles around the player and a dashed path to cover
   if(D0.path){ const p=D0.u[0]; for(let y=-2;y<=2;y++) for(let x=-2;x<=2;x++){ if(Math.abs(x)+Math.abs(y)>2) continue; const tx=Math.floor(p[0])+x, ty=Math.floor(p[1])+y; g.fillStyle='rgba(63,150,255,.3)'; quad(D(tx+.06,ty+.06),D(tx+.94,ty+.06),D(tx+.94,ty+.94),D(tx+.06,ty+.94)); g.fill(); }
     const p0=D(p[0],p[1]), p1=D(4.4,5.6); g.setLineDash([8,6]); g.strokeStyle='#9fe6ff'; g.lineWidth=3; g.beginPath(); g.moveTo(p0[0],p0[1]); g.quadraticCurveTo((p0[0]+p1[0])/2,p0[1]-24,p1[0],p1[1]); g.stroke(); g.setLineDash([]); }
   // props (deterministic, kept off the operatives' tiles), sorted with the operatives back to front
   const occ=new Set(D0.u.map(u=>Math.floor(u[0])+','+Math.floor(u[1]))), ents=[];
-  for(let y=0;y<N;y++) for(let x=0;x<N;x++){ if(hash(x,y,D0.sd+31)>0.12||occ.has(x+','+y)) continue; ents.push({z:x+y+.5,blk:[x,y,10+hash(x,y,D0.sd+5)*26,hash(x,y,D0.sd+9)<.5?R.wall:R.platTop]}); }
+  for(let y=0;y<N;y++) for(let x=0;x<N;x++){ if(hash(x,y,D0.sd+31)>0.12||occ.has(x+','+y)||(D0.skip&&D0.skip(x,y))) continue; ents.push({z:x+y+.5,blk:[x,y,10+hash(x,y,D0.sd+5)*26,hash(x,y,D0.sd+9)<.5?R.wall:R.platTop]}); }
   if(D0.path) ents.push({z:9.6,blk:[4,5,12,R.low||R.wall,1]});
+  if(D0.fort) for(const b of D0.fort) ents.push({z:b[0]+b[1]+.5,blk:[b[0],b[1],b[2],b[3]?[120,175,200]:[170,100,72],2]});
   const CL=Object.keys(CLASSES);
   D0.u.forEach((u,i)=>{ const cls=CL[i%CL.length], Cl=CLASSES[cls]; ents.push({z:u[0]+u[1],op:{x:u[0],y:u[1],col:u[2],o:{x:0,y:0,cls,armor:Cl.armors[0],weapon:Cl.weapons[i%Cl.weapons.length],sec:Cl.secs[0],color:u[2],face:u[0]<N/2?1:-1,time:i*1.7,ph:i*.9,skin:'default',visor:'cyan',finish:'default'}}}); });
   ents.sort((p,q)=>p.z-q.z);
   for(const e of ents){
-    if(e.blk){ const [x,y,h,col,wide]=e.blk, i0=wide?0:.14, i1=wide?2:.86, T=D(x+i0,y+i0),Rr=D(x+i1,y+i0),B=D(x+i1,y+(wide?1:i1)),L=D(x+i0,y+(wide?1:i1));
+    if(e.blk){ const [x,y,h,col,wide]=e.blk, i0=wide?0:.14, i1=wide===2?1:wide?2:.86, T=D(x+i0,y+i0),Rr=D(x+i1,y+i0),B=D(x+i1,y+(wide?1:i1)),L=D(x+i0,y+(wide?1:i1));
       g.fillStyle=C(col,.6); quad(L,B,[B[0],B[1]-h],[L[0],L[1]-h]); g.fill(); g.fillStyle=C(col,.85); quad(B,Rr,[Rr[0],Rr[1]-h],[B[0],B[1]-h]); g.fill();
       g.fillStyle=C(col,1.15); quad([T[0],T[1]-h],[Rr[0],Rr[1]-h],[B[0],B[1]-h],[L[0],L[1]-h]); g.fill(); continue; }
     const o=e.op, p=D(o.x,o.y); g.fillStyle='rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(p[0],p[1],15,7,0,0,Math.PI*2); g.fill();
@@ -8863,7 +9148,7 @@ function renderLobby(){
   $('#wrBack').setAttribute('aria-label',LB.back==='modesel'&&!LB.online?'Back to modes':'Back to Play');
   $('#wrKick').textContent=LB.online?'Online room':'Offline · vs AI';
   $('#wrRoom').innerHTML=LB.online?'<div class="wr-code"><small>Room code</small><b>'+esc(NET.code)+'</b></div><span class="wr-rs">'+(NET.host?'Share the code or invite link. Friends join from Play with friends.':'Hosted by '+esc((NET.players[0]&&NET.players[0].name)||'host'))+'</span><button class="btn sm" data-on="invite">Invite</button>'+friendsInviteButtonHtml():''; $('#wrRoom').classList.toggle('hidden',!LB.online);
-  $('#wrModes').innerHTML=Object.values(MODES).map(m=>'<button role="radio" aria-checked="'+(c.mode===m.key)+'" class="'+(c.mode===m.key?'sel':'')+'" data-lbmode="'+m.key+'"'+(ed?'':' disabled')+'>'+m.name+'<small>'+(m.team>1?m.players/m.team+' × '+m.team:'up to '+m.players)+'</small></button>').join('');
+  $('#wrModes').innerHTML=Object.values(MODES).map(m=>'<button role="radio" aria-checked="'+(c.mode===m.key)+'" class="'+(c.mode===m.key?'sel':'')+'" data-lbmode="'+m.key+'"'+(m.tab?' title="'+m.name+'"':'')+(ed?'':' disabled')+'>'+(m.tab||m.name)+'<small>'+(m.team>1?m.players/m.team+' × '+m.team:'up to '+m.players)+'</small></button>').join('');
   $('#wrDesc').textContent=M.desc+(c.seats&&c.canSeat?' Tap Join on a team to sit there'+(LB.online&&!NET.host?' (the host confirms).':'.'):'');
   const ds=[...new Set(bots)];
   $('#wrCount').innerHTML='<b>'+(per>1?nT+'<i>/'+maxT+'</i></b><span>teams</span>':n+'<i>/'+M.players+'</i></b><span>operatives</span>')+'<em>'+nH+' human'+(nH===1?'':'s')+' · '+bots.length+' bot'+(bots.length===1?'':'s')+(bots.length?' · '+(ds.length===1?DIFFS[ds[0]].name:'mixed'):'')+'</em>';
@@ -9395,7 +9680,7 @@ function setupTutorial(){
   seedRNG(TUT_SEED); UID=0; setMapSize(MAP0);
   G.M=Object.assign({},MODES.quick,{key:'tutorial',name:'Training',players:3,team:1,startR:9.5,fill:1,drops:[]}); G.SC=G.M.storm;
   G.matchId++; G.timers=[]; G.tweens=[]; G.fx=[]; G.parts=[]; G.texts=[]; G.pings=[]; G.bubbles=[]; G.cmd={}; G.tpings=[]; G.mstat={};
-  G.region='city'; G.R=REG.city; G.rosterTxt='Training';
+  G.region='city'; G.R=REG.city; G.rosterTxt='Training'; G.gm=null;
   const g=new Array(MW*MH).fill(null), elev=new Uint8Array(MW*MH), floorT=new Uint8Array(MW*MH);
   const put=(x,y,t,kind,h,ex)=>{ g[idx(x,y)]=Object.assign({t,kind,h:h||0,v:RNG()},ex||{}); };
   put(19,20,2,'container',38,{col:CONT_COLS[1],g:9001}); put(20,20,2,'container',38,{col:CONT_COLS[1],g:9001}); // your full cover
@@ -9660,6 +9945,7 @@ function simHash(){ let h=0x811c9dc5; const add=v=>{ v=v|0; h=Math.imul(h^(v&255
   // Specialist drones (state added with deployable drones) and drone marks
   for(const d of (G.drones||[])){ add(d.id); add(d.st==='out'?1:d.st==='dead'?2:0); add(d.x); add(d.y); add(d.hp); add(d.maxHp); add(d.shield); add(d.ap); add(d.jam|0); add(d.rb|0); add(d.depR|0); }
   for(const u of G.units) add(u.mark?u.mark.team*1000+u.mark.until:-1);
+  if(G.gm) gmHash(add); // objective modes only (classic hashes unchanged)
   return h>>>0; }
 function roundHash(){ const h=simHash(); G.hlog.push(h); if(NET.host&&!G.watch) NET.round=G.round; if(REC&&REC.mid===G.matchId) REC.h.push(h); if(G.watch&&G.watch.kind==='replay') replayCheck(h); }
 function recInfo(){ const r=G.result||{}, me=G.player; return {mode:G.M.key,region:G.region,place:r.place||0,of:r.of||nTeams(),win:!!r.win,winner:r.winner||null,
