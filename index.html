@@ -644,6 +644,9 @@ body.sheet-open .nav{display:none}
 .chip b{font:600 24px/1 Teko,sans-serif;color:var(--text);padding-top:3px}
 .chip.storm{flex:0 1 auto;max-width:340px;min-width:0;margin-right:auto;overflow:hidden;border-color:rgba(255,179,64,.45);color:var(--amber)}
 .chip.storm span{display:block;overflow:hidden;text-overflow:ellipsis}
+.topbar .lbs{display:none} .topbar svg.lbs{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+/* phones: the round and teams chips go compact (R3, 4 + icon) and the buttons slim down so the storm chip keeps its text */
+@media (max-width:440px){ .topbar{gap:5px} .topbar .lbl{display:none} .topbar .lbs{display:inline} .topbar svg.lbs{display:block} .topbar .chip{padding:0 8px;gap:3px} .topbar .chip.wx{width:36px;padding:0} .topbar .topbtn{width:38px} .chip.storm{font-size:12px} }
 .chip.storm.hot{background:rgba(120,30,10,.82);color:#ffd2a0;border-color:var(--amber)}
 .chip.storm.gm{border-color:rgba(255,200,70,.55);color:#ffd36b} .chip.storm.gm.hot{background:rgba(80,20,30,.82);color:#ffb3bd;border-color:#ff4d5e}
 .chip.wx{width:40px;padding:0;justify-content:center;color:#cfe6ff;font:inherit;cursor:pointer}
@@ -1289,8 +1292,8 @@ body.sheet-open #sfInv{display:none}
 <!-- HUD -->
 <section id="hud" class="hidden">
   <div class="topbar">
-    <div class="chip pe">Round <b id="hRound">1</b></div>
-    <div class="chip"><b id="hAlive">8</b><span id="hAliveL">left</span></div>
+    <div class="chip pe"><span class="lbl">Round</span><span class="lbs">R</span><b id="hRound">1</b></div>
+    <div class="chip"><b id="hAlive">8</b><span id="hAliveL" class="lbl">left</span><svg class="lbs" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="16.5" cy="9" r="2.4"/><path d="M3.5 19c0-3.3 2.5-5.5 5.5-5.5s5.5 2.2 5.5 5.5M14 14.2c.8-.5 1.6-.7 2.5-.7 2.5 0 4.3 1.9 4.3 4.8"/></svg></div>
     <div class="chip storm" id="hStormChip"><span id="hStorm">Storm</span></div>
     <button class="chip wx pe" id="hWx" aria-label="Weather" aria-expanded="false" aria-controls="wxTip"></button>
     <button class="topbtn pe hidden" id="bPing" aria-label="Ping or command your team">📍</button>
@@ -1430,7 +1433,7 @@ body.sheet-open #sfInv{display:none}
       <li>Specialist drone: it rides docked just above the Specialist (no vision, can’t be hit) until you tap <em>Deploy</em> (free, once a turn) and pick a tile. Deployed, it is its own unit with its own drone AP each turn (2; 3 with the Extended battery): fly it, zap, mark, or use its model action. Combat Protocol, Aid Protocol, Capacitor Discharge, Chain Lightning, Guardian, Haywire, Overclock, Drone Shield and Restoration all need it deployed. It sees for your team, can be shot, blown up, zapped and caught by overwatch, takes 1 storm damage a round outside the zone, and never counts as an operative (turn order, victory, objectives). Tap <em>Drone</em> to control it, <em>Operative</em> to switch back, <em>Recall</em> to dock it. Destroyed: <em>Rebuild</em> (1 AP) after 2 of your turns. Chassis: Sparrow (scout, Scan), Striker (Burst, harder zaps), Mender (Heal Pulse), Bulwark (Shield Projector, 6 HP), Jammer (Jam). Drone mastery unlocks upgrades; drone skins are in the Store.</li>
       <li>Weapon mastery: hits, damage and takedowns with a primary or sidearm level that weapon (1–10). Mastery unlocks its attachments (optic, barrel, magazine, underbarrel: picked per weapon in Loadout) and mastery finishes, up to the animated Stormcell.</li>
       <li>The waiting room after Play sets up the match: add or remove bots (any size from a 1v1 up to the mode’s limit) and give each bot its own difficulty, Recruit, Veteran or Elite, or set them all at once. Difficulty changes aim, gear, memory, hearing and how cleverly they flank; an AI partner keeps gear matched to your team. Smaller matches start with a smaller storm and fewer crates, and pay less for placement.</li>
-      <li>Six regions: Neo-Kowloon, Frostfall Station, Ember Wastes, Verdant Ruins, Ironhaven Docks and Blackwell Refinery. The map roulette after Deploy picks one you did not just play.</li>
+      <li>Ten regions: Neo-Kowloon, Frostfall Station, Ember Wastes, Verdant Ruins, Ironhaven Docks, Blackwell Refinery, Sandsea Bazaar, Hollow Quarry, Mirefen Marsh and Cinder Lab. The map roulette after Deploy picks one you did not just play.</li>
       <li>Play with friends: one player picks a mode, creates a lobby and shares the 5-letter code or invite link. Friends join from Play with friends and appear in the host’s waiting room, where the host adds bots and picks their difficulty. In Duos, Trios and Quads everyone picks a team and seat; bots fill the empty seats. Rooms hold up to 16 players in Quads (12 in Trios, 8 otherwise). If someone drops, AI takes over their operative.</li>
       <li>Cloud save (Profile): after your first match your progress syncs to the cloud on its own (no sign-up, no email), so it survives removing the home-screen app or switching devices. Profile shows your account code: enter it with “Sign in with account code” on another device to carry on there. Without a connection everything works as before and syncs later.</li>
       <li>Daily challenge: one attempt a day on the same map for everyone. Your first score of the day goes on the global leaderboard (top 50, plus your rank), shown on the results screen and in the Daily window.</li>
@@ -7715,7 +7718,9 @@ function updateTop(){
   $('#hRound').textContent=Math.max(1,G.round); $('#hAlive').textContent=teamsLeft(); $('#hAliveL').textContent=G.M.team>1?'teams':'left';
   const ns=nextStorm(), nxt=ns&&ns.round, mvs=ns&&(ns.move||stormMoving()); const st=$('#hStorm'), chip=$('#hStormChip');
   const out=!G.watch&&G.player&&standing(G.player)&&outsideStorm(G.player.x,G.player.y);
-  st.textContent=out?'In the storm!':G.drop&&!G.drop.landed?'Drop inbound':nxt?(nxt-G.round===1?(mvs?'Storm moves next round':'Storm next round'):(mvs?'Storm moves in ':'Storm in ')+(nxt-G.round)+' rounds'):'Storm at max';
+  const nar=innerWidth<=440; // phones: shorter wording so the chip keeps its text next to the buttons
+  st.textContent=out?'In the storm!':G.drop&&!G.drop.landed?'Drop inbound':nxt?(nxt-G.round===1?(mvs?(nar?'Moves next':'Storm moves next round'):(nar?'Storm next':'Storm next round')):(mvs?(nar?'Moves in ':'Storm moves in '):'Storm in ')+(nxt-G.round)+(nar?'':' rounds')):(nar?'Max storm':'Storm at max');
+  st.parentNode.title=nxt?(mvs?'The storm moves':'The storm closes')+' at the start of round '+nxt:'The storm is at its smallest';
   chip.classList.toggle('hot',!!out);
   if(G.gm) gmTop(); else if(chip.classList.contains('gm')){ chip.classList.remove('gm'); chip.removeAttribute('title'); $('#hAlive').parentNode.classList.remove('hidden'); }
   modeHud(); // Infection side counts, Blackout and mutator chips
@@ -10246,7 +10251,7 @@ const REP_V=1, RP_KEY='stormfall_replays', RP_MAX=10, RP_BYTES=1800000;
 const BUILD=(()=>{ try{ const t=(document.currentScript&&document.currentScript.textContent)||''; let h=0x811c9dc5; for(let i=0;i<t.length;i+=3) h=Math.imul(h^t.charCodeAt(i),16777619); return (h>>>0).toString(36); }catch(e){ return '?'; } })();
 let REC=null;
 // the local player's gear unlocks and cosmetics as a spec (the same shape as an online player's), so offline replays don't depend on the profile
-function offSpec(){ const sp=mySpec(); return {own:sp.own,color:sp.color,skin:sp.skin,visor:sp.visor,finish:sp.finish,trail:sp.trail,mfin:sp.mfin,drone:sp.drone,ride:sp.ride}; }
+function offSpec(){ const sp=mySpec(); return {own:sp.own,color:sp.color,skin:sp.skin,visor:sp.visor,finish:sp.finish,trail:sp.trail,kill:sp.kill,mfin:sp.mfin,drone:sp.drone,ride:sp.ride}; } // every cosmetic the unit wears (kill was missing: offline matches always played the default kill effect)
 function recStart(kind,cfg,me){ const c=JSON.parse(JSON.stringify(cfg)); if(kind!=='off'){ delete c.slots; delete c.me; } // online: netCfgClean rebuilds the slots
   REC={v:REP_V,b:BUILD,p:PROTO,kind,cfg:c,me:me||null,cmds:{},h:[],t:Date.now(),mid:G.matchId,saved:false}; }
 function recCmd(id,c){ if(!REC||REC.mid!==G.matchId||!c||typeof c!=='object') return; let cc; try{ cc=JSON.parse(JSON.stringify(c)); }catch(e){ return; } (REC.cmds[id]||(REC.cmds[id]=[])).push(cc); }
