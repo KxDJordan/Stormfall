@@ -618,7 +618,11 @@ button.sh,#mLvl{min-height:44px}
       <li>Two action points a turn, on a turn timer. Blue tiles cost 1 AP, yellow dash tiles cost 2. Tap a tile to preview cover, tap again to move.</li>
       <li>Full cover blocks 40 aim, half cover 20. Shots inside the graze band deal half damage instead of missing outright.</li>
       <li>High ground (raised platforms) gives +15 aim, +2 sight, and lets you shoot over half cover. Climbing costs 1 extra move.</li>
-      <li>Buildings with interiors have doors and windows. Windows are half cover you can see through.</li>
+      <li>Buildings with interiors have doors and windows. Windows are half cover you can see through. A closed door is full cover and blocks sight; walking through one opens it (+1 move). Next to a door you can open or close it (free, once a turn) or Breach it (1 AP: smashes it and stuns enemies right behind it).</li>
+      <li>Cover breaks. A missed shot at someone behind crates, cars, fences, windows or sandbags hits the cover instead (half the weapon’s minimum damage), and you can shoot objects directly (never misses, 1 ammo). At 0 HP full cover drops to half cover and half cover to rubble. Grenades knock everything in the blast down a stage.</li>
+      <li>Red fuel barrels and white fuel tanks explode when destroyed, hurting everyone nearby and setting off other explosives in the blast. Shoot them when an enemy hides next to one.</li>
+      <li>Return fire: an operative in full cover from its attacker shoots back once per enemy turn (reaction shot, −15 aim, 1 ammo) if it survives, can see the shooter and has ammo. Not while downed, disoriented, hunkered or on overwatch. Flank to avoid it.</li>
+      <li>Information: gunfire and explosions out of sight within 14 tiles of your team show as ripples, edge arrows and minimap pings, and enemies leave a “?” marker where you last saw, heard or sensed them, fading over 2 rounds. The Scout Drone reveals an area until the end of next round; the Motion Sensor pings enemies that move near it for 4 rounds.</li>
       <li>Grenades and other throwables cost 1 AP. Shooting or throwing a grenade before you move leaves 1 AP for a move; attacking after a move, overwatch and hunker end your turn. The railgun and gauss rifle need both AP.</li>
       <li id="howRange">Every weapon has an optimal range where its aim is best.</li>
       <li>Every operative carries a secondary. Knives, axes and blades strike an adjacent enemy (the machete and Monoblade dash a few tiles to reach one); throwing weapons can also be thrown a few tiles, a limited number of times per match; pistols have their own magazine and range. Secondary attacks follow the shooting rules: before moving they cost 1 AP and leave a move, after moving (or after a dash) they end your turn.</li>
@@ -729,7 +733,10 @@ const UTILS={
   flash:{name:'Flashbang',short:'Flash',charges:1,range:8,radius:1.6,disAim:20,turns:2},
   medkit:{name:'Medkit',short:'Medkit',charges:1,heal:2,healSpec:4},
   shieldcell:{name:'Shield Cell',short:'Shield',charges:1,shield:3,shop:true},
-  arc:{name:'Arc Grenade',short:'Arc',charges:1,range:8,radius:1.6,dmg:[2,3],arc:true,disAim:20,turns:2,shop:true,note:'Leaves cover standing.'}
+  arc:{name:'Arc Grenade',short:'Arc',charges:1,range:8,radius:1.6,dmg:[2,3],arc:true,disAim:20,turns:2,shop:true,note:'Leaves cover standing.'},
+  // information tools (dev: a device, not a grenade: no Grenadier range bonus; blind: can target tiles you cannot see)
+  drone:{name:'Scout Drone',short:'Drone',charges:1,range:10,radius:4,dev:true,blind:true,shop:true,info:'Flies to a tile and reveals everything within 4 tiles, even through walls, until the end of next round. Your team sees enemies there; you still need your own line of sight to shoot them. Costs 1 AP and keeps your turn going'},
+  sensor:{name:'Motion Sensor',short:'Sensor',charges:1,range:5,radius:5,rounds:4,dev:true,shop:true,info:'Placed device. For 4 rounds it pings every enemy that moves within 5 tiles of it and marks where they were. Explosions destroy it. Costs 1 AP and keeps your turn going'}
 };
 // utility descriptions are generated from the numbers above
 for(const k in UTILS){ const U=UTILS[k], t=[];
@@ -738,9 +745,28 @@ for(const k in UTILS){ const U=UTILS[k], t=[];
   if(U.disAim) t.push((U.dmg?'Disorients':'Disorients everyone within '+U.radius+' tiles')+' (−'+U.disAim+' aim for '+U.turns+' turns) and breaks overwatch');
   if(U.heal) t.push('Heal '+U.heal+' HP (Specialist heals '+U.healSpec+'). Costs 1 AP');
   if(U.shield) t.push('+'+U.shield+' shield. Costs 1 AP and keeps your turn going');
-  if(U.range) t.push('Range '+U.range+' tiles (Grenadier +2)');
+  if(U.info) t.push(U.info);
+  if(U.range) t.push('Range '+U.range+' tiles'+(U.dev?'':' (Grenadier +2)'));
   U.desc=t.join('. ')+'.'+(U.note?' '+U.note:''); }
 for(const k in CLASSES) CLASSES[k].utils.push('arc','shieldcell');
+for(const k of ['ranger','sharpshooter','specialist']) CLASSES[k].utils.push('drone');
+for(const k in CLASSES) CLASSES[k].utils.push('sensor');
+/* Interactive & destructible terrain (per grid object kind).
+   hp: damage it takes from shots (a missed shot at a unit behind it hits it, or shoot it directly). At 0 it drops one stage:
+   `next` if set, else full cover -> 'rubble' (half cover) -> 'debris' (flat, walkable, no cover). Explosions knock every
+   object in the blast down one stage. boom: explodes at 0 HP (radius, damage), chaining into other explosives.
+   Doors: closed = full cover that blocks sight; open = walkable doorway. Walking through a closed door opens it (+1 move). */
+const TERR={
+  door:{name:'Door',hp:4},
+  fuel:{name:'Fuel barrel',hp:2,boom:{r:1.6,dmg:[3,5]}},
+  tank:{name:'Fuel tank',hp:5,boom:{r:2.2,dmg:[4,6]}},
+  crates:{name:'Crates',hp:4}, crate:{name:'Supply crate',hp:4}, barrels:{name:'Drums',hp:4}, planter:{name:'Planter',hp:4},
+  barrier:{name:'Barrier',hp:5}, sandbag:{name:'Sandbags',hp:5}, icerock:{name:'Ice block',hp:4}, desk:{name:'Desk',hp:2},
+  fence:{name:'Fence',hp:2}, car:{name:'Car',hp:6,next:'wreck'}, wreck:{name:'Wreck',hp:5}, window:{name:'Window',hp:2,next:'sill'},
+  sill:{name:'Window frame',hp:3}, container:{name:'Container',hp:10}, rubble:{name:'Rubble',hp:4}, ruinlow:{name:'Low wall',hp:5}, rocks:{name:'Rocks',hp:6}
+};
+// cover value and walkability of the kinds terrain changes can create
+const TKIND={rubble:{t:1}, wreck:{t:1,part:1}, sill:{t:1}, debris:{t:0,pass:true,flat:true}};
 const ABIL={
   slash:{name:'Blade Strike',short:'Blade',cd:3,desc:'Dash to an enemy you can reach and slash: 95% hit, 4–6 damage. Ends turn.'},
   deadeye:{name:'Deadeye',short:'Deadeye',cd:3,desc:'−15 aim, +50% damage. Like a normal shot, you can still move after if you haven’t moved yet.'},
@@ -892,7 +918,8 @@ const G={scene:'menu',region:'city',R:REG.city,grid:null,lanes:{x:[],y:[]},units
   mode:'idle',busy:false,paused:false,over:true,matchId:0,round:0,storm:null,reach:null,pending:-1,pendingPath:null,
   targets:[],tIdx:0,tKind:null,slashPaths:null,throwUtil:null,throwTile:-1,turnRes:null,flashA:0,stats:null,
   ground:null,gScale:1,bg:null,weather:[],autoPlayer:false,lastRegion:null,M:MODES.solo,SC:STORM,drop:null,bubbles:[],
-  turnLeft:0,turnMax:0,fullVis:true,zDraw:false,cmd:null,place:0};
+  turnLeft:0,turnMax:0,fullVis:true,zDraw:false,cmd:null,place:0,
+  reveals:[],sensors:[],lkp:new Map(),cues:[],groundDirty:false}; // reveals/sensors: sim (per team); lkp/cues: local player's visual memory
 let UID=0;
 // online session state (see "online play" below)
 const NET={on:false,host:false,peer:null,me:'',code:'',hostConn:null,conns:new Map(),players:[],mode:'solo',m:0,q:new Map(),w:new Map(),status:'',inMatch:false};
@@ -999,7 +1026,26 @@ function genMap(rk){
     for(let yy=y;yy<y+h;yy++) for(let xx=x;xx<x+w;xx++) elev[idx(xx,yy)]=1;
     if(w*h>=6&&RNG()<0.7) put(x+ri(0,w-1),y+ri(0,h-1),1,rk==='arctic'?'sandbag':rk==='desert'?'rocks':'crates');
     np++; }
+  placeInteractives(g,elev,floorT,rk);
   return {grid:g,lanes,elev,floorT};
+}
+/* Region-agnostic pass run at the end of genMap: doors in building doorways, explosive fuel barrels and tanks, fences,
+   and hit points on every destructible object. Everything new is placed with a free ring of tiles around it, so it can
+   never cut the map in two (doors are walkable). Only seeded RNG: every client builds the same map. */
+function placeInteractives(g,elev,floorT,rk){
+  const K=MW*MH/900, N=n=>Math.round(n*K), at=(x,y)=>inMap(x,y)?g[idx(x,y)]:null;
+  const wallish=(x,y)=>{ const o=at(x,y); return !!o&&(o.kind==='wall'||o.kind==='window'); };
+  const ringFree=(x0,y0,w,h)=>{ if(x0<2||y0<2||x0+w>MW-2||y0+h>MH-2) return false; for(let y=y0-1;y<=y0+h;y++) for(let x=x0-1;x<=x0+w;x++) if(g[idx(x,y)]) return false; return true; };
+  // doors: every gap in a wall line (both neighbours along the line are wall or window)
+  for(let y=1;y<MH-1;y++) for(let x=1;x<MW-1;x++){ if(g[idx(x,y)]) continue;
+    const ax=wallish(x-1,y)&&wallish(x+1,y), ay=wallish(x,y-1)&&wallish(x,y+1); if(!ax&&!ay) continue;
+    const shut=RNG()<0.6; g[idx(x,y)]={t:shut?2:0,kind:'door',h:44,v:RNG(),pass:true,ax:ax?1:0,hp:TERR.door.hp}; }
+  const scatter=(n,fn)=>{ let tries=0; while(n>0&&tries++<500*K){ if(fn(ri(2,MW-3),ri(2,MH-3))) n--; } };
+  scatter(N(6),(x,y)=>{ if(!ringFree(x,y,1,1)||floorT[idx(x,y)]) return false; g[idx(x,y)]={t:1,kind:'fuel',h:0,v:RNG()}; return true; });
+  scatter(N(2),(x,y)=>{ if(!ringFree(x,y,1,1)||floorT[idx(x,y)]) return false; g[idx(x,y)]={t:2,kind:'tank',h:34,v:RNG()}; return true; });
+  scatter(N(5),(x,y)=>{ const hz=RNG()<0.5, len=ri(2,3), w=hz?len:1, h=hz?1:len; if(!ringFree(x,y,w,h)) return false;
+    for(let k=0;k<len;k++) g[idx(hz?x+k:x,hz?y:y+k)]={t:1,kind:'fence',h:0,v:RNG(),ax:hz?1:0,end:k===0?-1:k===len-1?1:0}; return true; });
+  for(const o of g) if(o&&TERR[o.kind]&&o.hp==null) o.hp=TERR[o.kind].hp;
 }
 
 /* ================= line of sight & cover ================= */
@@ -1028,6 +1074,16 @@ function hasLOS(ax,ay,bx,by){
   G.losCache[k]=r?1:2; if(!isFull(bx,by)&&!isFull(ax,ay)) G.losCache[((bx*MH+by)*MW+ax)*MH+ay]=r?1:2;
   return r;
 }
+// walkable: empty, or a walkable object (doors, debris). clearT: also not a closed door (for diagonal corner cuts)
+const walkable=i=>{ const o=G.grid[i]; return !o||!!o.pass; };
+const clearT=i=>{ const o=G.grid[i]; return !o||(!!o.pass&&o.t<2); };
+// the cell that gives the cover coverFrom reports (ties go to the x-axis neighbour), or null
+function coverCell(dx,dy,ax,ay){
+  const vx=ax-dx,vy=ay-dy,adx=Math.abs(vx),ady=Math.abs(vy); let best=0,bc=null;
+  if(adx>0&&adx>=ady*0.5){ const c=coverT(dx+Math.sign(vx),dy); if(c>best){ best=c; bc=[dx+Math.sign(vx),dy]; } }
+  if(ady>0&&ady>=adx*0.5){ const c=coverT(dx,dy+Math.sign(vy)); if(c>best){ best=c; bc=[dx,dy+Math.sign(vy)]; } }
+  return bc;
+}
 function coverFrom(dx,dy,ax,ay){
   const vx=ax-dx,vy=ay-dy,adx=Math.abs(vx),ady=Math.abs(vy); let best=0;
   if(adx>0&&adx>=ady*0.5) best=Math.max(best,coverT(dx+Math.sign(vx),dy));
@@ -1039,6 +1095,8 @@ function outsideStorm(x,y){ const s=G.storm; return Math.hypot(x+.5-s.cx,y+.5-s.
 function sightOf(u){ return u.sight+(hi(u.x,u.y)?(hasP(u,'s_eagle')?3:2):0); }
 // Phantom (Ranger perk): the unit can only be spotted within 7 tiles
 function canSee(a,b){ return Math.hypot(a.x-b.x,a.y-b.y)<=(hasP(b,'r_ghost')?Math.min(7,sightOf(a)):sightOf(a))+0.01&&hasLOS(a.x,a.y,b.x,b.y); }
+// Scout Drone reveals (sim state, per team): consulted by computeVis for the local team and by updateIntel for AI teams
+function revealedFor(team,x,y){ for(const r of G.reveals||[]) if(r.team===team&&G.round<=r.until&&Math.hypot(x-r.x,y-r.y)<=r.r+0.01) return true; return false; }
 function visibleEnemies(u){ return G.units.filter(t=>t.alive&&t!==u&&isEnemy(u,t)&&canSee(u,t)); }
 function viewers(){ if(!G.player) return []; return G.units.filter(u=>u.alive&&u.team===G.player.team); }
 function shouldShow(u){ if(G.scene!=='game') return false; if(G.fullVis) return true; if(G.player&&u.team===G.player.team) return true; return G.vis[idx(u.x,u.y)]===1; }
@@ -1051,6 +1109,9 @@ function computeVis(){
   for(const p of vs){ const sr=sightOf(p);
     for(let y=Math.max(0,Math.floor(p.y-sr));y<=Math.min(MH-1,Math.ceil(p.y+sr));y++) for(let x=Math.max(0,Math.floor(p.x-sr));x<=Math.min(MW-1,Math.ceil(p.x+sr));x++){
       const i=idx(x,y); if(v[i]) continue; if(Math.hypot(x-p.x,y-p.y)<=sr+0.01&&hasLOS(p.x,p.y,x,y)){ v[i]=1; G.seen[i]=1; } } }
+  for(const r of G.reveals||[]){ if(r.team!==G.player.team||G.round>r.until) continue;
+    for(let y=Math.max(0,Math.floor(r.y-r.r));y<=Math.min(MH-1,Math.ceil(r.y+r.r));y++) for(let x=Math.max(0,Math.floor(r.x-r.r));x<=Math.min(MW-1,Math.ceil(r.x+r.r));x++)
+      if(Math.hypot(x-r.x,y-r.y)<=r.r+0.01){ v[idx(x,y)]=1; G.seen[idx(x,y)]=1; } }
 }
 
 /* ================= pathing ================= */
@@ -1064,11 +1125,11 @@ function computeReach(u,maxCost){
     const cx=cur%MW,cy=(cur/MW)|0;
     for(const d of DIRS8){
       const nx=cx+d[0],ny=cy+d[1]; if(!inMap(nx,ny)) continue; const j=idx(nx,ny);
-      if(G.grid[j]||occ[j]) continue;
+      const o=G.grid[j]; if((o&&!o.pass)||occ[j]) continue; // doors and debris are walkable
       const diag=d[0]&&d[1];
       const climb=G.elev[j]!==G.elev[cur];
-      if(diag&&(climb||G.grid[idx(cx+d[0],cy)]||G.grid[idx(cx,cy+d[1])])) continue;
-      const nd=dist[cur]+(diag?1.5:1)+(climb?1:0); if(nd>maxCost+1e-6||nd>=dist[j]) continue;
+      if(diag&&(climb||!clearT(idx(cx+d[0],cy))||!clearT(idx(cx,cy+d[1])))) continue;
+      const nd=dist[cur]+(diag?1.5:1)+(climb?1:0)+(o&&o.kind==='door'&&o.t===2?1:0); if(nd>maxCost+1e-6||nd>=dist[j]) continue; // opening a closed door on the way costs 1 move
       dist[j]=nd; prev[j]=cur; open.push(j);
     }
   }
@@ -1113,7 +1174,7 @@ function makeUnit(lo,isPlayer,name,color,prof,team){
   u.hp=u.maxHp; return u;
 }
 function placeUnit(u,x,y){ u.x=u.rx=x; u.y=u.ry=y; u.rz=ez(x,y); }
-function throwRange(u,U){ return U.range+(u.cls==='grenadier'?2:0)+(hasP(u,'g_launch')?3:0); }
+function throwRange(u,U){ return U.range+(U.dev?0:(u.cls==='grenadier'?2:0)+(hasP(u,'g_launch')?3:0)); }
 function faceTo(u,x,y){ const a=iso(u.x,u.y),b=iso(x,y); if(Math.abs(b[0]-a[0])>1) u.face=b[0]>a[0]?1:-1; }
 function unitScreen(u){ const p=iso(u.rx+.5,u.ry+.5); return [p[0],p[1]-u.drop*420-(u.rz||0)]; }
 function muzzle(u){ const p=unitScreen(u); return [p[0]+u.face*(3+GUNLEN[u.wid]),p[1]-20]; }
@@ -1164,6 +1225,7 @@ function setupMatch(lo,mk,net){
   for(let k=0;k<crateN;k++){ let best=-1,bd=-1; for(let t=0;t<50;t++){ const c=pick(floors); if(!inR(c)||taken.has(c)||G.crates.some(q=>idx(q.x,q.y)===c)) continue; let md=99; for(const s of [...taken].concat(G.crates.map(q=>idx(q.x,q.y)))) md=Math.min(md,Math.hypot(c%MW-s%MW,((c/MW)|0)-((s/MW)|0))); if(md>bd){bd=md;best=c;} } if(best>=0) G.crates.push({x:best%MW,y:(best/MW)|0,ph:RNG()*6}); }
   G.intel={}; G.noise=[]; G.round=0; G.over=false; G.playerDead=false; G.spec=null; G.speed=1; G.rewarded=null; G.result=null; G.place=0; G.busy=true; G.mode='idle'; G.reach=null; G.pending=-1; G.turnRes=null; G.paused=false; G.turnMax=0;
   G.stats={shots:0,hits:0,grazes:0,dmg:0,kills:0,rounds:0,crates:0,drops:0,owHits:0,highHits:0,nadeHits:0,revives:0};
+  G.reveals=[]; G.sensors=[]; G.lkp=new Map(); G.cues=[]; G.groundDirty=false;
   G.scene='game';
   computeVis(); buildGround(); G.bg=null; initWeather();
 }
@@ -1178,7 +1240,7 @@ function setupMenuScene(){
   const centre=floors.filter(i=>Math.hypot(i%MW-MW/2,((i/MW)|0)-MH/2)<6);
   for(let k=0;k<6;k++){ const s=pick(centre.length?centre:floors); if(G.units.some(u=>idx(u.x,u.y)===s)) continue; const lo=randomLoadout(); const r=RIVALS[k]; const u=makeUnit(lo,false,r[0],k===0?visorCol():r[1],null,k); placeUnit(u,s%MW,(s/MW)|0); u.face=Math.random()<.5?1:-1; G.units.push(u); }
   const cf=pick(floors); G.crates.push({x:cf%MW,y:(cf/MW)|0,ph:0,drop:true});
-  G.vis.fill(1); G.seen.fill(1); G.over=true; G.fullVis=true;
+  G.vis.fill(1); G.seen.fill(1); G.over=true; G.fullVis=true; G.reveals=[]; G.sensors=[]; G.lkp=new Map(); G.cues=[];
   buildGround(); G.bg=null; initWeather();
   const c=iso(MW/2,MH/2); G.cam.x=G.cam.tx=c[0]; G.cam.y=G.cam.ty=c[1]; G.cam.z=G.cam.tz=VW<600?0.62:0.85;
 }
@@ -1238,8 +1300,18 @@ function softTex(col,kind){
 }
 function softDot(c,col,x,y,r,a,kind){ if(a<=0.004||r<=0) return; c.globalAlpha=Math.min(1,a); c.drawImage(softTex(col,kind),x-r,y-r,r*2,r*2); c.globalAlpha=1; }
 
-function buildGround(){
+// rect {x0,y0,x1,y1}: repaint only those tiles of the existing ground (terrain destruction), clipped to them, reading
+// objects from a margin around them for shadows and occlusion; no sprite cache reset. Without rect: a full rebuild.
+function buildGround(rect){
   const R=G.R, w=(MW+MH)*TW/2+PAD*2, h=(MW+MH)*TH/2+PAD*2+SLAB;
+  if(rect&&G.ground&&G.groundKey===G.matchId+':'+G.region){
+    const x0=Math.max(0,rect.x0),y0=Math.max(0,rect.y0),x1=Math.min(MW-1,rect.x1),y1=Math.min(MH-1,rect.y1), sc=G.gScale, g=G.ground.getContext('2d');
+    g.save(); g.setTransform(sc,0,0,sc,GOX*sc,GOY*sc); g.beginPath(); for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) tilePath(g,x,y); g.clip();
+    groundLayers(g,R,x0,y0,x1,y1,4); g.restore();
+    if(G.groundHalf){ const a=iso(x0,y1+1)[0], b=iso(x1+1,y0)[0], c0=iso(x0,y0)[1], c1=iso(x1+1,y1+1)[1];
+      const sx=Math.max(0,Math.floor((a+GOX)*sc/2)*2), sy=Math.max(0,Math.floor((c0+GOY)*sc/2)*2), sw=Math.min(G.ground.width-sx,Math.ceil((b-a)*sc)+4), sh=Math.min(G.ground.height-sy,Math.ceil((c1-c0)*sc)+4);
+      if(sw>0&&sh>0) G.groundHalf.getContext('2d').drawImage(G.ground,sx,sy,sw,sh,sx/2,sy/2,sw/2,sh/2); }
+    return; }
   let sc=Math.min(2,Math.max(1,DPR)); if(w*h*sc*sc>12e6) sc=Math.sqrt(12e6/(w*h)); G.gScale=sc;
   const cvs=document.createElement('canvas'); cvs.width=w*sc|0; cvs.height=h*sc|0; const g=cvs.getContext('2d');
   g.scale(sc,sc); g.translate(GOX,GOY);
@@ -1254,10 +1326,20 @@ function buildGround(){
   if(G.region==='city'){ g.globalCompositeOperation='lighter'; g.strokeStyle='rgba(255,43,214,.55)'; g.lineWidth=2; g.beginPath(); g.moveTo(A[0],A[1]+SLAB*0.35); g.lineTo(B[0],B[1]+SLAB*0.35); g.lineTo(Cc[0],Cc[1]+SLAB*0.35); g.stroke(); g.globalCompositeOperation='source-over'; }
   // bright rim along the top edge of the slab
   { const T0=iso(0,0); g.strokeStyle='rgba(255,255,255,.16)'; g.lineWidth=1.5; g.beginPath(); g.moveTo(T0[0],T0[1]); g.lineTo(A[0],A[1]); g.lineTo(B[0],B[1]); g.lineTo(Cc[0],Cc[1]); g.stroke(); }
+  groundLayers(g,R,0,0,MW-1,MH-1,0);
+  G.ground=cvs; G.groundKey=G.matchId+':'+G.region;
+  // half-resolution copy for zoomed-out views (cuts the per-frame ground blit cost ~4x when minified)
+  G.groundHalf=null;
+  if(sc>=1.5){ const hc=document.createElement('canvas'); hc.width=Math.ceil(cvs.width/2); hc.height=Math.ceil(cvs.height/2); const hg=hc.getContext('2d'); hg.imageSmoothingQuality='high'; hg.drawImage(cvs,0,0,hc.width,hc.height); G.groundHalf=hc; }
+  sprClear();
+}
+// tiles x0..x1 / y0..y1, plus occlusion and shadows cast by objects up to m tiles outside them, and decals
+function groundLayers(g,R,X0,Y0,X1,Y1,m){
+  const x0=Math.max(0,X0-m),y0=Math.max(0,Y0-m),x1=Math.min(MW-1,X1+m),y1=Math.min(MH-1,Y1+m);
   // tiles
-  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++) paintTile(g,x,y,R);
+  for(let y=Y0;y<=Y1;y++) for(let x=X0;x<=X1;x++) paintTile(g,x,y,R);
   // contact ambient occlusion: a soft dark band on the ground along every side of objects and platform bases
-  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const i=idx(x,y), o=G.grid[i], el=G.elev[i]; if(!o&&!el) continue;
+  for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++){ const i=idx(x,y), o=G.grid[i], el=G.elev[i]; if((!o||o.flat)&&!el) continue;
     const tall=el||(o&&(o.t===2||o.h>20||o.kind==='window')), a0=tall?(G.region==='arctic'?.26:.36):.2, w=tall?.34:.22;
     for(const d of DIRS4){ const nx=x+d[0],ny=y+d[1]; if(!inMap(nx,ny)||G.elev[idx(nx,ny)]) continue; const no=G.grid[idx(nx,ny)]; if(no&&(no.t===2||el)) continue;
       let e1,e2; if(d[0]===1){e1=[x+1,y];e2=[x+1,y+1];} else if(d[0]===-1){e1=[x,y];e2=[x,y+1];} else if(d[1]===1){e1=[x,y+1];e2=[x+1,y+1];} else {e1=[x,y];e2=[x+1,y];}
@@ -1265,21 +1347,16 @@ function buildGround(){
       const m0=[(p1[0]+p2[0])/2,(p1[1]+p2[1])/2], m1=[(p3[0]+p4[0])/2,(p3[1]+p4[1])/2];
       const gr=g.createLinearGradient(m0[0],m0[1],m1[0],m1[1]); gr.addColorStop(0,'rgba(0,0,0,'+a0+')'); gr.addColorStop(1,'rgba(0,0,0,0)');
       g.fillStyle=gr; poly(g,[p1,p2,p3,p4]); g.fill(); } }
-  // shadows from objects
-  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const o=cell(x,y); if(!o||G.elev[idx(x,y)]) continue; const hh=o.t===2?o.h:12; const ox=hh*R.sun[0],oy=hh*R.sun[1];
+  // shadows from objects (doors cast the same shadow open or shut, so toggling one needs no ground rebuild)
+  for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++){ const o=cell(x,y); if(!o||o.flat||G.elev[idx(x,y)]) continue; const hh=o.t===2||o.kind==='door'?o.h:12; const ox=hh*R.sun[0],oy=hh*R.sun[1];
     const T=iso(x,y),Rr=iso(x+1,y),Bb=iso(x+1,y+1),L=iso(x,y+1);
     g.fillStyle='rgba(0,0,0,'+(o.t===2?R.shadow:R.shadow*0.7)+')';
     poly(g,[T,Rr,[Rr[0]+ox,Rr[1]+oy],[Bb[0]+ox,Bb[1]+oy],[L[0]+ox,L[1]+oy],L]); g.fill(); }
-  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ if(!G.elev[idx(x,y)]) continue; const ox=EZ*R.sun[0],oy=EZ*R.sun[1]; const T=iso(x,y),Rr=iso(x+1,y),Bb=iso(x+1,y+1),L=iso(x,y+1);
+  for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++){ if(!G.elev[idx(x,y)]) continue; const ox=EZ*R.sun[0],oy=EZ*R.sun[1]; const T=iso(x,y),Rr=iso(x+1,y),Bb=iso(x+1,y+1),L=iso(x,y+1);
     g.fillStyle='rgba(0,0,0,'+(R.shadow*0.55)+')'; poly(g,[T,Rr,[Rr[0]+ox,Rr[1]+oy],[Bb[0]+ox,Bb[1]+oy],[L[0]+ox,L[1]+oy],L]); g.fill(); }
   // decals
-  for(const d of G.decals){ const p=iso(d.x,d.y); const gr=g.createRadialGradient(p[0],p[1],2,p[0],p[1],d.r*TW*0.55); gr.addColorStop(0,'rgba(10,8,6,.75)'); gr.addColorStop(.6,'rgba(20,14,10,.35)'); gr.addColorStop(1,'rgba(0,0,0,0)');
+  for(const d of G.decals){ if(d.x+d.r+1<X0||d.x-d.r-1>X1+1||d.y+d.r+1<Y0||d.y-d.r-1>Y1+1) continue; const p=iso(d.x,d.y); const gr=g.createRadialGradient(p[0],p[1],2,p[0],p[1],d.r*TW*0.55); gr.addColorStop(0,'rgba(10,8,6,.75)'); gr.addColorStop(.6,'rgba(20,14,10,.35)'); gr.addColorStop(1,'rgba(0,0,0,0)');
     g.save(); g.translate(p[0],p[1]); g.scale(1,0.5); g.translate(-p[0],-p[1]); g.fillStyle=gr; g.beginPath(); g.arc(p[0],p[1],d.r*TW*0.55,0,Math.PI*2); g.fill(); g.restore(); }
-  G.ground=cvs;
-  // half-resolution copy for zoomed-out views (cuts the per-frame ground blit cost ~4x when minified)
-  G.groundHalf=null;
-  if(sc>=1.5){ const hc=document.createElement('canvas'); hc.width=Math.ceil(cvs.width/2); hc.height=Math.ceil(cvs.height/2); const hg=hc.getContext('2d'); hg.imageSmoothingQuality='high'; hg.drawImage(cvs,0,0,hc.width,hc.height); G.groundHalf=hc; }
-  sprClear();
 }
 function paintTile(g,x,y,R){
   const h1=hash(x,y,1),h2=hash(x,y,2),h3=hash(x,y,3);
@@ -1348,6 +1425,11 @@ function drawBox(c,x,y,ix,iy,h,top,left,right,z0){
 }
 function faceQuad(c,P1,P2,t0,t1,z0,z1){ const ax=lerp(P1[0],P2[0],t0),ay=lerp(P1[1],P2[1],t0),bx=lerp(P1[0],P2[0],t1),by=lerp(P1[1],P2[1],t1); poly(c,[[ax,ay-z0],[bx,by-z0],[bx,by-z1],[ax,ay-z1]]); }
 function edgeLine(c,P1,P2,z){ c.beginPath(); c.moveTo(P1[0],P1[1]-z); c.lineTo(P2[0],P2[1]-z); c.stroke(); }
+// an axis-aligned box between fractional tile corners (x0,y0)-(x1,y1), h tall, starting z0 above the ground
+function prism(c,x0,y0,x1,y1,h,z0,top,left,right){ const T=iso(x0,y0),R=iso(x1,y0),B=iso(x1,y1),L=iso(x0,y1);
+  c.fillStyle=left; poly(c,[[L[0],L[1]-z0],[B[0],B[1]-z0],[B[0],B[1]-z0-h],[L[0],L[1]-z0-h]]); c.fill();
+  c.fillStyle=right; poly(c,[[B[0],B[1]-z0],[R[0],R[1]-z0],[R[0],R[1]-z0-h],[B[0],B[1]-z0-h]]); c.fill();
+  c.fillStyle=top; poly(c,[[T[0],T[1]-z0-h],[R[0],R[1]-z0-h],[B[0],B[1]-z0-h],[L[0],L[1]-z0-h]]); c.fill(); return {T,R,B,L}; }
 function sameG(x,y,o){ const n=cell(x,y); return n&&n.kind===o.kind&&n.g===o.g; }
 function snowCap(c,P,s,al){ c.fillStyle=C([240,246,252],s,al); poly(c,[[P.T[0],P.T[1]-P.z0-P.h-1],[P.R[0]+1,P.R[1]-P.z0-P.h],[P.B[0],P.B[1]-P.z0-P.h+2],[P.L[0]-1,P.L[1]-P.z0-P.h]]); c.fill();
   c.fillStyle=C([235,242,250],s,al*0.9); faceQuad(c,P.L,P.B,0,1,P.z0+P.h-3,P.z0+P.h); c.fill(); faceQuad(c,P.B,P.R,0,1,P.z0+P.h-3,P.z0+P.h); c.fill(); }
@@ -1448,7 +1530,55 @@ function drawObj(c,o,x,y,s,al){
     const base=[124,72,44]; const P=drawBox(c,x,y,o.part?0.0:0.08,0.14,12,C([50,36,30],s),C(base,.6*s),C(base,.85*s));
     c.fillStyle=C([160,90,50],s,.7*al); faceQuad(c,P.L,P.B,0.3,0.5,3,8); c.fill();
     if(!o.part) drawBox(c,x,y,0.25,0.26,8,C([40,32,28],s),C(base,.55*s),C(base,.75*s),12);
+  } else if(k==='door'){
+    // door in a wall gap; ax=1: the wall runs along x. Closed: a panel filling the gap. Open: jambs and a swung leaf.
+    const base=G.region==='city'?[132,78,66]:G.region==='arctic'?[120,136,152]:[198,160,114], wood=G.region==='arctic'?[200,94,40]:G.region==='city'?[38,128,138]:[136,86,46];
+    const a=o.ax, top=C(wood,1.2*s), lf=C(wood,.72*s), rt=C(wood,.95*s);
+    if(o.t===2){ const P=drawBox(c,x,y,a?0.05:0.36,a?0.36:0.05,38,top,lf,rt), F1=a?P.L:P.B, F2=a?P.B:P.R;
+      c.fillStyle=C([22,30,40],s); faceQuad(c,F1,F2,0.32,0.68,25,33); c.fill(); c.fillStyle=C([120,200,255],s,.35*al); faceQuad(c,F1,F2,0.34,0.5,27,32); c.fill();
+      for(let q=0;q<6;q++){ c.fillStyle=q%2?C([30,30,30],s):C([250,206,40],s); faceQuad(c,F1,F2,q/6,(q+1)/6,1,6); c.fill(); }
+      c.fillStyle=C([235,225,200],s); const m=[lerp(F1[0],F2[0],.8),lerp(F1[1],F2[1],.8)]; c.fillRect(m[0]-1.5,m[1]-20,3,3);
+      c.strokeStyle=C([240,236,220],s,.75*al); c.lineWidth=1.5; c.beginPath(); c.moveTo(F1[0],F1[1]); c.lineTo(F1[0],F1[1]-38); c.lineTo(F2[0],F2[1]-38); c.lineTo(F2[0],F2[1]); c.stroke(); }
+    else { if(a){ prism(c,x+.02,y+.36,x+.12,y+.64,38,0,C(base,1.25*s),C(base,.6*s),C(base,.84*s)); prism(c,x+.88,y+.36,x+.98,y+.64,38,0,C(base,1.25*s),C(base,.6*s),C(base,.84*s)); prism(c,x+.12,y+.6,x+.19,y+.98,36,0,top,lf,rt); }
+      else { prism(c,x+.36,y+.02,x+.64,y+.12,38,0,C(base,1.25*s),C(base,.6*s),C(base,.84*s)); prism(c,x+.36,y+.88,x+.64,y+.98,38,0,C(base,1.25*s),C(base,.6*s),C(base,.84*s)); prism(c,x+.6,y+.12,x+.98,y+.19,36,0,top,lf,rt); } }
+    drawBox(c,x,y,a?0.02:0.05,a?0.05:0.02,6,C(base,1.3*s),C(base,.6*s),C(base,.84*s),38);
+  } else if(k==='fuel'){
+    const p=iso(x+.5,y+.55), b=[200,40,34], w=9, hh=23;
+    c.fillStyle='rgba(0,0,0,.28)'; c.beginPath(); c.ellipse(p[0]+3,p[1]+1,12,5,0,0,Math.PI*2); c.fill();
+    c.fillStyle=C(b,.82*s); c.fillRect(p[0]-w,p[1]-hh,w*2,hh); c.fillStyle=C(b,.55*s); c.fillRect(p[0]-w,p[1]-hh,5,hh); c.fillStyle=C(b,1.05*s); c.fillRect(p[0]+2,p[1]-hh,3,hh);
+    c.fillStyle=C(b,.6*s); c.beginPath(); c.ellipse(p[0],p[1],w,4,0,0,Math.PI); c.fill();
+    c.fillStyle=C([250,206,40],s); c.fillRect(p[0]-w,p[1]-hh*0.62,w*2,5); c.fillStyle=C([30,30,30],s); for(let q=0;q<4;q++) c.fillRect(p[0]-w+1+q*5,p[1]-hh*0.62,2,5);
+    c.strokeStyle=C(b,.42*s); c.lineWidth=1; c.beginPath(); c.moveTo(p[0]-w,p[1]-6); c.lineTo(p[0]+w,p[1]-6); c.moveTo(p[0]-w,p[1]-hh+5); c.lineTo(p[0]+w,p[1]-hh+5); c.stroke();
+    c.fillStyle=C(b,1.2*s); c.beginPath(); c.ellipse(p[0],p[1]-hh,w,4,0,0,Math.PI*2); c.fill(); c.fillStyle=C([60,60,60],s); c.beginPath(); c.ellipse(p[0]+3,p[1]-hh,2,1,0,0,Math.PI*2); c.fill();
+  } else if(k==='tank'){
+    const p=iso(x+.5,y+.5), b=G.region==='arctic'?[206,212,222]:G.region==='desert'?[222,208,184]:[188,194,206], r=17, hh=30, z=5;
+    c.fillStyle=C([40,44,52],s); for(const lx of [-12,-4,4,12]) c.fillRect(p[0]+lx-1.5,p[1]-z-2,3,z+2);
+    c.fillStyle=C(b,.8*s); c.fillRect(p[0]-r,p[1]-z-hh,r*2,hh); c.fillStyle=C(b,.58*s); c.fillRect(p[0]-r,p[1]-z-hh,9,hh); c.fillStyle=C(b,1.08*s); c.fillRect(p[0]+3,p[1]-z-hh,5,hh);
+    c.fillStyle=C(b,.62*s); c.beginPath(); c.ellipse(p[0],p[1]-z,r,7,0,0,Math.PI); c.fill();
+    c.fillStyle=C([200,40,34],s); c.fillRect(p[0]-r,p[1]-z-hh*0.55,r*2,6); c.fillStyle=C([255,236,200],s); c.font='700 5px sans-serif'; c.textAlign='center'; c.fillText('FLAMMABLE',p[0]+1,p[1]-z-hh*0.55+5);
+    c.fillStyle=C(b,1.2*s); c.beginPath(); c.ellipse(p[0],p[1]-z-hh,r,7,0,0,Math.PI*2); c.fill(); c.strokeStyle=C(b,.6*s); c.lineWidth=1; c.stroke();
+    c.fillStyle=C([70,74,84],s); c.fillRect(p[0]-2,p[1]-z-hh-5,4,4);
+  } else if(k==='fence'){
+    const col=G.region==='arctic'?[150,90,60]:G.region==='desert'?[150,128,96]:[170,178,190], P1=o.ax?iso(x,y+.5):iso(x+.5,y), P2=o.ax?iso(x+1,y+.5):iso(x+.5,y+1), H=19;
+    c.fillStyle=C(col,s,.14); poly(c,[[P1[0],P1[1]],[P2[0],P2[1]],[P2[0],P2[1]-H],[P1[0],P1[1]-H]]); c.fill();
+    c.strokeStyle=C(col,.9*s,.55); c.lineWidth=0.8; c.beginPath();
+    for(let q=0;q<=8;q++){ const t0=q/8, ax=lerp(P1[0],P2[0],t0), ay=lerp(P1[1],P2[1],t0), t1=Math.min(1,t0+0.25), bx=lerp(P1[0],P2[0],t1), by=lerp(P1[1],P2[1],t1); c.moveTo(ax,ay); c.lineTo(bx,by-H*(t1-t0)*4); const t2=Math.max(0,t0-0.25), cx2=lerp(P1[0],P2[0],t2), cy2=lerp(P1[1],P2[1],t2); c.moveTo(ax,ay); c.lineTo(cx2,cy2-H*(t0-t2)*4); }
+    c.stroke(); c.strokeStyle=C(col,.75*s); c.lineWidth=1.6; c.beginPath(); c.moveTo(P1[0],P1[1]-H); c.lineTo(P2[0],P2[1]-H); c.stroke();
+    c.fillStyle=C(col,.6*s); c.fillRect(P1[0]-1.2,P1[1]-H-2,2.4,H+2); c.fillRect(P2[0]-1.2,P2[1]-H-2,2.4,H+2);
+  } else if(k==='sill'){
+    const base=G.region==='city'?[132,78,66]:G.region==='arctic'?[120,136,152]:[198,160,114];
+    const P=drawBox(c,x,y,0.05,0.05,14,C(base,1.25*s),C(base,.6*s),C(base,.84*s));
+    c.fillStyle='rgba(190,230,255,'+(0.55*al*s)+')'; for(let q=0;q<4;q++){ const t0=0.15+q*0.2, m=[lerp(P.L[0],P.B[0],t0),lerp(P.L[1],P.B[1],t0)-14]; poly(c,[[m[0]-3,m[1]],[m[0]+1,m[1]-5-hash(x,y,q)*6],[m[0]+3,m[1]]]); c.fill(); }
+  } else if(k==='debris'){
+    const p=iso(x+.5,y+.5), base=G.region==='desert'?[176,140,98]:G.region==='arctic'?[118,128,140]:[88,86,98];
+    if(o.scorch){ c.fillStyle='rgba(16,12,10,.55)'; c.beginPath(); c.ellipse(p[0],p[1],24,11,0,0,Math.PI*2); c.fill(); }
+    for(let q=0;q<6;q++){ const u2=0.18+hash(x,y,300+q)*0.64, v2=0.18+hash(x,y,310+q)*0.64, w2=0.06+hash(x,y,320+q)*0.08, h2=2+hash(x,y,330+q)*4;
+      prism(c,x+u2-w2,y+v2-w2,x+u2+w2,y+v2+w2,h2,0,C(base,1.15*s),C(base,.55*s),C(base,.8*s)); }
   }
+  // gunfire damage on destructible objects: cracks that grow as HP drops
+  { const T=TERR[k]; if(T&&o.hp!=null&&o.hp<T.hp&&!o.flat&&k!=='door'){ const dmg=1-o.hp/T.hp, p=iso(x+.5,y+.5), top=o.h||14;
+    c.strokeStyle='rgba(18,12,8,'+(0.45+dmg*0.4)+')'; c.lineWidth=1.3; for(let q=0;q<1+dmg*5;q++){ const hx=p[0]+(hash(x,y,200+q)-.5)*26, hy=p[1]-3-hash(x,y,210+q)*top*0.8; c.beginPath(); c.moveTo(hx,hy); c.lineTo(hx+4,hy+3); c.lineTo(hx+2,hy+7); c.stroke(); } }
+    if(k==='door'&&o.t===2&&o.hp<TERR.door.hp){ const p=iso(x+.5,y+.5); c.strokeStyle='rgba(18,12,8,.7)'; c.lineWidth=1.4; for(let q=0;q<TERR.door.hp-o.hp;q++){ const hx=p[0]+(hash(x,y,220+q)-.5)*16, hy=p[1]-8-hash(x,y,230+q)*24; c.beginPath(); c.moveTo(hx,hy); c.lineTo(hx+3,hy+4); c.lineTo(hx,hy+8); c.stroke(); } } }
   c.globalAlpha=1;
 }
 
@@ -1668,7 +1798,7 @@ function drawWorld(c){
   ents.sort((a,b)=>a.d-b.d);
   for(const e of ents){
     if(e.k===0){ const i=idx(e.x,e.y), sh=shadeAt(i), al=RC.fade[i], o=e.o, b=e.b;
-      const spr=sprite('o'+objId(o)+'_'+sh,b[0],b[1],b[2],b[3],g=>drawObj(g,o,e.x,e.y,sh,1));
+      const spr=sprite('o'+objId(o)+'.'+(o.rv||0)+'_'+sh,b[0],b[1],b[2],b[3],g=>drawObj(g,o,e.x,e.y,sh,1));
       c.globalAlpha=al; c.drawImage(spr.cv,spr.x,spr.y-e.z,spr.w,spr.h); c.globalAlpha=1;
       if(o.kind==='bunker'){ c.save(); c.translate(0,-e.z); objLive(c,o,e.x,e.y,al*sh); c.restore(); } }
     else if(e.k===1){ drawCrate(c,e.q,shadeAt(idx(e.q.x,e.q.y))<1?0.55:1); }
@@ -1676,6 +1806,7 @@ function drawWorld(c){
   }
   G.zDraw=false;
   drawSmoke(c);
+  drawIntel(c);
   if(st) drawStormRing(c,false);
   drawCoverIcons(c);
   drawFx(c);
@@ -1720,6 +1851,68 @@ function drawCoverIcons(c){
     c.fillStyle=ct===2?'#bff4ff':'#7fe8ff'; c.beginPath(); c.ellipse(s[0],gy-1,3,1.5,0,0,Math.PI*2); c.fill();
     c.drawImage(shieldIcon(ct===2),s[0]-20*k,iy-21*k,40*k,44*k); });
 }
+
+/* ================= player intel (visual only) =================
+   Per-viewer memory computed from the sim and never read back by it: sound cues (gunfire and blasts heard out of sight
+   within 14 tiles of a teammate, the same rule the AI hears by), motion-sensor pings, and last-known positions that
+   fade over 2 rounds. No seeded RNG here. */
+function cueAt(x,y,kind,src){
+  if(G.scene!=='game'||!G.player||G.fullVis) return;
+  G.cues.push({x,y,kind,t:G.time}); if(G.cues.length>24) G.cues.shift();
+  if(src&&!shouldShow(src)) G.lkp.set(src.id,{x,y,r:G.round,how:kind==='sensor'?'sensed':'heard'});
+  if(kind==='sensor') SFX.tone(1250,1250,.07,.05,'square'); else SFX.noise(kind==='blast'?.5:.16,'lowpass',kind==='blast'?260:520,kind==='blast'?.3:.12);
+}
+function soundCue(x,y,kind,src){
+  if(G.scene!=='game'||!G.player||G.fullVis) return;
+  if(src?(mine(src)||shouldShow(src)):tileShown(x,y)) return;
+  if(!viewers().some(v=>Math.hypot(v.x-x,v.y-y)<=14)) return;
+  cueAt(x,y,kind,src);
+}
+// last-known positions: refreshed every frame from what the local team currently sees
+function updateLKP(){
+  if(G.scene!=='game'||!G.player||G.fullVis||!G.lkp) return;
+  for(const e of G.units){ if(!e.alive){ G.lkp.delete(e.id); continue; } if(!isEnemy(G.player,e)) continue; if(shouldShow(e)) G.lkp.set(e.id,{x:e.x,y:e.y,r:G.round,how:'seen'}); }
+}
+function lkpMarks(){ const out=[]; if(G.scene!=='game'||!G.player||G.fullVis||!G.lkp) return out;
+  for(const [id,m] of G.lkp){ const e=G.units.find(z=>z.id===id), age=G.round-m.r; if(!e||!e.alive||age>2){ G.lkp.delete(id); continue; } if(shouldShow(e)) continue; out.push({e,m,a:1-age*0.38}); }
+  return out; }
+const CUE_COL={shot:[255,214,90],blast:[255,120,50],sensor:[127,232,255]};
+function drawIntel(c){
+  if(G.scene!=='game') return; const t=G.time, myT=G.player?G.player.team:-1;
+  // scout drones: hovering drone over each active reveal (own team, or where you can see it) and the revealed radius
+  for(const r of G.reveals){ if(G.round>r.until||(r.team!==myT&&!G.fullVis&&!tileShown(r.x,r.y))) continue; const p=iso(r.x+.5,r.y+.5), own=r.team===myT, col=own?[127,232,255]:[255,120,100];
+    if(own){ c.strokeStyle=C(col,1,.45); c.lineWidth=1.5; c.setLineDash([6,6]); c.lineDashOffset=-t*12; c.beginPath(); c.ellipse(p[0],p[1],r.r*TW/Math.SQRT2,r.r*TH/Math.SQRT2,0,0,Math.PI*2); c.stroke(); c.setLineDash([]); }
+    const hy=p[1]-ez(r.x,r.y)-70-Math.sin(t*3+r.x)*4; c.fillStyle='rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(p[0],p[1]-ez(r.x,r.y),10,4,0,0,Math.PI*2); c.fill();
+    c.strokeStyle='#141a21'; c.lineWidth=3; c.beginPath(); c.moveTo(p[0]-20,hy-6); c.lineTo(p[0]+20,hy+2); c.moveTo(p[0]+20,hy-6); c.lineTo(p[0]-20,hy+2); c.stroke();
+    c.fillStyle='#2f3946'; rr(c,p[0]-10,hy-5,20,9,3); c.fill(); c.fillStyle='#4a5868'; rr(c,p[0]-8,hy-5,16,4,2); c.fill();
+    c.fillStyle='rgba(210,228,240,.28)'; c.strokeStyle='rgba(220,236,248,.75)'; c.lineWidth=1; for(const q of [[-20,-6],[20,-6],[-20,2],[20,2]]){ c.beginPath(); c.ellipse(p[0]+q[0],hy+q[1]-2,8,2.6,0,0,Math.PI*2); c.fill(); c.stroke(); }
+    softDot(c,col,p[0],hy+3,6,.6+.4*Math.sin(t*8)); c.fillStyle=C(col,1,.08); c.beginPath(); c.moveTo(p[0]-3,hy+3); c.lineTo(p[0]+3,hy+3); c.lineTo(p[0]+r.r*14,p[1]-ez(r.x,r.y)); c.lineTo(p[0]-r.r*14,p[1]-ez(r.x,r.y)); c.closePath(); c.fill(); }
+  // motion sensors: a small tripod; your own show their radius and pulse
+  for(const s of G.sensors){ if(G.round>s.until||(s.team!==myT&&!G.fullVis&&!tileShown(s.x,s.y))) continue; const p=iso(s.x+.5,s.y+.5), z=ez(s.x,s.y), own=s.team===myT, col=own?[127,232,255]:[255,120,100], pu=(t*0.8)%1;
+    if(own){ c.strokeStyle=C(col,1,.32*(1-pu)); c.lineWidth=2; c.beginPath(); c.ellipse(p[0],p[1]-z,s.r*TW/Math.SQRT2*pu,s.r*TH/Math.SQRT2*pu,0,0,Math.PI*2); c.stroke();
+      c.strokeStyle=C(col,1,.3); c.lineWidth=1; c.setLineDash([3,5]); c.beginPath(); c.ellipse(p[0],p[1]-z,s.r*TW/Math.SQRT2,s.r*TH/Math.SQRT2,0,0,Math.PI*2); c.stroke(); c.setLineDash([]); }
+    c.strokeStyle='#1c232b'; c.lineWidth=2; c.beginPath(); c.moveTo(p[0],p[1]-z-12); c.lineTo(p[0]-6,p[1]-z+2); c.moveTo(p[0],p[1]-z-12); c.lineTo(p[0]+6,p[1]-z+2); c.moveTo(p[0],p[1]-z-12); c.lineTo(p[0],p[1]-z+4); c.stroke();
+    c.fillStyle='#39434f'; c.fillRect(p[0]-4,p[1]-z-18,8,7); softDot(c,col,p[0],p[1]-z-15,5,.5+.5*Math.sin(t*6)); }
+  // heard / sensed ripples
+  for(const q of G.cues){ const k=(t-q.t)/2.4; if(k<0||k>1) continue; const p=iso(q.x+.5,q.y+.5), z=ez(q.x,q.y), col=CUE_COL[q.kind]||CUE_COL.shot;
+    for(let i=0;i<2;i++){ const kk=(k*1.6+i*0.3)%1, rr=10+kk*(q.kind==='blast'?70:45); c.strokeStyle=C(col,1,.75*(1-kk)*(1-k)); c.lineWidth=2; c.beginPath(); c.ellipse(p[0],p[1]-z,rr,rr*0.5,0,0,Math.PI*2); c.stroke(); } }
+  // last-known positions
+  c.textAlign='center';
+  for(const L of lkpMarks()){ const p=iso(L.m.x+.5,L.m.y+.5), z=ez(L.m.x,L.m.y), col=L.e.col, a=L.a, y0=p[1]-z;
+    c.strokeStyle=C(col,1,.75*a); c.lineWidth=1.6; c.setLineDash([4,4]); c.beginPath(); c.ellipse(p[0],y0,16,8,0,0,Math.PI*2); c.stroke(); c.setLineDash([]);
+    c.fillStyle=C(col,1,.16*a); c.beginPath(); c.moveTo(p[0],y0-40); c.lineTo(p[0]+9,y0-26); c.lineTo(p[0],y0-12); c.lineTo(p[0]-9,y0-26); c.closePath(); c.fill(); c.strokeStyle=C(col,1,.8*a); c.lineWidth=1.4; c.stroke();
+    c.font='700 15px Teko,"Chakra Petch",sans-serif'; c.fillStyle=C([255,255,255],1,.9*a); c.fillText('?',p[0],y0-21);
+    c.font='600 9px "Chakra Petch",sans-serif'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,'+(.6*a)+')'; const lb=L.e.name+' · '+(L.m.how==='seen'?'last seen':L.m.how); c.strokeText(lb,p[0],y0+18); c.fillStyle=C(col,1,.95*a); c.fillText(lb,p[0],y0+18); }
+}
+// screen-edge arrows toward fresh off-screen sound cues
+function drawCueArrows(c){
+  if(G.scene!=='game'||!G.cues.length) return; const t=G.time, top=88, bot=VH-190, l=18, r=VW-18;
+  for(const q of G.cues){ const k=(t-q.t)/3; if(k<0||k>1) continue; const w=iso(q.x+.5,q.y+.5); const sx=(w[0]-G.cam.x)*G.cam.z+VW/2, sy=(w[1]-ez(q.x,q.y)-G.cam.y)*G.cam.z+VH/2;
+    if(sx>=l&&sx<=r&&sy>=top&&sy<=bot) continue;
+    const cx=VW/2, cy=(top+bot)/2, dx=sx-cx, dy=sy-cy, sc=Math.min(dx?((dx>0?r:l)-cx)/dx:1e9,dy?((dy>0?bot:top)-cy)/dy:1e9), ax=cx+dx*sc, ay=cy+dy*sc, an=Math.atan2(dy,dx), col=CUE_COL[q.kind]||CUE_COL.shot, a=1-k;
+    c.save(); c.translate(ax,ay); c.rotate(an); c.fillStyle=C(col,1,.9*a); c.strokeStyle='rgba(0,0,0,'+(.6*a)+')'; c.lineWidth=2; c.beginPath(); c.moveTo(10,0); c.lineTo(-6,-8); c.lineTo(-3,0); c.lineTo(-6,8); c.closePath(); c.stroke(); c.fill(); c.restore();
+    c.font='700 10px "Chakra Petch",sans-serif'; c.textAlign='center'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,'+(.7*a)+')'; const lb=q.kind==='blast'?'BLAST':q.kind==='sensor'?'SENSOR':'SHOTS', ly=ay-Math.sin(an)*16+4, lx=ax-Math.cos(an)*20; c.strokeText(lb,lx,ly); c.fillStyle=C(col,1,a); c.fillText(lb,lx,ly); }
+}
 function tileC(x,y){ const s=iso(x+.5,y+.5); s[1]-=ez(x,y); return s; }
 function drawHighlights(c){
   if(G.scene!=='game'||!G.player) return; const p=G.player, t=G.time;
@@ -1742,9 +1935,13 @@ function drawHighlights(c){
       else if(outsideStorm(x,y)){ c.strokeText('STORM',s[0],s[1]+22); c.fillStyle='#ffb340'; c.fillText('STORM',s[0],s[1]+22); } }
   }
   if(G.mode==='throw'&&G.throwUtil){ const U=UTILS[G.throwUtil.id], rg=throwRange(p,U);
-    regionDraw(c,i=>{const x=i%MW,y=(i/MW)|0; return Math.hypot(x-p.x,y-p.y)<=rg&&G.vis[i];},'rgba(255,170,60,.05)','rgba(255,170,60,.45)');
+    regionDraw(c,i=>{const x=i%MW,y=(i/MW)|0; return Math.hypot(x-p.x,y-p.y)<=rg&&(G.vis[i]||U.blind);},'rgba(255,170,60,.05)','rgba(255,170,60,.45)');
     if(G.throwTile>=0){ const tx=G.throwTile%MW,ty=(G.throwTile/MW)|0; regionDraw(c,i=>Math.hypot(i%MW-tx,((i/MW)|0)-ty)<=U.radius+0.01,'rgba(255,90,40,'+(0.22+0.08*Math.sin(t*6))+')','rgba(255,120,60,.95)');
       const a=muzzle(p), b=tileC(tx,ty); c.strokeStyle='rgba(255,200,120,.8)'; c.lineWidth=2; c.setLineDash([4,5]); c.beginPath(); c.moveTo(a[0],a[1]); c.quadraticCurveTo((a[0]+b[0])/2,Math.min(a[1],b[1])-90,b[0],b[1]); c.stroke(); c.setLineDash([]); } }
+  if(G.mode==='obj'&&G.objT){ G.objT.forEach((q,i)=>{ const s=tileC(q[0],q[1]), sel=i===G.oIdx, pu=.5+.5*Math.sin(t*6), o=cell(q[0],q[1]), B=o&&TERR[o.kind]&&TERR[o.kind].boom;
+      c.strokeStyle=sel?'rgba(255,110,60,.95)':'rgba(255,190,120,.55)'; c.lineWidth=sel?2.5:1.5; c.beginPath(); c.ellipse(s[0],s[1],18+(sel?pu*4:0),9+(sel?pu*2:0),0,0,Math.PI*2); c.stroke();
+      if(sel&&B){ c.strokeStyle='rgba(255,90,40,.5)'; c.setLineDash([5,5]); c.beginPath(); c.ellipse(s[0],s[1],B.r*TW/Math.SQRT2,B.r*TH/Math.SQRT2,0,0,Math.PI*2); c.stroke(); c.setLineDash([]); } });
+    const q=G.objT[G.oIdx]; if(q){ const a=chest(p), b=tileC(q[0],q[1]); c.strokeStyle='rgba(255,140,80,.7)'; c.lineWidth=1.5; c.setLineDash([3,6]); c.lineDashOffset=-t*20; c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]-14); c.stroke(); c.setLineDash([]); } }
   if(G.mode==='target'&&G.targets[G.tIdx]){ const a=chest(p), b=chest(G.targets[G.tIdx]); c.strokeStyle='rgba(255,77,94,.7)'; c.lineWidth=1.5; c.setLineDash([3,6]); c.lineDashOffset=-t*20; c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke(); c.setLineDash([]); }
 }
 
@@ -1853,8 +2050,10 @@ function overlayTex(){
 function render(){
   const c=ctx; c.setTransform(DPR,0,0,DPR,0,0);
   if(!G.bg) buildBg();
+  if(G.groundDirty&&G.grid){ const r=G.groundDirty; G.groundDirty=false; buildGround(r===true?null:r); } // terrain changed in the sim: rebuild the ground cache once per frame at most
   c.drawImage(G.bg,0,0,VW,VH);
   if(G.grid) drawWorld(c);
+  if(G.grid) drawCueArrows(c);
   drawWeather(c);
   c.drawImage(overlayTex(),0,0,VW,VH);
   if(G.scene==='game'&&G.player&&G.player.alive&&outsideStorm(G.player.x,G.player.y)){ c.fillStyle=C(G.R.storm,1,.08+.05*Math.sin(G.time*4)); c.fillRect(0,0,VW,VH); }
@@ -1898,7 +2097,7 @@ function update(dt){
 let lastT=0, mmT=0;
 function frame(now){
   const dt=Math.min(0.05,Math.max(0,(now-lastT)/1000)); lastT=now;
-  update(dt); render();
+  update(dt); updateLKP(); render();
   if(G.scene==='game'){ mmT-=dt; if(mmT<=0){ mmT=0.15; drawMinimap(); } }
   if(!$('#loadout').classList.contains('hidden')) drawPreview();
   requestAnimationFrame(frame);
@@ -1978,7 +2177,7 @@ function playerOut(){
 function kill(t,src,anim,how){
   t.alive=false; t.downed=false; t.deadT=0.001; t.overwatch=false; t.hunker=false;
   if(src&&src!==t&&isEnemy(src,t)){ src.kills++; src.tk=(src.tk||0)+1; if(src.isPlayer){ G.stats.kills++; floatText(src,'+'+killValue(src)+' CR',[255,179,64],17); buzz(25); } else if(Math.random()<0.3&&shouldShow(src)) bubble(src,fpick(TAUNTS)); }
-  feedLine(src&&src!==t?(src.name+' eliminated '+t.name+(how?' ('+how+')':'')):(t.name+(how==='bled out'?' bled out':' was lost to the storm')),mine(t)||mine(src));
+  feedLine(src&&src!==t?(src.name+' eliminated '+t.name+(how?' ('+how+')':'')):(t.name+(how==='bled out'?' bled out':how==='explosion'?' was caught in a blast':' was lost to the storm')),mine(t)||mine(src));
   const p=chest(t);
   if(anim){ G.texts.push({x:p[0],y:p[1]-48,txt:'ELIMINATED',col:[255,77,94],size:26,t:0,life:1.8}); for(let i=0;i<18;i++) part({x:p[0],y:p[1],vx:frand(-120,120),vy:frand(-120,40),life:frand(.3,.7),size:1.8,col:t.col,type:'spark',grav:260}); G.cam.shake=Math.max(G.cam.shake,8); }
   else if(G.player&&!G.fullVis&&viewers().some(v=>Math.hypot(t.x-v.x,t.y-v.y)<16)) ping(t.x,t.y,[255,77,94]);
@@ -2002,14 +2201,17 @@ async function fireShot(a,t,o){
   a[ak]=Math.max(0,a[ak]-(o.ammoCost||1)); faceTo(a,t.x,t.y);
   if(a.isPlayer){ G.stats.shots++; if(hit) G.stats.hits++; if(res==='graze') G.stats.grazes++; if(hit&&info.elevAdv) G.stats.highHits++; if(hit&&o.reaction) G.stats.owHits++; }
   const anim=shouldShow(a)||shouldShow(t); const kind=o.fxk||W.fx;
-  if(anim){ focusMid(a,t); if(o.reaction) floatText(a,'OVERWATCH',[127,232,255],18); else if(o.label) floatText(a,o.label,[255,190,80],18); await wait(o.reaction?260:480); if(!a.alive||!t.alive) return false; shotFX(a,t,hit,kind); await wait(FXDUR[kind]||150); }
+  if(anim){ focusMid(a,t); if(o.reaction) floatText(a,o.rf?'RETURN FIRE':'OVERWATCH',o.rf?[255,214,90]:[127,232,255],18); else if(o.label) floatText(a,o.label,[255,190,80],18); await wait(o.reaction?260:480); if(!a.alive||!t.alive) return false; shotFX(a,t,hit,kind); await wait(FXDUR[kind]||150); }
   else if(G.player&&!G.fullVis&&viewers().some(v=>Math.hypot(a.x-v.x,a.y-v.y)<17)) ping(a.x,a.y);
   if(!W.silent) makeNoise(a);
   if(hit){ let d=rollDmg(W.dmg)+(o.bonus||0)+(prim&&hasP(a,'r_point')&&info.d<=3.01?1:0); if(crit) d+=W.critDmg+(prim&&hasP(a,'s_vital')?1:0); if(o.deadeye) d=Math.ceil(d*1.5); if(res==='graze') d=Math.max(1,Math.ceil(d/2));
     if(prim&&!o.reaction&&hasP(a,'g_holo')) t.holo={team:a.team,until:G.round+1};
     applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how,pierce:!!W.pierce||(prim&&hasP(a,'g_shred'))}); }
   else if(anim) floatText(t,'MISSED',[200,210,220],20);
+  // a miss at a target behind destructible cover hits the cover instead (thrown blades excepted)
+  if(!hit&&info.cov>0&&!info.over&&W.fx!=='throw') await shotCover(a,t,W,anim);
   if(anim) await wait(t.alive?650:1000);
+  if(!o.reaction) await returnFire(t,a);
   return hit;
 }
 const FXDUR={burst:330,pellet:140,beam:160,single:140,heavy:440,throw:420};
@@ -2033,12 +2235,14 @@ async function moveUnit(u,path){
   for(let k=1;k<path.length;k++){
     if(!u.alive||u.downed||G.over&&!u.isPlayer) return;
     const nx=path[k][0],ny=path[k][1];
+    const dc=cell(nx,ny); if(dc&&dc.kind==='door'&&dc.t===2) setDoor(nx,ny,true,u); // walking into a closed door opens it
     const anim=shouldShow(u)||tileShown(nx,ny);
     faceTo(u,nx,ny);
     if(anim){ if(!(G.spec&&G.spec.follow)) focusOn(nx,ny); const diag=nx!==u.x&&ny!==u.y, climb=hi(nx,ny)!==hi(u.x,u.y); await new Promise(res=>G.tweens.push({u,fx:u.rx,fy:u.ry,tx:nx,ty:ny,fz:u.rz,tz:ez(nx,ny),t:0,dur:climb?0.32:diag?0.2:0.15,res})); }
     placeUnit(u,nx,ny); if(hasP(u,'r_slip')) u.slip=true;
     if(u.team===(G.player&&G.player.team)) computeVis();
     pickup(u);
+    sensorCheck(u);
     await triggerOverwatch(u);
   }
 }
@@ -2207,15 +2411,16 @@ async function doThrow(u,util,tx,ty){
   const U=UTILS[util.id]; util.ch--; faceTo(u,tx,ty);
   const anim=shouldShow(u)||tileShown(tx,ty);
   if(anim){ const a0=tileC(u.x,u.y), b0=tileC(tx,ty); G.cam.tx=(a0[0]+b0[0])/2; G.cam.ty=(a0[1]+b0[1])/2; floatText(u,U.name.toUpperCase(),[255,190,80],17); await wait(350);
-    const a=muzzle(u); await new Promise(res=>addFx({type:'nade',a,b:b0,h:60+Math.hypot(tx-u.x,ty-u.y)*10,col:util.id==='smoke'?'#ddd':util.id==='flash'?'#fff':util.id==='plasma'||util.id==='arc'?'#7fe8ff':'#ff6a3d',life:.55,res})); }
-  if(U.dmg){ makeNoise(u); G.noise.push({id:u.id,team:u.team,x:tx,y:ty,r:G.round,blast:true}); }
+    const a=muzzle(u); await new Promise(res=>addFx({type:'nade',a,b:b0,h:60+Math.hypot(tx-u.x,ty-u.y)*10,col:util.id==='smoke'?'#ddd':util.id==='flash'?'#fff':util.id==='plasma'||util.id==='arc'||U.dev?'#7fe8ff':'#ff6a3d',life:U.dev?.7:.55,res})); }
+  if(U.dev){ await deployDevice(u,util,tx,ty,anim); return; }
+  if(U.dmg){ makeNoise(u); G.noise.push({id:u.id,team:u.team,x:tx,y:ty,r:G.round,blast:true}); soundCue(tx,ty,'blast',null); }
   const hitU=G.units.filter(v=>v.alive&&Math.hypot(v.x-tx,v.y-ty)<=(U.radius||0)+0.01);
   if(U.dmg){
     if(anim) explode(tx,ty,U.radius,util.id==='plasma'||!!U.arc); else if(G.player&&!G.fullVis) ping(tx,ty,[255,120,40]);
-    if(!U.arc) for(let y=Math.floor(ty-U.radius);y<=Math.ceil(ty+U.radius);y++) for(let x=Math.floor(tx-U.radius);x<=Math.ceil(tx+U.radius);x++){ if(!inMap(x,y)||Math.hypot(x-tx,y-ty)>U.radius+0.01) continue; const o=G.grid[idx(x,y)]; if(!o) continue;
-      if(o.t===2) G.grid[idx(x,y)]={t:1,kind:'rubble',h:0,v:RNG()}; else G.grid[idx(x,y)]=null; }
-    G.decals.push({x:tx+.5,y:ty+.5,r:U.radius}); G.losCache.fill(0); buildGround(); computeVis();
+    G.decals.push({x:tx+.5,y:ty+.5,r:U.radius}); terrChanged(true,tx,ty,U.radius);
     for(const v of hitU){ if(u.isPlayer&&isEnemy(u,v)) G.stats.nadeHits++; applyDamage(v,rollDmg(U.dmg)+(hasP(u,'g_volat')?1:0),u,{anim:anim||shouldShow(v),how:U.short.toLowerCase(),pierce:!!U.arc}); if(U.arc&&v.alive&&!v.downed){ v.disorient=2; v.overwatch=false; if(anim||shouldShow(v)) floatText(v,'DISORIENTED',[255,179,64],16); } }
+    // destroys cover one stage (arc leaves it standing) and sets off explosives in the blast
+    if(!U.arc) await terrBlast(tx,ty,U.radius,u);
   } else if(util.id==='smoke'){
     G.smoke.push({x:tx,y:ty,r:U.radius,until:G.round+2});
     if(anim){ const p=tileC(tx,ty); for(let i=0;i<20;i++) part({x:p[0]+frand(-40,40),y:p[1]+frand(-18,18),z:frand(0,20),vx:frand(-20,20),vy:frand(-10,10),vz:frand(5,30),life:frand(1.2,2.2),size:frand(14,24),col:[210,215,225],type:'smoke'}); SFX.noise(.8,'lowpass',900,.4); }
@@ -2224,6 +2429,15 @@ async function doThrow(u,util,tx,ty){
     for(const v of hitU){ if(v.downed) continue; v.disorient=2; v.overwatch=false; if(anim||shouldShow(v)) floatText(v,'DISORIENTED',[255,179,64],18); }
   }
   if(anim) await wait(800);
+}
+// Scout Drone / Motion Sensor: sim state per team (G.reveals, G.sensors), read by computeVis, updateIntel and moveUnit
+async function deployDevice(u,util,tx,ty,anim){
+  const U=UTILS[util.id];
+  if(util.id==='drone'){ G.reveals=(G.reveals||[]).filter(r=>r.until>=G.round); G.reveals.push({team:u.team,x:tx,y:ty,r:U.radius,until:G.round+1,uid:u.id}); }
+  else { G.sensors=(G.sensors||[]).filter(s=>s.until>=G.round); G.sensors.push({team:u.team,x:tx,y:ty,r:U.radius,until:G.round+U.rounds-1,uid:u.id,hits:0}); }
+  computeVis();
+  if(anim){ const p=tileC(tx,ty); addFx({type:'ring',x:p[0],y:p[1],r:U.radius*TW*0.7,col:[127,232,255],life:.7}); SFX.tone(900,1500,.25,.06,'sine'); SFX.tone(1500,1100,.2,.04,'sine',.15);
+    if(mine(u)) floatText(tileDummy(tx,ty),util.id==='drone'?'AREA REVEALED':'SENSOR ONLINE',[127,232,255],16); await wait(500); }
 }
 async function doRevive(u,t){
   u.ap=0; faceTo(u,t.x,t.y); t.downed=false; t.hp=3; t.bleed=0;
@@ -2235,6 +2449,126 @@ async function doRevive(u,t){
   updateHUD();
 }
 function adjDowned(u){ return G.units.find(m=>m!==u&&m.team===u.team&&m.alive&&m.downed&&Math.max(Math.abs(m.x-u.x),Math.abs(m.y-u.y))<=1); }
+
+/* ================= interactive & destructible terrain (sim) =================
+   Everything here runs inside the command / turn flow, identically on every client: only seeded RNG (damage rolls),
+   and visibility only decides whether to animate. Render caches are invalidated through terrChanged(). */
+function tileDummy(x,y){ return {x,y,rx:x,ry:y,drop:0,rz:ez(x,y),face:1,alive:true}; }
+// a grid change: clear the LOS cache now (gameplay), rebuild the ground cache on the next frame (visual), refresh fog
+// ground: true = rebuild all, or the changed tile and radius r (the patch grows 3 tiles for shadows and occlusion)
+function terrChanged(ground,x,y,r){ G.losCache.fill(0);
+  if(ground===true&&x!=null){ const k=Math.ceil(r||0)+3, d=G.groundDirty, n={x0:x-k,y0:y-k,x1:x+k,y1:y+k};
+    G.groundDirty=d===true?true:d?{x0:Math.min(d.x0,n.x0),y0:Math.min(d.y0,n.y0),x1:Math.max(d.x1,n.x1),y1:Math.max(d.y1,n.y1)}:n; }
+  else if(ground) G.groundDirty=true;
+  if(G.scene==='game') computeVis(); }
+function mkTerr(kind,from){ const o=Object.assign({kind,h:0,v:from?from.v:0.5},TKIND[kind]||{t:1}); if(TERR[kind]) o.hp=TERR[kind].hp; return o; }
+// one stage of destruction: door -> gone, `next`, full -> rubble, half -> debris; debris stays
+function stageNext(o){ if(o.kind==='door') return null; const T=TERR[o.kind]; if(T&&T.next) return mkTerr(T.next,o); if(o.flat) return o; return mkTerr(o.t===2?'rubble':'debris',o); }
+function terrBits(x,y,col,n){ const p=tileC(x,y); for(let i=0;i<(n||14);i++) part({x:p[0]+frand(-12,12),y:p[1]-frand(4,16),z:frand(4,20),vx:frand(-90,90),vy:frand(-50,30),vz:frand(60,200),life:frand(.6,1.2),size:frand(2,3.5),col:col||[90,80,70],type:'debris',grav:600}); }
+// can this object be damaged by gunfire? (open doors and debris cannot)
+function shootable(o){ return !!o&&!!TERR[o.kind]&&!o.flat&&!(o.kind==='door'&&o.t!==2); }
+async function damageTerr(x,y,d,src,anim){
+  const o=cell(x,y); if(!shootable(o)) return false; const T=TERR[o.kind];
+  if(o.hp==null) o.hp=T.hp; o.hp-=d; o.rv=(o.rv||0)+1;
+  anim=anim||tileShown(x,y);
+  if(anim){ floatText(tileDummy(x,y),T.name.toUpperCase()+' −'+d,[255,214,160],15); terrBits(x,y,null,6); }
+  if(o.hp>0) return false;
+  await breakTerr(x,y,src,anim); return true;
+}
+async function breakTerr(x,y,src,anim){
+  const o=cell(x,y); if(!o) return; const T=TERR[o.kind];
+  if(T&&T.boom){ await detonate(x,y,src); return; }
+  G.grid[idx(x,y)]=stageNext(o); terrChanged(true,x,y,0);
+  if(anim||tileShown(x,y)){ floatText(tileDummy(x,y),o.kind==='door'?'DOOR BREACHED':o.t===2?'COVER DAMAGED':'COVER DESTROYED',[255,190,90],17); terrBits(x,y,null,18); SFX.noise(.35,'lowpass',700,.5); G.cam.shake=Math.max(G.cam.shake,4); }
+}
+// explosive barrels and tanks: blast damage, then the blast knocks terrain down a stage and sets off other explosives
+async function detonate(x,y,src){
+  const o=cell(x,y), B=o&&TERR[o.kind]&&TERR[o.kind].boom; if(!B) return;
+  G.grid[idx(x,y)]=Object.assign(mkTerr('debris',o),{scorch:1}); G.decals.push({x:x+.5,y:y+.5,r:B.r*0.8}); terrChanged(true,x,y,B.r);
+  const hitU=G.units.filter(v=>v.alive&&Math.hypot(v.x-x,v.y-y)<=B.r+0.01);
+  const anim=tileShown(x,y)||hitU.some(shouldShow);
+  if(anim){ const p=tileC(x,y); G.cam.tx=p[0]; G.cam.ty=p[1]; explode(x,y,B.r,false); floatText(tileDummy(x,y),TERR[o.kind].name.toUpperCase()+' EXPLODES',[255,150,60],18); }
+  else if(G.player&&!G.fullVis) ping(x,y,[255,120,40]);
+  soundCue(x,y,'blast',null);
+  if(G.noise) G.noise.push({id:src?src.id:-1,team:src?src.team:-1,x,y,r:G.round,blast:true});
+  for(const v of hitU){ if(!v.alive) continue; applyDamage(v,rollDmg(B.dmg),src,{anim:anim||shouldShow(v),how:'explosion'}); }
+  if(anim) await wait(450);
+  await terrBlast(x,y,B.r,src);
+}
+// a blast (grenade or explosive): every object within r drops one stage; explosives in range chain; sensors are destroyed
+async function terrBlast(cx,cy,r,src){
+  const boom=[]; let ch=false;
+  for(let y=Math.floor(cy-r);y<=Math.ceil(cy+r);y++) for(let x=Math.floor(cx-r);x<=Math.ceil(cx+r);x++){
+    if(!inMap(x,y)||Math.hypot(x-cx,y-cy)>r+0.01) continue; const o=G.grid[idx(x,y)]; if(!o) continue;
+    if(TERR[o.kind]&&TERR[o.kind].boom){ boom.push([x,y]); continue; }
+    const n=stageNext(o); if(n!==o){ G.grid[idx(x,y)]=n; ch=true; } }
+  const lost=(G.sensors||[]).filter(s=>Math.hypot(s.x-cx,s.y-cy)<=r+0.01);
+  if(lost.length){ G.sensors=G.sensors.filter(s=>!lost.includes(s)); for(const s of lost) if(tileShown(s.x,s.y)) floatText(tileDummy(s.x,s.y),'SENSOR DESTROYED',[255,140,120],15); }
+  if(ch) terrChanged(true,cx,cy,r);
+  for(const b of boom) await detonate(b[0],b[1],src);
+}
+// doors: {k:'door',x,y} opens or closes an adjacent door (free, once per turn); walking through a closed door opens it
+function adjDoor(u){ for(const d of DIRS4){ const o=cell(u.x+d[0],u.y+d[1]); if(o&&o.kind==='door') return {x:u.x+d[0],y:u.y+d[1],o}; } return null; }
+function doorBlocked(x,y){ return !!unitAt(x,y)||G.crates.some(q=>q.x===x&&q.y===y); }
+function setDoor(x,y,open,who){
+  const o=cell(x,y); if(!o||o.kind!=='door'||(o.t<2)===open) return;
+  o.t=open?0:2; o.rv=(o.rv||0)+1; terrChanged(false);
+  if(tileShown(x,y)||(who&&shouldShow(who))){ floatText(tileDummy(x,y),open?'DOOR OPENED':'DOOR CLOSED',[200,220,240],14); SFX.tone(open?220:160,open?140:90,.18,.12,'square'); }
+}
+async function doDoor(u,x,y){
+  const o=cell(x,y); if(!o||o.kind!=='door'||Math.abs(x-u.x)+Math.abs(y-u.y)!==1||u.doorR===G.round||u.ap<=0) return;
+  if(o.t<2&&doorBlocked(x,y)) return;
+  u.doorR=G.round; faceTo(u,x,y); setDoor(x,y,o.t===2,u);
+  if(shouldShow(u)) await wait(260);
+}
+// {k:'breach',x,y}: 1 AP, smash an adjacent closed door; enemies within 1.5 tiles of it are disoriented through their next turn
+async function doBreach(u,x,y){
+  const o=cell(x,y); if(!o||o.kind!=='door'||o.t!==2||Math.abs(x-u.x)+Math.abs(y-u.y)!==1||u.ap<=0) return;
+  u.ap-=1; faceTo(u,x,y); const anim=shouldShow(u)||tileShown(x,y);
+  if(anim){ focusOn(x,y); floatText(u,'BREACH',[255,190,80],18); await wait(300); const p=tileC(x,y); addFx({type:'flash',x:p[0],y:p[1]-20,r:60,col:[255,220,180],life:.25}); addFx({type:'ring',x:p[0],y:p[1],r:1.5*TW,col:[255,200,120],life:.45}); SFX.boom(); G.cam.shake=Math.max(G.cam.shake,8); }
+  makeNoise(u);
+  G.grid[idx(x,y)]=null; terrChanged(true,x,y,0); if(anim) terrBits(x,y,[110,84,60],22);
+  for(const v of G.units){ if(!standing(v)||!isEnemy(u,v)||Math.hypot(v.x-x,v.y-y)>1.51) continue; v.disorient=Math.max(v.disorient,1); v.overwatch=false; if(anim||shouldShow(v)) floatText(v,'STUNNED',[255,179,64],16); }
+  if(anim) await wait(550);
+}
+// objects a unit can shoot at: destructible, in its sight radius (max 14) and line of sight
+function canShootObj(u,x,y){ const o=cell(x,y); if(!shootable(o)) return false; const d=Math.hypot(x-u.x,y-u.y); return d>0&&d<=Math.min(sightOf(u),14)+0.01&&hasLOS(u.x,u.y,x,y); }
+function objTargets(u){ const out=[], sr=Math.min(sightOf(u),14);
+  for(let y=Math.max(0,Math.floor(u.y-sr));y<=Math.min(MH-1,Math.ceil(u.y+sr));y++) for(let x=Math.max(0,Math.floor(u.x-sr));x<=Math.min(MW-1,Math.ceil(u.x+sr));x++){
+    const o=G.grid[idx(x,y)]; if(!shootable(o)||!canShootObj(u,x,y)) continue; out.push({x,y,o,boom:TERR[o.kind].boom||null,d:Math.hypot(x-u.x,y-u.y)}); }
+  return out.sort((a,b)=>(b.boom?2:b.o.kind==='door'?1:0)-(a.boom?2:a.o.kind==='door'?1:0)||a.d-b.d); }
+// {k:'obj',x,y}: shoot an object with the primary (never misses; shooting AP rules; 1 ammo)
+async function shootObj(u,x,y){
+  if(u.ap<=0||u.ammo<=0||u.shot||(u.W.heavy&&u.ap<2)||!canShootObj(u,x,y)) return;
+  const o=cell(x,y), tk0=u.tk||0; apShot(u); u.ammo=Math.max(0,u.ammo-1); faceTo(u,x,y);
+  const T=tileDummy(x,y), anim=shouldShow(u)||tileShown(x,y), kind=u.W.fx;
+  if(anim){ focusMid(u,T); floatText(u,'SHOOT '+TERR[o.kind].name.toUpperCase(),[255,190,80],16); await wait(380); shotFX(u,T,true,kind); await wait(FXDUR[kind]||150); }
+  if(!u.W.silent) makeNoise(u);
+  await damageTerr(x,y,rollDmg(u.W.dmg),u,anim);
+  afterAttack(u,tk0,true);
+  if(anim) await wait(450);
+}
+// a missed shot at a unit behind destructible cover hits the cover: it takes half the weapon's minimum damage (rounded up)
+async function shotCover(a,t,W,anim){
+  const c=coverCell(t.x,t.y,a.x,a.y); if(!c) return; const o=cell(c[0],c[1]); if(!shootable(o)) return;
+  await damageTerr(c[0],c[1],Math.ceil(W.dmg[0]/2),a,anim);
+}
+
+/* ================= return fire ================= */
+// A unit in full cover (from the attacker) fires back once per enemy turn at an attacker that shot at it and is still
+// standing, if it can see it and has ammo; not while downed, disoriented, hunkered or on overwatch. Reaction penalty, 1 ammo.
+function rfReady(t,a){ return standing(t)&&standing(a)&&isEnemy(t,a)&&t.ammo>0&&!(t.disorient>0)&&!t.hunker&&!t.overwatch&&t.rfKey!==G.round+':'+a.id&&canSee(t,a)&&hitInfo(a,t).cov===2; }
+async function returnFire(t,a){ if(G.over||!rfReady(t,a)) return; t.rfKey=G.round+':'+a.id; if(mine(t)||mine(a)) feedLine(t.name+' returned fire on '+a.name,true); await fireShot(t,a,{reaction:true,rf:true,how:'return fire'}); }
+
+/* ================= information tools (sim) ================= */
+// Motion sensors: an enemy step inside the radius updates the owner team's intel (what AI acts on) and pings the local player
+function sensorCheck(u){
+  if(!G.sensors||!G.sensors.length||!standing(u)) return;
+  for(const s of G.sensors){ if(s.team===u.team||G.round>s.until||Math.hypot(u.x-s.x,u.y-s.y)>s.r+0.01) continue;
+    intelOf(s.team).set(u.id,{x:u.x,y:u.y,r:G.round,seen:false}); s.hits=(s.hits||0)+1;
+    if(G.player&&s.team===G.player.team) cueAt(u.x,u.y,'sensor',u); }
+}
+
 
 /* ================= turn flow ================= */
 async function runMatch(){
@@ -2338,7 +2672,7 @@ function slashTargets(u,maxCost){
   const R=computeReach(u,maxCost!=null?maxCost:u.mob*u.ap+(hasP(u,'r_lunge')?2:0)), out=[];
   for(const t of visibleEnemies(u)){ let best=null,bc=Infinity;
     for(const d of DIRS8){ const x=t.x+d[0],y=t.y+d[1]; if(!inMap(x,y)) continue; const i=idx(x,y); let c;
-      if(x===u.x&&y===u.y) c=0; else { if(G.grid[i]||unitAt(x,y)) continue; c=R.dist[i]; }
+      if(x===u.x&&y===u.y) c=0; else { if(!walkable(i)||unitAt(x,y)) continue; c=R.dist[i]; }
       if(d[0]&&d[1]&&(isFull(t.x+d[0],t.y)||isFull(t.x,t.y+d[1]))) continue;
       if(c<bc){ bc=c; best=i; } }
     if(best!=null&&isFinite(bc)) out.push({t,path:bc===0?[[u.x,u.y]]:buildPath(R,best)}); }
@@ -2358,6 +2692,20 @@ function enterTarget(kind,pre){
   G.targets=list; G.tIdx=Math.max(0,list.indexOf(pre)); G.tKind=kind; G.mode='target'; G.pending=-1; G.pendingPath=null;
   focusMid(u,list[G.tIdx]); updateHUD();
 }
+// shoot-an-object targeting: G.objT lists [x,y] candidates, G.oIdx is the selection (UI only)
+function enterObj(){ const u=G.player, list=objTargets(u); if(!list.length){ hint('Nothing to shoot in sight'); return; }
+  G.objT=list.map(q=>[q.x,q.y]); G.oIdx=0; G.mode='obj'; G.pending=-1; G.pendingPath=null; focusMid(u,tileDummy(list[0].x,list[0].y)); updateHUD(); }
+function fillObjPanel(){
+  const u=G.player, q=G.objT&&G.objT[G.oIdx]; if(!q) return; const o=cell(q[0],q[1]); if(!o){ G.mode='move'; updateHUD(); return; } const T=TERR[o.kind]||{name:o.kind}, B=T.boom;
+  $('#tName').textContent=T.name; $('#tSub').textContent=(o.hp!=null?o.hp+' HP':'')+' · '+Math.hypot(q[0]-u.x,q[1]-u.y).toFixed(1)+' tiles'+(o.kind==='door'?' · closed door':o.t===2?' · full cover':o.t===1?' · half cover':'');
+  let foes=0,ally=false,self=false; if(B) for(const v of G.units){ if(!v.alive||Math.hypot(v.x-q[0],v.y-q[1])>B.r+0.01) continue; if(v===u) self=true; else if(!isEnemy(u,v)) ally=true; else if(shouldShow(v)) foes++; }
+  $('#tHit').textContent=B?String(foes):u.W.dmg[0]+'–'+u.W.dmg[1]; $('#tHitL').textContent=B?'enemies in blast':'damage (never misses)';
+  $('#tRow').innerHTML=B?'<span>Explodes: '+B.dmg[0]+'–'+B.dmg[1]+' dmg, '+B.r+'-tile radius</span>'+(self?'<span class="warn">You are inside the blast</span>':ally?'<span class="warn">Your partner is inside the blast</span>':''):'<span>'+(o.kind==='door'?'Breaks the door open':o.t===2?'Full → half cover at 0 HP':'Destroyed at 0 HP')+'</span>';
+  $('#tMods').textContent='Costs 1 ammo and follows the shooting AP rules.'+(B?' Chain reaction: other explosives in the blast go off too.':'');
+  $('#tChips').innerHTML=G.objT.length>1?G.objT.map((p,i)=>{ const oo=cell(p[0],p[1]); return '<button class="tchip'+(i===G.oIdx?' sel':'')+'" data-oi="'+i+'">'+(oo&&TERR[oo.kind]?TERR[oo.kind].name:'?')+'</button>'; }).join(''):'';
+  const fb=$('#tFire'); fb.textContent='Fire'; fb.classList.remove('off');
+}
+async function pObj(){ if(!inputOpen()) return; const q=G.objT&&G.objT[G.oIdx]; if(!q) return; G.busy=true; G.mode='idle'; updateHUD(); await playCmd({k:'obj',x:q[0],y:q[1]}); }
 function enterThrow(util){ G.mode='throw'; G.throwUtil=util; G.throwTile=-1; G.pending=-1; G.pendingPath=null; G.cam.tz=Math.min(G.cam.tz,defaultZ()*0.85); hint('Tap a tile to aim'); updateHUD(); }
 /* Every player action is a command. Locally it runs through execCmd straight away; online the same
    command is sent to the other clients, which run it through execCmd when that unit's turn reaches it. */
@@ -2374,7 +2722,12 @@ async function execCmd(u,c){
     const tk0=u.tk||0; await fireShot(u,t,o); afterAttack(u,tk0,true); }
   else if(c.k==='sec'){ await secAttack(u,byId(c.t),c); }   // secondary weapon: {k:'sec',t,path?,free?}
   else if(c.k==='act'){ await doActive(u,c); }              // class perk active: {k:'act',a,t?}
-  else if(c.k==='throw'){ const util=u.utils[c.i]; if(!util) return; const U=UTILS[util.id]; u.ap=Math.max(0,u.ap-1); if(U.dmg&&!u.moved&&u.ap>0) u.shot=true; await doThrow(u,util,c.x,c.y); }
+  else if(c.k==='throw'){ const util=u.utils[c.i]; if(!util||util.ch<=0) return; const U=UTILS[util.id];
+    if(U.dev&&(u.ap<=0||!inMap(c.x,c.y)||Math.hypot(c.x-u.x,c.y-u.y)>throwRange(u,U)+0.01||isFull(c.x,c.y))) return; // drone / sensor target checks
+    u.ap=Math.max(0,u.ap-1); if(U.dmg&&!u.moved&&u.ap>0) u.shot=true; await doThrow(u,util,c.x,c.y); }
+  else if(c.k==='door'){ await doDoor(u,c.x,c.y); }       // open / close an adjacent door: {k:'door',x,y}
+  else if(c.k==='breach'){ await doBreach(u,c.x,c.y); }   // smash an adjacent closed door: {k:'breach',x,y}
+  else if(c.k==='obj'){ await shootObj(u,c.x,c.y); }      // shoot a destructible object or explosive: {k:'obj',x,y}
   else if(c.k==='revive'){ const t=byId(c.t); if(t) await doRevive(u,t); }
   else if(c.k==='util'){ const util=u.utils[c.i]; if(!util||util.ch<=0) return;
     if(util.id==='shieldcell'){ util.ch--; u.ap-=1; u.shield+=3; if(shouldShow(u)){ floatText(u,'+3 SHIELD',[111,208,255],22); SFX.heal(); const p=chest(u); addFx({type:'ring',x:p[0],y:p[1]+19,r:40,col:[111,208,255],life:.5}); await wait(550); } }
@@ -2405,7 +2758,10 @@ async function pMove(){
 function onAction(id){
   const u=G.player; if(!inputOpen()) return;
   if(id==='move'){ pMove(); return; }
+  if(id==='door'){ const dr=adjDoor(u); if(dr){ G.busy=true; G.mode='idle'; playCmd({k:'door',x:dr.x,y:dr.y}); } return; }
   if(u.shot&&id!=='end'){ hint('After shooting you can only move'); return; }
+  if(id==='breach'){ const dr=adjDoor(u); if(dr&&dr.o.t===2){ G.busy=true; G.mode='idle'; playCmd({k:'breach',x:dr.x,y:dr.y}); } return; }
+  if(id==='obj'){ enterObj(); return; }
   if(id==='revive'){ const t=adjDowned(u); if(!t) return; G.busy=true; G.mode='idle'; playCmd({k:'revive',t:t.id}); return; }
   if(id==='shoot'||id==='slash'||id==='deadeye'||id==='hail'||id==='zap'||id==='sec'){ enterTarget(id); return; }
   if(ACTS[id]&&hasP(u,ACTS[id].perk)){ if(ACTS[id].tgt==='self'){ G.busy=true; G.mode='idle'; playCmd({k:'act',a:id}); } else enterTarget(id); return; }
@@ -2439,23 +2795,28 @@ function actionList(){
       else if(k==='cap'&&!vis.some(t=>tdist(u,t)<=12)) no('No enemy in sight'); else if(k==='whirl'&&!vis.some(t=>canMelee(u.x,u.y,t.x,t.y))) no('No enemy adjacent');
       else if(k==='hands'&&!secTargets(u,true).length) no('No target for your '+(S?S.short.toLowerCase():'secondary')); }
     A.push({id:k,label:X.short,sub:c2?c2+' turn'+(c2>1?'s':''):'Ready',icon:'a_'+k,off,why:w,abil:true}); }
+  // terrain: doors next to you, and destructible objects / explosives in sight
+  const dr=adjDoor(u); if(dr){ const shut=dr.o.t===2, blk=!shut&&doorBlocked(dr.x,dr.y), used=u.doorR===G.round;
+    A.push({id:'door',label:shut?'Open door':'Close door',sub:'Free',icon:'door',off:!ap||used||blk,why:used?'One door action per turn':blk?'Something is in the doorway':'',free:true});
+    if(shut) A.push({id:'breach',label:'Breach',sub:'1 AP',icon:'breach',off:!ap,why:''}); }
+  const ot=ap&&u.ammo&&!sniperBlock?objTargets(u):[]; if(ot.length) A.push({id:'obj',label:ot[0].boom?'Shoot barrel':'Shoot object',sub:u.ammo+'/'+u.W.clip,icon:'obj',hot:ot.some(q=>q.boom&&G.units.some(v=>v.alive&&isEnemy(u,v)&&shouldShow(v)&&Math.hypot(v.x-q.x,v.y-q.y)<=q.boom.r+0.01))});
   u.utils.forEach((ut,i)=>A.push({id:'u'+i,label:UTILS[ut.id].short,sub:'×'+ut.ch,icon:ut.id,off:!ap||ut.ch<=0,why:ut.ch<=0?'None left':''}));
   A.push({id:'ow',label:'Overwatch',sub:'Ends turn',icon:'overwatch',off:!ap||!u.ammo,why:!u.ammo?'Out of ammo':''});
   A.push({id:'hunker',label:'Hunker',sub:'Ends turn',icon:'hunker',off:!ap});
   const full=u.ammo>=u.W.clip&&!(S&&S.clip&&u.sAmmo<S.clip);
   A.push({id:'reload',label:'Reload',sub:'1 AP',icon:'reload',off:!ap||full,why:full?'Magazine full':''});
-  if(u.shot) for(const a of A) if(a.id!=='move'){ a.off=true; a.why='After shooting you can only move'; }
+  if(u.shot) for(const a of A) if(a.id!=='move'&&!a.free){ a.off=true; a.why='After shooting you can only move'; }
   A.push({id:'end',label:'End turn',sub:'',icon:'end',off:false,end:true});
   return A;
 }
 
 /* ================= AI ================= */
 /* AI knowledge: only what a team has seen (shared sight) or heard (gunfire and blasts), remembered for 2 rounds */
-function makeNoise(u){ if(!G.noise) return; G.noise.push({id:u.id,team:u.team,x:u.x,y:u.y,r:G.round}); if(G.noise.length>80) G.noise.splice(0,G.noise.length-80); }
+function makeNoise(u){ if(!G.noise) return; G.noise.push({id:u.id,team:u.team,x:u.x,y:u.y,r:G.round}); soundCue(u.x,u.y,'shot',u); if(G.noise.length>80) G.noise.splice(0,G.noise.length-80); }
 function intelOf(team){ G.intel=G.intel||{}; return G.intel[team]||(G.intel[team]=new Map()); }
 function updateIntel(team){
   const m=intelOf(team), eyes=G.units.filter(z=>z.team===team&&standing(z));
-  for(const e of G.units){ if(!standing(e)||e.team===team) continue; if(eyes.some(z=>canSee(z,e))) m.set(e.id,{x:e.x,y:e.y,r:G.round,seen:true}); }
+  for(const e of G.units){ if(!standing(e)||e.team===team) continue; if(eyes.some(z=>canSee(z,e))||revealedFor(team,e.x,e.y)) m.set(e.id,{x:e.x,y:e.y,r:G.round,seen:true}); }
   for(const n of (G.noise||[])){ if(n.team===team||n.r<G.round-1||n.blast) continue; if(!eyes.some(z=>Math.hypot(z.x-n.x,z.y-n.y)<=14)) continue; const o=m.get(n.id); if(!o||o.r<n.r) m.set(n.id,{x:n.x,y:n.y,r:n.r,seen:false}); }
   return m;
 }
@@ -2494,6 +2855,7 @@ function aiScoreTile(u,x,y,threats,cost){
   if(G.elev[idx(x,y)]) s+=7;
   const q=G.crates.find(q=>q.x===x&&q.y===y); if(q) s+=q.drop?45:14;
   if(inSmoke(x,y)) s+=6;
+  if(threats.length) for(const d of DIRS8){ const o=cell(x+d[0],y+d[1]); if(o&&TERR[o.kind]&&TERR[o.kind].boom){ s-=8; break; } } // don't hide behind a fuel barrel
   const L=leaderOf(u); if(L){ const d=Math.hypot(L.x-x,L.y-y), lim=G.cmd&&!u.human&&L.human?2.5:4.5; if(d>lim) s-=(d-lim)*(G.cmd?9:4); }
   return s+RNG()*2.5;
 }
@@ -2533,9 +2895,17 @@ function aiBestAttack(u){
       const inR=G.units.filter(v=>v.alive&&Math.hypot(v.x-c.x,v.y-c.y)<=U.radius+0.01&&(!isEnemy(u,v)||vis.includes(v))); if(inR.some(v=>!isEnemy(u,v))) continue;
       const n=inR.length; const h=canFire?hitInfo(u,c).any:0;
       const sc=n*ag*10*(n>1?1:(h<45?0.85:0.45)); res.push({k:'throw',util,x:c.x,y:c.y,t:c,hit:100,score:sc}); } }
+  // shoot an explosive next to enemies it can see (never with a teammate or itself in the blast)
+  if(canFire&&!u.shot) for(const q of objTargets(u)){ if(!q.boom) continue; const B=q.boom, near=G.units.filter(v=>v.alive&&Math.hypot(v.x-q.x,v.y-q.y)<=B.r+0.01);
+    if(near.some(v=>!isEnemy(u,v))) continue; const foes=near.filter(v=>vis.includes(v)&&!v.downed); if(!foes.length) continue;
+    const ag=(B.dmg[0]+B.dmg[1])/2, p=Math.min(1,avg/Math.max(1,q.o.hp)); res.push({k:'obj',x:q.x,y:q.y,t:foes[0],hit:100,score:foes.length*ag*10*p*(foes.length>1?1:0.6)}); }
+  // return fire: shooting at an enemy in full cover invites a reaction shot back
+  for(const r of res) if(r.t&&(r.k==='shoot'||r.k==='deadeye'||r.k==='hail'||r.k==='rapid'||r.k==='rupt')) r.score-=rfPen(u,r.t);
   if(!res.length) return null;
   res.sort((a,b)=>b.score-a.score); return res[0];
 }
+function rfPen(u,t){ if(!rfReady(t,u)) return 0; const h=hitInfo(t,u,{reaction:true}), ad=(t.W.dmg[0]+t.W.dmg[1])/2, avg=(u.W.dmg[0]+u.W.dmg[1])/2;
+  return (h.full+h.graze*0.5)/100*ad*4*(avg>=t.hp+t.shield?0.5:1); }
 // expected value of a secondary attack option from secTargets (same shape as the primary-shot score)
 function secScore(u,s){ const si=secInfo(u,s.t,s.mode), avg=(si.dmg[0]+si.dmg[1])/2, eff=s.t.downed?0.5:s.t.hp+s.t.shield;
   return (si.full+si.graze*0.5)*(avg+si.crit/100*(si.critDmg||1))/10+(avg>=eff?si.any/6:0)-(s.path&&s.path.length>1?4:0); }
@@ -2550,6 +2920,7 @@ async function aiExecute(u,a){
   else if(a.k==='sec'){ await execCmd(u,{k:'sec',t:a.t.id,path:a.path}); }
   else if(ACTS[a.k]){ await execCmd(u,{k:'act',a:a.k,t:a.t?a.t.id:null}); }
   else if(a.k==='throw'){ const U=UTILS[a.util.id]; u.ap=Math.max(0,u.ap-1); if(U.dmg&&!u.moved&&u.ap>0) u.shot=true; await doThrow(u,a.util,a.x,a.y); }
+  else if(a.k==='obj'){ await execCmd(u,{k:'obj',x:a.x,y:a.y}); }
 }
 async function aiRevive(u){
   const dn=G.units.find(m=>m!==u&&m.team===u.team&&m.alive&&m.downed); if(!dn) return false;
@@ -2574,6 +2945,7 @@ async function aiTurn(u,mid){
   if(med&&u.hp<=u.maxHp*0.5&&u.ap>0&&!outsideStorm(u.x,u.y)) await doMedkit(u,med);
   if(stale()) return;
   await aiPerkPre(u,stale); if(stale()||u.ap<=0) return;
+  await aiUtilPre(u); if(stale()||u.ap<=0) return;
   let atk=aiBestAttack(u);
   const stay=atk&&(atk.hit>=70||(u.W.heavy&&atk.k!=='zap')||atk.k==='throw'||atk.k==='hail')&&atk.score>=18&&!outsideStorm(u.x,u.y);
   if(u.ap>0&&!stay){ const mv=aiChooseMove(u); if(mv){ const ap=mv.cost<=u.mob+1e-6?1:2; if(ap<=u.ap){ u.ap-=ap; await moveUnit(u,mv.path); u.moved=true; } } }
@@ -2593,6 +2965,19 @@ async function aiTurn(u,mid){
   }
 }
 
+// information tools: with nothing in sight and a full turn, scout a heard/sensed position (or ahead) with a drone, or
+// drop a motion sensor where it stands. Decisions use only the team's intel; effects arrive through updateIntel.
+async function aiUtilPre(u){
+  if(u.ap<2||u.shot||G.round<2||visibleEnemies(u).length) return;
+  const di=u.utils.findIndex(x=>x.id==='drone'&&x.ch>0), si=u.utils.findIndex(x=>x.id==='sensor'&&x.ch>0);
+  if(di>=0){ const rg=throwRange(u,UTILS.drone); let tgt=null,bd=1e9;
+    for(const [id,e] of intelOf(u.team)){ if(e.seen||e.r<G.round-1) continue; const t=G.units.find(z=>z.id===id); if(!t||!standing(t)) continue; const d=Math.hypot(e.x-u.x,e.y-u.y); if(d<bd&&d<=rg+4){ bd=d; tgt=[e.x,e.y]; } }
+    if(!tgt&&RNG()<0.3){ const g=goalFor(u), d=Math.hypot(g[0]-u.x,g[1]-u.y); if(d>4) tgt=[g[0],g[1]]; }
+    if(tgt){ let dx=tgt[0]-u.x, dy=tgt[1]-u.y; const d=Math.hypot(dx,dy); if(d>rg-0.5){ dx*=(rg-0.5)/d; dy*=(rg-0.5)/d; }
+      const x=clamp(Math.round(u.x+dx),0,MW-1), y=clamp(Math.round(u.y+dy),0,MH-1);
+      if(!isFull(x,y)&&Math.hypot(x-u.x,y-u.y)<=rg+0.01){ await execCmd(u,{k:'throw',i:di,x,y}); return; } } }
+  if(si>=0&&!(G.sensors||[]).some(s=>s.team===u.team&&s.until>=G.round)&&RNG()<0.35) await execCmd(u,{k:'throw',i:si,x:u.x,y:u.y});
+}
 // free or cheap class-perk actions the AI takes before its main decision: Combat Stims, Aid Protocol, Lightning Hands
 async function aiPerkPre(u,stale){
   if(hasP(u,'p_stim')&&!u.cd.stim&&u.ap>0&&visibleEnemies(u).length) await execCmd(u,{k:'act',a:'stim'});
@@ -2652,7 +3037,12 @@ Object.assign(ICON,{
   a_rupt:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4l-2 6 4 2-3 8"/></svg>',
   a_aid:'<svg viewBox="0 0 24 24"><path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M12 9v6M9 12h6"/></svg>',
   a_cap:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/></svg>',
-  a_stim:'<svg viewBox="0 0 24 24"><path d="M17 3l4 4M19 5l-9 9-3-3 9-9M10 14l-2 2M7 11l-2 2M5 15l-2 6 6-2"/></svg>'
+  a_stim:'<svg viewBox="0 0 24 24"><path d="M17 3l4 4M19 5l-9 9-3-3 9-9M10 14l-2 2M7 11l-2 2M5 15l-2 6 6-2"/></svg>',
+  door:'<svg viewBox="0 0 24 24"><path d="M5 21V3h11v18M3 21h18M13 12h.5M16 5l3 2v14"/></svg>',
+  breach:'<svg viewBox="0 0 24 24"><path d="M6 21V3h8v6M3 21h18M14 13l7-4M15 17l6 1M12 15l2 6"/></svg>',
+  obj:'<svg viewBox="0 0 24 24"><path d="M7 5h10v15H7zM7 5c0-1.5 10-1.5 10 0M7 10h10M7 15h10"/><path d="M12 1v2"/></svg>',
+  drone:'<svg viewBox="0 0 24 24"><path d="M9 11h6v3H9zM3 8h6M15 8h6M6 8v3M18 8v3M12 14v3M8 20l4-3 4 3"/></svg>',
+  sensor:'<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="2"/><path d="M8 6a6 6 0 0 0 0 8M16 6a6 6 0 0 1 0 8M5 3a10 10 0 0 0 0 14M19 3a10 10 0 0 1 0 14M12 12v9M9 21h6"/></svg>'
 });
 function updateTop(){
   if(G.scene!=='game'||!G.storm) return;
@@ -2687,6 +3077,7 @@ function updateHUD(){
   const myTurn=!!G.turnRes&&!G.busy;
   if(G.mode==='target'&&myTurn){ tg.classList.remove('hidden'); acts.classList.add('hidden'); fillTargetPanel(); return; }
   if(G.mode==='throw'&&myTurn){ tg.classList.remove('hidden'); acts.classList.add('hidden'); fillThrowPanel(); return; }
+  if(G.mode==='obj'&&myTurn){ tg.classList.remove('hidden'); acts.classList.add('hidden'); fillObjPanel(); return; }
   tg.classList.add('hidden'); acts.classList.remove('hidden');
   if(!myTurn){ acts.innerHTML=''; acts.style.visibility='hidden'; return; }
   acts.style.visibility='visible';
@@ -2714,6 +3105,7 @@ function fillTargetPanel(){
   $('#tHit').textContent=k==='aid'?'+3':hit+'%'; $('#tHitL').textContent=lbl||(k==='shoot'?'chance to hit':ABIL[k]?ABIL[k].name:ACTS[k]?ACTS[k].name:'');
   const covTxt=t.downed?'<span style="color:#5dff9a">Downed: guaranteed</span>':cov===-1?'':cov===-2?'<span style="color:#5dff9a">Shooting over cover</span>':cov===2?'<span class="warn">Full cover</span>':cov===1?'<span class="warn">Half cover</span>':'<span style="color:#5dff9a">Flanked</span>';
   $('#tRow').innerHTML=(gr?'<span>Full '+full+'% · Graze '+gr+'%</span>':'')+'<span>Crit '+crit+'%</span><span>Damage '+dmg+'</span>'+covTxt+(t.armor?'<span>Armor 1</span>':'');
+  if((k==='shoot'||k==='deadeye'||k==='rapid'||k==='rupt'||k==='hail')&&rfReady(t,u)) note=(note?note+' ':'')+'In full cover: '+t.name+' will return fire.';
   $('#tMods').textContent=(mods.length?(aimTxt+mods.map(m=>(m[1]>0?'+':'')+m[1]+' '+m[0]).join(', ')+'.'+(gr?' Grazes deal half damage.':'')):(ABIL[k]?ABIL[k].desc:ACTS[k]?ACTS[k].desc:''))+(note?' '+note:'');
   const chipHit=q=>k==='shoot'||k==='deadeye'||k==='rapid'?hitInfo(u,q,{deadeye:k==='deadeye',aimMod:k==='rapid'?-15:0}).any+'%':(k==='sec'||k==='hands')&&G.secMap&&G.secMap.get(q)?secInfo(u,q,G.secMap.get(q).mode).any+'%':'';
   $('#tChips').innerHTML=G.targets.length>1?G.targets.map((q,i)=>'<button class="tchip'+(i===G.tIdx?' sel':'')+'" data-ti="'+i+'">'+(q===u?'You':q.name)+' '+chipHit(q)+'</button>').join(''):'';
@@ -2723,6 +3115,11 @@ function fillTargetPanel(){
 function fillThrowPanel(){
   const u=G.player, util=G.throwUtil, U=UTILS[util.id];
   $('#tName').textContent=U.name; $('#tSub').textContent=U.desc+' Range '+throwRange(u,U)+'.';
+  if(U.dev){ // never count units in the area: that would leak what fog hides
+    $('#tHit').textContent=String(U.radius); $('#tHitL').textContent=util.id==='drone'?'tile reveal radius':'tile detection radius';
+    $('#tRow').innerHTML=G.throwTile<0?'<span>Tap a tile in range'+(U.blind?' (sight not needed)':'')+'</span>':'<span>Tap '+(util.id==='drone'?'Launch':'Place')+', or the tile again, to confirm</span>';
+    $('#tMods').textContent='Costs 1 AP and keeps your turn going.'; $('#tChips').innerHTML='';
+    const fb=$('#tFire'); fb.textContent=util.id==='drone'?'Launch':'Place'; fb.classList.toggle('off',G.throwTile<0); return; }
   let n=0,self=false,ally=false; if(G.throwTile>=0){ const tx=G.throwTile%MW,ty=(G.throwTile/MW)|0; for(const v of G.units){ if(!v.alive) continue; if(Math.hypot(v.x-tx,v.y-ty)<=U.radius+0.01){ if(v===u) self=true; else if(!isEnemy(u,v)) ally=true; else n++; } } }
   $('#tHit').textContent=G.throwTile>=0?String(n):'–'; $('#tHitL').textContent='enemies in blast';
   $('#tRow').innerHTML=G.throwTile<0?'<span>Tap a tile in range</span>':(self?'<span class="warn">You are inside the blast</span>':ally?'<span class="warn">Your partner is inside the blast</span>':'<span>Tap Throw, or the tile again, to confirm</span>');
@@ -2734,13 +3131,19 @@ function drawMinimap(){
   c.fillStyle='rgba(20,30,40,.9)'; c.fillRect(0,0,W,W);
   for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const i=idx(x,y), o=G.grid[i];
     if(G.elev[i]){ c.fillStyle='rgba(255,220,140,.18)'; c.fillRect(x*s,y*s,s,s); }
-    if(o){ c.fillStyle=o.t===2?'rgba(150,170,190,.75)':'rgba(120,135,150,.45)'; c.fillRect(x*s,y*s,s,s); }
+    if(o&&!o.flat){ c.fillStyle=TERR[o.kind]&&TERR[o.kind].boom&&(G.fullVis||G.seen[i])?'rgba(255,120,60,.85)':o.t===2?'rgba(150,170,190,.75)':o.t===1?'rgba(120,135,150,.45)':'rgba(120,135,150,.22)'; c.fillRect(x*s,y*s,s,s); }
     if(!G.fullVis&&!G.vis[i]){ c.fillStyle='rgba(0,0,0,.35)'; c.fillRect(x*s,y*s,s,s); } }
   const st=G.storm; c.save(); c.beginPath(); c.rect(0,0,W,W); c.arc(st.cx*s,st.cy*s,Math.max(0,st.r*s),0,Math.PI*2,true); c.fillStyle=C(G.R.storm,1,.35); c.fill('evenodd'); c.restore();
   c.strokeStyle=C(G.R.storm,1,.9); c.lineWidth=2; c.beginPath(); c.arc(st.cx*s,st.cy*s,Math.max(0.5,st.r*s),0,Math.PI*2); c.stroke();
   if(st.nextR<st.r){ c.strokeStyle='rgba(255,255,255,.8)'; c.setLineDash([4,3]); c.lineWidth=1.5; c.beginPath(); c.arc(st.cx*s,st.cy*s,Math.max(0.5,st.nextR*s),0,Math.PI*2); c.stroke(); c.setLineDash([]); }
   for(const q of G.crates){ if(!q.drop&&!G.seen[idx(q.x,q.y)]&&!G.fullVis) continue; c.fillStyle=q.drop?'#ff5a3c':'#ffb340'; const r=q.drop?0.9:0.5; c.fillRect((q.x+.5-r/2)*s,(q.y+.5-r/2)*s,s*r,s*r); }
   if(G.drop&&!G.drop.landed){ const pu=.5+.5*Math.sin(G.time*6); c.strokeStyle='rgba(255,90,60,'+(0.5+0.5*pu)+')'; c.lineWidth=2; c.beginPath(); c.arc((G.drop.x+.5)*s,(G.drop.y+.5)*s,s*(1.2+pu),0,Math.PI*2); c.stroke(); }
+  // intel: own drone reveals and sensors, fresh sound cues, last-known positions
+  const myT=G.player?G.player.team:-1;
+  for(const r of G.reveals){ if(r.team!==myT||G.round>r.until) continue; c.strokeStyle='rgba(127,232,255,.7)'; c.lineWidth=1.5; c.beginPath(); c.arc((r.x+.5)*s,(r.y+.5)*s,r.r*s,0,Math.PI*2); c.stroke(); }
+  for(const q of G.sensors){ if(q.team!==myT||G.round>q.until) continue; c.strokeStyle='rgba(127,232,255,.35)'; c.lineWidth=1; c.beginPath(); c.arc((q.x+.5)*s,(q.y+.5)*s,q.r*s,0,Math.PI*2); c.stroke(); c.fillStyle='#7fe8ff'; c.fillRect((q.x+.3)*s,(q.y+.3)*s,s*.4,s*.4); }
+  for(const q of G.cues){ const k=(G.time-q.t)/4; if(k<0||k>1) continue; const col=CUE_COL[q.kind]||CUE_COL.shot; c.strokeStyle=C(col,1,1-k); c.lineWidth=2; c.beginPath(); c.arc((q.x+.5)*s,(q.y+.5)*s,s*(1+k*3),0,Math.PI*2); c.stroke(); }
+  for(const L of lkpMarks()){ c.strokeStyle=C(L.e.col,1,L.a); c.lineWidth=1.5; c.setLineDash([2,2]); c.beginPath(); c.arc((L.m.x+.5)*s,(L.m.y+.5)*s,s*0.8,0,Math.PI*2); c.stroke(); c.setLineDash([]); c.fillStyle=C([255,255,255],1,L.a); c.font='700 '+Math.round(s*1.6)+'px sans-serif'; c.textAlign='center'; c.fillText('?',(L.m.x+.5)*s,(L.m.y+.5)*s+s*0.55); }
   for(const u of G.units){ if(!u.alive||!shouldShow(u)) continue; c.fillStyle=u.isPlayer?'#3fd2ff':mine(u)?'#5dff9a':u.color; c.beginPath(); c.arc((u.x+.5)*s,(u.y+.5)*s,u.isPlayer?s*0.75:s*0.55,0,Math.PI*2); c.fill(); if(u.downed){ c.strokeStyle='#ff4d5e'; c.lineWidth=1.5; c.stroke(); } }
   const tl=screenToTileF(0,0), br=screenToTileF(VW,VH), tr=screenToTileF(VW,0), bl=screenToTileF(0,VH); c.strokeStyle='rgba(255,255,255,.35)'; c.lineWidth=1; c.beginPath(); c.moveTo(tl[0]*s,tl[1]*s); c.lineTo(tr[0]*s,tr[1]*s); c.lineTo(br[0]*s,br[1]*s); c.lineTo(bl[0]*s,bl[1]*s); c.closePath(); c.stroke();
 }
@@ -2760,7 +3163,8 @@ function onTap(sx,sy){
   if(G.mode==='target'){ if(hu){ const i=G.targets.indexOf(hu); if(i>=0){ G.tIdx=i; focusMid(u,hu); updateHUD(); SFX.click(); } } return; }
   if(G.mode==='move'&&hu&&isEnemy(u,hu)){ if(u.ap>0&&!u.shot&&u.ammo>0&&!(u.W.heavy&&u.ap<2)&&canSee(u,hu)){ enterTarget('shoot',hu); SFX.click(); return; } }
   const tt=screenToTile(sx,sy), tx=tt[0], ty=tt[1];
-  if(G.mode==='throw'){ if(!inMap(tx,ty)) return; const U=UTILS[G.throwUtil.id]; if(Math.hypot(tx-u.x,ty-u.y)<=throwRange(u,U)&&G.vis[idx(tx,ty)]){ const i=idx(tx,ty); if(G.throwTile===i){ pThrow(); return; } G.throwTile=i; SFX.click(); updateHUD(); } else hint('Out of range'); return; }
+  if(G.mode==='obj'){ const i=(G.objT||[]).findIndex(q=>q[0]===tx&&q[1]===ty); if(i>=0){ if(i===G.oIdx){ pObj(); return; } G.oIdx=i; SFX.click(); updateHUD(); } return; }
+  if(G.mode==='throw'){ if(!inMap(tx,ty)) return; const U=UTILS[G.throwUtil.id]; if(Math.hypot(tx-u.x,ty-u.y)<=throwRange(u,U)&&(G.vis[idx(tx,ty)]||U.blind)&&!(U.dev&&isFull(tx,ty))){ const i=idx(tx,ty); if(G.throwTile===i){ pThrow(); return; } G.throwTile=i; SFX.click(); updateHUD(); } else hint('Out of range'); return; }
   if(G.mode==='move'){ if(!inMap(tx,ty)||!G.reach){ return; } const i=idx(tx,ty), d=G.reach.dist[i];
     if(isFinite(d)&&d>0){ if(G.pending===i){ pMove(); return; } G.pending=i; G.pendingPath=buildPath(G.reach,i); SFX.click(); buzz(8);
       if(PROF.settings.oneTap){ pMove(); return; } hint('Tap again to move'); updateHUD(); }
@@ -2795,9 +3199,9 @@ cv.addEventListener('wheel',e=>{ e.preventDefault(); if(G.scene!=='game') return
 document.addEventListener('gesturestart',e=>e.preventDefault());
 
 $('#actions').addEventListener('click',e=>{ const b=e.target.closest('button[data-act]'); if(!b) return; SFX.init(); if(b.classList.contains('off')){ if(b.dataset.why) hint(b.dataset.why); return; } SFX.click(); onAction(b.dataset.act); });
-$('#tChips').addEventListener('click',e=>{ const b=e.target.closest('[data-ti]'); if(!b) return; G.tIdx=+b.dataset.ti; focusMid(G.player,G.targets[G.tIdx]); SFX.click(); updateHUD(); });
+$('#tChips').addEventListener('click',e=>{ const ob=e.target.closest('[data-oi]'); if(ob&&G.objT){ G.oIdx=+ob.dataset.oi; const q=G.objT[G.oIdx]; if(q) focusMid(G.player,tileDummy(q[0],q[1])); SFX.click(); updateHUD(); return; } const b=e.target.closest('[data-ti]'); if(!b) return; G.tIdx=+b.dataset.ti; focusMid(G.player,G.targets[G.tIdx]); SFX.click(); updateHUD(); });
 $('#tCancel').addEventListener('click',()=>{ if(!inputOpen()) return; SFX.click(); G.mode='move'; G.throwUtil=null; G.throwTile=-1; focusOn(G.player.x,G.player.y); updateHUD(); });
-$('#tFire').addEventListener('click',()=>{ if(!inputOpen()) return; SFX.init(); if(G.mode==='throw'){ if(G.throwTile<0){ hint('Tap a tile to aim'); return; } pThrow(); } else pFire(); });
+$('#tFire').addEventListener('click',()=>{ if(!inputOpen()) return; SFX.init(); if(G.mode==='throw'){ if(G.throwTile<0){ hint('Tap a tile to aim'); return; } pThrow(); } else if(G.mode==='obj') pObj(); else pFire(); });
 
 /* ================= cosmetics ================= */
 const SKINS={
@@ -2824,6 +3228,7 @@ const UNLOCKS={2:['u_shieldcell','w_carbine'],3:['mk2_rifle','mk2_shotgun','mk2_
 // s_<secondary>: secondary weapons beyond the starters; ct1..ct5: class perk tiers (levels 3, 6, 9, 12, 15)
 [[2,'s_tknife'],[3,'s_silencer'],[4,'s_machete'],[5,'s_hatchet'],[6,'s_baton'],[7,'s_magnum'],[8,'s_machpistol'],[9,'s_axe'],[11,'s_katana']].forEach(e=>UNLOCKS[e[0]].push(e[1]));
 CP_LVL.forEach((l,i)=>UNLOCKS[l].push('ct'+(i+1)));
+UNLOCKS[3].push('u_drone'); UNLOCKS[5].push('u_sensor'); // fog-of-war tools
 const UNLOCK_LVL={}; for(const l in UNLOCKS) for(const id of UNLOCKS[l]) UNLOCK_LVL[id]=+l;
 function unlockName(id){
   if(id.startsWith('mk2_')) return WEAPONS[id.slice(4)].name+' Mk II';
