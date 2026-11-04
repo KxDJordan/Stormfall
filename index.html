@@ -1063,6 +1063,41 @@ body.sheet-open #sfInv{display:none}
 @media (min-width:820px){ #sfInvBadge{top:calc(var(--sat) + 194px)} } /* below the minimap */
 #sfInvBadge i{font-style:normal;min-width:18px;height:18px;border-radius:9px;background:var(--signal);color:var(--signal-ink);font-size:11px;line-height:18px;text-align:center}
 @media (prefers-reduced-motion:reduce){ .ivcard{animation:none} }
+/* class prestige */
+.ptabs{grid-template-columns:repeat(6,minmax(0,1fr))}
+.ptabs button{font-size:11.5px}
+.np.hasprm{padding-right:34px}
+.prm{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 4px;font:600 15px/1 Teko,sans-serif;font-style:normal;letter-spacing:.04em;color:#120d06;clip-path:polygon(50% 0,100% 22%,100% 70%,50% 100%,0 70%,0 22%);background:#8a96a6}
+.np>.prm{position:absolute;right:7px;top:50%;transform:translateY(-50%)}
+.prm.r1{background:linear-gradient(160deg,#f0b27a,#9a5a2a)} .prm.r2{background:linear-gradient(160deg,#f4f8fc,#8d9aa8)} .prm.r3{background:linear-gradient(160deg,#fff0a8,#c8901e)}
+.prm.r4{background:linear-gradient(160deg,#c8fbff,#3fb8d8)} .prm.r5{background:linear-gradient(120deg,#ffd6ff,#b26bff,#5ce6ff,#ffd6ff);background-size:300% 100%;animation:prsglow 3s linear infinite}
+.prm.r0{background:#2a3340;color:var(--muted)}
+.prm.big{min-width:46px;height:52px;font-size:28px}
+@keyframes prsglow{to{background-position:300% 0}}
+.np.prk3,.np.prk4,.np.prk5{box-shadow:inset 0 -1px 0 rgba(255,215,110,.55),inset 0 1px 0 rgba(255,215,110,.35)}
+.np.prk5{box-shadow:inset 0 -1px 0 rgba(200,140,255,.8),inset 0 1px 0 rgba(120,230,255,.6)}
+.prst{display:inline-flex;gap:2px;font-size:14px;line-height:1;color:#39424f}
+.prst i{font-style:normal}.prst i.on{color:#ffcf4a}.prst i.on.r1{color:#e0995a}.prst i.on.r2{color:#d8e2ec}.prst i.on.r4{color:#8ff0ff}.prst i.on.r5{color:#e0a8ff}
+.prscard{padding:12px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r1);margin-bottom:var(--s2)}
+.prscard.r3,.prscard.r4,.prscard.r5{border-color:rgba(255,207,74,.45)}
+.prsh{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.prsn{flex:1;min-width:0}.prsn b{display:block;font:600 26px/.95 Teko,sans-serif}.prsn small{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}
+.prslv{text-align:right}.prslv small{display:block;color:var(--muted);font-size:11px}.prslv b{font:600 30px/1 Teko,sans-serif;color:var(--amber)}.prslv em{font-style:normal;font-size:16px;color:var(--muted)}
+.prscard .xpbar i{background:linear-gradient(90deg,#c8901e,#fff0a8)}
+.prsx{display:block;color:var(--muted);font-size:12px;margin:6px 0 0}
+.prsgo{width:100%;margin-top:10px}.prsgo.arm{background:#ffcf4a;color:#1a1204}
+.prstrack .trow .prm{width:30px;min-width:0;height:26px;margin:0 auto;font-size:17px;color:#120d06}
+.prstrack .trow:not(.got) .prm{filter:grayscale(.7) brightness(.7)}
+.prstrack{margin-bottom:var(--s2)}
+.prsws{margin-top:var(--s3)}
+.prwrow{display:grid;grid-template-columns:128px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;background:var(--surf);border:1px solid rgba(255,207,74,.35);border-radius:var(--r1);margin-bottom:6px;font-size:13px}
+.prwrow canvas{width:128px;height:45px}.prwrow small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}.prwrow small.ok{color:var(--ok)}
+.prwrow.lock{border-color:var(--line)}.prwrow.lock canvas{opacity:.55;filter:grayscale(.6)}
+.prstok{display:flex;align-items:center;gap:10px;margin-bottom:8px}.prstok b{font:600 36px/1 Teko,sans-serif;color:#ffcf4a}.prstok small{display:block;color:var(--muted);font-size:11.5px}
+.gt.prt{background:rgba(255,207,74,.16);color:#ffcf4a}
+.card.prwc{border-color:rgba(255,207,74,.4)}
+.fe.prw{border-left-color:#ffcf4a;color:#ffe9a8}
+.prsrow{--sc:#ffcf4a}
 </style>
 </head>
 <body>
@@ -1241,6 +1276,7 @@ body.sheet-open #sfInv{display:none}
   <div class="ptabs" id="pTabs" role="tablist" aria-label="Profile sections">
     <button role="tab" id="pt-overview" data-ptab="overview" aria-controls="pp-overview"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Overview</button>
     <button role="tab" id="pt-progress" data-ptab="progress" aria-controls="pp-progress"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Progress</button>
+    <button role="tab" id="pt-prestige" data-ptab="prestige" aria-controls="pp-prestige"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.1 1.2 6L12 16.4l-5.4 3 1.2-6-4.5-4.1 6.1-.7z"/></svg>Prestige</button>
     <button role="tab" id="pt-replays" data-ptab="replays" aria-controls="pp-replays"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg>Replays</button>
     <button role="tab" id="pt-account" data-ptab="account" aria-controls="pp-account"><svg viewBox="0 0 24 24"><path d="M7 18a5 5 0 0 1-.5-9.97A7 7 0 0 1 20 10a4 4 0 0 1-1 7.9"/><path d="M12 12v8M9 15l3-3 3 3"/></svg>Account</button>
     <button role="tab" id="pt-settings" data-ptab="settings" aria-controls="pp-settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Settings</button>
@@ -1257,6 +1293,10 @@ body.sheet-open #sfInv{display:none}
       <div class="sec first"><h3>Class challenges <small>played as that class · rewards titles and banners</small></h3><div class="seg chtabs" id="pChTabs" role="tablist" aria-label="Class"></div><div id="pChal"></div></div>
       <div class="sec"><h3>Weapon mastery <small>hits, damage and takedowns with a weapon level it up</small></h3><div id="pMast"></div></div>
       <div class="sec"><h3>Level rewards <small>gear unlocks</small></h3><div class="track" id="pTrack"></div></div>
+    </div>
+    <div class="ppane hidden" id="pp-prestige" data-pp="prestige" role="tabpanel" aria-labelledby="pt-prestige">
+      <div class="sec first"><h3>Class prestige <small>max a class's level, then prestige it for a rank, tokens and prestige weapons</small></h3><div class="seg chtabs" id="prsTabs" role="tablist" aria-label="Class"></div><div id="prsBody"></div></div>
+      <div class="sec"><h3>Prestige tokens</h3><div id="prsTok"></div></div>
     </div>
     <div class="ppane hidden" id="pp-replays" data-pp="replays" role="tabpanel" aria-labelledby="pt-replays">
       <div class="sec first"><h3>Replays <small>your last 10 matches, saved on this device</small><button class="btn sm ghost rpimp" id="rpImport">Import</button></h3><div id="pReps"></div></div>
@@ -1539,6 +1579,18 @@ const WEAPONS={
   gauss:{name:'Specter Gauss Rifle',short:'Gauss',dmg:[6,8],clip:2,crit:25,critDmg:3,aim:-5,fx:'beam',heavy:true,rt:[[4,-35],[7,-5],[99,10]],desc:'Heaviest hitter at long range; two-round magazine.'},
   volt:{name:'Volt Caster',short:'Volt',dmg:[3,5],clip:3,crit:0,critDmg:2,aim:10,pierce:true,fx:'beam',rt:[[3,10],[6,0]],fall:15,desc:'Arc bolts that ignore armor, with very short reach.'}
 };
+/* ----- armory expansion: more primaries (2 per original class), wired into the class lists below ----- */
+Object.assign(WEAPONS,{
+  lever:{name:'Kodiak Lever-Action',short:'Lever',dmg:[3,5],clip:3,crit:25,critDmg:3,aim:0,fx:'single',rt:[[3,10],[6,5],[8,0]],fall:8,desc:'Cowboy rifle: steady out to 6 tiles and vicious crits.'},
+  drum:{name:'Saiga Drum Shotgun',short:'Drum',dmg:[3,5],clip:6,crit:15,critDmg:2,aim:0,fx:'pellet',rt:[[3,20],[4,5]],fall:15,desc:'A deep drum of buckshot for brawls inside 4 tiles; lighter pellets than the Breacher.'},
+  semidmr:{name:'Vanguard SR-7',short:'SR-7',dmg:[3,4],clip:5,crit:10,critDmg:2,aim:0,fx:'burst',rt:[[2,-5],[9,5],[99,0]],desc:'Semi-auto marksman rifle: deep magazine, even accuracy from 3 to 9 tiles, and you can move and shoot.'},
+  amr:{name:'Goliath AM-50',short:'AM-50',dmg:[6,8],clip:1,crit:10,critDmg:2,aim:-5,mob:-1,pierce:true,fx:'single',heavy:true,rt:[[4,-30],[8,0],[99,5]],desc:'Anti-materiel rifle: one armor-piercing round per reload. Heavy and slow.'},
+  burstr:{name:'Warden Burst Rifle',short:'Warden',dmg:[4,5],clip:3,crit:10,critDmg:2,aim:-5,fx:'burst',rt:[[5,10],[8,5],[9,0]],fall:6,desc:'Three-round bursts that hit harder than the Pulse Rifle, with a smaller magazine.'},
+  flashl:{name:'Thunderclap Launcher',short:'Thunderclap',dmg:[2,4],clip:3,crit:0,critDmg:0,aim:0,fx:'single',flash:true,trc:[255,246,200],rt:[[6,5],[8,0]],fall:10,desc:'Flash shells: light damage, but a hit disorients the target (−20 aim for its next turn) and breaks its overwatch.'},
+  flech:{name:'Needler Flechette SMG',short:'Needler',dmg:[2,3],clip:6,crit:20,critDmg:2,aim:5,mob:1,pierce:true,fx:'burst',rt:[[4,10],[6,0]],fall:8,desc:'Steel darts that ignore armor; quick on the move, weak past 6 tiles.'},
+  arcr:{name:'Tesla Arc Rifle',short:'Arc Rifle',dmg:[3,4],clip:4,crit:5,critDmg:2,aim:5,pierce:true,fx:'beam',arcfx:true,rt:[[5,5],[8,0]],fall:10,desc:'A longer-reaching arc weapon than the Volt Caster: armor-piercing bolts out to 8 tiles, lighter hits.'}
+});
+CLASSES.ranger.weapons.push('lever','drum'); CLASSES.sharpshooter.weapons.push('semidmr','amr'); CLASSES.grenadier.weapons.push('burstr','flashl'); CLASSES.specialist.weapons.push('flech','arcr');
 function rangeFn(rt,fall){ return d=>{ for(const s of rt) if(d<=s[0]) return s[1]; const l=rt[rt.length-1]; return l[1]-(fall||0)*(d-l[0]); }; }
 for(const k in WEAPONS){ WEAPONS[k].id=k; WEAPONS[k].range=rangeFn(WEAPONS[k].rt,WEAPONS[k].fall); }
 const ARMORS={
@@ -1549,9 +1601,19 @@ const ARMORS={
   ghillie:{name:'Ghillie Shroud',short:'Light',look:'light',hp:2,mob:-1,def:15,armor:0,sight:1,note:'Camouflage for holding a perch.'},
   bastion:{name:'Bastion Frame',short:'Heavy',look:'heavy',hp:2,mob:0,def:0,armor:1,note:'Keeps the EXO plating, loses the bulk.'}
 };
+/* ----- armory expansion: armors (shield: starts every match with that much shield) ----- */
+Object.assign(ARMORS,{
+  courier:{name:'Courier Rig',short:'Light',look:'light',hp:0,mob:2,def:0,armor:0,note:'Stripped to the frame: the fastest kit in the game, and nothing else.'},
+  spotter:{name:'Spotter Cloak',short:'Light',look:'light',hp:1,mob:0,def:5,armor:0,sight:2,note:'Optics in the hood: see the shot before anyone else.'},
+  aegis:{name:'Aegis Shield Rig',short:'Heavy',look:'heavy',hp:2,mob:0,def:0,armor:0,shield:3,note:'A shield emitter instead of plates: soaks the first hits, then it is gone.'},
+  mirage:{name:'Mirage Suit',short:'Light',look:'light',hp:1,mob:1,def:5,armor:0,sight:1,note:'Light active camouflage with a drone-linked visor.'},
+  ward:{name:'Ward Vest',short:'Medium',look:'medium',hp:1,mob:0,def:0,armor:0,shield:2,note:'A thin vest with a pocket shield cell.'}
+});
+CLASSES.ranger.armors.push('courier'); CLASSES.sharpshooter.armors.push('spotter','ward'); CLASSES.grenadier.armors.push('aegis'); CLASSES.specialist.armors.push('mirage','ward');
 const sgn=n=>n>0?'+'+n:n<0?'−'+(-n):'±0';
 function armorDesc(a){ const t=[]; if(a.hp) t.push('+'+a.hp+' HP'); if(a.mob) t.push(sgn(a.mob)+' mobility'); if(a.def) t.push('+'+a.def+' defense'); if(a.armor) t.push('blocks '+a.armor+' damage per hit'); if(a.sight) t.push('+'+a.sight+' sight'); return t.join(', ')||'No modifiers'; }
 for(const k in ARMORS) ARMORS[k].desc=armorDesc(ARMORS[k]);
+for(const k in ARMORS) if(ARMORS[k].shield) ARMORS[k].desc+=(ARMORS[k].desc==='No modifiers'?'':', ')+'starts with +'+ARMORS[k].shield+' shield'; // armory expansion: shield armors
 /* range helpers (all derived from WEAPONS[k].range, which is exactly what hitInfo uses) */
 const RANGE_MAX=20, RANGE_BANDS=[['Close',1,4],['Mid',5,8],['Long',9,12]];
 // the tiles where the weapon's range modifier is at its best (its optimal band)
@@ -1642,6 +1704,12 @@ const SECONDARIES={
   axe:{name:'Breaching Axe',short:'Axe',type:'melee',dmg:[4,7],acc:80,crit:10,critDmg:2,pierce:true,desc:'Slow, brutal swing.'},
   katana:{name:'Monoblade',short:'Monoblade',type:'melee',dmg:[4,6],acc:92,crit:20,critDmg:2,dash:4,desc:'A precision cut after a long dash.'}
 };
+// armory expansion: secondaries
+Object.assign(SECONDARIES,{
+  sawnoff:{name:'Sawn-Off',short:'Sawn-Off',type:'pistol',dmg:[3,5],clip:2,crit:15,critDmg:1,aim:0,fx:'pellet',rt:[[2,15],[3,0]],fall:15,desc:'Two barrels of buckshot for point-blank work.'},
+  stiletto:{name:'Stiletto',short:'Stiletto',type:'melee',dmg:[2,4],acc:95,crit:30,critDmg:2,dash:2,desc:'A short dash and a needle-thin blade that finds the gaps.'},
+  chakram:{name:'Chakram',short:'Chakram',type:'thrown',dmg:[2,4],acc:88,crit:10,critDmg:2,range:6,uses:2,aim:0,pierce:true,rt:[[3,10],[6,0]],desc:'A razor ring: slash up close or throw it. Ignores armor.'}
+});
 for(const k in SECONDARIES){ const S=SECONDARIES[k]; S.id=k;
   // pistols and throws get a weapon-like object (aim, range(), crit) so hitInfo/fireShot handle them like the primary
   if(S.rt) S.W={id:k,name:S.name,short:S.short,dmg:S.dmg,clip:S.clip||0,crit:S.crit,critDmg:S.critDmg,aim:S.aim||0,fx:S.type==='thrown'?'throw':S.fx,pierce:!!S.pierce,silent:S.type==='thrown'||!!S.silent,rt:S.rt,fall:S.fall||0,range:rangeFn(S.rt,S.fall),sec:true}; }
@@ -1649,6 +1717,7 @@ CLASSES.ranger.secs=['knife','pistol','tknife','machete','machpistol','katana'];
 CLASSES.sharpshooter.secs=['pistol','knife','silencer','tknife','magnum','katana'];
 CLASSES.grenadier.secs=['pistol','knife','machete','hatchet','magnum','axe'];
 CLASSES.specialist.secs=['pistol','knife','silencer','baton','hatchet','machpistol'];
+CLASSES.ranger.secs.push('sawnoff','stiletto'); CLASSES.sharpshooter.secs.push('stiletto','chakram'); CLASSES.grenadier.secs.push('sawnoff','chakram'); CLASSES.specialist.secs.push('stiletto','chakram'); // armory expansion
 /* ================= weapon attachments =================
    One mod per slot, all modest. Primaries take every slot (minus w.noAtt); pistol sidearms take optic, barrel and magazine.
    An attachment unlocks at weapon mastery level `m` (pistols: `pm`; no pm = not for pistols). Effect fields:
@@ -1673,7 +1742,17 @@ const ATTACH={
   stock:{slot:'under',name:'Tactical Stock',rx:10,m:4},
   bipod:{slot:'under',name:'Bipod',still:8,m:7}
 };
+// armory expansion: more mods for the same four slots (same mastery gating: m primaries, pm pistols)
+Object.assign(ATTACH,{
+  holo:{slot:'optic',name:'Holo Sight',opt:4,m:5,pm:5},
+  hybrid:{slot:'optic',name:'Hybrid Optic',win:[[1,3,3],[7,99,3]],m:8},
+  heavyb:{slot:'barrel',name:'Heavy Barrel',critDmg:1,aim:-5,m:8},
+  brake:{slot:'barrel',name:'Muzzle Brake',mov:4,rx:4,crit:-5,m:9,pm:8},
+  drummag:{slot:'mag',name:'Drum Magazine',clip:2,mob:-1,m:8},
+  laser:{slot:'under',name:'Laser Module',win:[[1,4,3]],mov:3,m:6}
+});
 for(const k in ATTACH) ATTACH[k].id=k;
+WEAPONS.arcr.noAtt=['barrel']; WEAPONS.amr.noAtt=['mag']; SECONDARIES.sawnoff.noAtt=['mag']; // arc coils take no barrel; single-shot and two-barrel guns take no magazine
 WEAPONS.volt.noAtt=['barrel']; SECONDARIES.silencer.noAtt=['barrel']; // arc bolts take no barrel; the Whisper is already suppressed
 const isPistol=k=>!!(SECONDARIES[k]&&SECONDARIES[k].type==='pistol');
 // weapons with mastery and attachments: every primary and every pistol sidearm
@@ -1710,6 +1789,53 @@ function attDesc(A){ const t=[];
   if(A.still) t.push(sgn(A.still)+' aim when you have not moved this turn'); if(A.mov) t.push(sgn(A.mov)+' aim on a shot after moving'); if(A.rx) t.push(sgn(A.rx)+' aim on overwatch and return fire');
   const o=t.join(', '); return o.charAt(0).toUpperCase()+o.slice(1)+'.'; }
 for(const k in ATTACH) ATTACH[k].desc=attDesc(ATTACH[k]);
+
+/* ================= class prestige: data =================
+   Class XP: the XP a match pays also goes to the class you played (PROF.prs[cls].xp, capped at the class max level).
+   At class level PRS.max the class can be prestiged: its level resets to 1, its rank goes up (I..V), and it pays prestige
+   tokens. Ranks unlock that class's prestige weapons (PRW: rank-gated, never in the AI pool, validated online against the
+   spec's cleaned ranks, see prsClean / prwOk). Classes without hand-made prestige weapons (any class added later) get gilded
+   Mk III variants of their first two weapons, so every key of CLASSES takes part. */
+const PRS={max:20,ranks:5,tok:[3,4,5,6,8],wr:[1,3]};
+const cNeed=l=>200+40*l;
+const PRS_TOT=(()=>{ let t=0; for(let l=1;l<PRS.max;l++) t+=cNeed(l); return t; })(); // class XP from level 1 to the max
+const ROMAN=['','I','II','III','IV','V'];
+// rk: the class rank that unlocks it · shape: WPN drawing it is built on · pf: animated prestige finish (PFIN) · trc: tracer colour · tag: kill feed tag
+const PRW_DEF={
+  p_aurum:{cls:'ranger',rk:1,shape:'shotgun',pf:'p_gild',trc:[255,206,90],tag:'Aurum',w:{name:'Aurum Breacher',short:'Aurum',dmg:[5,7],clip:5,crit:30,critDmg:2,aim:5,fx:'pellet',rt:[[4,20],[6,5]],fall:12,desc:'Prestige weapon. A gilded Breacher, Mk III grade, with one more tile of reach.'}},
+  p_reaver:{cls:'ranger',rk:3,shape:'lever',pf:'p_ember',trc:[255,84,60],tag:'Reaver',w:{name:'Reaver Lever-Action',short:'Reaver',dmg:[4,6],clip:4,crit:35,critDmg:3,aim:5,fx:'single',rt:[[3,10],[7,5],[9,0]],fall:8,desc:'Prestige weapon. An ember-forged lever gun: brutal crits, steady out to 7 tiles.'}},
+  p_halo:{cls:'sharpshooter',rk:1,shape:'sniper',pf:'p_gild',trc:[255,232,150],tag:'Halo',w:{name:'Halo Railgun',short:'Halo',dmg:[6,8],clip:4,crit:30,critDmg:3,aim:5,fx:'beam',heavy:true,rt:[[3,-25],[6,-5],[99,5]],desc:'Prestige weapon. A gilded railgun, Mk III grade, a little less clumsy up close.'}},
+  p_seraph:{cls:'sharpshooter',rk:3,shape:'amr',pf:'p_void',trc:[196,120,255],tag:'Seraph',w:{name:'Seraph AM-50',short:'Seraph',dmg:[7,9],clip:2,crit:20,critDmg:2,aim:0,mob:-1,pierce:true,fx:'single',heavy:true,noAtt:['mag'],rt:[[4,-25],[8,0],[99,5]],desc:'Prestige weapon. A void-black anti-materiel rifle with a two-round magazine. Ignores armor.'}},
+  p_sunfire:{cls:'grenadier',rk:1,shape:'cannon',pf:'p_gild',trc:[255,170,60],tag:'Sunfire',w:{name:'Sunfire Cannon',short:'Sunfire',dmg:[5,8],clip:4,crit:20,critDmg:2,aim:0,fx:'heavy',rt:[[7,0],[9,-5]],fall:5,desc:'Prestige weapon. A gilded Hailstorm, Mk III grade, that reaches 2 tiles farther.'}},
+  p_maelstrom:{cls:'grenadier',rk:3,shape:'minigun',pf:'p_void',trc:[170,110,255],tag:'Maelstrom',w:{name:'Maelstrom Minigun',short:'Maelstrom',dmg:[5,6],clip:7,crit:15,critDmg:2,aim:0,fx:'heavy',rt:[[6,10],[9,0]],fall:5,desc:'Prestige weapon. A void-forged minigun that does not slow you down.'}},
+  p_aurora:{cls:'specialist',rk:1,shape:'volt',pf:'p_aurora',trc:[120,255,200],tag:'Aurora',w:{name:'Aurora Caster',short:'Aurora',dmg:[4,6],clip:4,crit:10,critDmg:2,aim:15,pierce:true,fx:'beam',arcfx:true,noAtt:['barrel'],rt:[[3,10],[7,0]],fall:15,desc:'Prestige weapon. A Volt Caster, Mk III grade, whose aurora bolts reach a tile farther.'}},
+  p_wraith:{cls:'specialist',rk:3,shape:'flech',pf:'p_ember',trc:[255,90,150],tag:'Wraith',w:{name:'Wraith Needler',short:'Wraith',dmg:[3,4],clip:7,crit:30,critDmg:2,aim:10,mob:1,pierce:true,fx:'burst',rt:[[4,10],[7,0]],fall:8,desc:'Prestige weapon. Ember-lit darts, Mk III grade, that carry a tile farther.'}}
+};
+const PRW={};
+function prwReg(k,P){ const w=JSON.parse(JSON.stringify(P.w)); w.id=k; w.prw=true; w.range=rangeFn(w.rt,w.fall); WEAPONS[k]=w; PRW[k]=P; if(!CLASSES[P.cls].weapons.includes(k)) CLASSES[P.cls].weapons.push(k); }
+// idempotent: registers the hand-made weapons, then gilded variants for any class that still has none (run again later in case classes were added after this point)
+function prsGen(){
+  for(const k in PRW_DEF) if(!PRW[k]&&CLASSES[PRW_DEF[k].cls]) prwReg(k,PRW_DEF[k]);
+  for(const cls of Object.keys(CLASSES)){ if(Object.keys(PRW).some(k=>PRW[k].cls===cls)) continue;
+    const base=CLASSES[cls].weapons.filter(k=>WEAPONS[k]&&!PRW[k]);
+    PRS.wr.forEach((rk,i)=>{ const b=base[i]||base[0]; if(!b) return; const W0=applyMk(JSON.parse(JSON.stringify(Object.assign({},WEAPONS[b],{range:null}))),3);
+      prwReg('p_'+cls+'_'+rk,{cls,rk,shape:b,pf:i?'p_void':'p_gild',trc:i?[196,120,255]:[255,206,90],tag:(i?'Void ':'Gilded ')+W0.short,
+        w:Object.assign(W0,{name:(i?'Void ':'Gilded ')+W0.name,short:(i?'Void ':'Gilded ')+W0.short,crit:W0.crit+5,desc:'Prestige weapon. A '+(i?'void-forged':'gilded')+' '+W0.name+', Mk III grade, with +5% crit.'})}); }); } }
+prsGen();
+// a weapon's tracer colour (prestige weapons and the Thunderclap's flash shells); null: the team colour
+function wTracer(k){ return (PRW[k]&&PRW[k].trc)||(WEAPONS[k]&&WEAPONS[k].trc)||null; }
+function prwTag(k){ return PRW[k]?'★ '+PRW[k].tag:undefined; }
+// local unlock state (PROF.prs: {cls:{xp,rk}}), and the spec's ranks (cleaned) for remote players
+function prsRank(cls){ return (PROF&&PROF.prs&&PROF.prs[cls]&&PROF.prs[cls].rk)|0; }
+function prsHas(k){ const P=PRW[k]; return !!P&&prsRank(P.cls)>=P.rk; }
+function prwOk(k,pr){ const P=PRW[k]; return !P||((pr&&pr[P.cls])|0)>=P.rk; }
+// a spoofed spec cannot claim more ranks than its claimed account level could have paid for (class XP is match XP, which
+// also counts toward the account level): total ranks <= XP needed to pass that level / XP per prestige. Level 40 (the cap) is unbounded.
+function prsCap(lv){ if(lv>=40) return 1e9; let t=0; for(let l=1;l<=lv;l++) t+=xpNeed(l); return Math.floor(t/PRS_TOT); }
+function prsClean(src,lv){ const o={}; if(!src||typeof src!=='object') return o; let left=prsCap(lv);
+  for(const k of Object.keys(CLASSES)){ const g=Math.min(clamp(src[k]|0,0,PRS.ranks),left); if(g>0){ o[k]=g; left-=g; } } return o; }
+function prsSpec(){ const o={}; for(const k of Object.keys(CLASSES)){ const r=prsRank(k); if(r) o[k]=r; } return o; }
+/* ================= class prestige: data (end) ================= */
 
 /* ================= weapon mastery =================
    Per-weapon XP from your own hits, damage and takedowns with it (counted in the sim only for the local player, like
@@ -2643,7 +2769,7 @@ function makeUnit(lo,isPlayer,name,color,prof,team){
   const attP=attIds(lo.att&&lo.att[lo.weapon],lo.weapon);
   const mk=has('mk3_'+lo.weapon)?3:has('mk2_'+lo.weapon)?2:1, Cl=CLASSES[lo.cls],Ar=ARMORS[lo.armor],Wp=applyAtt(applyMk(Object.assign({},WEAPONS[lo.weapon]),mk),attP);
   let hpB=0,perk=null;
-  if(has('ar_'+lo.armor)) hpB=1; perk=lo.perk&&has(lo.perk)?lo.perk:null; const P=(perk&&PERKS[perk])||{}, aimB=P.aim||0, sh=P.shield||0;
+  if(has('ar_'+lo.armor)) hpB=1; perk=lo.perk&&has(lo.perk)?lo.perk:null; const P=(perk&&PERKS[perk])||{}, aimB=P.aim||0, sh=(P.shield||0)+(Ar.shield||0);
   // secondary and class perks (lo.tree is the 5 picks for this class; the local loadout keeps one array per class)
   const sOk=k=>UNLOCK_LVL['s_'+k]==null||has('s_'+k), sid=Cl.secs.includes(lo.sec)&&sOk(lo.sec)?lo.sec:Cl.secs.find(sOk); let S=SECONDARIES[sid];
   // pistol attachments: a per-unit copy of the secondary with its own weapon object
@@ -2662,6 +2788,7 @@ function makeUnit(lo,isPlayer,name,color,prof,team){
     ride:eq?(cosHas('ride',eq.ride)?eq.ride:'default'):aiCos(name,AI_RIDES,21)}; // drop ship (intro flyover, visual only; hashed for AI, no RNG call)
   // name plate (cosmetic, never read by the sim): your own picks, or a remote spec's cleaned ids; AI has none
   u.ttl=prof?(prof.own?(hasK(TITLES,prof.title)?prof.title:''):myTitle()):''; u.bnr=prof?(prof.own?bnKey(prof.banner):myBanner()):'';
+  u.prk=prof?(prof.own?((prof.pr&&prof.pr[lo.cls])|0):prsRank(lo.cls)):0; // prestige rank of the unit's class (name plate emblem; cosmetic)
   u.hp=u.maxHp;
   // Specialist drone: model and upgrades from the loadout (validated by sanitize / cleanSpec; here only ids are re-checked);
   // AI: a model it has unlocked at its level and upgrades by level, picked by a name hash (no RNG call). Skin is cosmetic.
@@ -3617,6 +3744,20 @@ const WPN={
   katana:{hold:'blade',parts:[['R',-5,-0.85,4.8,1.7,'k'],['r',-4.2,-0.85,0.5,1.7,'f'],['r',-2.8,-0.85,0.5,1.7,'f'],['r',-1.4,-0.85,0.5,1.7,'f'],['R',-0.4,-1.8,1,3.6,'f'],['p','s',0.6,-0.75,18.2,-0.95,20,-0.1,0.6,0.65],['l','v',0.45,1,-0.7,18.2,-0.85]]},
   blade:{hold:'blade',parts:[['R',-4.2,-0.9,4.2,1.8,'k'],['R',-0.3,-1.8,1,3.6,'f'],['p','s',0.7,-1.1,12.2,-1.1,14.6,0,0.7,1.1],['l','v',0.5,1.2,-0.9,12.2,-0.9]]}
 };
+// armory expansion: drawings for the new primaries (authored at full size, scaled with the rest below) and secondaries
+Object.assign(WPN,{
+  lever:{hold:'rifle',fg:10.6,tip:[20,-1.6],parts:[['p','w',-8,-1.4,-1,-2,-1,1.6,-4,2,-6.6,3.6,-8,3.2],['R',-1,-2.4,8,3.8,'f'],['p','k',0,1.2,2,1.2,1.2,4.6,-0.6,4.4],['l','k',0.8,1.4,1.4,1.6,4.8],['l','k',0.8,1.6,4.8,4.4,4.6],['l','k',0.8,4.4,4.6,4.6,1.4],['r',7,-2.2,13,1.3,'m'],['r',7,-0.7,11,1.2,'k'],['R',7.6,-1.1,6,2.6,'w'],['r',19.2,-3,0.8,0.9,'k'],['r',1.5,-1.6,3,0.6,'v']]},
+  drum:{hold:'rifle',fg:12,tip:[18.2,-1.5],parts:[['p','k',-6,-1.6,-0.6,-2.4,-0.6,1.8,-5,3,-6,2.6],['R',-0.6,-3,10,5,'f'],['p','k',0,2,2.2,2,1.3,5.2,-0.5,5],['c',6,3.8,3.4,'k'],['c',6,3.8,1.6,'m'],['r',9.4,-2.6,7.6,2.2,'k'],['R',9.6,-0.4,4.6,2.2,'F'],['r',16.6,-3,1.6,3,'m'],['r',1,-2.4,6,0.8,'v']]},
+  semidmr:{hold:'rifle',fg:11,tip:[22.2,-0.5],parts:[['p','F',-7.6,-1.2,-1,-2,-1,1.6,-5,2.2,-7.6,3],['R',-1,-2.2,10.8,3.8,'f'],['p','k',0,1.2,2.2,1.2,1.3,4.6,-0.6,4.4],['p','k',3.8,1.4,6,1.4,6.6,5.4,4.4,5.4],['R',9.6,-2,7,3.2,'F'],['r',16.4,-1.1,4.4,1.3,'k'],['r',20.6,-1.6,1.6,2.2,'m'],['R',1.6,-5.2,7,2.1,'k'],['c',8.6,-4.15,0.9,'g'],['r',2.8,-3.1,1,1,'k'],['r',6.6,-3.1,1,1,'k'],['r',10.4,-0.6,4.6,0.7,'v']]},
+  amr:{hold:'long',fg:11,tip:[32,-0.4],parts:[['p','F',-9.6,-1.8,-1,-2.4,-1,2,-4,2,-6.4,4,-9.6,3.6],['r',-8,-2.8,4,1,'k'],['R',-1,-2.8,13,5,'f'],['p','k',0,2.2,2.2,2.2,1.3,5.6,-0.6,5.4],['p','k',5,2.2,8,2.2,8,6.4,5,6.4],['r',12,-1.4,17,2.2,'k'],['r',13,-0.6,14,0.6,'m'],['R',28.6,-2.4,3.4,4,'m'],['r',29.4,-2.4,0.6,4,'k'],['r',30.6,-2.4,0.6,4,'k'],['R',1,-7,12,2.8,'k'],['c',13,-5.6,1.4,'g'],['r',3,-4.2,1.2,1.4,'k'],['r',9.4,-4.2,1.2,1.4,'k'],['l','m',0.8,20,0.9,26,1.2],['r',3,-1.6,7,0.8,'v']]},
+  burstr:{hold:'rifle',fg:10.4,tip:[19.8,-0.5],parts:[['r',-8.4,-2.6,1,5,'k'],['R',-7.4,-2.6,14.6,4.6,'f'],['p','k',0,2,2.2,2,1.4,5.4,-0.6,5.2],['p','k',-4.6,2,-1.8,2,-2,6,-4.8,6],['R',7,-2.2,7,3.6,'F'],['r',14,-1.2,4.4,1.5,'k'],['r',18.2,-1.7,1.6,2.4,'m'],['R',-2.4,-5,8,1.6,'k'],['r',4.6,-3.6,0.9,1.2,'k'],['r',-2,-3.6,0.9,1.2,'k'],['r',8,-0.6,5,0.7,'v']]},
+  flashl:{hold:'shoulder',fg:14,tip:[21,-0.6],parts:[['r',-6.4,-2.4,2.4,4,'k'],['R',-4,-3,16,5,'f'],['R',3,-4.4,7,8.6,'k'],['c',4.8,-2,1,'m'],['c',8.2,-2,1,'m'],['c',4.8,2,1,'m'],['c',8.2,2,1,'m'],['R',12,-2.6,8,4,'F'],['r',19.4,-3,1.6,4.8,'k'],['p','k',-0.4,2,1.8,2,1.2,5.4,-0.8,5.2],['p','k',13,1.4,15,1.4,14.6,4.6,13.2,4.6],['r',13,-2.6,5,0.9,'y'],['r',-2.6,-1,4,0.8,'v']]},
+  flech:{hold:'rifle',fg:9.4,tip:[16.4,-0.4],parts:[['l','k',1.1,-5,-1.6,-1,-1.6],['l','k',1.1,-5,1.2,-1,1.2],['l','k',1.3,-5,-1.6,-5,1.2],['R',-1,-2.4,10,4.2,'f'],['p','k',0,1.6,2,1.6,1.2,4.8,-0.4,4.6],['R',1,-4.6,8,2.2,'k'],['r',1.6,-4.2,6.8,0.6,'v'],['r',9,-1.8,4.6,2.8,'F'],['r',13.6,-0.9,2.6,1,'s'],['p','k',4,1.8,5.8,1.8,6,5,4.2,5]]},
+  arcr:{hold:'rifle',fg:10,tip:[18.6,0],parts:[['p','F',-6.6,-1.6,-1,-2.4,-1,2,-6.6,2.8],['R',-1,-2.8,12,5.2,'f'],['p','k',0,2,2,2,1.3,5.2,-0.4,5],['r',3,-3.4,1.2,6.4,'v'],['r',5.4,-3.4,1.2,6.4,'v'],['r',7.8,-3.4,1.2,6.4,'v'],['p','m',11,-2.6,18,-3.4,18.6,-2,11.4,-1],['p','m',11,2.6,18,3.4,18.6,2,11.4,1],['c',12.6,0,1.6,'v'],['R',1,2.2,5,2.6,'k']]},
+  sawnoff:{hold:'pistol',fg:.2,fgY:2.6,tip:[8.6,-1.4],parts:[['R',-1.2,-2.6,4,2.6,'f'],['r',2.6,-2.6,6,1.2,'m'],['r',2.6,-1.4,6,1.2,'k'],['p','w',-1.2,0,1.4,0,0.6,4.6,-2,4.2],['r',7.8,-2.8,0.7,0.5,'v']]},
+  stiletto:{hold:'blade',parts:[['R',-3.6,-0.8,3.6,1.6,'k'],['r',-0.1,-1.8,0.7,3.6,'f'],['p','s',0.6,-0.6,10.6,-0.15,11.4,0,10.6,0.15,0.6,0.6],['l','v',0.35,1,0,10,0]]},
+  chakram:{hold:'blade',parts:[['c',0,0,3.2,'s'],['c',0,0,2,'k'],['c',0,0,1,'f'],['r',-0.3,-3.6,0.6,0.8,'v'],['r',-0.3,2.8,0.6,0.8,'v']]}
+});
 const HOLDS={ // weapon carry in torso space [gripX,gripY,angle] at rest and when aiming
   rifle:{idle:[3.2,-7.2,0.32],aim:[2.4,-11.6,0]}, long:{idle:[3,-7.4,0.4],aim:[2.2,-11.8,0]},
   hip:{idle:[2.6,-5.8,0.12],aim:[2.4,-6.4,-0.03]}, shoulder:{idle:[2.6,-6.6,0.22],aim:[0.6,-12.2,-0.02]},
@@ -3629,13 +3770,29 @@ for(const k in WPN){ const D=WPN[k]; if(D.hold==='pistol'||D.hold==='blade') con
 for(const k in WPN){ const D=WPN[k]; let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; const ext=(x,y)=>{ x0=Math.min(x0,x); y0=Math.min(y0,y); x1=Math.max(x1,x); y1=Math.max(y1,y); };
   for(const p of D.parts){ if(p[0]==='r'||p[0]==='R'){ ext(p[1],p[2]); ext(p[1]+p[3],p[2]+p[4]); } else if(p[0]==='c'){ ext(p[1]-p[3],p[2]-p[3]); ext(p[1]+p[3],p[2]+p[3]); } else { const o=p[0]==='l'?3:2; for(let i=o;i<p.length;i+=2) ext(p[i],p[i+1]); } }
   D.box=[x0-1.2,y0-1.2,x1-x0+2.4,y1-y0+2.4]; D.len=x1; if(!D.tip) D.tip=[x1,0]; }
+/* ================= class prestige: visuals =================
+   Prestige weapons are drawn on their base weapon's shape with a gem inlay, always in their own animated prestige finish
+   (WPN[k].pf, read by wSprite / paintWeapon / mfinTile next to MFIN), fire tracers in their own colour (wTracer, shotFX)
+   and tag their eliminations in the kill feed (prwTag). */
+const PFIN={
+  p_gild:{name:'Prestige Gilt',c:'#d9b048',pat:'gild',anim:8,pc:[[214,172,62],[128,90,24],[255,240,170]]},
+  p_ember:{name:'Prestige Ember',c:'#3a1c18',pat:'ember',anim:6,pc:[[54,26,22],[24,12,10],[255,120,50]]},
+  p_void:{name:'Prestige Void',c:'#261a3a',pat:'void',anim:6,pc:[[38,26,58],[16,10,28],[210,160,255]]},
+  p_aurora:{name:'Prestige Aurora',c:'#1a3a40',pat:'aurora',anim:8,pc:[[22,52,62],[10,26,34],[120,255,200]]}
+};
+for(const k in PFIN) PFIN[k].id=k;
+function prsVis(){ for(const k in PRW){ if(WPN[k]) continue; const P=PRW[k], B=WPN[P.shape]||WPN.rifle, g=B.hold==='pistol'||B.hold==='blade'?.6:1;
+  const rc=q=>{ const c=q[0]==='p'||q[0]==='l'?1:q.length-1, o=q.slice(); if(o[c]==='k') o[c]='F'; else if(o[c]==='m') o[c]='f'; return o; }; // the whole gun in the prestige finish
+  WPN[k]=Object.assign({},B,{pf:P.pf,parts:B.parts.map(rc).concat([['c',2.2*g,-0.3*g,0.95*g,'v'],['c',2.2*g,-0.3*g,0.45*g,'s']])}); } }
+prsVis();
+/* ================= class prestige: visuals (end) ================= */
 const WSPR=new Map(); let WSC=1;
 const FINMAT={f_chrome:{sheen:[[255,255,255],[92,104,124]]},f_royal:{sheen:[[255,240,180],[150,104,30]]},gold:{sheen:[[255,236,160],[150,104,30]]},crimson:{sheen:[[200,60,72],[80,10,20]]},frost:{sheen:[[214,224,236],[110,124,140]]},m_gold:{sheen:[[255,240,170],[160,112,30]]}};
 /* mastery finish material tiles (MFIN[..].pat), rasterised once per finish and animation frame, then used as a fill
    pattern for the finish-coloured parts when a weapon sprite is painted (so they live inside the sprite cache) */
 const MPAT=new Map();
 function mfinTile(key,fr){
-  const ck=key+'#'+fr; if(MPAT.has(ck)) return MPAT.get(ck); const F=MFIN[key], col=F.pc, N=32, cv2=document.createElement('canvas'); cv2.width=cv2.height=N; const g=cv2.getContext('2d');
+  const ck=key+'#'+fr; if(MPAT.has(ck)) return MPAT.get(ck); const F=MFIN[key]||PFIN[key], col=F.pc, N=32, cv2=document.createElement('canvas'); cv2.width=cv2.height=N; const g=cv2.getContext('2d');
   g.fillStyle=C(col[0]); g.fillRect(0,0,N,N);
   if(F.pat==='digi'){ for(let y=0;y<N;y+=2) for(let x=0;x<N;x+=2){ const h=hash(x,y,11), h2=hash(x>>2,y>>2,12), c2=h2<.3&&h<.85?col[1]:h2>.72&&h<.8?col[2]:h<.05?col[3]:null; if(c2){ g.fillStyle=C(c2); g.fillRect(x,y,2,2); } } }
   else if(F.pat==='tiger'){ g.fillStyle=C(col[2],1,.5); g.fillRect(0,0,N,N*.3); g.fillStyle=C(col[1]); for(let i=0;i<5;i++){ const x=i*7+hash(i,3,4)*3; g.beginPath(); g.moveTo(x,-2); g.quadraticCurveTo(x+4,N*.3,x+1,N*.55); g.quadraticCurveTo(x-2,N*.8,x+3,N+2); g.lineTo(x+5,N+2); g.quadraticCurveTo(x+1,N*.75,x+3.4,N*.5); g.quadraticCurveTo(x+6,N*.3,x+2.4,-2); g.fill(); } }
@@ -3648,10 +3805,22 @@ function mfinTile(key,fr){
     const pulse=.55+.45*Math.sin(fr/F.anim*Math.PI*2); g.lineCap='round';
     for(let b=0;b<3;b++){ const pts=[]; let x=hash(b,fr,7)*N, y=-2; while(y<N+2){ pts.push([x,y]); x+=(hash(b,y|0,fr+9)-.5)*9; y+=3+hash(b,y|0,8)*4; }
       for(const [lw,a,cc] of [[3,.25*pulse,col[2]],[1,.95*pulse,[230,250,255]]]){ g.strokeStyle=C(cc,1,a); g.lineWidth=lw; g.beginPath(); pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])); g.stroke(); } } }
+  // class prestige finishes (PFIN)
+  else if(F.pat==='gild'){ const gr=g.createLinearGradient(0,0,N,N); gr.addColorStop(0,C(col[2])); gr.addColorStop(.4,C(col[0])); gr.addColorStop(.6,C(col[1])); gr.addColorStop(1,C(col[0])); g.fillStyle=gr; g.fillRect(0,0,N,N);
+    g.strokeStyle=C(col[1],1,.6); g.lineWidth=.8; for(let i=0;i<4;i++){ const cx=(i%2)*16+8, cy=(i>>1)*16+8; g.beginPath(); g.arc(cx,cy,4.5,0,Math.PI*1.6); g.stroke(); g.beginPath(); g.arc(cx,cy,1.6,0,Math.PI*2); g.stroke(); }
+    const sw=(fr/F.anim)*N*2-N/2; g.save(); g.translate(sw,0); g.rotate(.5); const sg=g.createLinearGradient(-6,0,6,0); sg.addColorStop(0,'rgba(255,255,255,0)'); sg.addColorStop(.5,'rgba(255,252,225,.85)'); sg.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=sg; g.fillRect(-6,-N,12,N*3); g.restore(); }
+  else if(F.pat==='ember'){ const pulse=.5+.5*Math.sin(fr/F.anim*Math.PI*2); g.lineCap='round';
+    for(let b=0;b<4;b++){ const pts=[]; let x=hash(b,1,21)*N, y=-2; while(y<N+2){ pts.push([x,y]); x+=(hash(b,y|0,22)-.5)*10; y+=3+hash(b,y|0,23)*3; }
+      for(const [lw,a,cc] of [[3.2,.3+.3*pulse,col[2]],[1,.6+.4*pulse,[255,220,150]]]){ g.strokeStyle=C(cc,1,a); g.lineWidth=lw; g.beginPath(); pts.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1])); g.stroke(); } } }
+  else if(F.pat==='void'){ g.fillStyle=C(col[1]); for(let i=0;i<5;i++){ g.beginPath(); g.ellipse(hash(i,4,31)*N,hash(i,5,31)*N,6+hash(i,6,31)*5,3.5,hash(i,7,31)*3,0,Math.PI*2); g.fill(); }
+    for(let i=0;i<14;i++){ const tw=.5+.5*Math.sin((fr/F.anim+hash(i,9,32))*Math.PI*2), x=hash(i,1,33)*N, y=hash(i,2,33)*N; g.fillStyle=C(col[2],1,.25+.75*tw); g.fillRect(x,y,1+tw,1+tw); } }
+  else if(F.pat==='aurora'){ for(let b=0;b<5;b++){ const ph=fr/F.anim*Math.PI*2+b*1.3; g.strokeStyle=C(mix(col[2],[150,170,255],b/5),1,.55); g.lineWidth=2.2; g.beginPath();
+      for(let x=0;x<=N;x+=2){ const y=b*7+3+Math.sin(x/N*Math.PI*2+ph)*3; x?g.lineTo(x,y):g.moveTo(x,y); } g.stroke(); } }
   MPAT.set(ck,cv2); return cv2;
 }
 // attachment parts drawn onto a weapon sprite, in the weapon's own space (same part format as WPN)
 const ATT_VIS={barrel:{supp:6,comp:2,longb:4}};
+Object.assign(ATT_VIS.barrel,{heavyb:3.6,brake:2.6}); // armory expansion
 function attParts(D,att){
   if(!att) return []; const ids=att.split('.'), S=D.hold==='pistol'?.62:.8, out=[], tx=D.tip[0], ty=D.tip[1];
   let yT=1e9,yB=-1e9; for(const p of D.parts) if((p[0]==='R'||p[0]==='r')&&p[p.length-1]==='f'){ yT=Math.min(yT,p[2]); yB=Math.max(yB,p[2]+p[4]); } if(yT>1e8){ yT=-2; yB=2; }
@@ -3665,14 +3834,21 @@ function attParts(D,att){
     else if(id==='longb') out.push(['r',tx-.3,ty-.55*S,4.2*S,1.1*S,'m'],['r',tx+3.6*S,ty-.8*S,.9*S,1.6*S,'k']);
     else if(id==='grip'&&D.fg!=null&&D.hold!=='pistol') out.push(['R',D.fg-.7*S,yB-.2,1.5*S,3.4*S,'k']);
     else if(id==='bipod'&&D.hold!=='pistol'){ const bx=Math.max(D.fg||0,tx*.72); out.push(['l','m',.7*S,bx,yB,bx+2.2*S,yB+4.6*S],['l','m',.7*S,bx,yB,bx-1*S,yB+4.8*S]); }
-    else if(id==='extmag'&&D.hold==='pistol') out.push(['r',-1.5,4.4,2.4,1.6,'k']); }
+    else if(id==='extmag'&&D.hold==='pistol') out.push(['r',-1.5,4.4,2.4,1.6,'k']);
+    // armory expansion mods
+    else if(id==='holo'&&!scoped) out.push(['R',1*S,yT-2.4*S,3.4*S,2.4*S,'k'],['r',1.5*S,yT-2*S,2.4*S,1.5*S,'g'],['r',2.5*S,yT-1.5*S,.5*S,.5*S,'e']);
+    else if(id==='hybrid'&&!scoped) out.push(['R',.4*S,yT-2.5*S,6*S,2.3*S,'k'],['c',6.3*S,yT-1.35*S,1.05*S,'g'],['R',1.6*S,yT-4*S,2.4*S,1.6*S,'k'],['r',3.6*S,yT-3.8*S,.4*S,1.1*S,'g']);
+    else if(id==='heavyb') out.push(['r',tx-.3,ty-.95*S,3.9*S,1.9*S,'k'],['r',tx+.6*S,ty-.95*S,.5*S,1.9*S,'m'],['r',tx+2.2*S,ty-.95*S,.5*S,1.9*S,'m']);
+    else if(id==='brake') out.push(['r',tx-.3,ty-1.3*S,2.9*S,2.6*S,'m'],['r',tx+.4*S,ty-1.3*S,.5*S,.8*S,'k'],['r',tx+1.4*S,ty-1.3*S,.5*S,.8*S,'k'],['r',tx+.4*S,ty+.5*S,.5*S,.8*S,'k'],['r',tx+1.4*S,ty+.5*S,.5*S,.8*S,'k']);
+    else if(id==='drummag'&&D.hold!=='pistol') out.push(['c',4.6*S,yB+2*S,2.4*S,'k'],['c',4.6*S,yB+2*S,1*S,'m']);
+    else if(id==='laser'&&D.fg!=null&&D.hold!=='pistol') out.push(['R',D.fg+.4*S,yB-.2,3.2*S,1.5*S,'k'],['r',D.fg+3.2*S,yB+.2*S,.6*S,.7*S,'e']); }
   return out;
 }
 // how far a muzzle device pushes the muzzle forward (effects use it so flashes leave the end of the barrel)
 function attMuzzle(D,att){ if(!att) return 0; const S=D.hold==='pistol'?.62:.8; let m=0; for(const id of att.split('.')){ const v=ATT_VIS.barrel[id]; if(v) m=Math.max(m,v*S-.3); } return m; }
 function paintWeapon(g,D,fin,vis){
   // fin: '<finish>' or '<finish>+<attachment ids>' (the attachments are drawn as extra parts); fr: animation frame of a mastery finish
-  const fp=String(fin).split('+'), fk=fp[0], MF=MFIN[fk], fr=+(fp[2]||0);
+  const fp=String(fin).split('+'), fk=fp[0], MF=MFIN[fk]||PFIN[fk], fr=+(fp[2]||0);
   if(fp[1]){ const ex=attParts(D,fp[1]); if(ex.length) D={parts:D.parts.concat(ex),box:D.box}; }
   const F=FINISHES[fk]||MF||FINISHES.default, fc=hexc(F.c), M=FINMAT[fk], vc=hexc(vis);
   let pat=null; if(MF){ pat=g.createPattern(mfinTile(fk,fr),'repeat'); try{ pat.setTransform(new DOMMatrix([.2,0,0,.2,0,0])); }catch(e){} }
@@ -3701,8 +3877,9 @@ function paintWeapon(g,D,fin,vis){
 // weapon sprite for the current transform scale (rounded to half-octave buckets), cached
 function wSprite(c,id,fin,vis){
   const D=WPN[id]; if(!D) return null; const s=WSC;
+  if(D.pf) fin=D.pf+'+'+(String(fin).split('+')[1]||''); // class prestige weapons always wear their own finish
   // animated mastery finishes pick one of MFIN.anim cached frames from the clock (a few extra sprites, no per-frame painting)
-  const fk=String(fin).split('+')[0], MF=MFIN[fk], AN=(MF&&MF.anim)||(!MF&&cosHas('finish',fk)&&FINISHES[fk].anim); if(AN) fin=fk+'+'+(String(fin).split('+')[1]||'')+'+'+(Math.floor(G.time*7)%AN);
+  const fk=String(fin).split('+')[0], MF=MFIN[fk]||PFIN[fk], AN=(MF&&MF.anim)||(!MF&&cosHas('finish',fk)&&FINISHES[fk].anim); if(AN) fin=fk+'+'+(String(fin).split('+')[1]||'')+'+'+(Math.floor(G.time*7)%AN);
   const sc=Math.min(14,Math.max(1,Math.pow(2,Math.ceil(Math.log2(Math.max(.5,s))*2)/2))), k=id+'|'+fin+'|'+vis+'|'+sc;
   let e=WSPR.get(k); if(e) return e; if(WSPR.size>260) WSPR.clear();
   let b=D.box; const at=String(fin).split('+')[1];
@@ -3971,6 +4148,7 @@ const L2=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a.length>2?a[2]+(b[2]-a
 // melee poses (torso space): [handX,handY,bladeAngle] for wind-up and strike
 const MSTYLE={slash:[[-3,-19,-2.5],[8,-5,0.7]],chop:[[-1,-21,-1.9],[7.5,-6,1]],stab:[[-1.5,-10,0.05],[10,-10.5,-0.05]],swing:[[-3,-15,-2.9],[8.5,-9,0.25]],blade:[[-4,-20,-2.6],[9,-4,0.9]]};
 const SEC_STYLE={knife:'stab',tknife:'stab',machete:'slash',katana:'slash',hatchet:'chop',axe:'chop',baton:'swing'};
+Object.assign(SEC_STYLE,{stiletto:'stab',chakram:'slash'}); // armory expansion
 
 function drawSoldier(c,o){
   const t=o.time||0, ph=o.ph||0, cls=o.cls, B=(o.skin&&SKINS[o.skin]&&SKINS[o.skin].b)||BODY[cls]||BODY.ranger;
@@ -4458,6 +4636,7 @@ function initWeather(){ G.weather=[]; const X=G.scene==='game'&&G.wx?WX[G.wx.k]:
 function vAnim(u,k,d,x){ if(u) u.anim=Object.assign({k,t:0,d},x||{}); }
 const appr=(v,to,r)=>v<to?Math.min(to,v+r):Math.max(to,v-r);
 const PISTOLS={pistol:1,silencer:1,magnum:1,machpistol:1};
+PISTOLS.sawnoff=1; // armory expansion
 function animShot(a,pre,kind,sec,lbl){
   if(kind==='throw') vAnim(a,'throw',pre+.45,{rel:pre,sec:true});
   else vAnim(a,'aim',pre+(FXDUR[kind]||150)/1000+.5,{pre,sec,kind,lbl});
@@ -5789,6 +5968,7 @@ function frame(now){
   if(!$('#menu').classList.contains('hidden')) drawOpCard();
   if(TUT.on) tutTick();
   if(!$('#pass').classList.contains('hidden')&&(pvF=!pvF)) passAnim();
+  if(!$('#profile').classList.contains('hidden')&&(pvF=!pvF)) prsAnim('#profile canvas[data-prw],#profile canvas[data-pm]'); // class prestige finishes
   if(!$('#store').classList.contains('hidden')&&(pvF=!pvF)) document.querySelectorAll('#stGrid canvas[data-pv],#stGrid canvas[data-set]').forEach(cv2=>{ const r=cv2.getBoundingClientRect(); if(r.bottom>0&&r.top<VH) (cv2.dataset.set?drawSetPreview(cv2):drawCosPreview(cv2)); });
   requestAnimationFrame(frame);
 }
@@ -5838,7 +6018,7 @@ function hitInfo(a,t,o){
 }
 function rollDmg(r){ return ri(r[0],r[1]); }
 function feedLine(text,you){
-  const el=document.createElement('div'); el.className='fe'+(you?' you':''); el.textContent=text;
+  const el=document.createElement('div'); el.className='fe'+(you?' you':'')+(text.includes('(★ ')?' prw':''); el.textContent=text; // prw: a prestige weapon elimination
   const f=$('#feed'); f.appendChild(el); while(f.children.length>4) f.removeChild(f.firstChild);
   setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); },7000);
 }
@@ -5921,7 +6101,8 @@ async function fireShot(a,t,o){
   if(!W.silent){ makeNoise(a); if(G.M.night) boFlash(a); } // Blackout: the muzzle flash gives the shooter away
   if(hit){ let d=rollDmg(W.dmg)+(o.bonus||0)+(prim&&hasP(a,'r_point')&&info.d<=3.01?1:0); if(crit) d+=W.critDmg+(prim&&hasP(a,'s_vital')?1:0); if(o.deadeye) d=Math.ceil(d*1.5); if(res==='graze') d=Math.max(1,Math.ceil(d/2));
     if(prim&&!o.reaction&&hasP(a,'g_holo')) t.holo={team:a.team,until:G.round+1};
-    applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how,pierce:!!W.pierce||(prim&&hasP(a,'g_shred')),wid:W.id}); }
+    applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how||(prim?prwTag(W.id):undefined),pierce:!!W.pierce||(prim&&hasP(a,'g_shred')),wid:W.id});
+    if(W.flash&&standing(t)&&!t.drone){ t.disorient=Math.max(t.disorient,1); t.overwatch=false; if(anim) floatText(t,'DAZZLED',[255,240,170],16); } } // Thunderclap flash shells
   else if(anim) floatText(t,'MISSED',[200,210,220],20);
   // a miss at a target behind destructible cover hits the cover instead (thrown blades excepted)
   if(!hit&&info.cov>0&&!info.over&&W.fx!=='throw') await shotCover(a,t,W,anim);
@@ -5931,7 +6112,7 @@ async function fireShot(a,t,o){
 }
 const FXDUR={burst:330,pellet:140,beam:160,single:140,heavy:440,throw:420};
 function shotFX(a,t,hit,kind){
-  const m=muzzle(a), tp=chest(t); const col=mine(a)?[110,225,255]:[255,110,90], wid=a.anim&&a.anim.sec?a.sid:a.wid;
+  const m=muzzle(a), tp=chest(t), wid=a.anim&&a.anim.sec?a.sid:a.wid; const col=(!(a.anim&&a.anim.sec)&&wTracer(wid))||(mine(a)?[110,225,255]:[255,110,90]); // prestige / special tracer colours
   // misses end on the cover that stopped them, or kick up the ground past the target
   let end=tp, mat='flesh';
   if(!hit){ const ct=coverTile(t,a);
@@ -5947,7 +6128,7 @@ function shotFX(a,t,hit,kind){
   for(let i=0;i<n;i++) later(i*gap,()=>{
     kickU(a,kind); casing(a,kind); muzzleFlash(m,col,kind,wid,ang);
     if(kind==='pellet'){ for(let k=0;k<7;k++){ const e=[end[0]+frand(-14,14),end[1]+frand(-9,9)]; addFx({type:'tracer',a:m,b:e,col,w:1.3,life:.15}); if(k<3) later(50,()=>part({x:e[0],y:e[1],vx:frand(-60,60),vy:frand(-60,20),life:.2,size:1.2,col:[255,220,170],type:'spark',grav:300})); } }
-    else if(kind==='beam'&&wid==='volt'){ addFx({type:'bolt',a:m,b:end,col,life:.32}); addFx({type:'bolt',a:m,b:end,col:[200,250,255],life:.22,thin:1}); addFx({type:'arcs',x:end[0],y:end[1],r:22,col:[150,240,255],life:.3}); }
+    else if(kind==='beam'&&(wid==='volt'||(WEAPONS[wid]&&WEAPONS[wid].arcfx))){ addFx({type:'bolt',a:m,b:end,col,life:.32}); addFx({type:'bolt',a:m,b:end,col:[200,250,255],life:.22,thin:1}); addFx({type:'arcs',x:end[0],y:end[1],r:22,col:[150,240,255],life:.3}); }
     else if(kind==='beam'){ addFx({type:'beam',a:m,b:end,col,life:.5}); G.cam.shake=Math.max(G.cam.shake,5); }
     else { const e=[end[0]+frand(-5,5),end[1]+frand(-4,4)]; addFx({type:'tracer',a:m,b:e,col,w:kind==='heavy'?2.6:1.8,life:.17}); }
     later(55,()=>impact(end,hit,col,mat));
@@ -7786,7 +7967,7 @@ function updateHUD(){
   if(G.playerDead){ up.classList.add('hidden'); $('#actions').classList.add('hidden'); $('#tgt').classList.add('hidden'); $('#spec').classList.toggle('hidden',!!G.over||!G.spec); fillSpec(); return; }
   up.classList.remove('hidden'); $('#spec').classList.add('hidden');
   up.classList.toggle('downed',!!u.downed);
-  setPlate($('#uPlate'),u.name,u.ttl,u.bnr); $('#uCls').textContent=CLASSES[u.cls].name+' · '+WEAPONS[u.wid].short+(weaponMkU(u)>1?' Mk '+(weaponMkU(u)===2?'II':'III'):'')+(u.S?' + '+u.S.short:'');
+  setPlate($('#uPlate'),u.name,u.ttl,u.bnr,u.prk); $('#uCls').textContent=CLASSES[u.cls].name+' · '+WEAPONS[u.wid].short+(weaponMkU(u)>1?' Mk '+(weaponMkU(u)===2?'II':'III'):'')+(u.S?' + '+u.S.short:'');
   let ph=''; for(let i=0;i<u.maxHp;i++) ph+='<i class="pip'+(i<u.hp?' on':'')+'"></i>'; for(let i=0;i<u.shield;i++) ph+='<i class="pip sh"></i>'; $('#uHp').innerHTML=ph;
   $('#uAp').innerHTML='<i class="'+(u.ap>=1?'on':'')+'"></i><i class="'+(u.ap>=2?'on':'')+'"></i>'+(u.ap>=3?'<i class="on"></i>':'');
   $('#uAmmo').textContent='Ammo '+u.ammo+'/'+u.W.clip+(u.S&&u.S.clip?' · '+u.S.short+' '+u.sAmmo+'/'+u.S.clip:u.S&&u.S.uses?' · '+u.S.short+' ×'+u.sUses:'');
@@ -8268,6 +8449,11 @@ const UNLOCKS={2:['u_shieldcell','w_carbine'],3:['mk2_rifle','mk2_shotgun','mk2_
 CP_LVL.forEach((l,i)=>UNLOCKS[l].push('ct'+(i+1)));
 UNLOCKS[3].push('u_drone'); UNLOCKS[5].push('u_sensor'); // fog-of-war tools
 UNLOCKS[5].push('d_striker'); UNLOCKS[8].push('d_medic'); UNLOCKS[12].push('d_bulwark'); (UNLOCKS[16]=UNLOCKS[16]||[]).push('d_jammer'); // Specialist drone models (Sparrow is the starter)
+// armory expansion: new primaries (Mk II 4 levels later, Mk III 8), armors (+1 HP lining 6 levels later) and secondaries
+{ const add=(l,id)=>(UNLOCKS[l]=UNLOCKS[l]||[]).push(id);
+  [['lever',6],['semidmr',8],['flech',10],['burstr',12],['drum',14],['amr',16],['flashl',17],['arcr',18]].forEach(([k,l])=>{ add(l,'w_'+k); add(l+4,'mk2_'+k); add(l+8,'mk3_'+k); });
+  [['courier',5],['spotter',9],['ward',11],['aegis',13],['mirage',15]].forEach(([k,l])=>{ add(l,'a_'+k); add(l+6,'ar_'+k); });
+  [['sawnoff',10],['stiletto',12],['chakram',14]].forEach(([k,l])=>add(l,'s_'+k)); }
 for(const cat in COS) for(const k in COS[cat]){ const l=COS[cat][k].lvl; if(l) (UNLOCKS[l]=UNLOCKS[l]||[]).push('cos:'+cat+':'+k); } // free cosmetics on the level track
 const UNLOCK_LVL={}; for(const l in UNLOCKS) for(const id of UNLOCKS[l]) UNLOCK_LVL[id]=+l;
 function unlockName(id){
@@ -8295,7 +8481,7 @@ function effWeapon(k){ return applyMk(Object.assign({},WEAPONS[k]),weaponMk(k));
 function lvlOwn(id,lv){ return UNLOCK_LVL[id]!=null&&lv>=UNLOCK_LVL[id]; }
 // gear gating: starter gear has no w_/a_ unlock id. Pass lv to check against a level instead of the local profile.
 function gearLvl(id){ return UNLOCK_LVL[id]||1; }
-function wOwned(k,lv){ const id='w_'+k; return UNLOCK_LVL[id]==null||(lv!=null?lvlOwn(id,lv):own(id)); }
+function wOwned(k,lv){ if(PRW[k]) return lv==null&&prsHas(k); const id='w_'+k; return UNLOCK_LVL[id]==null||(lv!=null?lvlOwn(id,lv):own(id)); }
 function aOwned(k,lv){ const id='a_'+k; return UNLOCK_LVL[id]==null||(lv!=null?lvlOwn(id,lv):own(id)); }
 function sOwned(k,lv){ const id='s_'+k; return UNLOCK_LVL[id]==null||(lv!=null?lvlOwn(id,lv):own(id)); }
 const MIN_MOB=4;
@@ -8382,7 +8568,7 @@ function titleName(id){ return hasK(TITLES,id)?TITLES[id].name:''; }
 function bnKey(id){ return hasK(BANNERS,id)?id:'bn_std'; }
 // name plate markup: banner background, callsign, title line. o.cls adds classes, o.sub replaces the title line.
 function plateHtml(name,title,banner,o){ o=o||{}; const B=BANNERS[bnKey(banner)], t=o.sub!=null?o.sub:titleName(title);
-  return '<span class="np bn-'+bnKey(banner)+(B.anim?' bn-anim':'')+(o.cls?' '+o.cls:'')+'"><b>'+esc(name)+'</b>'+(t?'<small>'+esc(t)+'</small>':'')+'</span>'; }
+  return '<span class="np bn-'+bnKey(banner)+(B.anim?' bn-anim':'')+(o.cls?' '+o.cls:'')+(o.pr?' hasprm prk'+o.pr:'')+'"><b>'+esc(name)+'</b>'+(t?'<small>'+esc(t)+'</small>':'')+(o.pr?prsEmb(o.pr):'')+'</span>'; }
 function titleOwned(id){ const T=hasK(TITLES,id)&&TITLES[id]; return !!T&&((T.lvl&&level()>=T.lvl)||PROF.id.tt.includes(id)); }
 function bannerOwned(id){ const B=hasK(BANNERS,id)&&BANNERS[id]; return !!B&&((B.lvl&&level()>=B.lvl)||PROF.id.bn.includes(id)); }
 function myTitle(){ return titleOwned(PROF.id.title)?PROF.id.title:''; }
@@ -8496,6 +8682,54 @@ function passLines(r,s,fR){ const X=PASS_XP, L=[], half=Math.max(1,Math.ceil(r.o
   if(r.win&&PROF.pass.fw!==dayKey()){ PROF.pass.fw=dayKey(); L.push(['First win of the day',X.firstWin]); }
   return L; }
 
+/* ================= class prestige: progression and UI =================
+   PROF.prs = {cls:{xp,rk}} (class XP toward the next level, prestige rank 0..PRS.ranks), PROF.ptok = prestige tokens.
+   Both live in the profile, so the save backup (bkPack) and the cloud save, which carry the whole stormfall_profile
+   key, include them; prsLoad is the migration (older saves start every class at level 1, rank 0, no tokens). */
+prsGen(); prsVis(); // classes defined after the data section get their prestige weapons too (both are idempotent)
+for(const k of Object.keys(CLASSES)){ TITLES['t_pr1_'+k]={name:CLASSES[k].name+' ascendant',r:'e'}; TITLES['t_pr5_'+k]={name:CLASSES[k].name+' paragon',r:'l'}; }
+const PRS_X={sh:100,cr:1000}; // token exchange
+function prsLoad(p,s){ p.prs={}; p.ptok=0; if(!s||typeof s!=='object') return;
+  if(s.prs&&typeof s.prs==='object') for(const k in s.prs){ const e=s.prs[k]; if(!/^\w{1,24}$/.test(k)||!e||typeof e!=='object') continue; p.prs[k]={xp:clamp(e.xp|0,0,PRS_TOT),rk:clamp(e.rk|0,0,PRS.ranks)}; }
+  if(typeof s.ptok==='number') p.ptok=Math.max(0,s.ptok|0); }
+function prsInfo(cls){ const e=(PROF.prs&&PROF.prs[cls])||{xp:0,rk:0}; let x=e.xp|0, l=1; while(l<PRS.max&&x>=cNeed(l)){ x-=cNeed(l); l++; }
+  return {l,cur:l<PRS.max?x:0,need:l<PRS.max?cNeed(l):0,max:l>=PRS.max,rk:e.rk|0}; }
+// a match's XP also goes to the class you played (no XP banked past the max level)
+function prsAddXp(cls,xp){ if(!CLASSES[cls]) return null; PROF.prs=PROF.prs||{}; const b=prsInfo(cls), e=PROF.prs[cls]||(PROF.prs[cls]={xp:0,rk:0}); const before=e.xp|0;
+  e.xp=Math.min(PRS_TOT,before+Math.max(0,xp|0)); return {cls,gain:e.xp-before,b,a:prsInfo(cls)}; }
+function prsCan(cls){ const i=prsInfo(cls); return i.max&&i.rk<PRS.ranks; }
+function prsDo(cls){ if(!prsCan(cls)) return null; const e=PROF.prs[cls]; e.rk++; e.xp=0; const rk=e.rk, tok=PRS.tok[rk-1]; PROF.ptok=(PROF.ptok|0)+tok;
+  const tt=rk===1?'t_pr1_'+cls:rk===PRS.ranks?'t_pr5_'+cls:null; if(tt&&!PROF.id.tt.includes(tt)) PROF.id.tt.push(tt);
+  const wk=Object.keys(PRW).filter(k=>PRW[k].cls===cls&&PRW[k].rk===rk); saveProf(); return {rk,tok,tt,wk}; }
+function prsStars(rk){ let h='<span class="prst" aria-label="Prestige rank '+rk+' of '+PRS.ranks+'">'; for(let i=1;i<=PRS.ranks;i++) h+='<i class="'+(i<=rk?'on r'+rk:'')+'">★</i>'; return h+'</span>'; }
+function prsEmb(rk){ return rk?'<i class="prm r'+rk+'" title="Prestige '+ROMAN[rk]+'">'+ROMAN[rk]+'</i>':''; }
+// the emblem on a name plate element (setPlate); rk 0 removes it
+function prsPlate(el,rk){ if(!el) return; const o=el.querySelector('.prm'); if(o) o.remove(); for(let i=1;i<=PRS.ranks;i++) el.classList.remove('prk'+i); el.classList.toggle('hasprm',!!rk);
+  if(rk){ el.classList.add('prk'+rk); el.insertAdjacentHTML('beforeend',prsEmb(rk)); } }
+function prsEndHtml(rw){ const X=rw&&rw.cxp; if(!X) return ''; const a=X.a, up=a.l>X.b.l;
+  return '<div class="prow prsrow'+(up?' up':'')+'"><div class="mt"><b>'+esc(CLASSES[X.cls].name)+' level '+(up?X.b.l+' → '+a.l:a.l)+(a.rk?' · '+ROMAN[a.rk]:'')+'</b><span>+'+X.gain+' class XP</span></div><span class="xpbar"><i style="width:'+(a.max?100:(a.cur/a.need*100).toFixed(1))+'%"></i></span>'
+    +'<small>'+(a.max?(a.rk<PRS.ranks?'<b>Max level: prestige it in Profile → Prestige</b>':'Max level and rank'):(a.need-a.cur)+' XP to class level '+(a.l+1))+'</small></div>'; }
+let prsCls=null, prsArm=null;
+function renderPrestige(){ const el=$('#prsBody'); if(!el) return; const cls=CLASSES[prsCls]?prsCls:LO.cls, I=prsInfo(cls), C=CLASSES[cls];
+  $('#prsTabs').innerHTML=Object.keys(CLASSES).map(k=>{ const i=prsInfo(k); return '<button role="tab" aria-selected="'+(k===cls)+'" class="'+(k===cls?'sel':'')+'" data-prscls="'+k+'">'+esc(CLASSES[k].name)+'<i>'+(i.rk?ROMAN[i.rk]:'')+(i.rk?' · ':'')+'L'+i.l+'</i></button>'; }).join('');
+  const ws=Object.keys(PRW).filter(k=>PRW[k].cls===cls).sort((a,b)=>PRW[a].rk-PRW[b].rk), nx=I.rk<PRS.ranks?ws.filter(k=>PRW[k].rk===I.rk+1):[];
+  let h='<div class="prscard r'+I.rk+'"><div class="prsh">'+(I.rk?'<i class="prm big r'+I.rk+'">'+ROMAN[I.rk]+'</i>':'<i class="prm big r0">–</i>')+'<div class="prsn"><b>'+esc(C.name)+'</b><small>'+(I.rk?'Prestige '+ROMAN[I.rk]:'Not prestiged')+'</small>'+prsStars(I.rk)+'</div><div class="prslv"><small>Class level</small><b>'+I.l+'<em>/'+PRS.max+'</em></b></div></div>'
+    +'<span class="xpbar big"><i style="width:'+(I.max?100:(I.cur/I.need*100).toFixed(1))+'%"></i></span><small class="prsx">'+(I.max?'Max class level reached.':I.cur+' / '+I.need+' class XP to level '+(I.l+1)+' · every match pays its XP to the class you played')+'</small>';
+  if(I.rk>=PRS.ranks) h+='<p class="prsx">Highest prestige reached. Every prestige reward for '+esc(C.name)+' is yours.</p>';
+  else h+='<button class="btn primary prsgo'+(prsArm===cls?' arm':'')+'" data-prsgo="'+cls+'"'+(I.max?'':' disabled')+'>'+(I.max?(prsArm===cls?'Tap again to prestige':'Prestige to '+ROMAN[I.rk+1]):'Prestige at class level '+PRS.max)+'</button>'
+    +'<small class="prsx">Prestiging resets '+esc(C.name)+' to level 1, keeps all your gear and mastery, and pays '+PRS.tok[I.rk]+' prestige tokens'+(nx.length?' and unlocks the '+nx.map(k=>esc(WEAPONS[k].name)).join(' and '):'')+'.</small>';
+  h+='</div><div class="prstrack">';
+  for(let r=1;r<=PRS.ranks;r++){ const rw=[PRS.tok[r-1]+' tokens'].concat(ws.filter(k=>PRW[k].rk===r).map(k=>WEAPONS[k].name)); if(r===1) rw.push('“'+TITLES['t_pr1_'+cls].name+'” title'); if(r===PRS.ranks) rw.push('“'+TITLES['t_pr5_'+cls].name+'” title'); rw.push(ROMAN[r]+' name plate emblem');
+    h+='<div class="trow'+(I.rk>=r?' got':r===I.rk+1?' next':'')+'"><b class="prm r'+r+'">'+ROMAN[r]+'</b><span>'+rw.map(esc).join(', ')+'</span></div>'; }
+  h+='</div><h3 class="prsws">Prestige weapons <small>'+esc(C.name)+' only · own finish, tracers and kill feed tag</small></h3>'+ws.map(k=>{ const W=WEAPONS[k], P=PRW[k], ok=I.rk>=P.rk, eq=LO.cls===cls&&LO.weapon===k;
+    return '<div class="prwrow'+(ok?'':' lock')+'"><canvas data-prw="'+k+'" width="240" height="84" aria-hidden="true"></canvas><div><b>'+esc(W.name)+'</b><small>'+W.dmg[0]+'–'+W.dmg[1]+' dmg · '+W.clip+' rounds · '+W.crit+'% crit · optimal '+bandTxt(optBand(W))+(W.pierce?' · ignores armor':'')+(W.heavy?' · needs both AP':'')+(W.mob?' · '+sgn(W.mob)+' mobility':'')+'</small><small>'+esc(W.desc)+'</small><small class="'+(ok?'ok':'')+'">'+(ok?'Unlocked':'Unlocks at Prestige '+ROMAN[P.rk])+'</small></div>'
+      +(ok?'<button class="btn sm" data-prseq="'+k+'"'+(eq?' disabled':'')+'>'+(eq?'Equipped':'Equip')+'</button>':'')+'</div>'; }).join('');
+  el.innerHTML=h; el.querySelectorAll('canvas[data-prw]').forEach(cv2=>wpnOn(cv2,cv2.dataset.prw,'default'));
+  const t=PROF.ptok|0; $('#prsTok').innerHTML='<div class="prstok"><b>'+t+'</b><span>prestige token'+(t===1?'':'s')+'<small>Earned by prestiging a class</small></span></div><div class="pbtns"><button class="btn sm" data-prsx="sh"'+(t?'':' disabled')+'>1 token → '+PRS_X.sh+' shards</button><button class="btn sm" data-prsx="cr"'+(t?'':' disabled')+'>1 token → '+PRS_X.cr+' CR</button></div>'; }
+// the animated prestige finishes, redrawn while their canvases are on screen
+function prsAnim(sel){ document.querySelectorAll(sel).forEach(cv2=>{ const k=cv2.dataset.wpv||cv2.dataset.prw||cv2.dataset.pm; if(!PRW[k]) return; const r=cv2.getBoundingClientRect(); if(r.bottom<0||r.top>VH||!r.width) return;
+  const a=draft&&draft.att&&draft.att[k]; wpnOn(cv2,k,'default'+(a?'+'+attIds(a,k).join('.'):'')); }); }
+/* ================= class prestige: progression and UI (end) ================= */
 /* ================= profile ================= */
 let PROF=loadProf(); syncCos(true); passSync();
 function loadProf(){
@@ -8534,6 +8768,7 @@ function loadProf(){
       p.xp=Math.max(p.xp,(s.matches|0)*250); p.career.matches=Math.max(p.career.matches,s.matches|0); p.career.wins=Math.max(p.career.wins,s.wins|0); p.seenBrief=true;
     }
   }
+  prsLoad(p,s); // class prestige (class XP, ranks, tokens)
   return p;
 }
 function saveProf(){ syncCos(); try{ localStorage.setItem('stormfall_profile',JSON.stringify(PROF)); }catch(e){} try{ cloudDirty(); }catch(e){} } // cloudDirty: debounced cloud push (never awaited)
@@ -8829,7 +9064,7 @@ function grantRewards(){
   if(s.objs) lines.push(['Objectives ×'+s.objs,s.objs*40]); if(s.bounty) lines.push(['Bounty claimed',s.bounty*150]);
   const total=lines.reduce((a,l)=>a+l[1],0);
   const xp=Math.round(((M.xp[r.place]||60)+(r.win?200:0))*fR)+s.kills*80+s.dmg*3+s.rounds*12+s.revives*40+s.drops*60+(s.objs||0)*60+(s.bounty||0)*150;
-  PROF.credits+=total; PROF.xp+=xp;
+  PROF.credits+=total; PROF.xp+=xp; const cxp=G.player?prsAddXp(G.player.cls,xp):null; // class XP (prestige)
   const after=lvlInfo(); const unl=[]; let shards=0;
   for(let l=before.l+1;l<=after.l;l++){ shards+=10; (UNLOCKS[l]||[]).forEach(id=>unl.push([l,unlockName(id)])); }
   PROF.shards+=shards;
@@ -8855,7 +9090,7 @@ function grantRewards(){
   const chal=chalApply(cm);
   passSync(); const pl=passLines(r,s,fR), pxp=pl.reduce((a,l)=>a+l[1],0), pass=Object.assign(passAdd(pxp),{lines:pl,xp:pxp});
   saveProf();
-  G.rewarded={lines,total,xp,before,after,unl,shards,done,mast,chal,pass};
+  G.rewarded={lines,total,xp,before,after,unl,shards,done,mast,chal,pass,cxp};
   return G.rewarded;
 }
 function showEnd(){
@@ -8865,7 +9100,7 @@ function showEnd(){
   const reg=G.R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
   $('#eSub').textContent=(G.M.inf?infEndTxt(r.win)[1].replace(/\.$/,''):r.win?'Last '+(G.M.team>2?'squad':G.M.team>1?'team':'operative')+' standing':(G.M.team>2?'Your squad placed #':'You placed #')+r.place+' of '+r.of+(G.M.team>2?' squads':''))+' in '+reg+', '+G.M.name+'.'+(r.winner?' '+r.winner+' won the match.':'')+mutTxt();
   if(G.gm) $('#eSub').textContent=gmEndSub(r,reg)+mutTxt();
-  $('#ePlate').innerHTML=plateHtml(G.player.name,G.player.ttl,G.player.bnr); endProgressHtml(rw);
+  $('#ePlate').innerHTML=plateHtml(G.player.name,G.player.ttl,G.player.bnr,{pr:G.player.prk|0}); endProgressHtml(rw);
   const a=rw.after; $('#eLvl').textContent=a.l; $('#eXpT').textContent='+'+rw.xp+' XP';
   const bar=$('#eXp'); bar.style.transition='none'; bar.style.width=(rw.before.cur/rw.before.need*100)+'%'; void bar.offsetWidth; bar.style.transition='';
   setTimeout(()=>{ bar.style.width=(a.l>rw.before.l?100:a.cur/a.need*100)+'%'; if(a.l>rw.before.l) setTimeout(()=>{ bar.style.transition='none'; bar.style.width='0%'; void bar.offsetWidth; bar.style.transition=''; bar.style.width=(a.cur/a.need*100)+'%'; },950); },120);
@@ -8913,7 +9148,7 @@ function refreshMenu(){
   LO=sanitize(LO);
   const li=lvlInfo(); $('#mLvlN').textContent=li.l; $('#mXp').style.width=(li.cur/li.need*100)+'%'; $('#mXpT').textContent=li.cur+' / '+li.need+' XP';
   $('#mCr').textContent=PROF.credits; $('#mSh').textContent=PROF.shards;
-  setPlate($('#opPlate'),LO.name,myTitle(),myBanner()); passChip(); const Cl=CLASSES[LO.cls], mk=weaponMk(LO.weapon);
+  setPlate($('#opPlate'),LO.name,myTitle(),myBanner(),prsRank(LO.cls)); passChip(); const Cl=CLASSES[LO.cls], mk=weaponMk(LO.weapon);
   const M=MODES[PROF.mode]||MODES.solo; $('#bDeploy').innerHTML='Play<small>Choose a mode · last played '+esc(M.name)+'</small>'; updateOnlineBtn();
   drawOpCard(); renderDailyBtn();
 }
@@ -9028,7 +9263,7 @@ function peerReady(){
 }
 function mySpec(){ LO=sanitize(LO); const o=[]; for(const id of ['mk2_'+LO.weapon,'mk3_'+LO.weapon,'ar_'+LO.armor,'w_'+LO.weapon,'a_'+LO.armor,LO.perk,'s_'+LO.sec,'ct1','ct2','ct3','ct4','ct5','d_'+LO.drone.m]) if(id&&own(id)) o.push(id);
   return {name:LO.name,lo:{cls:LO.cls,weapon:LO.weapon,armor:LO.armor,utils:LO.utils.slice(),perk:LO.perk,sec:LO.sec,tree:LO.tree[LO.cls].slice(),att:specAtt(),drone:{m:LO.drone.m,up:LO.drone.up.slice()}},own:o,color:visorCol(),skin:PROF.equip.skin,visor:PROF.equip.visor,finish:PROF.equip.finish,trail:PROF.equip.trail,kill:PROF.equip.kill,drone:PROF.equip.drone||'default',ride:PROF.equip.ride||'default',
-    mfin:{p:mfinFor(LO.weapon),s:isPistol(LO.sec)?mfinFor(LO.sec):null},lv:level(),
+    mfin:{p:mfinFor(LO.weapon),s:isPistol(LO.sec)?mfinFor(LO.sec):null},lv:level(),pr:prsSpec(),
     title:myTitle(),banner:myBanner()}; } // name plate: cosmetic ids, checked against TITLES / BANNERS by cleanSpec
 // the attachments of the two weapons you carry, as {weapon:{slot:id}} (sanitize already checked your mastery)
 function specAtt(){ const o={}; for(const k of [LO.weapon,LO.sec]) if(LO.att&&LO.att[k]) o[k]=Object.assign({},LO.att[k]); return o; }
@@ -9044,17 +9279,17 @@ function cleanAtt(src,lv,ks){ const o={}; let n=0; src=src&&typeof src==='object
 function cleanDrone(D,lv){ D=D&&typeof D==='object'?D:{}; const m=DMODELS[D.m]&&dmOwned(D.m,lv)?D.m:'sparrow';
   return {m,up:(Array.isArray(D.up)?D.up:[]).filter((k,i,a)=>typeof k==='string'&&DUPS[k]&&a.indexOf(k)===i&&lv>=DUPS[k].m*2-2).slice(0,DRONE.slots)}; }function cleanSpec(sp,pid){ sp=sp&&typeof sp==='object'?sp:{}; const lo=sp.lo&&typeof sp.lo==='object'?sp.lo:{}; const cls=CLASSES[lo.cls]?lo.cls:'ranger', Cl=CLASSES[cls];
   const utils=(Array.isArray(lo.utils)?lo.utils:[]).filter((u,i,a)=>Cl.utils.includes(u)&&a.indexOf(u)===i).slice(0,3); if(!utils.length) utils.push(Cl.utils[0]);
-  const lv=clamp(sp.lv|0,1,40);
+  const lv=clamp(sp.lv|0,1,40), pr=prsClean(sp.pr,lv); // pr: prestige ranks, bounded by the claimed level
   // perk tiers (ct1..ct5) and secondaries (s_*) must match the claimed level; other ids keep the old rule (level or owned)
   const own=(Array.isArray(sp.own)?sp.own:[]).filter(x=>typeof x==='string'&&(!/^(ct\d|s_\w+|d_\w+)$/.test(x)||lv>=(UNLOCK_LVL[x]||99))).slice(0,16), gear=id=>UNLOCK_LVL[id]==null||lv>=UNLOCK_LVL[id]||own.includes(id);
   const tree=[0,1,2,3,4].map(i=>Array.isArray(lo.tree)&&lo.tree[i]===1?1:0);
   const r={pid,name:String(sp.name||'GUEST').replace(/[^\w \-]/g,'').slice(0,12).toUpperCase()||'GUEST',
-    lo:{cls,weapon:Cl.weapons.includes(lo.weapon)&&gear('w_'+lo.weapon)?lo.weapon:Cl.weapons[0],armor:Cl.armors.includes(lo.armor)&&gear('a_'+lo.armor)?lo.armor:Cl.armors[0],utils,perk:PERKS[lo.perk]?lo.perk:null,
+    lo:{cls,weapon:Cl.weapons.includes(lo.weapon)&&gear('w_'+lo.weapon)&&prwOk(lo.weapon,pr)?lo.weapon:Cl.weapons[0],armor:Cl.armors.includes(lo.armor)&&gear('a_'+lo.armor)?lo.armor:Cl.armors[0],utils,perk:PERKS[lo.perk]?lo.perk:null,
       sec:Cl.secs.includes(lo.sec)&&gear('s_'+lo.sec)?lo.sec:Cl.secs[0],tree},
     own,
     color:/^#[0-9a-f]{6}$/i.test(sp.color)?sp.color:'#eef4fa',skin:cosHas('skin',sp.skin)?sp.skin:'default',visor:cosHas('visor',sp.visor)?sp.visor:'cyan',finish:cosHas('finish',sp.finish)?sp.finish:'default',trail:cosHas('trail',sp.trail)?sp.trail:'default',kill:cosHas('kill',sp.kill)?sp.kill:'default',lv,
     mfin:{p:sp.mfin&&MFIN[sp.mfin.p]&&lv>=MFIN[sp.mfin.p].m-2?sp.mfin.p:null,s:sp.mfin&&MFIN[sp.mfin.s]&&lv>=MFIN[sp.mfin.s].m-2?sp.mfin.s:null}};
-  r.lo.att=cleanAtt(lo.att,lv,[r.lo.weapon,r.lo.sec]);
+  r.lo.att=cleanAtt(lo.att,lv,[r.lo.weapon,r.lo.sec]); r.pr=pr;
   r.lo.drone=cleanDrone(lo.drone,lv); r.drone=cosHas('drone',sp.drone)?sp.drone:'default'; r.ride=cosHas('ride',sp.ride)?sp.ride:'default'; // drop ship: known ids only
   r.title=hasK(TITLES,sp.title)?sp.title:''; r.banner=bnKey(typeof sp.banner==='string'?sp.banner:''); // known ids only
   return r; }
@@ -9593,7 +9828,7 @@ $('#loDeploy').addEventListener('click',()=>{ draft.name=($('#callsign').value||
 $('#callsign').addEventListener('input',e=>{ if(draft) draft.name=e.target.value; });
 function bars(rows,pct){ return '<div class="bars'+(pct?' b3':'')+'">'+rows.map(r=>'<span>'+r[0]+'</span><div class="bar"><i style="width:'+clamp(r[1],0,100)+'%"></i></div>'+(pct?'<span>'+r[1]+'%</span>':'')).join('')+'</div>'; }
 // starter / unlock-level tag for weapons (w_) and armors (a_)
-function gearTag(id,ok){ return UNLOCK_LVL[id]==null?'<span class="gt">Starter</span>':'<span class="gt lv">'+(ok?'Lv ':'Locked · Lv ')+UNLOCK_LVL[id]+'</span>'; }
+function gearTag(id,ok){ if(id.slice(0,2)==='w_'&&PRW[id.slice(2)]) return '<span class="gt prt">'+(ok?'':'Locked · ')+'Prestige '+ROMAN[PRW[id.slice(2)].rk]+'</span>'; return UNLOCK_LVL[id]==null?'<span class="gt">Starter</span>':'<span class="gt lv">'+(ok?'Lv ':'Locked · Lv ')+UNLOCK_LVL[id]+'</span>'; }
 /* Loadout layout: a summary (live preview, callsign, key stats), three tabs of compact slot rows (Kit / Mods / Perks)
    and a picker sheet with the full cards. The card builders below hold every rule the old long page had: locks, Starter
    and level tags, Mk upgrades, mastery bars and badges, generated weapon text, attachment mastery locks, finishes, tiers. */
@@ -9611,8 +9846,8 @@ function slotRow(pick,kick,val,meta,tags,extra,img){ return '<button class="slot
 // ---- card builders (picker sheet content)
 function clsCards(){ return Object.keys(CLASSES).map(k=>{ const c=CLASSES[k]; return '<button class="card'+(k===draft.cls?' sel':'')+'" data-cls="'+k+'"><div class="t">'+c.name+'</div><div class="d">'+c.tag+' · '+ABIL[c.ability].name+'</div>'+bars([['Aim',(c.aim-55)*4],['HP',(c.hp-4)*16],['Move',(c.mob-3)*25]])+'<p class="cd">'+c.desc+'</p></button>'; }).join(''); }
 function wpCards(aimNow){ const Cl=CLASSES[draft.cls]; return Cl.weapons.map(k=>{ const ok=wOwned(k), w=ok?applyAtt(effWeapon(k),attIds(draft.att&&draft.att[k],k)):Object.assign({},WEAPONS[k]), mk=ok?weaponMk(k):1, nx=mk<3?UNLOCK_LVL[(mk===1?'mk2_':'mk3_')+k]:0, ob=optBand(w), tr=weaponTraits(w);
-    return '<button class="card'+(k===draft.weapon?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-wp="'+k+'"':'data-lock="'+UNLOCK_LVL['w_'+k]+'"')+'>'+wpvHtml(k)+'<div class="t">'+w.name+mkTxt(mk)+gearTag('w_'+k,ok)+'</div><div class="d">'+w.dmg[0]+'–'+w.dmg[1]+' dmg (crit +'+w.critDmg+'), '+w.clip+' rounds, '+w.crit+'% crit<br><b class="opt">Optimal '+bandTxt(ob)+' ('+sgn(ob.mod)+' aim)</b><br>Aim by range: '+rangeTxt(w)+(tr.length?'<br>'+tr.join('. ')+'.':'')+(w.att&&w.att.length?'<br>With '+w.att.map(id=>ATTACH[id].name).join(', ')+'.':'')+'<br>'+w.desc+'</div>'+bars(bandHit(w,aimNow),true)
-      +(ok?(nx?'<div class="lk">Mk '+(mk===1?'II':'III')+' at level '+nx+'</div>':''):'<div class="lk">Unlocks at level '+UNLOCK_LVL['w_'+k]+'</div>')+mastHtml(k)+'</button>'; }).join(''); }
+    return '<button class="card'+(PRW[k]?' prwc':'')+(k===draft.weapon?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-wp="'+k+'"':PRW[k]?'data-prlock="'+k+'"':'data-lock="'+UNLOCK_LVL['w_'+k]+'"')+'>'+wpvHtml(k)+'<div class="t">'+w.name+mkTxt(mk)+gearTag('w_'+k,ok)+'</div><div class="d">'+w.dmg[0]+'–'+w.dmg[1]+' dmg (crit +'+w.critDmg+'), '+w.clip+' rounds, '+w.crit+'% crit<br><b class="opt">Optimal '+bandTxt(ob)+' ('+sgn(ob.mod)+' aim)</b><br>Aim by range: '+rangeTxt(w)+(tr.length?'<br>'+tr.join('. ')+'.':'')+(w.att&&w.att.length?'<br>With '+w.att.map(id=>ATTACH[id].name).join(', ')+'.':'')+'<br>'+w.desc+'</div>'+bars(bandHit(w,aimNow),true)
+      +(ok?(nx?'<div class="lk">Mk '+(mk===1?'II':'III')+' at level '+nx+'</div>':''):'<div class="lk">'+(PRW[k]?'Unlocks at '+CLASSES[PRW[k].cls].name+' Prestige '+ROMAN[PRW[k].rk]:'Unlocks at level '+UNLOCK_LVL['w_'+k])+'</div>')+mastHtml(k)+'</button>'; }).join(''); }
 function secCards(aimNow){ const Cl=CLASSES[draft.cls]; return Cl.secs.map(k=>{ const ok=sOwned(k), S=pistolWith(k,ok?attIds(draft.att&&draft.att[k],k):[]);
     return '<button class="card'+(k===draft.sec?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-sec="'+k+'"':'data-lock="'+UNLOCK_LVL['s_'+k]+'"')+'>'+wpvHtml(k)+'<div class="t">'+S.name+gearTag('s_'+k,ok)+'</div><div class="d">'+secDesc(S)+'<br>'+S.desc+'</div>'+bars(secBars(S,aimNow),true)
       +(ok?'':'<div class="lk">Unlocks at level '+UNLOCK_LVL['s_'+k]+'</div>')+(isPistol(k)?mastHtml(k):'')+'</button>'; }).join(''); }
@@ -9721,7 +9956,7 @@ function drawMfSwatch(cv2,force){ const [k,f]=cv2.dataset.mfpv.split(':'); if(!f
 // a weapon sprite fitted into a small canvas (loadout swatches, profile mastery rows)
 function wpnOn(cv2,k,fin){ const D=WPN[k]; if(!D) return; const c=cv2.getContext('2d'), W=cv2.width, H=cv2.height; c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,W,H);
   const b=D.box, s=Math.min(W*.8/(b[2]+4),H*.8/(b[3]+2)); c.translate(W/2-(b[0]+b[2]/2+1.5)*s,H/2-(b[1]+b[3]/2)*s); c.scale(s,s); WSC=s; drawWpn(c,k,fin,visorCol(),0,0,0); }
-function drawMfAnim(){ if(!draft) return; document.querySelectorAll('#loadout canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,false)); document.querySelectorAll('#loadout canvas[data-dpv]').forEach(drawDpv); }
+function drawMfAnim(){ if(!draft) return; document.querySelectorAll('#loadout canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,false)); document.querySelectorAll('#loadout canvas[data-dpv]').forEach(drawDpv); prsAnim('#loadout canvas[data-wpv]'); }
 /* ---------- loadout: Specialist drone (model cards, upgrade cards, mastery) ---------- */
 function dpvHtml(m,cls){ return '<canvas class="wpv'+(cls?' '+cls:'')+'" data-dpv="'+m+'" width="240" height="84" aria-hidden="true"></canvas>'; }
 function drawDpv(cv2){ const c=cv2.getContext('2d'), W=cv2.width, H=cv2.height; c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,W,H); c.fillStyle='rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(W/2,H*.86,W*.16,H*.06,0,0,6.3); c.fill();
@@ -9904,6 +10139,7 @@ function onSetClick(e,rerender){ const b=e.target.closest('[data-set]'); if(b){ 
    mastery, level rewards), Replays, Account (cloud save and account code, save backup / restore) and Settings. The last
    tab is remembered on this device; every section keeps its element ids, so its own render function works as before. */
 const PTABS=['overview','progress','replays','account','settings'];
+PTABS.splice(2,0,'prestige'); // class prestige tab
 let pTab=(()=>{ try{ const t=localStorage.getItem('stormfall_ptab'); if(PTABS.includes(t)) return t; }catch(e){} return 'overview'; })();
 function setPTab(t,focus){ if(!PTABS.includes(t)) t='overview'; const ch=t!==pTab; pTab=t; try{ localStorage.setItem('stormfall_ptab',t); }catch(e){}
   document.querySelectorAll('#pTabs [data-ptab]').forEach(b=>{ const on=b.dataset.ptab===t; b.classList.toggle('sel',on); b.setAttribute('aria-selected',on); b.tabIndex=on?0:-1; if(on&&focus) b.focus(); });
@@ -9915,7 +10151,7 @@ $('#pTabs').addEventListener('keydown',e=>{ const i=PTABS.indexOf(pTab); let j=-
   if(e.key==='ArrowRight') j=(i+1)%PTABS.length; else if(e.key==='ArrowLeft') j=(i+PTABS.length-1)%PTABS.length; else if(e.key==='Home') j=0; else if(e.key==='End') j=PTABS.length-1;
   if(j>=0){ e.preventDefault(); setPTab(PTABS[j],true); } });
 function renderProfile(){
-  setPTab(pTab); const li=lvlInfo(); $('#pLvl').textContent=li.l; setPlate($('#pPlate'),LO.name,myTitle(),myBanner()); $('#pPickTs').textContent=titleName(myTitle())||'None'; $('#pPickBs').textContent=BANNERS[myBanner()].name; renderChal();
+  setPTab(pTab); const li=lvlInfo(); $('#pLvl').textContent=li.l; setPlate($('#pPlate'),LO.name,myTitle(),myBanner(),prsRank(LO.cls)); $('#pPickTs').textContent=titleName(myTitle())||'None'; $('#pPickBs').textContent=BANNERS[myBanner()].name; renderChal();
   $('#pTutS').textContent=PROF.tut.done?'Replay the scripted training match any time (the reward is paid once).':'A short scripted match that teaches the basics. Pays 500 CR, 50 shards, a title and a banner.'; $('#pTut').textContent=PROF.tut.done?'Replay':'Play'; $('#pXpT').textContent=li.cur+' / '+li.need+' XP to level '+(li.l+1); $('#pXp').style.width=(li.cur/li.need*100)+'%';
   const c=PROF.career; $('#pStats').innerHTML='<div><b>'+c.matches+'</b>matches</div><div><b>'+c.wins+'</b>wins</div><div><b>'+c.top3+'</b>top 3 finishes</div><div><b>'+c.kills+'</b>eliminations</div><div><b>'+c.dmg+'</b>damage dealt</div><div><b>'+(c.matches?(c.kills/c.matches).toFixed(1):'0.0')+'</b>eliminations per match</div>';
   const lv=Object.keys(UNLOCKS).map(Number).sort((a,b)=>a-b); let nextShown=false;
@@ -9928,7 +10164,7 @@ function renderProfile(){
   { const m=dMastInfo(), nx=m.max?[]:Object.keys(DUPS).filter(k=>DUPS[k].m===m.l+1).map(k=>DUPS[k].name); // Specialist drone mastery (upgrades)
     $('#pMast').insertAdjacentHTML('afterbegin','<div class="mprow"><b>'+m.l+'</b><div><div>Specialist drone · '+esc(DMODELS[(LO.drone&&LO.drone.m)||'sparrow'].name)+'</div><span class="xpbar"><i style="width:'+(m.max?100:(m.cur/m.need*100).toFixed(1))+'%"></i></span><small>'+(m.max?'Mastered':m.cur+'/'+m.need+' XP'+(nx.length?' · next: '+nx.join(', '):''))+'</small></div><canvas data-dpv="'+((LO.drone&&LO.drone.m)||'sparrow')+'" width="192" height="80"></canvas></div>'); document.querySelectorAll('#pMast canvas[data-dpv]').forEach(drawDpv); }
   document.querySelectorAll('#pMast canvas[data-pm]').forEach(cv2=>{ const k=cv2.dataset.pm; wpnOn(cv2,k,(mfinFor(k)||PROF.equip.finish)+((LO.att&&LO.att[k])?'+'+attIds(LO.att[k],k).join('.'):'')); });
-  $('#pSet').innerHTML=setRows(false); renderReps(); renderBk(); renderCloud();
+  $('#pSet').innerHTML=setRows(false); renderReps(); renderBk(); renderCloud(); renderPrestige();
   const KE=KILLS[PROF.equip.kill]||KILLS.default; $('#pKfx').innerHTML='<span>Kill effect</span><b style="color:'+RARITY[KE.r].col+'">'+esc(KE.name)+'</b><button class="btn sm" data-kfxstore>Change</button>';
   const RK=PROF.equip.ride||'default', RI=RIDES[RK]||RIDES.default; $('#pRide').innerHTML='<canvas width="192" height="80" aria-hidden="true"></canvas><span>Drop ship<small>Team modes: the party leader’s ship</small></span><b style="color:'+RARITY[RI.r].col+'">'+esc(RI.name)+'</b><button class="btn sm" data-ridestore>Change</button>';
   { const cv=$('#pRide canvas'), g=cv.getContext('2d'); g.clearRect(0,0,192,80); drawRide(g,RK,96,42,.78,1.2,{}); }
@@ -9936,9 +10172,17 @@ function renderProfile(){
 $('#pKfx').addEventListener('click',e=>{ if(e.target.closest('[data-kfxstore]')){ stTab='Kill FX'; SFX.click(); go('store'); } });
 $('#pRide').addEventListener('click',e=>{ if(e.target.closest('[data-ridestore]')){ stTab='Drop ships'; SFX.click(); go('store'); } });
 $('#pSet').addEventListener('click',e=>onSetClick(e,renderProfile));
+// class prestige tab: class tabs, prestige (two taps), equip a prestige weapon, token exchange
+$('#pp-prestige').addEventListener('click',e=>{
+  const t=e.target.closest('[data-prscls]'); if(t){ prsCls=t.dataset.prscls; prsArm=null; SFX.click(); buzz(6); renderPrestige(); return; }
+  const g=e.target.closest('[data-prsgo]'); if(g){ const k=g.dataset.prsgo; SFX.click(); if(prsArm!==k){ prsArm=k; renderPrestige(); return; } prsArm=null; const R=prsDo(k); if(R){ SFX.heal(); buzz([20,30,40]);
+      toast(CLASSES[k].name+' Prestige '+ROMAN[R.rk],'+'+R.tok+' tokens'+(R.wk.length?' · '+R.wk.map(w=>WEAPONS[w].name).join(', ')+' unlocked':'')+(R.tt?' · new title':''),'lvl'); } renderProfile(); return; }
+  const q=e.target.closest('[data-prseq]'); if(q){ const k=q.dataset.prseq; if(!prsHas(k)) return; LO.cls=PRW[k].cls; LO.weapon=k; LO=sanitize(LO); saveLO(); SFX.click(); buzz(6); toast(WEAPONS[k].name+' equipped',CLASSES[LO.cls].name+' loadout'); renderProfile(); return; }
+  const x=e.target.closest('[data-prsx]'); if(x&&(PROF.ptok|0)>0){ PROF.ptok--; if(x.dataset.prsx==='sh') PROF.shards+=PRS_X.sh; else PROF.credits+=PRS_X.cr; saveProf(); SFX.click(); buzz(6); renderPrestige(); } });
+$('#loadout').addEventListener('click',e=>{ const b=e.target.closest('[data-prlock]'); if(!b) return; const P=PRW[b.dataset.prlock]; SFX.click(); hintMeta('Prestige '+ROMAN[P.rk]+' '+CLASSES[P.cls].name+' to unlock this: max the class level, then prestige it in Profile → Prestige.'); });
 
 /* ================= name plates, season pass screen, challenges and pickers (UI) ================= */
-function setPlate(el,name,title,banner){ if(!el) return; const b=bnKey(banner);
+function setPlate(el,name,title,banner,pr){ if(!el) return; const b=bnKey(banner); prsPlate(el,pr|0);
   for(const c of [...el.classList]) if(c.startsWith('bn-')) el.classList.remove(c); el.classList.add('np','bn-'+b); if(BANNERS[b].anim) el.classList.add('bn-anim');
   const n=el.querySelector('b'), t=el.querySelector('small'); if(n) n.textContent=name; if(t) t.textContent=titleName(title); }
 const RAR_COL=r=>(RARITY[r]||RARITY.c).col;
@@ -9998,7 +10242,7 @@ function endProgressHtml(rw){ let h=''; const P=rw.pass, S=seasonNow();
   if(P){ const up=P.t1>P.t0, n=passClaimable().length, inT=P.t1>=PASS_TIERS?PASS_STEP:P.a-P.t1*PASS_STEP;
     h+='<div class="prow'+(up?' up':'')+'" style="--sc:'+S.th.col+'"><div class="mt"><b>Pass tier '+(up?P.t0+' → '+P.t1:P.t1)+'</b><span>+'+P.xp+' pass XP</span></div><span class="xpbar"><i style="width:'+(inT/PASS_STEP*100).toFixed(1)+'%"></i></span>'
       +'<small>'+P.lines.map(l=>esc(l[0])+' +'+l[1]).join(' · ')+(n?' · <b>'+n+' reward'+(n>1?'s':'')+' to claim in Pass</b>':'')+'</small></div>'; }
-  $('#ePass').innerHTML=h;
+  $('#ePass').innerHTML=h+prsEndHtml(rw);
   const C=rw.chal||[]; $('#eChal').innerHTML=C.slice(0,4).map(x=>'<div class="crow'+(x.done?' done':'')+'"><b>'+esc(CLASSES[x.c.cls].name+': '+x.c.t)+'</b><em>'+x.a+' / '+x.c.g+'</em><span class="xpbar"><i style="width:'+(x.a/x.c.g*100).toFixed(1)+'%"></i></span>'+(x.done?'<small>Challenge complete: '+esc(rwTxt(x.c.rw))+'</small>':'')+'</div>').join('')
     +(C.prime?'<div class="crow done"><b>'+esc(CLASSES[G.player.cls].name)+' mastered</b><em>5 / 5</em><small>'+esc(rwTxt(C.prime))+'</small></div>':'');
   for(const x of C) if(x.done) setTimeout(()=>toast('Challenge complete',rwTxt(x.c.rw),'lvl'),900);
@@ -10292,7 +10536,7 @@ const REP_V=1, RP_KEY='stormfall_replays', RP_MAX=10, RP_BYTES=1800000;
 const BUILD=(()=>{ try{ const t=(document.currentScript&&document.currentScript.textContent)||''; let h=0x811c9dc5; for(let i=0;i<t.length;i+=3) h=Math.imul(h^t.charCodeAt(i),16777619); return (h>>>0).toString(36); }catch(e){ return '?'; } })();
 let REC=null;
 // the local player's gear unlocks and cosmetics as a spec (the same shape as an online player's), so offline replays don't depend on the profile
-function offSpec(){ const sp=mySpec(); return {own:sp.own,color:sp.color,skin:sp.skin,visor:sp.visor,finish:sp.finish,trail:sp.trail,kill:sp.kill,mfin:sp.mfin,drone:sp.drone,ride:sp.ride}; } // every cosmetic the unit wears (kill was missing: offline matches always played the default kill effect)
+function offSpec(){ const sp=mySpec(); return {own:sp.own,color:sp.color,skin:sp.skin,visor:sp.visor,finish:sp.finish,trail:sp.trail,kill:sp.kill,mfin:sp.mfin,drone:sp.drone,ride:sp.ride,pr:sp.pr}; } // every cosmetic the unit wears (kill was missing: offline matches always played the default kill effect)
 function recStart(kind,cfg,me){ const c=JSON.parse(JSON.stringify(cfg)); if(kind!=='off'){ delete c.slots; delete c.me; } // online: netCfgClean rebuilds the slots
   REC={v:REP_V,b:BUILD,p:PROTO,kind,cfg:c,me:me||null,cmds:{},h:[],t:Date.now(),mid:G.matchId,saved:false}; }
 function recCmd(id,c){ if(!REC||REC.mid!==G.matchId||!c||typeof c!=='object') return; let cc; try{ cc=JSON.parse(JSON.stringify(c)); }catch(e){ return; } (REC.cmds[id]||(REC.cmds[id]=[])).push(cc); }
