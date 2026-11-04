@@ -140,3 +140,60 @@ export class MemLimiter {
     return e.n <= this.limit;
   }
 }
+
+/* ---------------- socials (friends, presence, invites) ---------------- */
+
+export const FCODE_LEN = 8;          // 40-bit random friend code (Crockford base32), shown as XXXX-XXXX
+export const MAX_LINKS = 100;        // friends + outgoing requests per account
+export const MAX_OUT = 30;           // outgoing pending requests per account
+export const MAX_IN = 50;            // incoming pending requests per account (more are refused)
+export const MAX_BLOCKS = 100;
+export const INVITE_TTL = 5 * 60000; // invites expire after 5 minutes
+export const ROOM_ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // the game's room code alphabet (CODE_ABC in index.html)
+export const PRESENCE = ['menu', 'lobby', 'match'];
+
+/** Friend code typed or pasted in any form (case, dashes, spaces, O/I/L typos) -> 8 canonical chars, or null */
+export function normFriendCode(s) {
+  const c = String(s == null ? '' : s).toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1').replace(/U/g, 'V');
+  if (c.length !== FCODE_LEN) return null;
+  for (const ch of c) if (!B32.includes(ch)) return null;
+  return c;
+}
+export function fmtFriendCode(c) { return c ? c.slice(0, 4) + '-' + c.slice(4) : ''; }
+
+const RE_ID24 = /^[a-z0-9_]{1,24}$/;
+/** The small public profile a client publishes about itself (no PII: callsign, level, class, name plate ids). */
+export function cleanProfile(b) {
+  b = b && typeof b === 'object' ? b : {};
+  const lv = Number.isInteger(b.lv) && b.lv >= 1 && b.lv <= 999 ? b.lv : 1;
+  return {
+    name: cleanName(b.name), lv, cls: cleanCls(b.cls),
+    title: typeof b.title === 'string' && RE_ID24.test(b.title) ? b.title : '',
+    banner: typeof b.banner === 'string' && RE_ID24.test(b.banner) ? b.banner : '',
+  };
+}
+
+/** Room code of an online lobby: 5 chars of the game's alphabet, or '' */
+export function cleanRoom(r) {
+  if (typeof r !== 'string' || r.length !== 5) return '';
+  for (const ch of r) if (!ROOM_ABC.includes(ch)) return '';
+  return r;
+}
+export function cleanMode(m) { return typeof m === 'string' && /^[a-z]{1,12}$/.test(m) ? m : ''; }
+
+/** A presence update from a client: {s, r, m, o} -> clean, or null. r is only kept in a lobby; o = friends may join. */
+export function cleanPresence(p) {
+  if (!p || typeof p !== 'object' || !PRESENCE.includes(p.s)) return null;
+  const lobby = p.s === 'lobby', r = lobby ? cleanRoom(p.r) : '';
+  return { s: p.s, r, m: lobby ? cleanMode(p.m) : '', o: lobby && r && p.o ? 1 : 0 };
+}
+/** What friends see of a presence state (the room code only when the player lets friends join) */
+export function publicPresence(st) {
+  if (!st) return { s: 'off' };
+  const o = { s: st.s };
+  if (st.s === 'lobby') { if (st.m) o.m = st.m; if (st.o && st.r) o.r = st.r; }
+  return o;
+}
+export function samePresence(a, b) {
+  return JSON.stringify(publicPresence(a)) === JSON.stringify(publicPresence(b));
+}

@@ -4,7 +4,9 @@ import assert from 'node:assert/strict';
 import {
   randB32, sha256hex, parseAuth, codeToAuth, authToCode, dayKey, validDayKey, dayAccepted, cleanDaily, cleanName,
   validSave, originAllowed, validPeerId, normIce, MemLimiter, B32,
+  normFriendCode, fmtFriendCode, cleanProfile, cleanRoom, cleanPresence, publicPresence, samePresence,
 } from '../src/lib.js';
+import { Presence, S_TAG } from '../src/presence.js';
 
 test('random ids use the Crockford alphabet and the right length', () => {
   const s = randB32(200);
@@ -111,4 +113,84 @@ test('memory limiter: fixed window', () => {
   assert.ok(!l.hit('a', 3));
   assert.ok(l.hit('b', 3));
   assert.ok(l.hit('a', 1001));
+});
+
+/* ---------------- socials ---------------- */
+
+test('friend codes: normalised, typo tolerant, junk rejected', () => {
+  assert.equal(normFriendCode('abcd-efgh'), 'ABCDEFGH');
+  assert.equal(normFriendCode(' o1il 2345 '), '01112345');
+  assert.equal(normFriendCode('ABCDEFG'), null);
+  assert.equal(normFriendCode('ABCDEFGHJ'), null);
+  assert.equal(normFriendCode(null), null);
+  assert.equal(fmtFriendCode('ABCDEFGH'), 'ABCD-EFGH');
+});
+
+test('public profile and presence are cleaned', () => {
+  assert.deepEqual(cleanProfile({ name: 'ab<c>', lv: 7, cls: 'ranger', title: 't_x', banner: 'BAD!' }), { name: 'ABC', lv: 7, cls: 'ranger', title: 't_x', banner: '' });
+  assert.deepEqual(cleanProfile({ lv: 1e9 }), { name: 'OPERATIVE', lv: 1, cls: '', title: '', banner: '' });
+  assert.equal(cleanRoom('ABCDE'), 'ABCDE');
+  assert.equal(cleanRoom('ABCD1'), ''); // 1 is not in the room alphabet
+  assert.equal(cleanPresence({ s: 'away' }), null);
+  assert.deepEqual(cleanPresence({ s: 'match', r: 'ABCDE', o: 1 }), { s: 'match', r: '', m: '', o: 0 });
+  const lob = cleanPresence({ s: 'lobby', r: 'ABCDE', m: 'duos', o: 1 });
+  assert.deepEqual(publicPresence(lob), { s: 'lobby', m: 'duos', r: 'ABCDE' });
+  assert.deepEqual(publicPresence({ ...lob, o: 0 }), { s: 'lobby', m: 'duos' });
+  assert.deepEqual(publicPresence(null), { s: 'off' });
+  assert.ok(samePresence({ ...lob, o: 0 }, { ...lob, r: 'ZZZZZ', o: 0 }), 'a hidden room change is not a visible change');
+});
+
+// a fake Durable Object context for the presence logic
+function fakeCtx() {
+  const socks = [], ctx = {
+    alarm: null, waits: [],
+    getWebSockets: tag => socks.filter(w => !tag || w.tags.includes(tag)),
+    getWebSocketAutoResponseTimestamp: w => (w.hb ? new Date(w.hb) : null),
+    storage: { getAlarm: async () => ctx.alarm, setAlarm: async t => { ctx.alarm = t; } },
+    waitUntil: p => ctx.waits.push(p),
+  };
+  const mk = (code, att, hb) => {
+    const w = { tags: [S_TAG, 's:' + code], readyState: 1, att, hb, out: [], closed: null,
+      deserializeAttachment() { return this.att && JSON.parse(JSON.stringify(this.att)); },
+      serializeAttachment(a) { this.att = JSON.parse(JSON.stringify(a)); },
+      send(m) { this.out.push(JSON.parse(m)); }, close(c) { this.readyState = 3; this.closed = c; } };
+    socks.push(w); return w;
+  };
+  return { ctx, mk };
+}
+
+test('presence sweep: unauthenticated and silent sockets are closed, friends told once', async () => {
+  const now = Date.now(), { ctx, mk } = fakeCtx(), runs = [];
+  const DB = { prepare: sql => ({ bind: (...a) => ({ run: async () => { runs.push([sql, a]); return {}; } }) }) };
+  const P = new Presence(ctx, { DB });
+  const A = mk('AAAAAAAA', { k: 's', c: 'AAAAAAAA', ok: 1, fr: 'BBBBBBBB', s: 'menu', at: now - 400000, t0: now - 500000 }, now - 200000); // silent 200 s
+  const B = mk('BBBBBBBB', { k: 's', c: 'BBBBBBBB', ok: 1, fr: 'AAAAAAAA', s: 'menu', at: now - 400000, t0: now - 500000 }, now - 20000);  // heartbeat 20 s ago
+  const X = mk('CCCCCCCC', { k: 's', c: 'CCCCCCCC', ok: 0, t0: now - 60000 });                                                        // never authenticated
+  await P.sweep();
+  assert.equal(A.closed, 4002);
+  assert.equal(X.closed, 4001);
+  assert.equal(B.closed, null);
+  assert.deepEqual(B.out, [{ t: 'p', c: 'AAAAAAAA', s: 'off' }]);
+  assert.ok(runs.some(([sql, a]) => /UPDATE profiles SET seen/.test(sql) && a[1] === 'AAAAAAAA'), 'last seen written');
+  assert.ok(ctx.alarm > now, 'next sweep scheduled while sockets remain');
+  P.closed(A); // the runtime may still report the close later: no second notice
+  assert.equal(B.out.length, 1);
+});
+
+test('presence link: friends added and removed live, both sides must agree', () => {
+  const now = Date.now(), { ctx, mk } = fakeCtx();
+  const P = new Presence(ctx, {});
+  const A = mk('AAAAAAAA', { k: 's', c: 'AAAAAAAA', ok: 1, fr: '', s: 'lobby', r: 'ABCDE', m: 'solo', o: 1, at: now, t0: now });
+  const B = mk('BBBBBBBB', { k: 's', c: 'BBBBBBBB', ok: 1, fr: '', s: 'match', at: now, t0: now });
+  P.link('AAAAAAAA', 'BBBBBBBB', 'f');
+  assert.deepEqual(A.out, [{ t: 'fx' }, { t: 'p', c: 'BBBBBBBB', s: 'match' }]);
+  assert.deepEqual(B.out, [{ t: 'fx' }, { t: 'p', c: 'AAAAAAAA', s: 'lobby', m: 'solo', r: 'ABCDE' }]);
+  assert.equal(A.att.fr, 'BBBBBBBB');
+  // a one-sided list (stale attachment) never leaks presence
+  B.att.fr = ''; A.out = [];
+  P.status(B, B.deserializeAttachment(), { s: 'menu' });
+  assert.deepEqual(A.out, []);
+  P.link('AAAAAAAA', 'BBBBBBBB', 'x');
+  assert.equal(A.att.fr, '');
+  assert.deepEqual(A.out, [{ t: 'fx' }, { t: 'p', c: 'BBBBBBBB', s: 'off' }]);
 });
