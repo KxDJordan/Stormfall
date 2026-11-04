@@ -370,6 +370,10 @@ body.sheet-open .nav{display:none}
 .shopgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(156px,100%),1fr));gap:var(--s2);align-items:stretch}
 @media (min-width:900px){ .shopgrid{grid-template-columns:repeat(auto-fill,minmax(186px,1fr));gap:var(--s3)} }
 .item{--rc:var(--r-standard);position:relative;display:flex;flex-direction:column;min-width:0;background:var(--surf);border:1px solid var(--line);border-top:2px solid var(--rc);border-radius:var(--r2);overflow:hidden}
+.card .wpv{display:block;width:100%;max-width:240px;height:auto;aspect-ratio:240/84;margin:0 auto 6px;border-radius:var(--r2);background:radial-gradient(ellipse at 50% 60%,rgba(63,210,255,.10),rgba(63,210,255,0) 70%)}
+.card.lock .wpv{opacity:.45;filter:grayscale(.6)}
+.slot.has-wpv{grid-template-columns:84px minmax(0,1fr) auto 18px}
+.slot .wpv.sm{width:84px;height:30px}
 .item .how{font-size:11.5px;color:var(--muted);margin:-2px 0 6px}
 .r-common{--rc:var(--r-common)} .r-rare{--rc:var(--r-rare)} .r-epic{--rc:var(--r-epic)} .r-legendary{--rc:var(--r-legendary)} .r-mythic{--rc:var(--r-mythic)}
 .item.eqd{border-color:rgba(93,255,154,.45);border-top-color:var(--rc)}
@@ -5786,14 +5790,18 @@ const CHEV='<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9
 function loAim(){ return CLASSES[draft.cls].aim+((PERKS[draft.perk]&&PERKS[draft.perk].aim)||0); }
 function mkTxt(mk){ return mk>1?' Mk '+(mk===2?'II':'III'):''; }
 function mBadge(k){ if(!mastTracked(k)) return ''; const m=mastInfo(k); return '<span class="mb'+(m.max?' max':'')+'" title="Mastery '+m.l+'">M'+m.l+'</span>'; }
-function slotRow(pick,kick,val,meta,tags,extra){ return '<button class="slot" data-pick="'+pick+'"'+(extra||'')+'><span class="sl-t"><span class="sl-k">'+kick+'</span><span class="sl-v">'+val+'</span>'+(meta?'<span class="sl-m">'+meta+'</span>':'')+'</span>'+(tags?'<span class="sl-tags">'+tags+'</span>':'')+CHEV+'</button>'; }
+// weapon images in the loadout: drawn with the weapon's own finish and the attachments picked for it
+function wpvHtml(k,cls){ return WPN[k]?'<canvas class="wpv'+(cls?' '+cls:'')+'" data-wpv="'+k+'" width="240" height="84" aria-hidden="true"></canvas>':''; }
+function drawWpvs(root){ (root||document).querySelectorAll('canvas[data-wpv]').forEach(cv2=>{ const k=cv2.dataset.wpv, a=draft&&draft.att&&draft.att[k];
+  wpnOn(cv2,k,(mfinFor(k)||PROF.equip.finish)+(a?'+'+attIds(a,k).join('.'):'')); }); }
+function slotRow(pick,kick,val,meta,tags,extra,img){ return '<button class="slot'+(img?' has-wpv':'')+'" data-pick="'+pick+'"'+(extra||'')+'>'+(img||'')+'<span class="sl-t"><span class="sl-k">'+kick+'</span><span class="sl-v">'+val+'</span>'+(meta?'<span class="sl-m">'+meta+'</span>':'')+'</span>'+(tags?'<span class="sl-tags">'+tags+'</span>':'')+CHEV+'</button>'; }
 // ---- card builders (picker sheet content)
 function clsCards(){ return Object.keys(CLASSES).map(k=>{ const c=CLASSES[k]; return '<button class="card'+(k===draft.cls?' sel':'')+'" data-cls="'+k+'"><div class="t">'+c.name+'</div><div class="d">'+c.tag+' · '+ABIL[c.ability].name+'</div>'+bars([['Aim',(c.aim-55)*4],['HP',(c.hp-4)*16],['Move',(c.mob-3)*25]])+'<p class="cd">'+c.desc+'</p></button>'; }).join(''); }
 function wpCards(aimNow){ const Cl=CLASSES[draft.cls]; return Cl.weapons.map(k=>{ const ok=wOwned(k), w=ok?applyAtt(effWeapon(k),attIds(draft.att&&draft.att[k],k)):Object.assign({},WEAPONS[k]), mk=ok?weaponMk(k):1, nx=mk<3?UNLOCK_LVL[(mk===1?'mk2_':'mk3_')+k]:0, ob=optBand(w), tr=weaponTraits(w);
-    return '<button class="card'+(k===draft.weapon?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-wp="'+k+'"':'data-lock="'+UNLOCK_LVL['w_'+k]+'"')+'><div class="t">'+w.name+mkTxt(mk)+gearTag('w_'+k,ok)+'</div><div class="d">'+w.dmg[0]+'–'+w.dmg[1]+' dmg (crit +'+w.critDmg+'), '+w.clip+' rounds, '+w.crit+'% crit<br><b class="opt">Optimal '+bandTxt(ob)+' ('+sgn(ob.mod)+' aim)</b><br>Aim by range: '+rangeTxt(w)+(tr.length?'<br>'+tr.join('. ')+'.':'')+(w.att&&w.att.length?'<br>With '+w.att.map(id=>ATTACH[id].name).join(', ')+'.':'')+'<br>'+w.desc+'</div>'+bars(bandHit(w,aimNow),true)
+    return '<button class="card'+(k===draft.weapon?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-wp="'+k+'"':'data-lock="'+UNLOCK_LVL['w_'+k]+'"')+'>'+wpvHtml(k)+'<div class="t">'+w.name+mkTxt(mk)+gearTag('w_'+k,ok)+'</div><div class="d">'+w.dmg[0]+'–'+w.dmg[1]+' dmg (crit +'+w.critDmg+'), '+w.clip+' rounds, '+w.crit+'% crit<br><b class="opt">Optimal '+bandTxt(ob)+' ('+sgn(ob.mod)+' aim)</b><br>Aim by range: '+rangeTxt(w)+(tr.length?'<br>'+tr.join('. ')+'.':'')+(w.att&&w.att.length?'<br>With '+w.att.map(id=>ATTACH[id].name).join(', ')+'.':'')+'<br>'+w.desc+'</div>'+bars(bandHit(w,aimNow),true)
       +(ok?(nx?'<div class="lk">Mk '+(mk===1?'II':'III')+' at level '+nx+'</div>':''):'<div class="lk">Unlocks at level '+UNLOCK_LVL['w_'+k]+'</div>')+mastHtml(k)+'</button>'; }).join(''); }
 function secCards(aimNow){ const Cl=CLASSES[draft.cls]; return Cl.secs.map(k=>{ const ok=sOwned(k), S=pistolWith(k,ok?attIds(draft.att&&draft.att[k],k):[]);
-    return '<button class="card'+(k===draft.sec?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-sec="'+k+'"':'data-lock="'+UNLOCK_LVL['s_'+k]+'"')+'><div class="t">'+S.name+gearTag('s_'+k,ok)+'</div><div class="d">'+secDesc(S)+'<br>'+S.desc+'</div>'+bars(secBars(S,aimNow),true)
+    return '<button class="card'+(k===draft.sec?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-sec="'+k+'"':'data-lock="'+UNLOCK_LVL['s_'+k]+'"')+'>'+wpvHtml(k)+'<div class="t">'+S.name+gearTag('s_'+k,ok)+'</div><div class="d">'+secDesc(S)+'<br>'+S.desc+'</div>'+bars(secBars(S,aimNow),true)
       +(ok?'':'<div class="lk">Unlocks at level '+UNLOCK_LVL['s_'+k]+'</div>')+(isPistol(k)?mastHtml(k):'')+'</button>'; }).join(''); }
 function arCards(){ const Cl=CLASSES[draft.cls]; return Cl.armors.map(k=>{ const a=ARMORS[k], ok=aOwned(k), ln=ok&&own('ar_'+k); return '<button class="card'+(k===draft.armor?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-ar="'+k+'"':'data-lock="'+UNLOCK_LVL['a_'+k]+'"')+'><div class="t">'+a.name+gearTag('a_'+k,ok)+'</div><div class="d">'+a.short+' armor: '+a.desc+(ln?', +1 HP lining':'')+'<br>'+a.note+'</div>'+(ok?(ln?'':'<div class="lk">Lining (+1 HP) at level '+UNLOCK_LVL['ar_'+k]+'</div>'):'<div class="lk">Unlocks at level '+UNLOCK_LVL['a_'+k]+'</div>')+'</button>'; }).join(''); }
 function utCharges(k){ const u=UTILS[k]; return u.charges+((draft.cls==='grenadier'&&u.dmg)?1:0)+((draft.cls==='specialist'&&k==='medkit')?1:0); }
@@ -5822,8 +5830,8 @@ function renderLoadout(){
     const sm=S.type==='pistol'?S.dmg[0]+'–'+S.dmg[1]+' dmg · '+S.clip+' rounds · optimal '+bandTxt(optBand(S.W)):S.type==='thrown'?'Melee or throw '+S.range+' tiles · '+S.uses+' per match':'Melee · '+S.acc+'% base hit'+(S.dash?' · dash '+S.dash:'');
     const nAtt=Object.keys((draft.att&&draft.att[draft.weapon])||{}).length;
     h+='<div class="grp"><h3>Operative</h3>'+slotRow('cls','Class',Cl.name,Cl.tag+' · '+ABIL[Cl.ability].name)+'</div>';
-    h+='<div class="grp"><h3>Weapons</h3>'+slotRow('weapon','Primary',W.name+mkTxt(mk),W.dmg[0]+'–'+W.dmg[1]+' dmg · '+W.clip+' rounds · optimal '+bandTxt(ob),(nAtt?'<span class="tg">'+nAtt+' att</span>':'')+mBadge(draft.weapon))
-      +slotRow('sec','Secondary',S.name,sm,isPistol(draft.sec)?mBadge(draft.sec):'')+'</div>';
+    h+='<div class="grp"><h3>Weapons</h3>'+slotRow('weapon','Primary',W.name+mkTxt(mk),W.dmg[0]+'–'+W.dmg[1]+' dmg · '+W.clip+' rounds · optimal '+bandTxt(ob),(nAtt?'<span class="tg">'+nAtt+' att</span>':'')+mBadge(draft.weapon),'',wpvHtml(draft.weapon,'sm'))
+      +slotRow('sec','Secondary',S.name,sm,isPistol(draft.sec)?mBadge(draft.sec):'','',wpvHtml(draft.sec,'sm'))+'</div>';
     h+='<div class="grp"><h3>Protection and kit</h3>'+slotRow('armor','Armor',A.name,A.short+' · '+A.desc+(own('ar_'+draft.armor)?' · +1 HP lining':''))
       +slotRow('util','Utilities · '+draft.utils.length+' of '+utilSlots(),draft.utils.map(k=>UTILS[k].name+' ×'+utCharges(k)).join(' + '),own('pouch')?'':'Third slot at level '+UNLOCK_LVL.pouch)+'</div>';
   } else if(loTabK==='mods'){
@@ -5841,7 +5849,7 @@ function renderLoadout(){
         +'<p class="tdesc">'+(ok?cap1(p.desc.replace(/^Active: /,'')):'Unlocks at level '+CP_LVL[i]+'.')+'</p></div>'; }).join('')+'</div></div>';
   }
   $('#loPane').innerHTML=h;
-  document.querySelectorAll('#loPane canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,true));
+  document.querySelectorAll('#loPane canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,true)); drawWpvs($('#loPane'));
   if(loPick) fillPicker();
 }
 function loTab(k){ loTabK=k; renderLoadout(); const p=$('#loScroll'); if(p&&p.scrollTop>0&&window.innerWidth<900){ const t=$('#loTabs'); p.scrollTop=Math.min(p.scrollTop,t.offsetTop-6); } }
@@ -5859,7 +5867,7 @@ function fillPicker(){ const k=loPick, p=k.split(':'), aimNow=loAim(); let kick=
   else if(p[0]==='mf'){ kick=wName(p[1])+' · mastery '+mastLvl(p[1]); t='Mastery finish'; sub='Cosmetic. Unlocked by weapon mastery; “Store finish” uses your equipped store paint.'; body=mfCards(p[1]); cls='fsws grid'; }
   $('#shKick').textContent=kick; $('#shTitle').textContent=t; $('#shSub').textContent=sub; $('#shSub').classList.toggle('hidden',!sub);
   const b=$('#shBody'), st=b.scrollTop; b.className='sheet-body '+cls; b.innerHTML=body; b.scrollTop=st; $('#shFoot').innerHTML=foot; $('#shFoot').classList.toggle('hidden',!foot);
-  b.querySelectorAll('canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,true)); }
+  b.querySelectorAll('canvas[data-mfpv]').forEach(cv2=>drawMfSwatch(cv2,true)); drawWpvs(b); }
 $('#loadout').addEventListener('click',e=>{ if(!draft) return;
   if(e.target.closest('[data-close]')){ SFX.click(); closePicker(); return; }
   const tb=e.target.closest('[data-lotab]'); if(tb){ SFX.click(); buzz(6); loTab(tb.dataset.lotab); return; }
