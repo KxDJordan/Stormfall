@@ -439,6 +439,14 @@ body.sheet-open .nav{display:none}
 .slot .wpv.sm{width:84px;height:30px}
 .bkrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px} .bkrow .btn{flex:1 1 140px;width:auto;margin:0}
 .bkst{font-size:var(--fs-sm);color:var(--muted)} .bkst.warn{color:var(--amber)}
+.clcode{font:600 13.5px/1.3 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.02em;background:var(--surf);border:1px solid var(--line);border-radius:var(--r1);padding:8px 10px;margin-top:8px;user-select:all;-webkit-user-select:all;white-space:nowrap;overflow-x:auto;color:var(--text)}
+.clcode.masked{color:var(--muted);user-select:none;-webkit-user-select:none}
+.clhint{display:block;font-size:11.5px;color:var(--dim);margin-top:4px}
+.clin{width:100%;box-sizing:border-box;font:600 16px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.05em;text-transform:uppercase;padding:10px;border-radius:var(--r1);border:1px solid var(--line2);background:var(--surf);color:var(--text)}
+.clcmp{display:grid;gap:8px;margin:var(--s3) 0 0} .clcmp div{background:var(--surf);border:1px solid var(--line);border-radius:var(--r1);padding:9px 10px;font-size:13px;color:var(--text2)} .clcmp b{display:block;font-size:12px;color:var(--muted);margin-bottom:2px}
+.lbt{margin-top:var(--s3)} .lbrow{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px 8px;border-bottom:1px solid var(--line);font-size:13px}
+.lbrow b{font:600 20px/1 Teko,sans-serif;text-align:center;color:var(--text2)} .lbrow span{min-width:0;overflow:hidden;text-overflow:ellipsis} .lbrow span small{display:block;color:var(--muted);font-size:11.5px}
+.lbrow i{font:600 20px/1 Teko,sans-serif;font-style:normal;color:var(--amber)} .lbrow.me{background:var(--signal-bg);border-left:3px solid var(--signal)} .lbgap{text-align:center;color:var(--dim);font-size:12px;line-height:1}
 .item .how{font-size:11.5px;color:var(--muted);margin:-2px 0 6px}
 .r-common{--rc:var(--r-common)} .r-rare{--rc:var(--r-rare)} .r-epic{--rc:var(--r-epic)} .r-legendary{--rc:var(--r-legendary)} .r-mythic{--rc:var(--r-mythic)}
 .item.eqd{border-color:rgba(93,255,154,.45);border-top-color:var(--rc)}
@@ -1031,7 +1039,8 @@ body.sheet-open .nav{display:none}
     <div class="sec"><h3>Replays <small>your last 10 matches, saved on this device</small><button class="btn sm ghost rpimp" id="rpImport">Import</button></h3><div id="pReps"></div></div>
     <div class="sec"><h3>Recent matches</h3><div id="pHist"></div></div>
     <div class="sec"><h3>Training</h3><div class="setrow"><div>Guided tutorial<small id="pTutS">A short scripted match that teaches the basics</small></div><button class="btn sm" id="pTut">Play</button></div></div>
-    <div class="sec"><h3>Save backup <small>your progress lives on this device only; back it up before removing the app</small></h3><div id="pBk"></div></div>
+    <div class="sec"><h3>Cloud save <small>keeps your progress safe and in sync across devices, even if you remove the app</small></h3><div id="pCloud"></div></div>
+    <div class="sec"><h3>Save backup <small>a copy of everything on this device (replays included) that you keep yourself</small></h3><div id="pBk"></div></div>
     <div class="sec"><h3>Settings</h3><div class="settings" id="pSet"></div></div>
   </div></div>
   <div class="sheet hidden" id="prSheet">
@@ -1144,6 +1153,14 @@ body.sheet-open .nav{display:none}
   </div>
 </div>
 
+<div class="modal hidden" id="cl" role="dialog" aria-modal="true" aria-labelledby="clT">
+  <div class="mbox">
+    <div class="mhead"><h2 class="display" id="clT">Cloud save</h2><button class="iconbtn" id="clClose" aria-label="Close">×</button></div>
+    <div class="mbody" id="clBody"></div>
+    <div class="mfoot" id="clB"></div>
+  </div>
+</div>
+
 <!-- DAILY CHALLENGE -->
 <div class="modal hidden" id="daily" role="dialog" aria-modal="true" aria-labelledby="dyT">
   <div class="mbox">
@@ -1191,6 +1208,8 @@ body.sheet-open .nav{display:none}
       <li>The waiting room after Play sets up the match: add or remove bots (any size from a 1v1 up to the mode’s limit) and give each bot its own difficulty, Recruit, Veteran or Elite, or set them all at once. Difficulty changes aim, gear, memory, hearing and how cleverly they flank; an AI partner keeps gear matched to your team. Smaller matches start with a smaller storm and fewer crates, and pay less for placement.</li>
       <li>Six regions: Neo-Kowloon, Frostfall Station, Ember Wastes, Verdant Ruins, Ironhaven Docks and Blackwell Refinery. The map roulette after Deploy picks one you did not just play.</li>
       <li>Play online: one player hosts a room and shares the 5-letter code or invite link. Friends join from Play online and appear in the host’s waiting room, where the host adds bots and picks their difficulty. If someone drops, AI takes over their operative.</li>
+      <li>Cloud save (Profile): after your first match your progress syncs to the cloud on its own (no sign-up, no email), so it survives removing the home-screen app or switching devices. Profile shows your account code: enter it with “Sign in with account code” on another device to carry on there. Without a connection everything works as before and syncs later.</li>
+      <li>Daily challenge: one attempt a day on the same map for everyone. Your first score of the day goes on the global leaderboard (top 50, plus your rank), shown on the results screen and in the Daily window.</li>
       <li>Matches pay XP and credits. Levels unlock gear upgrades; credits and shards buy cosmetics.</li>
       <li>Season pass (Pass tab): a free 45-tier track that resets every 6 weeks. Matches, the first win of the day and quest claims earn pass XP; tiers hold credits, shards, cosmetics, titles, banners and two season-exclusive items.</li>
       <li>Class challenges (Profile): five goals per class, tracked in matches played as that class. They award titles (shown under your callsign) and banners (your name plate). Finish all five for the class’s prime title and banner.</li>
@@ -6656,7 +6675,7 @@ function loadProf(){
   }
   return p;
 }
-function saveProf(){ syncCos(); try{ localStorage.setItem('stormfall_profile',JSON.stringify(PROF)); }catch(e){} }
+function saveProf(){ syncCos(); try{ localStorage.setItem('stormfall_profile',JSON.stringify(PROF)); }catch(e){} try{ cloudDirty(); }catch(e){} } // cloudDirty: debounced cloud push (never awaited)
 function applySettings(){ SFX.on=!!PROF.settings.sound; }
 
 /* ================= rewards ================= */
@@ -6744,7 +6763,7 @@ $('#nav').addEventListener('click',e=>{ const b=e.target.closest('[data-nav]'); 
 $('#howRange').textContent='Every weapon has an optimal range where its aim is best and falls off outside it: '+Object.keys(WEAPONS).map(k=>WEAPONS[k].short+' '+bandTxt(optBand(WEAPONS[k]))).join(', ')+'. Each loadout card lists aim by range.';
 let LO=loadLO();
 function loadLO(){ try{ const s=JSON.parse(localStorage.getItem('stormfall_loadout')||'null'); if(s) return sanitize(s); }catch(e){} return sanitize({name:'NOMAD',cls:'ranger',weapon:'shotgun',armor:'light',utils:['frag','medkit']}); }
-function saveLO(){ try{ localStorage.setItem('stormfall_loadout',JSON.stringify(LO)); }catch(e){} }
+function saveLO(){ try{ localStorage.setItem('stormfall_loadout',JSON.stringify(LO)); }catch(e){} try{ cloudDirty(); }catch(e){} }
 function toMenu(){ ffStop(); if(TUT.on) tutStop(); show('#tutEnd',false); show('#hud',false); show('#end',false); show('#wend',false); G.over=true; G.turnRes=null; G.watch=null; G.paused=false; setupMenuScene(); go('menu'); }
 function refreshMenu(){
   LO=sanitize(LO);
@@ -6844,8 +6863,20 @@ function mapRoulette(rk){
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
 const PROTO=15, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-// matchmaking defaults to the free public PeerJS server; set window.STORMFALL_PEER={host,port,path,secure} before this script to use your own
-const peerOpts=()=>Object.assign({debug:0},window.STORMFALL_PEER||{});
+/* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
+   a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
+   hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
+   window.STORMFALL_PEER={host,port,path,secure,config} set before this script overrides both. */
+const SIG_ERR=['network','server-error','socket-error','socket-closed'];
+function ownPeer(){ if(!API_BASE) return null; try{ const u=new URL(API_BASE); return {host:u.hostname,port:+u.port||(u.protocol==='https:'?443:80),secure:u.protocol==='https:',path:u.pathname.replace(/\/+$/,'')+'/api/',key:'peerjs',pingInterval:25000}; }catch(e){ return null; } }
+const peerOpts=own=>Object.assign({debug:0},own&&ownPeer()||{},NET.ice?{config:{iceServers:NET.ice}}:{},window.STORMFALL_PEER||{});
+// before opening a peer: ICE servers from our backend (TURN relays when configured there; cached for their lifetime).
+// Resolves true when the backend should be used for signaling. Takes at most ~3 s; never throws.
+async function netPrep(){ if(!API_BASE||(window.STORMFALL_PEER&&window.STORMFALL_PEER.host)) return false;
+  try{ const c=JSON.parse(localStorage.getItem('stormfall_ice')||'null'); if(c&&c.exp>Date.now()){ NET.ice=c.ice; return true; } }catch(e){}
+  try{ const r=await clApi('turn',undefined,{t:3000}); if(r.s!==200) return false; NET.ice=Array.isArray(r.j.iceServers)&&r.j.iceServers.length?r.j.iceServers:null;
+    try{ localStorage.setItem('stormfall_ice',JSON.stringify({ice:NET.ice,exp:Date.now()+Math.max(60,r.j.ttl|0)*1000})); }catch(e){} return true; }
+  catch(e){ return false; } }
 function peerReady(){
   if(window.Peer) return Promise.resolve();
   const load=src=>new Promise((res,rej)=>{ const sc=document.createElement('script'); sc.src=src; sc.onload=res; sc.onerror=rej; document.head.appendChild(sc); });
@@ -6910,15 +6941,17 @@ async function netHost(){
   if(NET.peer) netLeave();
   NET.on=true; NET.host=true; netStatus('Opening a room…');
   try{ await peerReady(); }catch(e){ netLeave(); netStatus(e.message); return; }
-  const tryOpen=n=>{ const code=netCode(), peer=new Peer('stormfall-'+code.toLowerCase(),peerOpts()); NET.peer=peer;
+  const own0=await netPrep(); if(!NET.on||!NET.host||NET.peer) return; // cancelled meanwhile
+  const tryOpen=(n,own)=>{ const code=netCode(), peer=new Peer('stormfall-'+code.toLowerCase(),peerOpts(own)); NET.peer=peer;
     peer.on('open',id=>{ if(NET.peer!==peer) return; NET.code=code; NET.me=id; NET.mode=MODES[PROF.mode]?PROF.mode:'solo'; NET.bots=(Array.isArray(PROF.wr[NET.mode])?PROF.wr[NET.mode]:defaultBots(NET.mode)).slice(); NET.players=[cleanSpec(mySpec(),id)]; NET.tm=tmClean(PROF.settings.ntm); netStatus(''); updateOnlineBtn(); });
     peer.on('connection',conn=>{ if(NET.peer!==peer) return; conn.on('data',d=>hostData(conn,d)); conn.on('close',()=>hostDrop(conn.peer)); conn.on('error',()=>hostDrop(conn.peer)); });
     peer.on('error',e=>{ if(NET.peer!==peer) return;
-      if(e.type==='unavailable-id'&&n<4){ try{ peer.destroy(); }catch(_){} tryOpen(n+1); return; }
+      if(e.type==='unavailable-id'&&n<4){ try{ peer.destroy(); }catch(_){} tryOpen(n+1,own); return; }
+      if(!NET.code&&own&&SIG_ERR.includes(e.type)){ try{ peer.destroy(); }catch(_){} tryOpen(n,false); return; } // our server is down: use the public one
       if(!NET.code){ netLeave(); netStatus('Could not open a room ('+(e.type||'error')+'). Try again.'); } });
     peer.on('disconnected',()=>{ if(NET.peer===peer) try{ peer.reconnect(); }catch(_){} }); // lost the matchmaking server; open connections keep working
   };
-  tryOpen(0);
+  tryOpen(0,own0);
 }
 function hostData(conn,d){
   if(!d||typeof d!=='object') return; const pid=conn.peer, rec=NET.conns.get(pid); if(rec) rec.last=Date.now();
@@ -6991,7 +7024,8 @@ async function netJoin(code,spec){
   if(NET.peer) netLeave();
   NET.on=true; NET.host=false; NET.code=code; NET.spec=!!spec; netStatus((spec?'Joining room ':'Connecting to room ')+code+(spec?' as a spectator…':'…'));
   try{ await peerReady(); }catch(e){ netLeave(); netStatus(e.message); return; }
-  const peer=new Peer(peerOpts()); NET.peer=peer;
+  const own0=await netPrep(); if(!NET.on||NET.host||NET.code!==code||NET.peer) return; // cancelled meanwhile
+  const attempt=own=>{ const peer=new Peer(peerOpts(own)); NET.peer=peer;
   peer.on('open',id=>{ if(NET.peer!==peer) return; NET.me=id;
     const conn=peer.connect('stormfall-'+code.toLowerCase(),{reliable:true}); NET.hostConn=conn; NET.hostLast=Date.now();
     const t=setTimeout(()=>{ if(NET.hostConn===conn&&!conn.open){ netLeave(); netStatus('Could not reach room '+code+'. The host may be behind a strict firewall.'); } },15000);
@@ -7000,8 +7034,11 @@ async function netJoin(code,spec){
     conn.on('close',()=>{ if(NET.hostConn===conn) clientLostHost('Lost connection to the host'); });
     conn.on('error',()=>{ if(NET.hostConn===conn) clientLostHost('Lost connection to the host'); }); });
   peer.on('error',e=>{ if(NET.peer!==peer) return;
+    // not on our server (the host may be on the public one), or ours is down: look on the public server
+    if(own&&(e.type==='peer-unavailable'||SIG_ERR.includes(e.type))&&!(NET.hostConn&&NET.hostConn.open)){ NET.hostConn=null; try{ peer.destroy(); }catch(_){} attempt(false); return; }
     if(e.type==='peer-unavailable'){ netLeave(); netStatus('No room called '+code+'. Check the code, or ask the host to reopen it.'); return; }
-    if(!NET.hostConn||!NET.hostConn.open){ netLeave(); netStatus('Could not connect ('+(e.type||'error')+'). Try again.'); } });
+    if(!NET.hostConn||!NET.hostConn.open){ netLeave(); netStatus('Could not connect ('+(e.type||'error')+'). Try again.'); } }); };
+  attempt(own0);
 }
 function clientData(d){
   if(!d||typeof d!=='object') return; NET.hostLast=Date.now();
@@ -7468,7 +7505,7 @@ function renderProfile(){
   $('#pMast').innerHTML=mw.map(k=>{ const m=mastInfo(k), nx=m.max?[]:mastUnlocks(k,m.l+1);
     return '<div class="mprow"><b>'+m.l+'</b><div><div>'+esc((WEAPONS[k]||SECONDARIES[k]).name)+(mfinFor(k)?' · '+MFIN[mfinFor(k)].name:'')+'</div><span class="xpbar"><i style="width:'+(m.max?100:(m.cur/m.need*100).toFixed(1))+'%"></i></span><small>'+(m.max?'Mastered':m.cur+'/'+m.need+' XP · next: '+nx.join(', '))+'</small></div><canvas data-pm="'+k+'" width="192" height="80"></canvas></div>'; }).join('');
   document.querySelectorAll('#pMast canvas[data-pm]').forEach(cv2=>{ const k=cv2.dataset.pm; wpnOn(cv2,k,(mfinFor(k)||PROF.equip.finish)+((LO.att&&LO.att[k])?'+'+attIds(LO.att[k],k).join('.'):'')); });
-  $('#pSet').innerHTML=setRows(false); renderReps(); renderBk();
+  $('#pSet').innerHTML=setRows(false); renderReps(); renderBk(); renderCloud();
   const KE=KILLS[PROF.equip.kill]||KILLS.default; $('#pKfx').innerHTML='<span>Kill effect</span><b style="color:'+RARITY[KE.r].col+'">'+esc(KE.name)+'</b><button class="btn sm" data-kfxstore>Change</button>';
 }
 $('#pKfx').addEventListener('click',e=>{ if(e.target.closest('[data-kfxstore]')){ stTab='Kill FX'; SFX.click(); go('store'); } });
@@ -7996,6 +8033,189 @@ $('#bk').addEventListener('click',e=>{ const b=e.target.closest('[data-bk]'); if
   else if(a==='pick') $('#bkFile').click(); else if(a==='check') bkCheck($('#bkTxt').value); else if(a==='apply') bkApply(); });
 $('#bkClose').addEventListener('click',()=>show('#bk',false));
 $('#bkFile').addEventListener('change',async e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f) return; const t=await f.text(); $('#bkTxt').value=t; bkCheck(t); });
+/* ================= cloud: account, cloud save, daily leaderboard =================
+   Optional backend (cloudflare/ in the repo). API base: <meta name="sf-api"> ("" = this site, "off" = none, or a URL;
+   window.STORMFALL_API overrides it). With no backend, or when it is unreachable, nothing here blocks or changes play:
+   every call is fire-and-forget, failures back off, and progress stays in this browser exactly as before.
+   Account: anonymous, created on the first sync. It is an id + secret pair, shown as a 30-character account code; the
+   server stores only a hash of the secret. Cloud save: the backup format (bkPack) without replays and daily map
+   thumbnails (a few KB), with a revision number. A push names the revision it started from; if the cloud moved on
+   meanwhile (another device), the player picks which copy to keep. Daily scores go to a global leaderboard. */
+const CL_KEY='stormfall_cloud', CL_DATA=['stormfall_profile','stormfall_loadout','stormfall_daily'];
+const API_BASE=(()=>{ let b=''; try{ const m=document.querySelector('meta[name="sf-api"]'); b=m?m.content.trim():''; if(typeof window.STORMFALL_API==='string') b=window.STORMFALL_API.trim(); }catch(e){}
+  if(b==='off') return ''; if(!b) return /^https?:$/.test(location.protocol)&&!/\.github\.io$/i.test(location.hostname)?location.origin:''; // GitHub Pages has no /api
+  return /^https?:\/\/[^\s]+$/.test(b)?b.replace(/\/+$/,''):''; })();
+const CL={st:'',msg:'',busy:false,down:false,until:0,fails:0,timer:0,ready:false,lastPush:0,gen:0,conflict:null,lb:{}};
+let CLS=clLoad(); // persisted: {auth,code,rev,at,dirty,out,pend:[daily results to submit],dr:{day:{rank,total,score}}}
+function clLoad(){ try{ const o=JSON.parse(localStorage.getItem(CL_KEY)||'null'); if(o&&typeof o==='object') return Object.assign({rev:0,at:0,dirty:false,out:false,pend:[],dr:{}},o); }catch(e){} return {rev:0,at:0,dirty:false,out:false,pend:[],dr:{}}; }
+function clStore(){ try{ localStorage.setItem(CL_KEY,JSON.stringify(CLS)); }catch(e){} }
+function clId(){ return CLS.auth?CLS.auth.slice(0,10):''; }
+function agoTxt(ms){ const s=Math.max(0,ms/1000|0); return s<60?'just now':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':Math.floor(s/86400)+'d ago'; }
+// one request; JSON both ways, sent as a CORS "simple" request (no preflight). Throws on network errors / backoff.
+async function clApi(path,body,o){ o=o||{};
+  if(!API_BASE||CL.down) throw new Error('offline'); if(Date.now()<CL.until) throw new Error('backoff');
+  const ctl=window.AbortController?new AbortController():null, tm=setTimeout(()=>{ if(ctl) ctl.abort(); },o.t||9000);
+  try{ const r=await fetch(API_BASE+'/api/'+path,body===undefined?{signal:ctl&&ctl.signal}:{method:'POST',body:JSON.stringify(body),signal:ctl&&ctl.signal,keepalive:!!o.ka});
+    if(r.status===429||r.status>=500){ clBackoff(+r.headers.get('Retry-After')||0); throw new Error(r.status===429?'busy':'server'); }
+    let j=null; try{ j=await r.json(); }catch(e){}
+    if(!j||typeof j!=='object'){ CL.down=true; throw new Error('offline'); } // not our API (e.g. a static host's 404 page): off for this session
+    CL.fails=0; return {s:r.status,j}; }
+  catch(e){ if(e&&(e.name==='AbortError'||e.name==='TypeError')) clBackoff(0); throw e; }
+  finally{ clearTimeout(tm); } }
+function clBackoff(sec){ CL.fails++; CL.until=Date.now()+Math.max(sec*1000,Math.min(600000,15000*Math.pow(2,CL.fails-1))); }
+function clSet(st,msg){ CL.st=st; CL.msg=msg||''; if(curScreen==='profile') renderCloud(); }
+
+/* --- the cloud copy: profile, loadout, daily results (map thumbnails stripped); replays stay on the device --- */
+function clData(){ const d={}; for(const k of CL_DATA){ try{ let v=localStorage.getItem(k); if(v==null) continue;
+    if(k==='stormfall_daily'){ try{ const o=JSON.parse(v); for(const x in o.days||{}) delete o.days[x].thumb; v=JSON.stringify(o); }catch(e){} } d[k]=v; }catch(e){} } return d; }
+async function clPack(d){ const json=JSON.stringify({sf:'stormfall-save',v:BK_VER,at:Date.now(),proto:PROTO,cloud:1,data:d});
+  if(window.CompressionStream){ try{ return 'SFS1.'+b64e(await zip(json)); }catch(e){} } return 'SFS0.'+b64e(new TextEncoder().encode(json)); }
+function clHash(d){ const s=CL_DATA.map(k=>d[k]||'').join('\u0001'); let h1=0x811c9dc5, h2=7; for(let i=0;i<s.length;i++){ const c=s.charCodeAt(i); h1=Math.imul(h1^c,16777619); h2=Math.imul(h2,31)+c|0; } return (h1>>>0).toString(36)+(h2>>>0).toString(36); }
+function clSummary(data){ return data&&data.stormfall_profile?bkSummary(data):'No progress'; }
+// writes a cloud copy into this browser and reloads (only the cloud keys: replays are kept)
+function clApply(data,rev){ if(NET.on){ toast('Leave the online room first',''); return false; }
+  try{ for(const k of CL_DATA){ if(typeof data[k]==='string') localStorage.setItem(k,data[k]); else localStorage.removeItem(k); } }catch(e){ toast('Could not load the cloud save',String(e.message||e)); return false; }
+  CLS.rev=rev; CLS.hash=clHash(clData()); CLS.at=Date.now(); CLS.dirty=false; clStore(); toast('Cloud save loaded','Reloading…'); setTimeout(()=>location.reload(),600); return true; }
+function clSafe(){ return G.scene!=='game'&&!NET.on&&!TUT.on; } // on the menus: a reload or a dialog will not interrupt anything
+
+/* --- sync --- */
+// called by saveProf / saveLO: progress changed, push it in a little while (debounced, batched per match)
+function cloudDirty(){ if(!CL.ready||CLS.out) return; CL.gen++; if(!CLS.dirty){ CLS.dirty=true; clStore(); } clSchedule(8000); }
+function clSchedule(ms){ if(!API_BASE||CL.down) return; clearTimeout(CL.timer); CL.timer=setTimeout(()=>cloudPush('auto'),Math.max(ms,CL.lastPush+20000-Date.now())); }
+async function clEnsureAccount(){ if(CLS.auth) return true; if(CLS.out) return false;
+  const r=await clApi('account',{}); if(r.s!==200||!r.j.auth) return false;
+  CLS.auth=r.j.auth; CLS.code=r.j.code; CLS.rev=0; CLS.hash=''; clStore(); return true; }
+async function cloudPush(why){
+  if(!API_BASE||CL.down||CLS.out||CL.busy) return;
+  if(why!=='hide'&&G.scene==='game'&&!G.over){ clSchedule(20000); return; } // mid-match: wait for the end (one push per match)
+  if(!CLS.auth&&why==='auto'&&!(PROF.career.matches|0)&&!(PROF.xp|0)) return; // no progress yet: no account yet
+  CL.busy=true; const gen=CL.gen;
+  try{ if(!await clEnsureAccount()) return;
+    const d=clData(), h=clHash(d);
+    if(h===CLS.hash&&CLS.rev>0){ CLS.dirty=false; clStore(); clSet('ok'); return; }
+    clSet('sync'); CL.lastPush=Date.now();
+    const r=await clApi('save/put',{auth:CLS.auth,base:CLS.rev,data:await clPack(d)},{ka:why==='hide'});
+    if(r.s===200){ CLS.rev=r.j.rev; CLS.hash=h; CLS.at=Date.now(); if(CL.gen===gen) CLS.dirty=false; clStore(); clSet('ok'); }
+    else if(r.s===409) await clConflict(r.j,d);
+    else if(r.s===401) clSet('err','This device’s account was not found. Sign in again with your account code.');
+    else clSet('err','Cloud save refused ('+r.s+').');
+  }catch(e){ clSet('off'); clSchedule(Math.max(30000,CL.until-Date.now())); }
+  finally{ CL.busy=false; clFlushDaily(); } }
+// app start and "Sync now": fetch the cloud revision; newer + no local changes = load it; both changed = ask
+async function cloudPull(manual){
+  if(!API_BASE||CL.down||!CLS.auth||CL.busy) return; CL.busy=true; clSet('sync');
+  try{ const r=await clApi('save/get',{auth:CLS.auth,have:CLS.rev});
+    if(r.s===401){ clSet('err','This device’s account was not found. Sign in again with your account code.'); return; }
+    if(r.s!==200){ clSet('err'); return; }
+    const j=r.j, local=clData(), lh=clHash(local);
+    if(j.rev===CLS.rev||!j.data){ if(j.rev>CLS.rev) CLS.rev=j.rev; CLS.at=Date.now(); clStore(); clSet('ok'); if(CLS.dirty||lh!==CLS.hash) clSchedule(manual?0:3000); return; }
+    let cloud=null; try{ cloud=(await bkUnpack(j.data)).data; }catch(e){}
+    if(!cloud){ clSet('err','The cloud save could not be read.'); return; }
+    if(clHash(cloud)===lh){ CLS.rev=j.rev; CLS.hash=lh; CLS.dirty=false; CLS.at=Date.now(); clStore(); clSet('ok'); return; }
+    if(!CLS.dirty&&j.rev>CLS.rev){ if(clSafe()) clApply(cloud,j.rev); else { CL.conflict={rev:j.rev,at:j.at,cloud,local,newer:true}; clSet('conflict'); } return; }
+    await clConflict(j,local,cloud);
+  }catch(e){ clSet('off'); }
+  finally{ CL.busy=false; clFlushDaily(); } }
+async function clConflict(j,local,cloud){
+  if(!cloud){ try{ cloud=(await bkUnpack(j.data)).data; }catch(e){} }
+  if(!cloud||!cloud.stormfall_profile){ CLS.rev=j.rev; clStore(); clSchedule(0); return; } // nothing usable in the cloud: overwrite it
+  if(clHash(cloud)===clHash(local)){ CLS.rev=j.rev; CLS.hash=clHash(local); CLS.dirty=false; clStore(); clSet('ok'); return; }
+  CL.conflict={rev:j.rev,at:j.at,cloud,local}; clSet('conflict');
+  if(clSafe()) clConflictOpen(); else toast('Cloud save conflict','Choose a version in Profile');
+}
+function clConflictOpen(){ const c=CL.conflict; if(!c) return;
+  $('#clT').textContent=c.newer?'Newer cloud save':'Choose a save';
+  $('#clBody').innerHTML='<p class="lead" style="margin:0">'+(c.newer?'Another device saved newer progress.':'This device and the cloud both have progress the other does not. Pick the one to keep; the other is replaced.')+'</p>'
+    +'<div class="clcmp"><div><b>This device</b>'+esc(clSummary(c.local))+'</div><div><b>Cloud'+(c.at?' · saved '+esc(agoTxt(Date.now()-c.at)):'')+'</b>'+esc(clSummary(c.cloud))+'</div></div>';
+  $('#clB').innerHTML='<button class="btn" data-cl="keep">Keep this device</button><button class="btn primary" data-cl="usecloud">Use cloud save</button>'; show('#cl',true); }
+async function clResolve(useCloud){ const c=CL.conflict; if(!c) return; CL.conflict=null; show('#cl',false);
+  if(useCloud){ clApply(c.cloud,c.rev); return; }
+  CLS.rev=c.rev; CLS.hash=''; CLS.dirty=true; clStore(); clSet('sync'); CL.lastPush=0; cloudPush('keep'); }
+
+/* --- account code: show, sign in on another device, sign out --- */
+function clCodeOk(code){ const s=String(code||'').toUpperCase().replace(/[^0-9A-Z]/g,'').replace(/O/g,'0').replace(/[IL]/g,'1').replace(/U/g,'V');
+  return /^[0-9A-HJKMNP-TV-Z]{30}$/.test(s)?s.slice(0,10)+'.'+s.slice(10):''; }
+function clSignInOpen(){ $('#clT').textContent='Sign in';
+  $('#clBody').innerHTML='<p class="lead" style="margin:0 0 var(--s2)">Enter the account code from Profile on your other device (or the one you wrote down). Your cloud save replaces the progress on this device.</p>'
+    +'<input id="clIn" class="clin" maxlength="40" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Account code"><p class="onstat" id="clStat" aria-live="polite"></p>';
+  $('#clB').innerHTML='<button class="btn ghost" data-cl="close">Cancel</button><button class="btn primary" data-cl="check">Sign in</button>'; show('#cl',true); }
+let clPend=null;
+async function clSignInCheck(){ const st=$('#clStat'), auth=clCodeOk($('#clIn').value); clPend=null;
+  if(!auth){ st.textContent='Account codes are 30 letters and digits.'; return; } if(auth===CLS.auth){ st.textContent='This device already uses that account.'; return; }
+  st.textContent='Checking…';
+  try{ const r=await clApi('save/get',{auth,have:-1});
+    if(r.s===401){ st.textContent='No account with that code. Check it and try again.'; return; } if(r.s!==200){ st.textContent='The cloud is not answering. Try again later.'; return; }
+    let cloud=null; if(r.j.data){ try{ cloud=(await bkUnpack(r.j.data)).data; }catch(e){} }
+    clPend={auth,rev:r.j.rev,cloud};
+    st.textContent=cloud?'Cloud save: '+clSummary(cloud)+(r.j.at?' (saved '+agoTxt(Date.now()-r.j.at)+')':'')+'.':'That account has no cloud save yet. This device’s progress will be uploaded to it.';
+    $('#clB').innerHTML='<button class="btn ghost" data-cl="close">Cancel</button><button class="btn primary" data-cl="signin">'+(cloud?'Replace my progress':'Use this account')+'</button>'; }
+  catch(e){ st.textContent='The cloud is not reachable right now. Try again later.'; } }
+function clSignIn(){ const p=clPend; if(!p) return; clPend=null; const s=p.auth.replace('.',''); CLS.auth=p.auth; CLS.code=s.match(/.{5}/g).join('-'); CLS.out=false; CLS.dr={};
+  if(p.cloud){ show('#cl',false); clApply(p.cloud,p.rev); return; }
+  CLS.rev=p.rev; CLS.hash=''; CLS.dirty=true; clStore(); show('#cl',false); toast('Signed in','Uploading this device’s progress'); CL.lastPush=0; cloudPush('signin'); renderCloud(); }
+function clSignOutOpen(){ $('#clT').textContent='Sign out';
+  $('#clBody').innerHTML='<p class="lead" style="margin:0">This device stops syncing. Your progress stays here, and your cloud save stays in the cloud. To use it again, sign in with your account code:</p><div class="clcode">'+esc(CLS.code||'')+'</div>';
+  $('#clB').innerHTML='<button class="btn ghost" data-cl="close">Cancel</button><button class="btn primary" data-cl="signout">Sign out</button>'; show('#cl',true); }
+function clSignOut(){ CLS={rev:0,at:0,dirty:false,out:true,pend:[],dr:{}}; clStore(); show('#cl',false); clSet(''); toast('Signed out','Cloud save is off on this device'); }
+function renderCloud(){ const el=$('#pCloud'); if(!el) return;
+  if(!API_BASE){ el.innerHTML='<div class="bkst">Cloud save is not available in this copy of the game. Use Save backup below.</div>'; return; }
+  if(!CLS.auth){ el.innerHTML='<div class="bkst">'+(CLS.out?'Cloud save is off on this device.':CL.st==='off'||CL.down?'Offline: cloud save turns on when the cloud is reachable. Your progress is safe on this device.':'Cloud save turns on by itself after your first match.')+'</div>'
+    +'<div class="bkrow"><button class="btn sm" data-clp="on">Turn on now</button><button class="btn sm ghost" data-clp="in">Sign in with account code</button></div>'; return; }
+  const st=CL.st==='sync'?'Syncing…':CL.st==='conflict'?'Both this device and the cloud changed. Choose a version.':CL.st==='err'?(CL.msg||'Cloud sync failed.'):CL.st==='off'||CL.down?'Offline. Your progress is safe here; it syncs when the cloud is reachable.':CLS.at?'Cloud: synced '+agoTxt(Date.now()-CLS.at)+'.':'Cloud: not synced yet.';
+  el.innerHTML='<div class="bkst'+(CL.st==='conflict'||CL.st==='err'?' warn':'')+'">'+esc(st)+(CLS.dirty&&CL.st!=='sync'&&CL.st!=='conflict'?' Changes waiting to upload.':'')+'</div>'
+    +'<div class="clcode'+(CL.showCode?'':' masked')+'" aria-label="Account code">'+esc(CL.showCode?CLS.code||'':(CLS.code||'').replace(/[0-9A-Z]/g,'•').replace(/^.{5}/,(CLS.code||'').slice(0,5)))+'</div>'
+    +'<small class="clhint">Your account code signs you in on another device, or here again after removing the app. Keep it private.</small>'
+    +'<div class="bkrow">'+(CL.st==='conflict'?'<button class="btn sm primary" data-clp="resolve">Choose a version</button>':'<button class="btn sm" data-clp="sync">Sync now</button>')
+    +'<button class="btn sm" data-clp="copy">Copy code</button><button class="btn sm ghost" data-clp="show">'+(CL.showCode?'Hide':'Show')+' code</button></div>'
+    +'<div class="bkrow"><button class="btn sm ghost" data-clp="in">Sign in with another code</button><button class="btn sm ghost" data-clp="out">Sign out</button></div>'; }
+$('#profile').addEventListener('click',async e=>{ const b=e.target.closest('#pCloud [data-clp]'); if(!b) return; SFX.click(); const a=b.dataset.clp;
+  if(a==='on'){ CLS.out=false; clStore(); CL.ready=true; CLS.dirty=true; clSet('sync'); CL.lastPush=0; await cloudPush('on'); renderCloud(); }
+  else if(a==='in') clSignInOpen(); else if(a==='out') clSignOutOpen(); else if(a==='resolve') clConflictOpen();
+  else if(a==='sync'){ CL.until=0; CL.down=false; await cloudPull(true); if(CLS.dirty&&!CL.conflict){ CL.lastPush=0; await cloudPush('manual'); } renderCloud(); }
+  else if(a==='show'){ CL.showCode=!CL.showCode; renderCloud(); }
+  else if(a==='copy'){ try{ await navigator.clipboard.writeText(CLS.code); toast('Account code copied','Keep it somewhere private, like Notes'); }catch(_){ CL.showCode=true; renderCloud(); toast('Copy the code from Profile',''); } } });
+$('#cl').addEventListener('click',e=>{ const b=e.target.closest('[data-cl]'); if(!b) return; SFX.click(); const a=b.dataset.cl;
+  if(a==='close') show('#cl',false); else if(a==='check') clSignInCheck(); else if(a==='signin') clSignIn(); else if(a==='signout') clSignOut();
+  else if(a==='keep') clResolve(false); else if(a==='usecloud') clResolve(true); });
+$('#cl').addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.id==='clIn') clSignInCheck(); });
+$('#clClose').addEventListener('click',()=>show('#cl',false));
+
+/* --- daily leaderboard --- */
+// a finished daily: queue it (survives offline / reloads) and send it; the server keeps the first one per account per day
+function cloudDailyDone(k,day){ if(!API_BASE||CLS.out) return;
+  if(!CLS.pend.some(p=>p.day===k)) CLS.pend.push({day:k,of:day.of,place:day.p,win:!!day.win,kills:day.k,dmg:day.d,rounds:day.r,name:day.name||LO.name,cls:day.cls||LO.cls});
+  CLS.pend=CLS.pend.slice(-3); clStore(); clFlushDaily(); }
+async function clFlushDaily(){ if(!CLS.pend.length||CL.dbusy||!API_BASE||CL.down||CLS.out) return; CL.dbusy=true;
+  try{ if(!await clEnsureAccount()) return;
+    while(CLS.pend.length){ const p=CLS.pend[0], r=await clApi('daily/submit',Object.assign({auth:CLS.auth},p));
+      if(r.s===200){ CLS.dr[p.day]={rank:r.j.rank,total:r.j.total,score:r.j.score,t:Date.now()}; delete CL.lb[p.day]; }
+      CLS.pend.shift(); clStore(); // 400/401: implausible or closed day; dropped either way
+      if(G.daily&&G.daily.key===p.day||!$('#daily').classList.contains('hidden')) renderLb(p.day); }
+    const ks=Object.keys(CLS.dr).sort(); for(const k of ks.slice(0,-7)) delete CLS.dr[k]; clStore();
+  }catch(e){} finally{ CL.dbusy=false; } }
+async function clTop(k){ const c=CL.lb[k]; if(c&&Date.now()-c.t<60000) return c.j;
+  const r=await clApi('daily/top?day='+k); if(r.s!==200) throw new Error('top'); CL.lb[k]={t:Date.now(),j:r.j}; return r.j; }
+// renders the leaderboard into #eLb (results screen) and #dyLb (Daily modal), whichever is on screen
+async function renderLb(k){ const boxes=['#eLb','#dyLb'].map(s=>$(s)).filter(Boolean); if(!boxes.length) return;
+  if(!API_BASE){ for(const b of boxes) b.innerHTML=''; return; }
+  const put=h=>{ for(const b of boxes) b.innerHTML='<div class="sec lbt"><h3>Global leaderboard <small>'+esc(fmtDay(k))+' · top 50</small></h3>'+h+'</div>'; };
+  if(!boxes[0].innerHTML) put('<p class="clsdesc">Loading…</p>');
+  let j; try{ j=await clTop(k); }catch(e){ put('<p class="clsdesc">The leaderboard is offline right now. Your score is saved on this device'+(CLS.pend.some(p=>p.day===k)?' and will be sent later':'')+'.</p>'); return; }
+  const me=clId().slice(0,6), mine=CLS.dr[k], cn=c=>CLASSES[c]?CLASSES[c].name:'';
+  let inTop=false; const rows=j.top.map((x,i)=>{ const m=!!me&&x.t===me; if(m) inTop=true;
+    return '<div class="lbrow'+(m?' me':'')+'"><b>'+(i+1)+'</b><span>'+esc(x.n)+(m?' (you)':'')+'<small>'+esc(cn(x.c))+(cn(x.c)?' · ':'')+(x.w?'Victory':'#'+x.p)+' · '+x.k+' elim · '+x.d+' dmg</small></span><i>'+x.s.toLocaleString()+'</i></div>'; });
+  let tail='';
+  if(!inTop&&mine){ let rk=mine; if(Date.now()-(mine.t||0)>120000&&CLS.auth){ try{ const r=await clApi('daily/me',{auth:CLS.auth,day:k}); if(r.s===200&&!r.j.none){ rk=Object.assign({},r.j,{t:Date.now()}); CLS.dr[k]=rk; clStore(); } }catch(e){} }
+    tail='<div class="lbgap">⋯</div><div class="lbrow me"><b>'+rk.rank+'</b><span>You<small>of '+rk.total+' players today</small></span><i>'+rk.score.toLocaleString()+'</i></div>'; }
+  else if(!mine&&CLS.pend.some(p=>p.day===k)) tail='<p class="clsdesc">Sending your score…</p>';
+  else if(!mine&&CLS.out) tail='<p class="clsdesc">Sign in to cloud save (Profile) to put your score on the board.</p>';
+  put((rows.length?rows.join(''):'<p class="clsdesc">No scores yet today. Be the first.</p>')+tail+(j.total?'<p class="clsdesc" style="margin-top:6px">'+j.total+' player'+(j.total===1?'':'s')+' today</p>':'')); }
+
+/* --- boot: pull once at start, push changes on the way out --- */
+function cloudBoot(){ CL.ready=true; if(!API_BASE) return;
+  if(!CLS.auth&&!CLS.out&&((PROF.career.matches|0)>0||(PROF.xp|0)>0)){ CLS.dirty=true; clStore(); } // existing players get an account on their first sync
+  setTimeout(()=>{ if(CLS.auth) cloudPull(false); else if(CLS.dirty) clSchedule(0); else clFlushDaily(); },1200); }
+document.addEventListener('visibilitychange',()=>{ if(document.hidden&&CLS.dirty&&CLS.auth&&!CL.busy) cloudPush('hide'); });
 function renderReps(){ const el=$('#pReps'); if(!el) return; const L=rpLoad();
   el.innerHTML=L.length?L.map(r=>{ const i=r.info||{}; return '<div class="rprow"><b class="'+(i.win?'w':'')+'">'+(i.spec?'👁':'#'+(i.place||'?'))+'</b><div class="rpi"><span>'+esc(rpTitle(r))+'</span><small>'+esc(rpSub(r))+'</small></div>'
     +'<div class="rpb"><button class="btn sm" data-rpw="'+r.id+'">Watch</button><button class="btn sm ghost" data-rpf="'+r.id+'" title="Jump to the final turns">Final</button><button class="iconbtn" data-rpx="'+r.id+'" aria-label="Share or delete">⋯</button></div></div>'; }).join('')
@@ -8043,12 +8263,14 @@ function dailyMark(k){ const d=dyLoad(); if(!d.days[k]) d.days[k]={t:Date.now(),
 function dailyScore(r,s){ const of=Math.max(2,r.of||8), pl=clamp(r.place||of,1,of), P=Math.round((of-pl)/(of-1)*1000)+(r.win?500:0), K=s.kills*200, D=s.dmg*10, S=s.rounds*25; return {P,K,D,S,total:P+K+D+S}; }
 function dailyEnd(){ const box=$('#eDaily'), cb=$('#eCard'); if(!G.daily){ box.classList.add('hidden'); cb.classList.add('hidden'); return; }
   const k=G.daily.key, d=dyLoad(), day=d.days[k]||{}; let sc=day.sc;
+  const fresh=!day.done;
   if(!day.done){ const r=G.result, s=G.stats; sc=dailyScore(r,s); let thumb=null; try{ thumb=mapThumb(2).toDataURL('image/jpeg',0.86); }catch(e){}
     Object.assign(day,{done:true,sc,s:sc.total,p:r.place,of:r.of,win:!!r.win,k:s.kills,d:s.dmg,r:s.rounds,reg:G.region,cls:LO.cls,name:LO.name,thumb});
     day.pb=!d.best||sc.total>d.best.s; if(day.pb) d.best={s:sc.total,key:k}; d.days[k]=day; dySave(d); }
   box.classList.remove('hidden'); cb.classList.remove('hidden');
   box.innerHTML='<div class="dyscore"><div class="big"><b>'+day.s.toLocaleString()+'</b><span>Daily score'+(day.pb?' · <b style="font:inherit;color:var(--amber)">new personal best</b>':'<br>best '+(d.best?d.best.s.toLocaleString():'—'))+'</span></div>'
-    +'<div class="ln"><span>Placement #'+day.p+' of '+day.of+(day.win?' + victory':'')+'</span><span>'+sc.P+'</span></div><div class="ln"><span>Eliminations ×'+day.k+'</span><span>'+sc.K+'</span></div><div class="ln"><span>Damage ('+day.d+')</span><span>'+sc.D+'</span></div><div class="ln"><span>Rounds survived ('+day.r+')</span><span>'+sc.S+'</span></div></div>'; }
+    +'<div class="ln"><span>Placement #'+day.p+' of '+day.of+(day.win?' + victory':'')+'</span><span>'+sc.P+'</span></div><div class="ln"><span>Eliminations ×'+day.k+'</span><span>'+sc.K+'</span></div><div class="ln"><span>Damage ('+day.d+')</span><span>'+sc.D+'</span></div><div class="ln"><span>Rounds survived ('+day.r+')</span><span>'+sc.S+'</span></div></div><div id="eLb"></div>';
+  if(fresh) cloudDailyDone(k,day); renderLb(k); } // global leaderboard (no-op without the backend; never blocks the results)
 function fmtDay(k,long){ const p=k.split('-').map(Number); return new Date(Date.UTC(p[0],p[1]-1,p[2])).toLocaleDateString(undefined,long?{weekday:'short',month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}:{month:'short',day:'numeric',timeZone:'UTC'}); }
 function renderDailyBtn(){ const b=$('#bDaily'); if(!b) return; const k=dailyKey(), d=dyLoad(), day=d.days[k], R=REG[dailyRegion(k)];
   $('#dyTitle').textContent='Daily challenge · '+fmtDay(k); $('#dySub').textContent=R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase())+' · Elite AI · Solo';
@@ -8082,13 +8304,13 @@ async function shareCard(cv,k){ const name='stormfall-daily-'+k+'.png', d=dyLoad
   saveBlob(blob,name); toast('Card saved',name); }
 async function openDaily(cardOnly){ const k=dailyKey(), d=dyLoad(), day=d.days[k], R=REG[dailyRegion(k)], body=$('#dyBody'); SFX.init();
   $('#dyT').textContent=cardOnly?'Daily result':'Daily challenge'; show('#daily',true);
-  if(day&&day.done){ body.innerHTML='<p class="lead" style="margin:0 0 var(--s2)">'+fmtDay(k,true)+' · score <b style="color:var(--amber)">'+day.s.toLocaleString()+'</b>'+(day.pb?' (personal best)':'')+'. Come back tomorrow for a new map.</p><div id="dyCardBox"><p class="clsdesc">Drawing your card…</p></div>'+dailyHist(d,k);
+  if(day&&day.done){ body.innerHTML='<p class="lead" style="margin:0 0 var(--s2)">'+fmtDay(k,true)+' · score <b style="color:var(--amber)">'+day.s.toLocaleString()+'</b>'+(day.pb?' (personal best)':'')+'. Come back tomorrow for a new map.</p><div id="dyCardBox"><p class="clsdesc">Drawing your card…</p></div><div id="dyLb"></div>'+dailyHist(d,k); renderLb(k);
     $('#dyB').innerHTML='<div class="rpmb"><button class="btn primary" data-dy="share">'+(navigator.share?'Share card':'Download card')+'</button><button class="btn ghost" data-dy="close">Close</button></div>';
     const cv=await dailyCard(k); if(cv){ dyCardCv=cv; const im=new Image(); im.className='dcardv'; im.alt='Daily result card'; im.src=cv.toDataURL('image/png'); const bx=$('#dyCardBox'); if(bx){ bx.innerHTML=''; bx.appendChild(im); } } return; }
   const hero=document.createElement('canvas'); hero.width=240; hero.height=150; hero.getContext('2d').drawImage(regionArt(dailyRegion(k)),0,0);
   body.innerHTML='<div class="dyhero" id="dyHero"><span class="dyreg">'+esc(R.name)+'</span></div>'
     +'<div class="dyrules"><div><b>Solo</b>8 operatives</div><div><b>Elite</b>all 7 bots</div><div><b>'+DAILY.t+'s</b>per turn</div></div>'
-    +'<p class="lead" style="margin:0 0 var(--s3)">Everyone gets the same map, spawns and bots today. You bring your loadout. '+(day?'You already deployed today; the attempt counted.':'<b>One attempt</b>: it counts as soon as you deploy.')+' Score: placement, eliminations ×200, damage ×10, rounds survived ×25.</p>'+dailyHist(d,k);
+    +'<p class="lead" style="margin:0 0 var(--s3)">Everyone gets the same map, spawns and bots today. You bring your loadout. '+(day?'You already deployed today; the attempt counted.':'<b>One attempt</b>: it counts as soon as you deploy.')+' Score: placement, eliminations ×200, damage ×10, rounds survived ×25.</p><div id="dyLb"></div>'+dailyHist(d,k); renderLb(k);
   $('#dyHero').prepend(hero);
   $('#dyB').innerHTML='<div class="rpmb">'+(day?'':'<button class="btn primary" data-dy="go">Deploy</button>')+'<button class="btn ghost" data-dy="close">Close</button></div>'; }
 let dyCardCv=null;
@@ -8107,7 +8329,7 @@ window.__stormfall={G,setupMatch,runMatch,onAction,pFire,pMove,pThrow,enterTarge
 
 /* ================= boot ================= */
 { const st=document.createElement('style'); st.id='bannerCss'; st.textContent=plateCssText(); document.head.appendChild(st); } // name plate banners from BANNERS
-applySettings(); refreshQuests(); resize(); setupMenuScene(); go('menu');
+applySettings(); refreshQuests(); resize(); setupMenuScene(); go('menu'); cloudBoot();
 if(!PROF.seenBrief){ howButtons(); show('#how',true); }
 requestAnimationFrame(t=>{ lastT=t; frame(t); });
 })();

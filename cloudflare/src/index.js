@@ -1,6 +1,6 @@
 // Stormfall backend: one Worker with Static Assets.
 // The game files are served by the assets layer without running this code (free, unlimited); only /api/* reaches it
-// (run_worker_first in wrangler.jsonc). Endpoints are listed in cloudflare/README.md.
+// (run_worker_first in wrangler.jsonc). Endpoints are listed in the README (Cloudflare backend).
 //
 // Cost notes: every API call is a "simple" CORS request (GET, or POST with a text/plain JSON body and no custom
 // headers), so cross-origin use from GitHub Pages never pays for a preflight. Auth is "ID.SECRET" in the body;
