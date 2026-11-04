@@ -204,7 +204,7 @@ body.sheet-open .nav{display:none}
 .rprow .rpb .btn{min-height:40px;padding:0 10px;font-size:13px}
 .rprow .rpb .iconbtn{width:40px;height:40px;font-size:18px}
 .rpimp{margin-left:auto;min-height:34px!important}
-#rpmTxt{width:100%;min-height:120px;resize:vertical;background:#0b121a;color:var(--text2);border:1px solid var(--line2);border-radius:var(--r1);padding:8px;font:500 11px/1.35 ui-monospace,Menlo,monospace;word-break:break-all;-webkit-user-select:text;user-select:text}
+#bkTxt,#rpmTxt{width:100%;min-height:120px;resize:vertical;background:#0b121a;color:var(--text2);border:1px solid var(--line2);border-radius:var(--r1);padding:8px;font:500 11px/1.35 ui-monospace,Menlo,monospace;word-break:break-all;-webkit-user-select:text;user-select:text}
 .rpmb{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:var(--s2)}
 .rpmb .btn{width:100%}
 .wekick{color:var(--muted);font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px}
@@ -436,6 +436,8 @@ body.sheet-open .nav{display:none}
 .card.lock .wpv{opacity:.45;filter:grayscale(.6)}
 .slot.has-wpv{grid-template-columns:84px minmax(0,1fr) auto 18px}
 .slot .wpv.sm{width:84px;height:30px}
+.bkrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px} .bkrow .btn{flex:1 1 140px;width:auto;margin:0}
+.bkst{font-size:var(--fs-sm);color:var(--muted)} .bkst.warn{color:var(--amber)}
 .item .how{font-size:11.5px;color:var(--muted);margin:-2px 0 6px}
 .r-common{--rc:var(--r-common)} .r-rare{--rc:var(--r-rare)} .r-epic{--rc:var(--r-epic)} .r-legendary{--rc:var(--r-legendary)} .r-mythic{--rc:var(--r-mythic)}
 .item.eqd{border-color:rgba(93,255,154,.45);border-top-color:var(--rc)}
@@ -1028,6 +1030,7 @@ body.sheet-open .nav{display:none}
     <div class="sec"><h3>Replays <small>your last 10 matches, saved on this device</small><button class="btn sm ghost rpimp" id="rpImport">Import</button></h3><div id="pReps"></div></div>
     <div class="sec"><h3>Recent matches</h3><div id="pHist"></div></div>
     <div class="sec"><h3>Training</h3><div class="setrow"><div>Guided tutorial<small id="pTutS">A short scripted match that teaches the basics</small></div><button class="btn sm" id="pTut">Play</button></div></div>
+    <div class="sec"><h3>Save backup <small>your progress lives on this device only; back it up before removing the app</small></h3><div id="pBk"></div></div>
     <div class="sec"><h3>Settings</h3><div class="settings" id="pSet"></div></div>
   </div></div>
   <div class="sheet hidden" id="prSheet">
@@ -1129,6 +1132,14 @@ body.sheet-open .nav{display:none}
     <div class="mhead"><h2 class="display" id="rpmT">Replay</h2><button class="iconbtn" id="rpmClose" aria-label="Close">×</button></div>
     <div class="mbody"><p id="rpmS"></p><textarea id="rpmTxt" spellcheck="false" aria-label="Replay text"></textarea><p class="onstat" id="rpmStat" aria-live="polite"></p><input type="file" id="rpmFile" accept=".txt,.stormfall,text/plain" class="hidden"></div>
     <div class="mfoot" id="rpmB"></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="bk" role="dialog" aria-modal="true" aria-labelledby="bkT">
+  <div class="mbox">
+    <div class="mhead"><h2 class="display" id="bkT">Save backup</h2><button class="iconbtn" id="bkClose" aria-label="Close">×</button></div>
+    <div class="mbody"><p id="bkS"></p><textarea id="bkTxt" spellcheck="false" aria-label="Save code"></textarea><p class="onstat" id="bkStat" aria-live="polite"></p><input type="file" id="bkFile" accept=".txt,.json,.stormfall,text/plain,application/json" class="hidden"></div>
+    <div class="mfoot" id="bkB"></div>
   </div>
 </div>
 
@@ -7456,7 +7467,7 @@ function renderProfile(){
   $('#pMast').innerHTML=mw.map(k=>{ const m=mastInfo(k), nx=m.max?[]:mastUnlocks(k,m.l+1);
     return '<div class="mprow"><b>'+m.l+'</b><div><div>'+esc((WEAPONS[k]||SECONDARIES[k]).name)+(mfinFor(k)?' · '+MFIN[mfinFor(k)].name:'')+'</div><span class="xpbar"><i style="width:'+(m.max?100:(m.cur/m.need*100).toFixed(1))+'%"></i></span><small>'+(m.max?'Mastered':m.cur+'/'+m.need+' XP · next: '+nx.join(', '))+'</small></div><canvas data-pm="'+k+'" width="192" height="80"></canvas></div>'; }).join('');
   document.querySelectorAll('#pMast canvas[data-pm]').forEach(cv2=>{ const k=cv2.dataset.pm; wpnOn(cv2,k,(mfinFor(k)||PROF.equip.finish)+((LO.att&&LO.att[k])?'+'+attIds(LO.att[k],k).join('.'):'')); });
-  $('#pSet').innerHTML=setRows(false); renderReps();
+  $('#pSet').innerHTML=setRows(false); renderReps(); renderBk();
   const KE=KILLS[PROF.equip.kill]||KILLS.default; $('#pKfx').innerHTML='<span>Kill effect</span><b style="color:'+RARITY[KE.r].col+'">'+esc(KE.name)+'</b><button class="btn sm" data-kfxstore>Change</button>';
 }
 $('#pKfx').addEventListener('click',e=>{ if(e.target.closest('[data-kfxstore]')){ stTab='Kill FX'; SFX.click(); go('store'); } });
@@ -7935,6 +7946,55 @@ async function rpDecode(txt){ const t=String(txt||'').replace(/\s+/g,''), m=/^(S
 function rpTitle(r){ const i=r.info||{}, M=MODES[i.mode||r.cfg.mode], R=REG[i.region||r.cfg.region];
   return (M?M.name:'Match')+' · '+(R?R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase()):''); }
 function rpSub(r){ const i=r.info||{}; return new Date(r.t).toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · '+(i.spec?'Spectated':i.online?'Online':'Offline')+(i.daily?' · Daily':'')+' · '+(i.rounds||r.h.length)+' rounds'+(i.spec?'':' · '+(i.kills|0)+' elim'); }
+/* ================= save backup =================
+   Everything the game keeps lives in this browser's storage (iOS wipes it when a home-screen app is removed), so a
+   backup is those keys packed into one code: 'SFS1.' + base64(deflate(json)), or 'SFS0.' + base64(json) where the
+   browser has no CompressionStream. Restoring checks the code, shows what is in it, asks, writes the keys, reloads. */
+const BK_KEYS=['stormfall_profile','stormfall_loadout','stormfall_daily','stormfall_replays'], BK_VER=1;
+function b64e(bytes){ let s=''; for(let i=0;i<bytes.length;i+=0x8000) s+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000)); return btoa(s); }
+function b64d(t){ const s=atob(t); const b=new Uint8Array(s.length); for(let i=0;i<s.length;i++) b[i]=s.charCodeAt(i); return b; }
+async function zip(str,inv){ const st=new Blob([str]).stream().pipeThrough(inv?new DecompressionStream('deflate'):new CompressionStream('deflate')); return new Uint8Array(await new Response(st).arrayBuffer()); }
+function bkData(){ const d={}; for(const k of BK_KEYS){ try{ const v=localStorage.getItem(k); if(v!=null) d[k]=v; }catch(e){} } return d; }
+async function bkPack(){ const json=JSON.stringify({sf:'stormfall-save',v:BK_VER,at:Date.now(),proto:PROTO,data:bkData()});
+  if(window.CompressionStream){ try{ return 'SFS1.'+b64e(await zip(json)); }catch(e){} } return 'SFS0.'+b64e(new TextEncoder().encode(json)); }
+async function bkUnpack(code){ code=String(code||'').trim().replace(/\s+/g,'');
+  let json; if(code.startsWith('SFS1.')){ if(!window.DecompressionStream) throw new Error('This browser cannot read compressed save codes. Try the save file instead.'); json=new TextDecoder().decode(await zip(b64d(code.slice(5)),true)); }
+  else if(code.startsWith('SFS0.')) json=new TextDecoder().decode(b64d(code.slice(5)));
+  else if(code.startsWith('{')) json=code; else throw new Error('That is not a Stormfall save code.');
+  const o=JSON.parse(json); if(!o||o.sf!=='stormfall-save'||!o.data||typeof o.data!=='object') throw new Error('That is not a Stormfall save.');
+  const data={}; for(const k of BK_KEYS) if(typeof o.data[k]==='string') data[k]=o.data[k];
+  if(!data.stormfall_profile) throw new Error('This save has no profile in it.'); JSON.parse(data.stormfall_profile); return {at:o.at,data}; }
+function bkSummary(data){ try{ const P=JSON.parse(data.stormfall_profile), L=data.stormfall_loadout?JSON.parse(data.stormfall_loadout):null;
+    return 'Level '+lvlInfo(P.xp|0).l+' · '+(P.credits|0)+' CR · '+(P.shards|0)+' shards · '+((P.cos||[]).length)+' cosmetics · '+(((P.career||{}).matches)|0)+' matches'+(L&&L.name?' · '+String(L.name).slice(0,12):''); }catch(e){ return 'Unreadable profile'; } }
+function bkStamp(){ try{ localStorage.setItem('stormfall_bk_at',String(Date.now())); }catch(e){} renderBk(); }
+function renderBk(){ const el=$('#pBk'); if(!el) return; let at=0; try{ at=+localStorage.getItem('stormfall_bk_at')||0; }catch(e){}
+  const prog=(PROF.xp|0)>0||(PROF.career.matches|0)>0, ago=at?fmtLeft(Date.now()-at)+' ago':'never';
+  el.innerHTML='<div class="bkst'+(!at&&prog?' warn':'')+'">'+(at?'Last backup: '+ago+'.':prog?'No backup yet. Removing the app or clearing site data deletes your progress.':'No backup yet.')+'</div>'
+    +'<div class="bkrow"><button class="btn sm" data-bk="file">Save file</button><button class="btn sm" data-bk="copy">Copy save code</button><button class="btn sm ghost" data-bk="restore">Restore</button></div>'; }
+async function bkExportFile(){ const code=await bkPack(), name='stormfall-save-'+new Date().toISOString().slice(0,10)+'.txt';
+  try{ const f=new File([code],name,{type:'text/plain'}); if(navigator.canShare&&navigator.canShare({files:[f]})){ await navigator.share({files:[f],title:'Stormfall save'}); bkStamp(); toast('Backup ready','Choose “Save to Files” to keep it'); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
+  try{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([code],{type:'text/plain'})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500); bkStamp(); toast('Backup saved',name); }
+  catch(e){ bkShowCode(code); } }
+async function bkCopy(){ const code=await bkPack(); try{ await navigator.clipboard.writeText(code); bkStamp(); toast('Save code copied','Paste it somewhere safe, like Notes'); }catch(e){ bkShowCode(code); } }
+function bkShowCode(code){ $('#bkT').textContent='Your save code'; $('#bkS').textContent='Copy this code and keep it somewhere safe (Notes, Messages, email). Paste it into Restore to get your progress back.';
+  const ta=$('#bkTxt'); ta.readOnly=true; ta.value=code; $('#bkStat').textContent=''; $('#bkB').innerHTML='<button class="btn primary" data-bk="sel">Select all</button><button class="btn ghost" data-bk="close">Done</button>'; show('#bk',true); bkStamp(); }
+let bkPend=null;
+function bkOpenRestore(){ bkPend=null; $('#bkT').textContent='Restore a backup'; $('#bkS').textContent='Paste a save code, or pick a backup file. This replaces the progress on this device.';
+  const ta=$('#bkTxt'); ta.readOnly=false; ta.value=''; $('#bkStat').textContent=''; $('#bkB').innerHTML='<button class="btn" data-bk="pick">Choose file</button><button class="btn primary" data-bk="check">Restore</button>'; show('#bk',true); }
+async function bkCheck(code){ const st=$('#bkStat'); try{ const r=await bkUnpack(code); bkPend=r; st.style.color=''; st.textContent='Backup from '+(r.at?new Date(r.at).toLocaleString():'an unknown date')+': '+bkSummary(r.data)+'.';
+    $('#bkB').innerHTML='<button class="btn ghost" data-bk="close">Cancel</button><button class="btn primary" data-bk="apply">Replace my progress</button>'; }
+  catch(e){ bkPend=null; st.style.color='var(--hostile)'; const m=e&&e.message||''; st.textContent=/Stormfall|profile|browser cannot/.test(m)?m:'That save code is incomplete or damaged. Copy the whole code, or use the save file.'; } }
+function bkApply(){ if(!bkPend) return; if(NET.on){ toast('Leave the online room first',''); return; }
+  try{ for(const k of BK_KEYS){ if(k in bkPend.data) localStorage.setItem(k,bkPend.data[k]); else localStorage.removeItem(k); } localStorage.setItem('stormfall_bk_at',String(Date.now())); }
+  catch(e){ $('#bkStat').textContent='Could not write the save on this device: '+(e.message||e); return; }
+  $('#bkStat').textContent='Restored. Reloading…'; setTimeout(()=>location.reload(),500); }
+$('#profile').addEventListener('click',e=>{ const b=e.target.closest('#pBk [data-bk]'); if(!b) return; SFX.click(); const a=b.dataset.bk;
+  if(a==='file') bkExportFile(); else if(a==='copy') bkCopy(); else if(a==='restore') bkOpenRestore(); });
+$('#bk').addEventListener('click',e=>{ const b=e.target.closest('[data-bk]'); if(!b) return; const a=b.dataset.bk;
+  if(a==='close') show('#bk',false); else if(a==='sel'){ const ta=$('#bkTxt'); ta.focus(); ta.select(); try{ ta.setSelectionRange(0,ta.value.length); }catch(_){} }
+  else if(a==='pick') $('#bkFile').click(); else if(a==='check') bkCheck($('#bkTxt').value); else if(a==='apply') bkApply(); });
+$('#bkClose').addEventListener('click',()=>show('#bk',false));
+$('#bkFile').addEventListener('change',async e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f) return; const t=await f.text(); $('#bkTxt').value=t; bkCheck(t); });
 function renderReps(){ const el=$('#pReps'); if(!el) return; const L=rpLoad();
   el.innerHTML=L.length?L.map(r=>{ const i=r.info||{}; return '<div class="rprow"><b class="'+(i.win?'w':'')+'">'+(i.spec?'👁':'#'+(i.place||'?'))+'</b><div class="rpi"><span>'+esc(rpTitle(r))+'</span><small>'+esc(rpSub(r))+'</small></div>'
     +'<div class="rpb"><button class="btn sm" data-rpw="'+r.id+'">Watch</button><button class="btn sm ghost" data-rpf="'+r.id+'" title="Jump to the final turns">Final</button><button class="iconbtn" data-rpx="'+r.id+'" aria-label="Share or delete">⋯</button></div></div>'; }).join('')

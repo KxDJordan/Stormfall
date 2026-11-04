@@ -9,6 +9,15 @@ Fonts load from Google Fonts. Everything else is in the repo.
 
 Once GitHub Pages is on, it's live at <https://kxdjordan.github.io/Stormfall/>.
 
+## Saving your progress
+
+Progress is stored in your browser on this device. Removing a home-screen app (or clearing site data) deletes it,
+so back it up first: **Profile → Save backup**.
+
+- **Save file**: on iPhone this opens the share sheet (choose *Save to Files*); elsewhere it downloads a `.txt` file.
+- **Copy save code**: a compact text code you can keep in Notes or Messages.
+- **Restore**: paste a code or pick a backup file. It shows what is in the backup and asks before replacing your progress.
+
 ## Online play
 
 1. One player taps **Play online → Host a room** and shares the 5-letter room code (or **Copy invite link**).
