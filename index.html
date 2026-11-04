@@ -2217,18 +2217,29 @@ const cv=$('#gc'), ctx=cv.getContext('2d');
 let VW=window.innerWidth||390, VH=window.innerHeight||800, DPR=1;
 // The canvas is position:fixed;inset:0, so CSS sizes it to the full viewport. Read its real box instead of
 // window sizes (which disagree on mobile when the browser toolbar shows or hides) and follow it with a ResizeObserver.
-function appStandalone(){ try{ return !!navigator.standalone||matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches; }catch(e){ return false; } }
-function setAppH(){ const de=document.documentElement; let h=window.innerHeight||0; const vv=window.visualViewport;
+function appStandalone(){ try{ return navigator.standalone===true||['standalone','fullscreen','minimal-ui'].some(m=>matchMedia('(display-mode: '+m+')').matches); }catch(e){ return false; } }
+function vpProbe(css){ let p=document.getElementById('vpp_'+css); if(!p){ p=document.createElement('div'); p.id='vpp_'+css; p.style.cssText='position:fixed;left:0;top:0;width:1px;visibility:hidden;pointer-events:none;height:'+css; document.body.appendChild(p); } return Math.round(p.getBoundingClientRect().height); }
+// Full-screen layers use --app-h. In the browser: the visible height. As an installed (home-screen) app: the largest
+// height any API reports (screen, large viewport, visual viewport), because some iOS versions report a viewport
+// shorter than the screen there, leaving an empty strip at the bottom.
+function setAppH(){ const de=document.documentElement; let h=window.innerHeight||0; const vv=window.visualViewport, sa=appStandalone();
   if(vv&&vv.height) h=Math.max(h,Math.round(vv.height*(vv.scale||1)));
-  if(appStandalone()&&screen&&screen.width&&screen.height){ const land=(window.innerWidth||0)>(window.innerHeight||0); h=Math.max(h,land?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height)); }
-  if(h>0) de.style.setProperty('--app-h',h+'px'); vpDiag(); }
-// ?vp=1 shows what the browser reports, for diagnosing layout gaps on a real phone
-function vpDiag(){ if(!/[?&]vp=1/.test(location.search)) return; let d=document.getElementById('vpdiag');
-  if(!d){ d=document.createElement('pre'); d.id='vpdiag'; d.style.cssText='position:fixed;left:8px;top:calc(var(--sat) + 60px);z-index:99;margin:0;padding:6px 8px;background:rgba(0,0,0,.8);color:#7fe3a4;font:11px/1.35 monospace;pointer-events:none;white-space:pre'; document.body.appendChild(d);
-    const probe=document.createElement('div'); probe.id='vpprobe'; probe.style.cssText='position:fixed;left:0;top:0;width:1px;height:100dvh;visibility:hidden;pointer-events:none'; document.body.appendChild(probe);
+  de.classList.toggle('app-installed',sa);
+  if(sa){ h=Math.max(h,de.clientHeight||0,vpProbe('100lvh'),vpProbe('100dvh'));
+    if(screen&&screen.width&&screen.height){ const land=(window.innerWidth||0)>(window.innerHeight||0); h=Math.max(h,land?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height)); } }
+  if(h>0) de.style.setProperty('--app-h',h+'px'); try{ vpDiag(); }catch(e){} }
+// viewport info overlay: ?vp=1 in the browser, or Settings > Viewport info (works inside the installed app too)
+function vpDiag(){ let on=/[?&]vp=1/.test(location.search); try{ on=on||!!PROF.settings.vpinfo; }catch(e){} let d=document.getElementById('vpdiag');
+  if(!on){ if(d) d.remove(); return; }
+  if(!d){ d=document.createElement('pre'); d.id='vpdiag'; d.style.cssText='position:fixed;left:8px;top:calc(var(--sat) + 60px);z-index:99;margin:0;padding:6px 8px;background:rgba(0,0,0,.82);color:#7fe3a4;font:11px/1.35 monospace;pointer-events:none;white-space:pre'; document.body.appendChild(d);
     const sa=document.createElement('div'); sa.id='vpsa'; sa.style.cssText='position:fixed;visibility:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)'; document.body.appendChild(sa); }
-  const vv=window.visualViewport, cs=getComputedStyle(document.getElementById('vpsa')), gc=document.getElementById('gc').getBoundingClientRect();
-  d.textContent='inner '+innerWidth+'x'+innerHeight+'\nvisualVP '+(vv?Math.round(vv.width)+'x'+Math.round(vv.height)+' s'+vv.scale.toFixed(2):'-')+'\nscreen '+screen.width+'x'+screen.height+'\n100dvh '+Math.round(document.getElementById('vpprobe').getBoundingClientRect().height)+'\n--app-h '+getComputedStyle(document.documentElement).getPropertyValue('--app-h')+'\ncanvas '+Math.round(gc.top)+'..'+Math.round(gc.bottom)+'\nsafe t'+cs.paddingTop+' b'+cs.paddingBottom+'\nstandalone '+appStandalone()+' dpr '+devicePixelRatio; }
+  const vv=window.visualViewport, cs=getComputedStyle(document.getElementById('vpsa')), r=sel=>{ const e=document.querySelector(sel); if(!e||e.classList.contains('hidden')) return '-'; const b=e.getBoundingClientRect(); return Math.round(b.top)+'..'+Math.round(b.bottom); };
+  let dm='-'; try{ dm=['fullscreen','standalone','minimal-ui','browser'].find(m=>matchMedia('(display-mode: '+m+')').matches)||'-'; }catch(e){}
+  d.textContent='inner '+innerWidth+'x'+innerHeight+'  outer '+outerWidth+'x'+outerHeight+'\nclient '+document.documentElement.clientWidth+'x'+document.documentElement.clientHeight+'\nvisualVP '+(vv?Math.round(vv.width)+'x'+Math.round(vv.height)+' top'+Math.round(vv.offsetTop)+' s'+vv.scale.toFixed(2):'-')
+    +'\nscreen '+screen.width+'x'+screen.height+' avail '+screen.availWidth+'x'+screen.availHeight+'\nsvh '+vpProbe('100svh')+' dvh '+vpProbe('100dvh')+' lvh '+vpProbe('100lvh')+' vh '+vpProbe('100vh')
+    +'\n--app-h '+getComputedStyle(document.documentElement).getPropertyValue('--app-h').trim()+'\nhtml '+r('html')+' body '+r('body')+'\ncanvas '+r('#gc')+' nav '+r('#nav')+' hud '+r('#hud .bottom')
+    +'\nsafe t'+cs.paddingTop+' b'+cs.paddingBottom+' l'+cs.paddingLeft+' r'+cs.paddingRight+'\nstandalone '+navigator.standalone+' mode '+dm+' dpr '+devicePixelRatio; }
+setInterval(()=>{ try{ if(PROF.settings.vpinfo||/[?&]vp=1/.test(location.search)) vpDiag(); }catch(e){} },1000);
 function resize(){ setAppH(); DPR=Math.min(2,window.devicePixelRatio||1); cv.style.width=''; cv.style.height='';
   const r=cv.getBoundingClientRect(); VW=Math.round(r.width)||window.innerWidth||390; VH=Math.round(r.height)||window.innerHeight||800;
   const w=Math.round(VW*DPR), h=Math.round(VH*DPR); if(cv.width===w&&cv.height===h&&G.bg) return;
@@ -7425,12 +7436,12 @@ $('#qClaimAll').addEventListener('click',()=>{ let n=0; for(const q of PROF.q.da
 /* ================= profile & settings ================= */
 function setRows(compact){
   const s=PROF.settings, tg=(k,label,sub)=>'<div class="setrow"><div>'+label+(sub?'<small>'+sub+'</small>':'')+'</div><button class="tog'+(s[k]?' on':'')+'" data-set="'+k+'" role="switch" aria-checked="'+!!s[k]+'" aria-label="'+label+'"></button></div>';
-  let h=tg('sound','Sound')+tg('haptics','Haptics','Vibration on supported phones')+tg('shake','Screen shake');
+  let h=tg('sound','Sound')+tg('haptics','Haptics','Vibration on supported phones')+tg('shake','Screen shake')+tg('vpinfo','Viewport info','Shows the screen sizes your phone reports (for layout bugs)');
   if(!compact) h+=tg('oneTap','One-tap move','Skip the confirm tap when moving')+'<div class="setrow"><div>Turn timer<small>'+(s.clock?'Off while the chess clock is on':'Offline matches. Online, the host sets it')+'</small></div><div class="seg">'+TM_OFF.map(v=>'<button data-timer="'+v+'" class="'+(s.timer===v?'sel':'')+'"'+(s.clock?' disabled':'')+'>'+(v?v+'s':'Off')+'</button>').join('')+'</div></div>'
     +'<div class="setrow"><div>Chess clock<small>A time bank for the whole match, +'+TM_INC+'s per turn. Empty bank: '+TM_GRACE+'s turns</small></div><div class="seg">'+TM_B.map(v=>'<button data-clock="'+v+'" class="'+((s.clock||0)===v?'sel':'')+'">'+(v?v+' min':'Off')+'</button>').join('')+'</div></div>';
   return h;
 }
-function onSetClick(e,rerender){ const b=e.target.closest('[data-set]'); if(b){ const k=b.dataset.set; PROF.settings[k]=!PROF.settings[k]; saveProf(); applySettings(); SFX.click(); if(k==='haptics'&&PROF.settings.haptics) buzz(20); rerender(); return true; }
+function onSetClick(e,rerender){ const b=e.target.closest('[data-set]'); if(b){ const k=b.dataset.set; PROF.settings[k]=!PROF.settings[k]; saveProf(); applySettings(); if(k==='vpinfo') setAppH(); SFX.click(); if(k==='haptics'&&PROF.settings.haptics) buzz(20); rerender(); return true; }
   const t=e.target.closest('[data-timer]'); if(t){ PROF.settings.timer=+t.dataset.timer; saveProf(); SFX.click(); rerender(); return true; }
   const k=e.target.closest('[data-clock]'); if(k){ PROF.settings.clock=+k.dataset.clock; saveProf(); SFX.click(); rerender(); return true; } return false; }
 function renderProfile(){
