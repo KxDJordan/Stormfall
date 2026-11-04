@@ -40,5 +40,6 @@ Notes:
 
 - `index.html`: the full game (HTML, CSS and JS in one file)
 - `vendor/peerjs.min.js`: PeerJS 1.5.5 (MIT, see `vendor/PEERJS-LICENSE`), used for online play
-- `assets/icon-512.png`: favicon / app icon
+- `manifest.json`: web app manifest (fullscreen, portrait) for home-screen installs
+- `assets/icon-512.png`, `assets/icon-192.png`: favicon / app icons
 - `assets/apple-touch-icon.png`: iOS home-screen icon
