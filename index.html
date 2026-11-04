@@ -35,7 +35,7 @@
   --r1:3px; --r2:6px; --r3:10px;
   --fs-xs:11px; --fs-sm:12.5px; --fs-md:14px; --fs-lg:16px;
   --tap:44px; --navh:66px; --ease:cubic-bezier(.2,.8,.2,1);
-  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px); --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
+  --sat:env(safe-area-inset-top,0px); --sab:max(0px,calc(env(safe-area-inset-bottom,0px) - 22px)); /* most of the home-indicator inset: keeps controls just clear of the bar without a blank band */ --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
   --cut:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
   --cut-s:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);
   color-scheme:dark;
