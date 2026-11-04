@@ -22,6 +22,9 @@ It's live in two places:
 | Trios | up to 4 teams of 3     | 48×48 | wider storm that shrinks faster, 4 objectives |
 | Quads | up to 4 teams of 4     | 56×56 | extra early storm stage (round 3), 5 supply drops, 4 objectives |
 | Quick | up to 4, free for all  | 40×40 | tight storm, about six minutes |
+| King of the Hill | up to 4 teams of 2 | 32×32 | no storm; hold the moving hill (every 5 rounds) alone at round end for a point, first to 8 (or the most after round 24); respawns after 2 rounds |
+| Siege | 2 teams of 4           | 32×32 | attackers breach a walled compound and hold the data core, defenders hold 10 rounds; best of 3, sides swap; breaching charges, barricades |
+| Rumble | up to 4 teams of 2    | 24×24 | no storm, team deathmatch with respawns after 2 rounds, first to 12 eliminations (or the most after round 24) |
 
 In the team modes a downed operative bleeds out in 2 turns unless an adjacent teammate revives them; a team is out
 when nobody on it is standing. Empty seats are filled by bots, and team pings / commands steer AI teammates. The map
