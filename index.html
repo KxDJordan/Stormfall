@@ -241,6 +241,19 @@ body.sheet-open .nav{display:none}
 .wr-time .seg button{min-height:36px;min-width:40px;padding:0 8px}
 .wr-time small{color:var(--muted);font-size:11.5px}
 .wr-time .wt-ro{font-size:14px}
+.mutg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mutb{display:flex;flex-direction:column;gap:2px;text-align:left;padding:8px 9px;min-height:44px;border:1px solid var(--line2);border-radius:var(--r2);background:var(--surf2);color:var(--text2)}
+.mutb b{font-size:13px;color:var(--text)}
+.mutb small{font-size:11px;line-height:1.3;color:var(--muted)}
+.mutb.on{border-color:var(--amber);background:var(--amber-bg)}
+.mutb.on b{color:var(--amber)}
+.mutb.on b::before{content:"✓ "}
+#mchips{position:absolute;right:calc(var(--sar) + 10px);top:calc(var(--sat) + 158px);display:flex;flex-direction:column;align-items:flex-end;gap:3px;pointer-events:none}
+#mchips .mch{padding:4px 7px 3px;border-radius:4px;background:rgba(8,12,18,.84);border:1px solid rgba(255,255,255,.18);font:700 10.5px/1.15 'Chakra Petch',sans-serif;color:#cfd9e3;white-space:nowrap}
+#mchips .mch.inf{color:#9dff3a;border-color:rgba(157,255,58,.5)}
+#mchips .mch.sv{color:#7fe8ff;border-color:rgba(127,232,255,.4)}
+#mchips .mch.nt{color:#c3b6ff;border-color:rgba(160,140,255,.45)}
+#mchips .mch.mu{color:var(--amber);border-color:rgba(255,179,64,.4)}
 .wr-specs{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;padding:8px 12px;border:1px dashed var(--line2);border-radius:var(--r2);color:var(--text2);font-size:13px}
 .wr-specs .btn{margin-left:auto}
 /* ---------- waiting room ---------- */
@@ -773,7 +786,7 @@ body.sheet-open .nav{display:none}
 }
 @media (min-width:820px){
   .bottom{left:50%;right:auto;transform:translateX(-50%);width:760px}
-  #minimap{width:130px;height:130px}
+  #minimap{width:130px;height:130px} #mchips{top:calc(var(--sat) + 192px)}
   #torder{right:calc(var(--sar) + 150px)}
   .nav{left:50%;right:auto;transform:translateX(-50%);width:560px;border:1px solid var(--line2);border-bottom:0;border-radius:var(--r3) var(--r3) 0 0}
 }
@@ -1127,6 +1140,7 @@ body.sheet-open #sfInv{display:none}
     <div class="wr-count" id="wrCount" aria-live="polite"></div>
     <div class="wr-slots" id="wrSlots"></div>
     <div class="wr-time" id="wrTime"></div>
+    <div class="wr-time wr-mut" id="wrMut"></div>
     <div class="wr-quick" id="wrQuick">
       <div class="wq-row"><span class="lbl">Set all bots</span><div class="dall" id="wrAll" role="group" aria-label="Set every bot's difficulty"></div></div>
       <div class="wq-row2"><button class="btn sm" id="wrFill">Fill with bots</button><button class="btn sm ghost" id="wrMin">Fewest bots</button></div>
@@ -1285,6 +1299,7 @@ body.sheet-open #sfInv{display:none}
   </div>
   <div id="torder" role="list" aria-label="Turn order"></div>
   <div id="wxTip" class="hidden" role="tooltip"></div>
+  <div id="mchips" aria-label="Match rules"></div>
   <div id="clocks" class="hidden" aria-label="Chess clocks"></div>
   <div id="emoteTray" class="pe hidden"></div>
   <div id="pingTray" class="pe hidden" role="dialog" aria-label="Team ping"></div>
@@ -1408,6 +1423,9 @@ body.sheet-open #sfInv{display:none}
       <li>King of the Hill: teams of two on a 32×32 map with no storm. At the end of each round, a team with operatives inside the gold ring and no enemy in it scores a point (both sides inside: contested, nobody scores). The hill moves every 5 rounds; its next spot shows as a dashed ring a round ahead. First team to 8 wins; after round 24 the most points (then the most operatives standing) wins. No downs: an eliminated operative redeploys at the start of the round after next, away from enemies and the hill, with full health, ammo and utilities.</li>
       <li>Siege: two teams of four, best of three rounds, sides swap after each. Defenders start inside a walled compound in the middle of the map (doors, windows, sandbags, crates) around the data core. Attackers win a round by holding the core (the cyan ring) with no defender in it at 2 round ends, or by taking out every defender; defenders win by holding out for 10 rounds or wiping the attackers. Attackers carry 2 Breaching Charges (blow walls, doors and cover in a 1.5-tile blast clean away, 2–3 damage) and a Scout Drone; defenders carry 2 extra smoke grenades and 2 Barricades (drop a sandbag wall, half cover, on an empty ground tile within 2 tiles, not on the core). No storm, downs and revives as in Duos.</li>
       <li>Rumble: teams of two in a 24×24 arena, no storm. Eliminations score for the killer’s team; first to 12 wins (or the most after round 24). Respawns as in King of the Hill.</li>
+      <li>Infection: everyone drops alone; at the start of round 1 one operative (two with 7 or more) turns Infected. Survivors become one team with shared sight; the Infected have claws only (dash up to 5 tiles), +2 mobility, +6 HP, regenerate 2 HP a turn and sense survivors within 10 tiles. The Infected never die: taken down, one regenerates for a turn (it can’t be hurt meanwhile) and gets back up at full HP. A survivor the Infected take out goes down “turning” and rises as Infected on its next turn. Survivors win if any of them is standing after round 15; the Infected win when nobody is left to turn.</li>
+      <li>Blackout: Solo at night. You see only 3.5 tiles (+1 on high ground). Anyone standing in light (a flare, near a deployed Specialist drone, in a Scout Drone’s area) or who fired an unsuppressed shot since their last turn can be seen from normal sight range. Everyone carries a flare (throw it into the dark: it lights 3 tiles until the end of next round) and crates often hold another. Every shot flashes on every minimap. Suppressed weapons and blades stay dark.</li>
+      <li>Mutators: in the waiting room the host (or you, offline) can switch on Low gravity, Explosive everything, One-shot, Double storm speed, Melee only and Perma-smoke for any mode. Guests see them in the room, they show as chips under the minimap in the match, and replays keep them.</li>
       <li>Team pings: in Duos, Trios and Quads, tap 📍 then the map, or press and hold on the map, to ping (Enemy here, Move here, Watch this area, Loot here, Danger) or give a command (Hold, Regroup, Push, Fall back, Revive me). Only your team sees them; they fade after 2 rounds. An AI partner or squadmates follow them (online, orders given on your own turn).</li>
       <li>Specialist drone: it rides docked just above the Specialist (no vision, can’t be hit) until you tap <em>Deploy</em> (free, once a turn) and pick a tile. Deployed, it is its own unit with its own drone AP each turn (2; 3 with the Extended battery): fly it, zap, mark, or use its model action. Combat Protocol, Aid Protocol, Capacitor Discharge, Chain Lightning, Guardian, Haywire, Overclock, Drone Shield and Restoration all need it deployed. It sees for your team, can be shot, blown up, zapped and caught by overwatch, takes 1 storm damage a round outside the zone, and never counts as an operative (turn order, victory, objectives). Tap <em>Drone</em> to control it, <em>Operative</em> to switch back, <em>Recall</em> to dock it. Destroyed: <em>Rebuild</em> (1 AP) after 2 of your turns. Chassis: Sparrow (scout, Scan), Striker (Burst, harder zaps), Mender (Heal Pulse), Bulwark (Shield Projector, 6 HP), Jammer (Jam). Drone mastery unlocks upgrades; drone skins are in the Store.</li>
       <li>Weapon mastery: hits, damage and takedowns with a primary or sidearm level that weapon (1–10). Mastery unlocks its attachments (optic, barrel, magazine, underbarrel: picked per weapon in Loadout) and mastery finishes, up to the animated Stormcell.</li>
@@ -1552,7 +1570,9 @@ const UTILS={
   arc:{name:'Arc Grenade',short:'Arc',charges:1,range:8,radius:1.6,dmg:[2,3],arc:true,disAim:20,turns:2,shop:true,note:'Leaves cover standing.'},
   // information tools (dev: a device, not a grenade: no Grenadier range bonus; blind: can target tiles you cannot see)
   drone:{name:'Scout Drone',short:'Drone',charges:1,range:10,radius:4,dev:true,blind:true,shop:true,info:'Flies to a tile and reveals everything within 4 tiles, even through walls, until the end of next round. Your team sees enemies there; you still need your own line of sight to shoot them. Costs 1 AP and keeps your turn going'},
-  sensor:{name:'Motion Sensor',short:'Sensor',charges:1,range:5,radius:5,rounds:4,dev:true,shop:true,info:'Placed device. For 4 rounds it pings every enemy that moves within 5 tiles of it and marks where they were. Explosions destroy it. Costs 1 AP and keeps your turn going'}
+  sensor:{name:'Motion Sensor',short:'Sensor',charges:1,range:5,radius:5,rounds:4,dev:true,shop:true,info:'Placed device. For 4 rounds it pings every enemy that moves within 5 tiles of it and marks where they were. Explosions destroy it. Costs 1 AP and keeps your turn going'},
+  // Blackout only (never in a loadout: every kit gets one, crates add more). blind: can be thrown into the dark
+  flare:{name:'Flare',short:'Flare',charges:1,range:9,radius:3,rounds:2,flare:true,blind:true,info:'Blackout: lights a 3-tile area until the end of next round. Anyone in the light can be seen from normal sight range, by everyone. Costs 1 AP and keeps your turn going'}
 };
 // Siege kit (never in a class pool or the shop: handed out per side at the start of each Siege round, see siegeKit)
 Object.assign(UTILS,{
@@ -1923,7 +1943,12 @@ const MODES={
   siege:{key:'siege',name:'Siege',short:'Attack / defend',desc:'Four attackers breach a walled compound and seize the data core; four defenders hold it. Best of three, sides swap.',players:8,team:4,map:32,storm:CALM,startR:99,drops:[],obj:[],
     gm:'siege',place:[0,300,130],xp:[0,450,240]},
   rumble:{key:'rumble',name:'Rumble',short:'Team deathmatch',desc:'Teams of two in a small arena with respawns. First team to 12 eliminations wins.',players:8,team:2,map:24,storm:CALM,startR:99,drops:[3,8,13,18],obj:[],
-    gm:'rumble',resp:2,target:12,cap:24,place:[0,280,170,95,50],xp:[0,420,280,180,115]}
+    gm:'rumble',resp:2,target:12,cap:24,place:[0,280,170,95,50],xp:[0,420,280,180,115]},
+  // Infection / Blackout (see "Infection, Blackout and mutators"): free-for-all rosters on the classic map. inf: the outbreak
+  // rules, infCap: the last round the survivors must hold out; night: Blackout's sight, flares and muzzle flashes
+  infection:{key:'infection',name:'Infection',short:'Up to 8',desc:'Free-for-all drop, then the outbreak: one operative turns (two with 7+). Survivors team up and hold out; the Infected keep getting back up, and anyone they take down rises as one of them.',players:8,team:1,inf:true,infCap:15,
+    storm:{rounds:[3,5,7,9,11,13],radii:[19,14,10,7,4.8,3.2],dmg:[0,1,1,2,2,3,4],minR:3.2,dmgMax:6},startR:30,drops:[3,6,9],place:[0,300,200,150,110,80,60,40,25],xp:[0,450,330,260,200,160,130,100,80]},
+  blackout:{key:'blackout',name:'Blackout',short:'Up to 8',desc:'Solo at night. You see 3–4 tiles; flares, drones and muzzle flashes light up targets from normal range.',players:8,team:1,night:true,storm:STORM,startR:30,drops:[3,6,9,12],place:[0,300,200,150,110,80,60,40,25],xp:[0,450,330,260,200,160,130,100,80]}
 };
 const MAXP=Math.max(...Object.values(MODES).map(m=>m.players)); // the largest roster (Quads: 16)
 /* AI difficulty (hostile AI only; an AI partner on a human's team always plays Veteran). Veteran is the original AI.
@@ -2020,14 +2045,14 @@ function topAt(x,y){ if(!inMap(x,y)) return 0; const i=idx(x,y), o=G.grid[i], b=
 const ladAt=(x,y,k)=>inMap(x,y)&&!!(G.lad[idx(x,y)]&(1<<k));
 // extra move cost of stepping between two orthogonal neighbours a -> b, or -1 if the level change is impossible:
 // platforms are climbed anywhere (+1); rooftops only by ladder (+1 per level climbed or descended)
-function climbCost(ax,ay,bx,by){ const la=lvAt(ax,ay), lb=lvAt(bx,by); if(la===lb) return 0; if(la<=1&&lb<=1) return 1;
+function climbCost(ax,ay,bx,by){ const la=lvAt(ax,ay), lb=lvAt(bx,by); if(la===lb) return 0; if(la<=1&&lb<=1) return 1; if(lb<la&&G.mut.lowg) return 1; // low gravity: drop off any ledge
   const k=DIRS4.findIndex(d=>d[0]===bx-ax&&d[1]===by-ay); return k>=0&&ladAt(ax,ay,k)?Math.abs(lb-la):-1; }
 // grenade blasts and explosions reach one level up or down, not from a rooftop to the street (or back)
 function inBlast(v,x,y,r){ return Math.hypot(v.x-x,v.y-y)<=r+0.01&&Math.abs(lvAt(v.x,v.y)-lvAt(x,y))<=1; }
 const standing=u=>u.alive&&!u.downed;
 const isEnemy=(a,b)=>a.team!==b.team;
 // inPlay: standing, or down on a Second Wind (Solo) and about to get back up: the match is not decided while one is pending
-const inPlay=u=>standing(u)||(u.alive&&!!u.swDown);
+const inPlay=u=>standing(u)||(u.alive&&!!(u.swDown||u.infDown)); // infDown: an Infection survivor about to rise as Infected
 function teamStanding(team){ return G.units.some(u=>u.team===team&&inPlay(u)); }
 function teamsLeft(){ const s=new Set(); for(const u of G.units) if(inPlay(u)) s.add(u.team); return s.size; }
 function nTeams(){ return Math.round(G.M.players/G.M.team); }
@@ -2501,12 +2526,15 @@ function pickStormCenter(cx,cy,curR,nr){
   const c=pick(cand); return [c%MW+.5,((c/MW)|0)+.5]; }
 // high ground: +2 sight on a platform or one-story roof, +3 on a two-story roof (Eagle Eye: +1 more)
 function sightBonus(u,lv){ return lv?(lv>=3?3:2)+(hasP(u,'s_eagle')?1:0):0; }
-function sightOf(u){ const ws=wxNow().sight||0, sr=Math.max(ws?4:0,u.sight+ws)+sightBonus(u,lvAt(u.x,u.y)); return G.smoke.length&&inSmoke(u.x,u.y)?Math.min(sr,SMOKE_SIGHT):sr; } // weather (sand/fog) + height; inside smoke you see only a couple of tiles
+function sightDay(u){ const ws=wxNow().sight||0, sr=Math.max(ws?4:0,u.sight+ws)+sightBonus(u,lvAt(u.x,u.y)); return G.smoke.length&&inSmoke(u.x,u.y)?Math.min(sr,SMOKE_SIGHT):sr; } // weather (sand/fog) + height; inside smoke you see only a couple of tiles
+// Blackout: night sight caps it (sightDay is still the range at which a lit target can be seen, see canSee / boLit)
+function sightOf(u){ const sr=sightDay(u); return G.M.night?Math.min(sr,boSight(u)):sr; }
 // Phantom (Ranger perk): the unit can only be spotted within 7 tiles
-function canSee(a,b){ return Math.hypot(a.x-b.x,a.y-b.y)<=(hasP(b,'r_ghost')?Math.min(7,sightOf(a)):sightOf(a))+0.01&&hasLOS(a.x,a.y,b.x,b.y)&&!smokeBlocks(a.x,a.y,b.x,b.y); }
+function canSee(a,b){ const d=Math.hypot(a.x-b.x,a.y-b.y); let sr=sightOf(a); if(G.M.night&&d>sr+0.01&&boLit(b)) sr=sightDay(a);
+  return d<=(hasP(b,'r_ghost')?Math.min(7,sr):sr)+0.01&&hasLOS(a.x,a.y,b.x,b.y)&&!smokeBlocks(a.x,a.y,b.x,b.y); }
 // Scout Drone reveals (sim state, per team): consulted by computeVis for the local team and by updateIntel for AI teams
 function revealedFor(team,x,y){ for(const r of G.reveals||[]) if(r.team===team&&G.round<=r.until&&Math.hypot(x-r.x,y-r.y)<=r.r+0.01) return true; return false; }
-function visibleEnemies(u){ return G.units.filter(t=>t.alive&&t!==u&&isEnemy(u,t)&&canSee(u,t)); }
+function visibleEnemies(u){ return G.units.filter(t=>t.alive&&!t.infDown&&t!==u&&isEnemy(u,t)&&canSee(u,t)); } // infDown: an Infection body that can't be hurt
 function viewers(){ if(!G.player) return []; return G.units.filter(u=>u.alive&&u.team===G.player.team); }
 function shouldShow(u){ if(G.scene!=='game') return false; if(G.fullVis) return true; if(G.player&&u.team===G.player.team) return true; return G.vis[idx(u.x,u.y)]===1; }
 function tileShown(x,y){ return G.fullVis||G.vis[idx(x,y)]===1; }
@@ -2515,9 +2543,11 @@ function computeVis(){
   if(G.scene!=='game'||G.watch){ v.fill(1); G.fullVis=true; return; } // spectators and replays see the whole map
   const vs=viewers(); if(!vs.length||G.over){ v.fill(1); G.fullVis=true; return; }
   G.fullVis=false; v.fill(0);
-  for(const p of vs.concat(G.drones.filter(d=>d.alive&&d.team===G.player.team))){ const sr=sightOf(p); // deployed drones see for their team
+  const nt=G.M.night, lit=nt?boLitMask():null; // Blackout: out to night sight, plus lit tiles out to day sight
+  for(const p of vs.concat(G.drones.filter(d=>d.alive&&d.team===G.player.team))){ const sr=nt?sightDay(p):sightOf(p), nr=nt?sightOf(p):sr; // deployed drones see for their team
     for(let y=Math.max(0,Math.floor(p.y-sr));y<=Math.min(MH-1,Math.ceil(p.y+sr));y++) for(let x=Math.max(0,Math.floor(p.x-sr));x<=Math.min(MW-1,Math.ceil(p.x+sr));x++){
-      const i=idx(x,y); if(v[i]) continue; if(Math.hypot(x-p.x,y-p.y)<=sr+0.01&&hasLOS(p.x,p.y,x,y)&&!smokeBlocks(p.x,p.y,x,y)){ v[i]=1; G.seen[i]=1; } } }
+      const i=idx(x,y); if(v[i]) continue; const dd=Math.hypot(x-p.x,y-p.y); if(dd<=sr+0.01&&(!nt||dd<=nr+0.01||lit[i])&&hasLOS(p.x,p.y,x,y)&&!smokeBlocks(p.x,p.y,x,y)){ v[i]=1; G.seen[i]=1; } } }
+  if(nt) boVisFlash(v,vs);
   for(const r of G.reveals||[]){ if(r.team!==G.player.team||G.round>r.until) continue;
     for(let y=Math.max(0,Math.floor(r.y-r.r));y<=Math.min(MH-1,Math.ceil(r.y+r.r));y++) for(let x=Math.max(0,Math.floor(r.x-r.r));x<=Math.min(MW-1,Math.ceil(r.x+r.r));x++)
       if(Math.hypot(x-r.x,y-r.y)<=r.r+0.01){ v[idx(x,y)]=1; G.seen[idx(x,y)]=1; } }
@@ -2647,7 +2677,7 @@ function cstatNew(){ return {k_prim:0,k_sec:0,k_abil:0,k_util:0,k_obj:0,rfHits:0
 function cst(u,k,n){ if(u&&u.isPlayer&&G.cstat) G.cstat[k]=(G.cstat[k]||0)+(n==null?1:n); }
 function cmdCtx(c){ const k=c&&c.k; return k==='fire'?(c.kind==='shoot'?'prim':'abil'):k==='sec'?'sec':k==='act'||k==='drone'?'abil':k==='throw'||k==='util'?'util':k==='obj'?'obj':null; }
 function placeUnit(u,x,y){ u.x=u.rx=x; u.y=u.ry=y; u.rz=ez(x,y); }
-function throwRange(u,U){ return U.range+(U.dev?0:(u.cls==='grenadier'?2:0)+(hasP(u,'g_launch')?3:0)); }
+function throwRange(u,U){ return U.range+(U.dev?0:(u.cls==='grenadier'?2:0)+(hasP(u,'g_launch')?3:0)+(G.mut.lowg?MUT_LOWG_THROW:0)); }
 function faceTo(u,x,y){ const a=iso(u.x,u.y),b=iso(x,y); if(Math.abs(b[0]-a[0])>1) u.face=b[0]>a[0]?1:-1; }
 function unitScreen(u){ const p=iso(u.rx+.5,u.ry+.5), o=u.dOff; return o?[p[0]+o[0]*u.drop,p[1]-u.drop*420-(u.rz||0)+o[1]*u.drop]:[p[0],p[1]-u.drop*420-(u.rz||0)]; } // dOff: jumped from a drop ship off to the side (intro)
 function chest(u){ const p=unitScreen(u); return u.drone?p:[p[0],p[1]-21]; } // a drone's rz already includes its hover height
@@ -2670,6 +2700,7 @@ function setupMatch(lo,mk,net,pre){
   // smaller rosters: fewer teams, a smaller first storm circle (never below the first shrink) and fewer crates
   const nT0=Math.ceil(slots.length/per), maxT=M0.players/per, fr=maxT>2?clamp((nT0-2)/(maxT-2),0,1):1, r0=M0.storm.radii[0];
   G.M=Object.assign({},M0,{players:nT0*per,startR:fr>=1?M0.startR:Math.round((r0+(M0.startR-r0)*(0.35+0.65*fr))*10)/10,fill:nT0/maxT}); G.SC=G.M.storm;
+  G.mut=mutSet(net?net.mut:pre&&pre.mut); if(G.mut.storm2) G.SC=G.M.storm=stormX2(G.SC); // mutators (cfg.mut): no RNG here
   G.matchId++; G.timers=[]; G.tweens=[]; G.fx=[]; G.parts=[]; G.texts=[]; G.pings=[]; G.bubbles=[]; G.cmd={}; G.tpings=[]; G.mstat={};
   const rp=net?null:pick(REGIONS.filter(r=>r!==G.lastRegion));
   G.region=net?(REG[net.region]?net.region:'city'):pre&&REG[pre.region]?pre.region:rp; G.lastRegion=G.region; G.R=REG[G.region];
@@ -2728,6 +2759,7 @@ function setupMatch(lo,mk,net,pre){
   G.objQ=(G.M.obj||(G.M.key==='quick'?[2,5]:[3,6,9])).map((r,i)=>({round:r+ri(0,1),k:ks[i],done:false}));
   G.sites=[]; G.scans=[]; G.prints=[]; G.siteN=0;
   G.gm=null; if(G.M.gm) gmSetup(); // objective modes (King of the Hill, Siege, Rumble): their RNG calls come after everything above
+  modeSetup(); // Infection / Blackout / mutators: after everything above, so the classic seeded order is unchanged
   computeVis(); buildGround(); G.bg=null; initWeather();
 }
 
@@ -2741,7 +2773,7 @@ function setupMenuScene(){
   const centre=floors.filter(i=>Math.hypot(i%MW-MW/2,((i/MW)|0)-MH/2)<6);
   for(let k=0;k<6;k++){ const s=pick(centre.length?centre:floors); if(G.units.some(u=>idx(u.x,u.y)===s)) continue; const lo=randomLoadout(); const r=RIVALS[k]; const u=makeUnit(lo,false,r[0],k===0?visorCol():r[1],null,k); placeUnit(u,s%MW,(s/MW)|0); u.face=Math.random()<.5?1:-1; G.units.push(u); }
   const cf=pick(floors); G.crates.push({x:cf%MW,y:(cf/MW)|0,ph:0,drop:true});
-  G.wx=null; G.sites=[]; G.scans=[]; G.prints=[]; G.objQ=[]; G.gm=null;
+  G.wx=null; G.sites=[]; G.scans=[]; G.prints=[]; G.objQ=[]; G.gm=null; G.mut={}; G.flares=[]; G.inf=null;
   G.vis.fill(1); G.seen.fill(1); G.over=true; G.fullVis=true; G.reveals=[]; G.sensors=[]; G.lkp=new Map(); G.cues=[];
   buildGround(); G.bg=null; initWeather();
   const c=iso(MW/2,MH/2); G.cam.x=G.cam.tx=c[0]; G.cam.y=G.cam.ty=c[1]; G.cam.z=G.cam.tz=VW<600?0.62:0.85;
@@ -4469,6 +4501,7 @@ function drawUnit(c,u){
     for(let i=1;i<tr.length;i++){ const a=Math.max(0,1-(t-tr[i][2])*3.2)*(i/tr.length); if(a<=0) continue; c.strokeStyle=C(col,1,.5*a); c.lineWidth=9*a+2; c.beginPath(); c.moveTo(tr[i-1][0],tr[i-1][1]-18); c.lineTo(tr[i][0],tr[i][1]-18); c.stroke(); }
     c.globalCompositeOperation='source-over'; c.lineCap='butt';
     for(let i=0;i<tr.length-1;i+=4){ const a=Math.max(0,1-(t-tr[i][2])*3.2)*.35; if(a<=.02) continue; c.globalAlpha=a; drawSoldier(c,soldierOf(u,tr[i][0],tr[i][1],true)); c.globalAlpha=1; } }
+  if(u.inf&&u.alive&&u.drop<=0) infAura(c,u,p,t); // Infected: sickly glow and spores (visual)
   c.save(); if(!u.alive) c.globalAlpha=Math.max(.38,.92-Math.max(0,(u.vDead||0)-1.1)*.4); else if(u.drop>0) c.globalAlpha=1-u.drop*0.3;
   const KB=!u.alive&&u.vKfx&&KFX[u.vKfx]; if(KB) kfxBody(c,KB,p[0],p[1],u.vDead||0,soldierOf(u,p[0],p[1]),u.vKfxDn); else drawSoldier(c,soldierOf(u,p[0],p[1]));
   c.restore();
@@ -4481,7 +4514,7 @@ function drawUnit(c,u){
   if(!u.alive||u.drop>0||G.scene!=='game') return;
   const y0=p[1]-(u.dr&&u.dr.st==='dock'?74:56); // the docked drone hovers between the helmet and the plate
   c.textAlign='center';
-  if(down){ c.font='700 11px "Chakra Petch",sans-serif'; c.fillStyle=u.swDown?'#5dff9a':'#ff6b78'; c.fillText(u.swDown?'SECOND WIND':'DOWNED · '+u.bleed,p[0],p[1]-26); return; }
+  if(down){ c.font='700 11px "Chakra Petch",sans-serif'; c.fillStyle=u.infDown?'#9dff3a':u.swDown?'#5dff9a':'#ff6b78'; c.fillText(u.infDown?'TURNING':u.swDown?'SECOND WIND':'DOWNED · '+u.bleed,p[0],p[1]-26); return; }
   const n=u.maxHp, pw=4, gap=1.2, tot=n*(pw+gap)+u.shield*(pw+gap); const x0=p[0]-tot/2;
   c.fillStyle='rgba(4,8,14,.72)'; rr(c,x0-2.5,y0-2.5,tot+4,9,2.5); c.fill(); c.strokeStyle=u.isPlayer?'rgba(63,210,255,.55)':ally?'rgba(93,255,154,.45)':C(u.col,1,.45); c.lineWidth=1; c.stroke();
   for(let i=0;i<n;i++){ c.fillStyle=i<u.hp?(ally?'#5dff9a':'#ff4d5e'):'rgba(255,255,255,.15)'; c.fillRect(x0+i*(pw+gap),y0,pw,4); }
@@ -5152,7 +5185,7 @@ function drawBubbles(c){
     c.fillStyle='#fff'; c.fillText(b.txt,x,y+1); c.globalAlpha=1; }
 }
 function bubble(u,txt){ G.bubbles=G.bubbles.filter(b=>b.u!==u); G.bubbles.push({u,txt,t:0,life:2.6}); }
-function shadeAt(i){ return G.scene!=='game'||G.fullVis||G.vis[i]?1:G.seen[i]?0.62:0.48; }
+function shadeAt(i){ return G.scene!=='game'||G.fullVis||G.vis[i]?1:G.M.night?(G.seen[i]?0.26:0.19):G.seen[i]?0.62:0.48; } // Blackout: what you can't see is near black
 
 // height in px of an object that can hide what stands behind it (0 = low prop)
 function tallH(o){ return o.kind==='window'?44:(o.t===2||o.h>20)?(o.h||40):0; }
@@ -5199,7 +5232,8 @@ function drawWorld(c){
     if(RC.stormP){ c.fillStyle=C(R.storm,1,.22+0.06*Math.sin(t*2)); c.fill(RC.stormP); } }
   if(G.scene==='game'&&!G.fullVis){ let h=RC.gen; for(let i=0;i<MW*MH;i++) h=(Math.imul(h,31)+(G.vis[i]?2:0)+(G.seen[i]?1:0))|0;
     if(h!==RC.fogKey){ RC.fogKey=h; const a=new Path2D(), b=new Path2D(); for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const i=idx(x,y); if(!G.vis[i]) tilePath(G.seen[i]?a:b,x,y); } RC.fogA=a; RC.fogB=b; }
-    c.fillStyle='rgba(4,6,14,.42)'; c.fill(RC.fogA); c.fillStyle='rgba(4,6,14,.58)'; c.fill(RC.fogB); }
+    c.fillStyle=G.M.night?'rgba(2,5,16,.86)':'rgba(4,6,14,.42)'; c.fill(RC.fogA); c.fillStyle=G.M.night?'rgba(1,3,10,.93)':'rgba(4,6,14,.58)'; c.fill(RC.fogB); }
+  if(G.M.night&&G.scene==='game') boDraw(c); // Blackout: night tint, light pools (cached paths and two glow sprites)
   if(G.scene==='game') drawPrints(c);
   drawHighlights(c);
   drawRideGround(c); // drop ship shadows and rotor wash (intro)
@@ -5807,7 +5841,8 @@ function feedLine(text,you){
 }
 function mine(u){ return !!(u&&G.player&&u.team===G.player.team); }
 function applyDamage(t,d,src,o){
-  o=o||{}; if(!t.alive) return; if(t.drone){ droneHurt(t,d,src,o); return; } // a deployed Specialist drone: its own HP, never downed, no kill credit
+  o=o||{}; if(!t.alive||t.infDown) return; if(src&&G.mut.one) d=Math.max(d,t.hp+t.shield+t.armor+1); // One-shot mutator: any hit is lethal (storm damage has no source)
+  if(t.drone){ droneHurt(t,d,src,o); return; } // a deployed Specialist drone: its own HP, never downed, no kill credit
   // weapon mastery (local player only, like G.stats): damage and takedowns (downs and eliminations) with that weapon
   const ms=o.wid&&src&&src.isPlayer&&isEnemy(src,t)&&mastTracked(o.wid)?mstat(o.wid):null;
   if(t.downed){ if(o.anim) floatText(t,'FINISHED',[255,77,94],20); if(ms) ms.kills++; kill(t,src,o.anim,o.how); return; }
@@ -5820,7 +5855,7 @@ function applyDamage(t,d,src,o){
   if(t.isPlayer) buzz(o.crit?[30,30,50]:35);
   if(o.anim){ hitFx(t,abs); floatText(t,(o.graze?'GRAZE ':o.crit?'CRIT ':'')+'−'+total,o.graze?[190,215,255]:o.crit?[255,180,60]:[255,255,255],o.crit?24:o.graze?18:20); SFX.hit(); if(o.crit) G.cam.shake=Math.max(G.cam.shake,6); }
   if(t.tutGuard&&t.hp<1) t.hp=1;
-  if(t.hp<=0){ t.hp=0; if(G.M.team>1&&!G.M.resp&&G.units.some(m=>m!==t&&m.team===t.team&&standing(m))) down(t,src,o.anim,o.how); else if(G.M.team===1&&t.sw>0) swDown(t,src,o.anim); else kill(t,src,o.anim,o.how); }
+  if(t.hp<=0){ t.hp=0; if(G.M.inf&&infCatch(t,src,o)) return; if(G.M.team>1&&!G.M.resp&&G.units.some(m=>m!==t&&m.team===t.team&&standing(m))) down(t,src,o.anim,o.how); else if(G.M.team===1&&t.sw>0) swDown(t,src,o.anim); else kill(t,src,o.anim,o.how); }
 }
 function down(t,src,anim,how){
   t.downed=true; t.hp=0; t.bleed=2; t.overwatch=false; t.hunker=false; t.shield=0; t.dnBy=src&&src!==t&&isEnemy(src,t)?src.id:null; // the elimination goes to whoever downed them
@@ -5836,6 +5871,7 @@ function playerOut(){
   if(G.gm&&gmPlayerOut()) return; // respawn modes: out for two rounds, not for the match
   G.playerDead=true; computeVis();
   if(G.over) return;
+  if(G.M.inf&&infOut()) return; // Infection: its own placement and wording
   if(teamStanding(G.player.team)){ banner('Eliminated',(G.M.team>2?'Your squad fights':'Your partner fights')+' on. Spectating.','lose',2400); }
   else if(teamsLeft()>1) banner('Eliminated','You placed #'+G.place+' of '+nTeams()+'. Spectating.','lose',2400);
   if(teamsLeft()>1||teamStanding(G.player.team)){ G.spec={follow:null}; G.speed=1; $('#spSpeed').textContent='1×'; }
@@ -5879,7 +5915,7 @@ async function fireShot(a,t,o){
   const anim=shouldShow(a)||shouldShow(t); const kind=o.fxk||W.fx;
   if(anim){ animShot(a,o.reaction?.26:.48,kind,!prim,o.label); focusMid(a,t); if(o.reaction) floatText(a,o.rf?'RETURN FIRE':'OVERWATCH',o.rf?[255,214,90]:[127,232,255],18); else if(o.label) floatText(a,o.label,[255,190,80],18); await wait(o.reaction?260:480); if(!a.alive||!t.alive) return false; shotFX(a,t,hit,kind); await wait(FXDUR[kind]||150); }
   else if(!W.silent&&G.player&&!G.fullVis&&viewers().some(v=>Math.hypot(a.x-v.x,a.y-v.y)<17)) ping(a.x,a.y); // a suppressed shot out of sight gives no ripple
-  if(!W.silent) makeNoise(a);
+  if(!W.silent){ makeNoise(a); if(G.M.night) boFlash(a); } // Blackout: the muzzle flash gives the shooter away
   if(hit){ let d=rollDmg(W.dmg)+(o.bonus||0)+(prim&&hasP(a,'r_point')&&info.d<=3.01?1:0); if(crit) d+=W.critDmg+(prim&&hasP(a,'s_vital')?1:0); if(o.deadeye) d=Math.ceil(d*1.5); if(res==='graze') d=Math.max(1,Math.ceil(d/2));
     if(prim&&!o.reaction&&hasP(a,'g_holo')) t.holo={team:a.team,until:G.round+1};
     applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how,pierce:!!W.pierce||(prim&&hasP(a,'g_shred')),wid:W.id}); }
@@ -5946,18 +5982,20 @@ async function triggerOverwatch(m){
 }
 function pickup(u){
   const i=G.crates.findIndex(q=>q.x===u.x&&q.y===u.y); if(i<0) return; const q=G.crates.splice(i,1)[0];
+  if(u.inf){ infLoot(u,q); return; } // the Infected only feed: HP, no gear
   let msg;
   if(q.drop){
     u.hp=Math.min(u.maxHp,u.hp+4); u.shield+=3; u.W=Object.assign({},u.W,{dmg:[u.W.dmg[0]+1,u.W.dmg[1]+1]});
-    const g=u.utils.find(x=>UTILS[x.id].dmg); if(g) g.ch++; else u.utils.push({id:'frag',ch:1});
-    msg='SUPPLY DROP: +1 DMG, +3 SHIELD'; if(G.M.team===1&&!u.sw&&RNG()<0.5){ u.sw=1; msg+=' +SECOND WIND'; } if(u.isPlayer){ G.stats.drops++; buzz([30,30,30]); } feedLine(u.name+' claimed the supply drop',mine(u));
+    const g=u.utils.find(x=>UTILS[x.id].dmg); if(g) g.ch++; else if(!u.noNade) u.utils.push({id:'frag',ch:1});
+    msg='SUPPLY DROP: +1 DMG, +3 SHIELD'; if(G.M.team===1&&!G.M.inf&&!u.sw&&RNG()<0.5){ u.sw=1; msg+=' +SECOND WIND'; } if(u.isPlayer){ G.stats.drops++; buzz([30,30,30]); } feedLine(u.name+' claimed the supply drop',mine(u));
   } else {
     const r=RNG();
     if(r<0.35&&u.hp<u.maxHp){ const h=Math.min(3,u.maxHp-u.hp); u.hp+=h; msg='+'+h+' HP'; }
     else if(r<0.7){ u.shield+=2; msg='+2 SHIELD'; }
     else { const g=u.utils.find(x=>UTILS[x.id].dmg); if(g){ g.ch++; msg='+1 '+UTILS[g.id].short.toUpperCase(); } else { u.shield+=2; msg='+2 SHIELD'; } }
-    if(G.M.team===1&&!u.sw&&RNG()<0.07){ u.sw=1; msg+='  +SECOND WIND'; } // rare Second Wind kit (Solo modes)
+    if(G.M.team===1&&!G.M.inf&&!u.sw&&RNG()<0.07){ u.sw=1; msg+='  +SECOND WIND'; } // rare Second Wind kit (Solo modes)
     if(u.perk==='pk_scav'){ u.shield+=2; if(msg.indexOf('SHIELD')<0) msg+='  +2 SHIELD'; else msg='+4 SHIELD'; }
+    if(G.M.night&&RNG()<BO.crateFlare){ boAddFlare(u); msg+='  +1 FLARE'; } // Blackout: crates often hold a flare
     if(u.isPlayer) G.stats.crates++;
   }
   u.ammo=u.W.clip; if(u.S&&u.S.clip) u.sAmmo=u.S.clip; if(q.drop&&u.S&&u.S.uses) u.sUses++;
@@ -6094,7 +6132,7 @@ async function doActive(u,c){
 async function doSuppress(u,t){
   u.ammo=Math.max(0,u.ammo-1); faceTo(u,t.x,t.y); const anim=shouldShow(u)||shouldShow(t);
   if(anim){ animShot(u,.42,'heavy',false,null); focusMid(u,t); floatText(u,'SUPPRESSION',[255,190,80],18); await wait(420); shotFX(u,t,false,'heavy'); await wait(FXDUR.heavy); }
-  makeNoise(u);
+  makeNoise(u); if(G.M.night) boFlash(u);
   if(t.alive&&!t.downed){ t.disorient=Math.max(t.disorient,1); t.overwatch=false; if(anim) floatText(t,'SUPPRESSED',[255,179,64],18); }
   if(anim) await wait(600);
 }
@@ -6122,6 +6160,7 @@ async function doThrow(u,util,tx,ty){
     for(const v of hitD){ applyDamage(v,rollDmg(U.dmg)+(hasP(u,'g_volat')?1:0),u,{anim:anim||shouldShow(v),pierce:!!U.arc}); if(U.arc&&v.alive) v.jam=1; } // drones in the blast (arc also grounds them)
     // destroys cover one stage (arc leaves it standing) and sets off explosives in the blast
     if(!U.arc) await terrBlast(tx,ty,U.radius,u);
+  } else if(U.flare){ boFlare(u,tx,ty,anim);
   } else if(util.id==='smoke'){
     G.smoke.push({x:tx,y:ty,r:U.radius,until:G.round+2}); computeVis(); // smoke changes what everyone can see
     if(anim){ const p=tileC(tx,ty); addFx({type:'shock',x:p[0],y:p[1],r:U.radius*TW,col:[220,226,236],life:.4,flat:1}); for(let i=0;i<20;i++) part({x:p[0]+frand(-40,40),y:p[1]+frand(-18,18),z:frand(0,20),vx:frand(-20,20),vy:frand(-10,10),vz:frand(5,30),life:frand(1.2,2.2),size:frand(14,24),col:[210,215,225],type:'smoke'}); SFX.noise(.8,'lowpass',900,.4); }
@@ -6306,13 +6345,13 @@ async function damageTerr(x,y,d,src,anim){
 }
 async function breakTerr(x,y,src,anim){
   const o=cell(x,y); if(!o) return; const T=TERR[o.kind];
-  if(T&&T.boom){ await detonate(x,y,src); return; }
+  if(T&&(T.boom||mutBoom(o))){ await detonate(x,y,src); return; } // Explosive everything: any destroyed object goes up
   G.grid[idx(x,y)]=stageNext(o); cst(src,'cover'); terrChanged(true,x,y,0);
   if(anim||tileShown(x,y)){ floatText(tileDummy(x,y),o.kind==='door'?'DOOR BREACHED':o.t===2?'COVER DAMAGED':'COVER DESTROYED',[255,190,90],17); terrBits(x,y,null,18); SFX.noise(.35,'lowpass',700,.5); G.cam.shake=Math.max(G.cam.shake,4); }
 }
 // explosive barrels and tanks: blast damage, then the blast knocks terrain down a stage and sets off other explosives
 async function detonate(x,y,src){
-  const o=cell(x,y), B=o&&TERR[o.kind]&&TERR[o.kind].boom; if(!B) return;
+  const o=cell(x,y), B=o&&boomOf(o); if(!B) return;
   cst(src,'booms'); G.grid[idx(x,y)]=Object.assign(mkTerr('debris',o),{scorch:1}); G.decals.push({x:x+.5,y:y+.5,r:B.r*0.8}); terrChanged(true,x,y,B.r);
   const hitU=G.units.filter(v=>v.alive&&inBlast(v,x,y,B.r));
   const anim=tileShown(x,y)||hitU.some(shouldShow);
@@ -6331,7 +6370,8 @@ async function terrBlast(cx,cy,r,src){
   for(let y=Math.floor(cy-r);y<=Math.ceil(cy+r);y++) for(let x=Math.floor(cx-r);x<=Math.ceil(cx+r);x++){
     if(!inMap(x,y)||Math.hypot(x-cx,y-cy)>r+0.01) continue; const o=G.grid[idx(x,y)]; if(!o||Math.abs((G.elev[idx(x,y)]?1:0)-lvAt(cx,cy))>1) continue; // not from a rooftop down to the street
     if(TERR[o.kind]&&TERR[o.kind].boom){ boom.push([x,y]); continue; }
-    const n=stageNext(o); if(n!==o){ G.grid[idx(x,y)]=n; ch=true; cst(src,'cover'); } }
+    const n=stageNext(o); if(G.mut.boom&&(!n||n.flat)&&mutBoom(o)){ boom.push([x,y]); continue; } // Explosive everything: blown apart, it explodes
+    if(n!==o){ G.grid[idx(x,y)]=n; ch=true; cst(src,'cover'); } }
   const lost=(G.sensors||[]).filter(s=>Math.hypot(s.x-cx,s.y-cy)<=r+0.01);
   if(lost.length){ G.sensors=G.sensors.filter(s=>!lost.includes(s)); for(const s of lost) if(tileShown(s.x,s.y)) floatText(tileDummy(s.x,s.y),'SENSOR DESTROYED',[255,140,120],15); }
   if(ch) terrChanged(true,cx,cy,r);
@@ -6365,7 +6405,7 @@ async function doBreach(u,x,y){
 function canShootObj(u,x,y){ const o=cell(x,y); if(!shootable(o)) return false; const d=Math.hypot(x-u.x,y-u.y); return d>0&&d<=Math.min(sightOf(u),14)+0.01&&hasLOS(u.x,u.y,x,y); }
 function objTargets(u){ const out=[], sr=Math.min(sightOf(u),14);
   for(let y=Math.max(0,Math.floor(u.y-sr));y<=Math.min(MH-1,Math.ceil(u.y+sr));y++) for(let x=Math.max(0,Math.floor(u.x-sr));x<=Math.min(MW-1,Math.ceil(u.x+sr));x++){
-    const o=G.grid[idx(x,y)]; if(!shootable(o)||!canShootObj(u,x,y)) continue; out.push({x,y,o,boom:TERR[o.kind].boom||null,d:Math.hypot(x-u.x,y-u.y)}); }
+    const o=G.grid[idx(x,y)]; if(!shootable(o)||!canShootObj(u,x,y)) continue; out.push({x,y,o,boom:boomOf(o),d:Math.hypot(x-u.x,y-u.y)}); }
   return out.sort((a,b)=>(b.boom?2:b.o.kind==='door'?1:0)-(a.boom?2:a.o.kind==='door'?1:0)||a.d-b.d); }
 // {k:'obj',x,y}: shoot an object with the primary (never misses; shooting AP rules; 1 ammo)
 async function shootObj(u,x,y){
@@ -6373,7 +6413,7 @@ async function shootObj(u,x,y){
   const o=cell(x,y), tk0=u.tk||0; apShot(u); u.ammo=Math.max(0,u.ammo-1); faceTo(u,x,y);
   const T=tileDummy(x,y), anim=shouldShow(u)||tileShown(x,y), kind=u.W.fx;
   if(anim){ focusMid(u,T); floatText(u,'SHOOT '+TERR[o.kind].name.toUpperCase(),[255,190,80],16); await wait(380); shotFX(u,T,true,kind); await wait(FXDUR[kind]||150); }
-  if(!u.W.silent) makeNoise(u);
+  if(!u.W.silent){ makeNoise(u); if(G.M.night) boFlash(u); }
   await damageTerr(x,y,rollDmg(u.W.dmg),u,anim);
   afterAttack(u,tk0,true);
   if(anim) await wait(450);
@@ -6465,8 +6505,8 @@ async function doSite(u,s){
   s.done=true; s.by=u.id; if(u.isPlayer) G.stats.objs=(G.stats.objs||0)+1; let msg='';
   if(s.k==='uplink'){ G.scans.push({team:u.team,until:G.round+1}); for(const e of G.units) scanCheck(e); msg='UPLINK: ENEMIES REVEALED';
     feedLine(u.name+' hacked the uplink',mine(u)); if(mine(u)) banner('Uplink hacked','Every enemy is marked for your team until the end of next round.','win',2000); else banner('Uplink hacked',u.name+' can see everyone. Move.','lose',2000); }
-  else if(s.k==='vault'){ u.hp=Math.min(u.maxHp,u.hp+3); u.shield+=4; const g=u.utils.find(x=>UTILS[x.id].dmg); if(g) g.ch++; else u.utils.push({id:'frag',ch:1});
-    u.ammo=u.W.clip; if(u.S&&u.S.clip) u.sAmmo=u.S.clip; if(u.S&&u.S.uses) u.sUses++; let sw=false; if(G.M.team===1&&!u.sw){ u.sw=1; sw=true; }
+  else if(s.k==='vault'){ u.hp=Math.min(u.maxHp,u.hp+3); u.shield+=4; const g=u.utils.find(x=>UTILS[x.id].dmg); if(g) g.ch++; else if(!u.noNade) u.utils.push({id:'frag',ch:1});
+    u.ammo=u.W.clip; if(u.S&&u.S.clip) u.sAmmo=u.S.clip; if(u.S&&u.S.uses) u.sUses++; let sw=false; if(G.M.team===1&&!G.M.inf&&!u.sw){ u.sw=1; sw=true; }
     msg='VAULT: +3 HP +4 SHIELD +1 GRENADE'+(sw?' +SECOND WIND':''); feedLine(u.name+' cracked the vault',mine(u)); }
   else if(s.k==='med'){ u.hp=u.maxHp; u.shield+=2; u.disorient=0; const m=u.utils.find(x=>x.id==='medkit'); if(m) m.ch++; u.ammo=u.W.clip; if(u.S&&u.S.clip) u.sAmmo=u.S.clip;
     msg='MED STATION: FULL HEAL +2 SHIELD'; feedLine(u.name+' used the med station',mine(u)); }
@@ -6488,6 +6528,246 @@ async function swRise(u){
   updateHUD(); }
 
 
+/* ================= Infection, Blackout and mutators =================
+   Infection (MODES.infection, G.M.inf): a free-for-all drop; at the start of round 1 one seeded operative turns (two with
+   INF.two or more in the match). From then on there are two sides: survivors (team INF_S, shared sight) and the Infected
+   (team INF_T). The Infected fight with claws only (no guns, grenades, utilities or drone), move farther, are tougher
+   and regenerate, and they smell survivors near them (intel pings each round). They never die: taken down, an Infected
+   lies regenerating (immune) through INF.down of its turns and rises at full HP. A survivor the Infected take out does
+   not die either: it goes down "turning" on their side (immune) and rises as Infected at the start of its next turn.
+   Survivors win when the outbreak timer (G.M.infCap rounds) runs out with any of them standing; the Infected win when
+   nobody is left to turn.
+   Blackout (MODES.blackout, G.M.night): Solo at night. Sight is BO.sight tiles (+1 on high ground). A lit operative (in a
+   flare's light, near a deployed Specialist drone, in a Scout Drone's area, or one that fired an unsuppressed shot since
+   its last turn) can be seen from normal (daytime) sight range by anyone. Every kit carries a flare (UTILS.flare), crates
+   add more. Gunfire pulses on every minimap (visual only).
+   Mutators (cfg.mut -> G.mut): host toggles that stack on any mode, listed in MUTS.
+   All of it derives from cfg (mode, mut) and the seeded RNG, so players, spectators and replays agree. A classic match
+   without mutators never reaches any of it: no RNG calls, no extra hash input. */
+const INF_S=0, INF_T=1;
+const INF={two:7,hp:6,mob:2,regen:2,sense:10,zeroHp:4,zeroShield:3,down:1,col:'#9dff3a',loot:3};
+const INF_CLAW={id:'claw',name:'Infected Claws',short:'Claws',type:'melee',dmg:[4,6],acc:88,crit:20,critDmg:2,dash:5,desc:'Dash up to 5 tiles and rake an adjacent survivor.'};
+const BO={sight:3.5,high:1,droneR:2.5,crateFlare:0.35};
+const MUTS={
+  lowg:{name:'Low gravity',short:'Low-G',desc:'+1 mobility, grenades fly 3 tiles farther, and you can drop off any roof or ledge without a ladder.'},
+  boom:{name:'Explosive everything',short:'Boom',desc:'Every destructible object explodes like an oil drum when it is destroyed. Chain reactions included.'},
+  one:{name:'One-shot',short:'One-shot',desc:'Any hit takes an operative out (downs them in team modes). Storm damage is unchanged.'},
+  storm2:{name:'Double storm speed',short:'Storm ×2',desc:'The storm shrinks and moves twice as often.'},
+  melee:{name:'Melee only',short:'Melee',desc:'No guns or damaging grenades. Pistols and throwing weapons become a dashing machete; everyone gets +1 mobility.'},
+  smoke:{name:'Perma-smoke',short:'Smoke',desc:'Smoke clouds hang over the map for the whole match.'}
+};
+const MUT_KEYS=Object.keys(MUTS), MUT_LOWG_THROW=3;
+G.mut={}; G.flares=[]; G.inf=null; G.mmP=[]; G.boFx=[];
+// cfg.mut: known keys only, in MUTS order (identical on every client)
+function mutClean(m){ return Array.isArray(m)?MUT_KEYS.filter(k=>m.includes(k)):[]; }
+function mutSet(m){ const o={}; for(const k of mutClean(m)) o[k]=true; return o; }
+function mutBits(){ let b=0; MUT_KEYS.forEach((k,i)=>{ if(G.mut[k]) b|=1<<i; }); return b; }
+function mutTxt(){ const m=MUT_KEYS.filter(k=>G.mut[k]); return m.length?' Mutators: '+m.map(k=>MUTS[k].name).join(', ')+'.':''; }
+// double storm speed: every stage comes at about half the round (at least one round apart), relocations every round
+function stormX2(S){ const r=[]; S.rounds.forEach((x,i)=>r.push(Math.max(i?r[i-1]+1:2,Math.ceil(x/2)+1))); return Object.assign({},S,{rounds:r,every:1}); }
+// Explosive everything: a destructible object (not doors, rooftops or rubble already flat) explodes like oil drums
+function mutBoom(o){ return !!(G.mut.boom&&o&&TERR[o.kind]&&!TERR[o.kind].boom&&o.kind!=='door'&&!o.flat&&!o.roof); }
+function boomOf(o){ const T=o&&TERR[o.kind]; return T?(T.boom||(mutBoom(o)?TERR.barrels.boom:null)):null; }
+function meleeOnly(u){ u.noGun=true; u.noNade=true; u.W=Object.assign({},u.W,{clip:0}); u.ammo=0;
+  if(!u.S||u.S.type!=='melee'){ u.sid='machete'; u.S=SECONDARIES.machete; u.sAmmo=0; u.sUses=0; u.satt=''; u.sfin=null; }
+  u.utils=u.utils.filter(q=>!UTILS[q.id].dmg); u.mob+=1; }
+// seeded clouds that never clear (G.smoke entries with an endless `until`)
+function permaSmoke(){ const n=Math.round(MW*MH/230), fl=[], out=[]; for(let i=0;i<MW*MH;i++) if(!G.grid[i]&&!G.elev[i]) fl.push(i);
+  for(let k=0;k<n*8&&out.length<n;k++){ const c=pick(fl), x=c%MW, y=(c/MW)|0; if(out.some(s=>Math.hypot(s.x-x,s.y-y)<6)||G.units.some(u=>Math.hypot(u.x-x,u.y-y)<2.5)) continue; out.push({x,y,r:Math.round(rand(1.6,2.4)*10)/10,until:1e9,perm:true}); }
+  G.smoke.push(...out); }
+// setupMatch, last: mode state, starting kits and mutators (runs only what is switched on)
+function modeSetup(){ G.flares=[]; G.inf=G.M.inf?{on:false,zero:[],n:0}:null; G.mmP=[]; G.boFx=[]; const L=G.units;
+  if(G.M.night) for(const u of L) boAddFlare(u);
+  if(G.mut.lowg) for(const u of L) u.mob+=1;
+  if(G.mut.melee) for(const u of L) meleeOnly(u);
+  if(G.mut.smoke) permaSmoke(); }
+// round start (after objectives): flares burn out; the outbreak, the scent pings and the survivors' timer
+async function modePhase(){
+  if(G.M.night){ const n=G.flares.length; G.flares=G.flares.filter(f=>f.until>=G.round); if(n!==G.flares.length) computeVis(); }
+  if(G.M.inf) await infPhase(); }
+// a unit's turn start: Blackout's muzzle flash fades; Infection: a turning survivor rises, the Infected regenerate
+async function modeTurnStart(u){
+  if(u.mfl){ u.mfl=0; if(G.player&&u.team!==G.player.team) computeVis(); }
+  if(!G.M.inf||!u.alive) return false;
+  if(u.downed&&u.infDown){ if(--u.infRise>0){ if(shouldShow(u)){ focusOn(u.x,u.y); floatText(u,'REGENERATING',[157,255,58],18); await wait(500); } return true; } await infRise(u); return false; }
+  if(u.inf&&standing(u)&&u.hp<u.maxHp){ const h=Math.min(INF.regen,u.maxHp-u.hp); u.hp+=h; if(shouldShow(u)){ floatText(u,'+'+h+' REGEN',[157,255,58],17); await wait(320); } }
+  return false; }
+function modeHash(add){ add(mutBits());
+  if(G.M.inf){ add(G.inf&&G.inf.on?1:0); for(const u of G.units){ add(+!!u.inf); add(+!!u.infDown); add(u.infRise|0); add(u.maxHp); } }
+  if(G.M.night){ add(G.flares.length); for(const f of G.flares){ add(f.x*97+f.y); add(f.until); } for(const u of G.units) add(u.mfl|0); } }
+
+/* ---------- Infection ---------- */
+function setTeam(u,t){ u.team=t; if(u.dr) u.dr.team=t; }
+function infSurvivors(){ return G.units.filter(u=>inPlay(u)&&u.team===INF_S).length; }
+function infTeamDiff(){ G.teamDiff={}; for(const u of G.units){ if(!u.bot||!u.alive) continue; const c=G.teamDiff[u.team]; if(!c||DKEYS.indexOf(u.diff.key)>DKEYS.indexOf(c.key)) G.teamDiff[u.team]=u.diff; } }
+// turn a unit into one of the Infected (its class stays: HP, mobility and perks build on it)
+function infTurn(u){ u.inf=true; u.infDown=false; u.downed=false; u.bleed=0; u.dnBy=null; setTeam(u,INF_T);
+  u.noGun=true; u.noNade=true; u.W=Object.assign({},u.W,{clip:0}); u.ammo=0; u.S=INF_CLAW; u.sAmmo=0; u.sUses=0; u.utils=[];
+  u.overwatch=false; u.hunker=false; u.sw=0; u.swDown=false; u.shield=0; u.disorient=0; u.rupt=0; u.cd={}; u.roam=null;
+  u.maxHp=CLASSES[u.cls].hp+INF.hp; u.hp=u.maxHp; u.armor=0; u.def=0; u.mob=CLASSES[u.cls].mob+INF.mob+(G.mut.lowg?1:0)+(G.mut.melee?1:0);
+  if(u.dr){ const d=u.dr; if(d.alive) droneWreck(d,null,shouldShow(d),true); d.st='dead'; d.alive=false; d.rb=99; u.dr=null; }
+  u.color=INF.col; u.col=hexc(INF.col); }
+function infBurst(u){ const p=chest(u); addFx({type:'ring',x:p[0],y:p[1]+19,r:56,col:[157,255,58],life:.7});
+  for(let i=0;i<22;i++) part({x:p[0]+frand(-8,8),y:p[1]+frand(-6,10),vx:frand(-70,70),vy:frand(-60,20),vz:frand(10,60),life:frand(.6,1.2),size:frand(1.6,3.2),col:[150,255,70],type:'ember',grav:-15}); }
+async function infPhase(){ const I=G.inf; if(!I) return;
+  if(!I.on){ I.on=true; const pool=G.units.filter(standing), n=pool.length>=INF.two?2:1, z=shuffle(pool.slice()).slice(0,n); I.zero=z.map(u=>u.id);
+    for(const u of G.units) setTeam(u,INF_S);
+    for(const u of z){ infTurn(u); u.maxHp+=INF.zeroHp; u.hp=u.maxHp; u.shield=INF.zeroShield; }
+    G.intel={}; G.lkp=new Map(); infTeamDiff(); computeVis();
+    const me=!!(G.player&&z.includes(G.player)), nm=z.map(u=>u.name).join(' and ');
+    feedLine('Outbreak: '+nm+(n>1?' have':' has')+' turned',true);
+    banner(me?'You are Infected':'Outbreak',me?'Claws only, but fast, tough and regenerating. Take survivors down and they rise on your side.':nm+(n>1?' have':' has')+' turned. Survivors are one team now: hold out until the end of round '+G.M.infCap+'.',me?'lose':'warn',3200);
+    SFX.tone(220,90,.6,.1,'sawtooth'); buzz([40,60,40]);
+    for(const u of z){ if(shouldShow(u)) infBurst(u); else if(G.player&&!G.fullVis) ping(u.x,u.y,[157,255,58]); }
+    focusOn(z[0].x,z[0].y); updateHUD(); updateTop(); await wait(1500); return; }
+  if(G.round>G.M.infCap){ feedLine('The survivors held out',true); endMatch(!!(G.player&&standing(G.player)&&G.player.team===INF_S)); return; }
+  // scent: every survivor within INF.sense tiles of an Infected is known to the horde (and marked for an Infected player)
+  const zs=G.units.filter(u=>standing(u)&&u.team===INF_T);
+  for(const s of G.units) if(standing(s)&&s.team===INF_S&&zs.some(z=>Math.hypot(z.x-s.x,z.y-s.y)<=INF.sense)) pingPos(s,[INF_T],'scent');
+  if(G.round===G.M.infCap) banner('Final round','Survivors: stay standing through this round.','warn',1800);
+  updateTop(); }
+// applyDamage: a survivor dropped by an Infected turns instead of dying (it joins their side, down, and rises next turn)
+function infCatch(t,src,o){
+  if(!G.inf||!G.inf.on||t.drone) return false;
+  if(t.team===INF_T) return infFall(t,src,o); // the Infected never die: they drop, regenerate and come back
+  if(!src||src===t||!src.inf||t.team!==INF_S) return false;
+  t.downed=true; t.infDown=true; t.infRise=1; t.hp=0; t.bleed=1; t.shield=0; t.overwatch=false; t.hunker=false; t.dnBy=src.id; t.sw=0; t.swDown=false;
+  setTeam(t,INF_T); G.inf.n++; infTeamDiff();
+  src.kills++; src.tk=(src.tk||0)+1;
+  if(src.isPlayer){ G.stats.kills++; cst(src,'k_'+(G.cctx||'sec')); floatText(src,'+'+killValue(src)+' CR',[255,179,64],17); buzz(25); }
+  bountyKill(t,src);
+  feedLine(src.name+' infected '+t.name,mine(t)||mine(src));
+  if(o.anim||shouldShow(t)){ floatText(t,'INFECTED',[157,255,58],24); infBurst(t); G.cam.shake=Math.max(G.cam.shake,6); }
+  if(t.isPlayer){ if(!G.place) G.place=infSurvivors()+1; banner('You were infected','You rise as one of them next turn. Hunt the survivors.','lose',2600); buzz([60,40,60]); }
+  if(G.player) computeVis();
+  updateHUD(); updateTop();
+  if(teamsLeft()<=1) endMatch(!!(G.player&&teamStanding(G.player.team)));
+  return true; }
+// an Infected taken down: immune while it regenerates (INF.down of its turns), then back up at full HP
+function infFall(t,src,o){ t.downed=true; t.infDown=true; t.infRise=INF.down+1; t.hp=0; t.shield=0; t.bleed=0; t.overwatch=false; t.hunker=false; t.disorient=0; t.dnBy=src&&src!==t?src.id:null;
+  const foe=src&&src!==t&&isEnemy(src,t);
+  if(foe){ src.kills++; src.tk=(src.tk||0)+1; if(src.isPlayer){ G.stats.kills++; cst(src,'k_'+(G.cctx||'prim')); floatText(src,'+'+killValue(src)+' CR',[255,179,64],17); buzz(25); } }
+  feedLine((foe?src.name+' dropped ':'')+t.name+(foe?'':' collapsed')+' (Infected: back in '+INF.down+' turn'+(INF.down>1?'s':'')+')',mine(t)||mine(src));
+  if(o.anim||shouldShow(t)){ floatText(t,'DROPPED',[157,255,58],22); G.cam.shake=Math.max(G.cam.shake,5); }
+  if(t.isPlayer){ banner('Dropped','You regenerate and rise again after '+INF.down+' turn'+(INF.down>1?'s':'')+'.','warn',2200); buzz([60,40,60]); }
+  updateHUD(); updateTop(); return true; }
+async function infRise(u){ const first=!u.inf; infTurn(u); feedLine(first?u.name+' rose as Infected':u.name+' is back up',mine(u));
+  if(shouldShow(u)){ focusOn(u.x,u.y); floatText(u,first?'RISEN':'REGENERATED',[157,255,58],24); infBurst(u); SFX.tone(160,70,.5,.09,'sawtooth'); await wait(650); }
+  if(u.isPlayer){ if(first) banner('You are Infected','Claws only, but fast, tough and regenerating.','warn',1800); computeVis(); }
+  updateHUD(); }
+function infLoot(u,q){ const h=Math.min(q.drop?u.maxHp:INF.loot,u.maxHp-u.hp); u.hp+=h;
+  if(shouldShow(u)) floatText(u,h?'+'+h+' HP':'NOTHING TO EAT',[157,255,58],18); }
+// playerOut in Infection: placing by how many survivors were left, spectate while the match runs
+function infOut(){ if(!G.place) G.place=infSurvivors()+1;
+  banner('Eliminated',(teamStanding(G.player.team)?(G.player.team===INF_T?'The horde hunts on without you.':'The other survivors fight on.')+' ':'')+'Spectating.','lose',2400);
+  if(teamsLeft()>1){ G.spec={follow:null}; G.speed=1; $('#spSpeed').textContent='1×'; }
+  buzz([80,50,80]); updateHUD(); return true; }
+function infPlace(){ return Math.min(nTeams(),infSurvivors()+1); }
+function infWinner(){ return G.units.some(u=>inPlay(u)&&u.team===INF_S)?'The survivors':'The Infected'; }
+// end-of-match wording: [title, line] from the local player's side
+function infEndTxt(win){ const p=G.player, inf=!!(p&&p.team===INF_T);
+  if(win) return inf?['Infection complete','Nobody is left to turn.']:['Survived','You held out until the end of the outbreak.'];
+  return inf?['Contained','The survivors held out: #'+G.place+' of '+nTeams()+'.']:['Eliminated','You fell before the outbreak ended: #'+G.place+' of '+nTeams()+'.']; }
+// AI tile scoring add-on: melee-only units (Infected, Melee only) close in on known enemies; survivors bunch up and kite
+function modeTile(u,x,y,threats){ let s=0;
+  if(u.noGun&&threats.length){ let md=99; for(const t of threats) md=Math.min(md,Math.hypot(t.x-x,t.y-y)); s-=md*(u.inf?4:2.5); if(md<1.6) s+=u.inf?24:12; }
+  if(G.inf&&G.inf.on&&u.team===INF_S){ let n=0; for(const m of G.units) if(m!==u&&standing(m)&&m.team===INF_S&&Math.hypot(m.x-x,m.y-y)<=4.5) n++; s+=Math.min(3,n)*5;
+    if(!u.noGun) for(const t of threats){ const d=Math.hypot(t.x-x,t.y-y); if(d<4) s-=(4-d)*10; } }
+  return s; }
+function infAura(c,u,p,t){ c.globalCompositeOperation='lighter'; softDot(c,[110,255,60],p[0],p[1]-18,28,.2+.08*Math.sin(t*3+u.ph)); c.globalCompositeOperation='source-over';
+  if(Math.random()<0.1) part({x:p[0]+frand(-10,10),y:p[1]-frand(6,30),vx:frand(-8,8),vy:frand(-6,2),vz:frand(10,30),life:frand(.8,1.4),size:frand(1.4,2.8),col:[157,255,58],type:'ember',grav:-10}); }
+
+/* ---------- Blackout ---------- */
+function boSight(u){ return BO.sight+(lvAt(u.x,u.y)?BO.high:0); }
+function boAddFlare(u){ const f=u.utils.find(q=>q.id==='flare'); if(f) f.ch++; else u.utils.push({id:'flare',ch:1}); }
+// light sources: flares, deployed Specialist drones, Scout Drone areas (all public, so everyone sees by the same light)
+function boLitAt(x,y){ for(const f of G.flares) if(G.round<=f.until&&Math.hypot(x-f.x,y-f.y)<=f.r+0.01) return true;
+  for(const d of G.drones) if(d.alive&&Math.hypot(x-d.x,y-d.y)<=BO.droneR+0.01) return true;
+  for(const r of G.reveals||[]) if(G.round<=r.until&&Math.hypot(x-r.x,y-r.y)<=r.r+0.01) return true;
+  return false; }
+function boLit(b){ return !!b.mfl||boLitAt(b.x,b.y); }
+function boLitMask(){ const N=MW*MH; if(!G.boLM||G.boLM.length!==N) G.boLM=new Uint8Array(N); const m=G.boLM; m.fill(0);
+  const disc=(cx,cy,r)=>{ for(let y=Math.max(0,Math.floor(cy-r));y<=Math.min(MH-1,Math.ceil(cy+r));y++) for(let x=Math.max(0,Math.floor(cx-r));x<=Math.min(MW-1,Math.ceil(cx+r));x++) if(Math.hypot(x-cx,y-cy)<=r+0.01) m[idx(x,y)]=1; };
+  for(const f of G.flares) if(G.round<=f.until) disc(f.x,f.y,f.r);
+  for(const d of G.drones) if(d.alive) disc(d.x,d.y,BO.droneR);
+  for(const r of G.reveals||[]) if(G.round<=r.until) disc(r.x,r.y,r.r);
+  return m; }
+// computeVis: enemies whose muzzle flash someone on the local team (or its drone) can see
+function boVisFlash(v,vs){ const eyes=vs.concat(G.drones.filter(d=>d.alive&&d.team===G.player.team));
+  for(const e of G.units){ if(!e.alive||!e.mfl||e.team===G.player.team) continue; const i=idx(e.x,e.y); if(v[i]) continue; if(eyes.some(p=>canSee(p,e))){ v[i]=1; G.seen[i]=1; } } }
+// AI: how far threat t sees a unit standing on (x,y); and how far u would see t from (x,y)
+function boSeenFrom(t,x,y){ return boLitAt(x,y)?sightDay(t):sightOf(t); }
+function boSightAt(u,x,y,t){ const lv=G.lvl[idx(x,y)], day=u.sight+sightBonus(u,lv); return boLit(t)?day:Math.min(day,BO.sight+(lv?BO.high:0)); }
+function boFlash(u){ if(!u||u.drone) return; u.mfl=1; const now=G.time; G.mmP.push({x:u.x,y:u.y,t:now}); if(G.mmP.length>30) G.mmP.shift(); G.boFx.push({x:u.x,y:u.y,t:now}); if(G.boFx.length>20) G.boFx.shift();
+  if(G.player&&u.team!==G.player.team) computeVis(); }
+function boFlare(u,tx,ty,anim){ G.flares.push({x:tx,y:ty,r:UTILS.flare.radius,until:G.round+1,team:u.team}); computeVis();
+  const p=tileC(tx,ty); addFx({type:'flash',x:p[0],y:p[1]-20,r:120,col:[255,200,140],life:.4}); addFx({type:'ring',x:p[0],y:p[1],r:UTILS.flare.radius*TW*0.7,col:[255,170,90],life:.7});
+  if(anim) SFX.tone(1400,600,.35,.05,'triangle'); feedLine(u.name+' fired a flare',mine(u)); }
+async function aiFlare(u){ const fi=u.utils.findIndex(q=>q.id==='flare'&&q.ch>0); if(fi<0) return false; const rg=throwRange(u,UTILS.flare), sr=sightOf(u); let tgt=null,bd=1e9;
+  for(const [id,e] of intelOf(u.team)){ if(e.r<G.round-1) continue; const t=G.units.find(z=>z.id===id); if(!t||!standing(t)) continue; const d=Math.hypot(e.x-u.x,e.y-u.y);
+    if(d<=rg&&d>sr+0.5&&d<bd&&!solidT(e.x,e.y)&&!G.flares.some(f=>G.round<=f.until&&Math.hypot(f.x-e.x,f.y-e.y)<=f.r)){ bd=d; tgt=[e.x,e.y]; } }
+  if(!tgt) return false; await execCmd(u,{k:'throw',i:fi,x:tgt[0],y:tgt[1]}); return true; }
+// rendering (visual only): one night tint, a cached path of dim visible tiles past your night sight, then light pools from
+// two pre-rendered glow sprites (own operatives, flares, drones, muzzle flashes): no per-tile gradients
+function boGlowSpr(warm){ const k=warm?'gw':'gc'; if(RC[k]) return RC[k]; const cv2=document.createElement('canvas'); cv2.width=128; cv2.height=64; const g=cv2.getContext('2d');
+  const gr=g.createRadialGradient(64,32,0,64,32,64); const col=warm?'255,190,110':'150,190,255'; gr.addColorStop(0,'rgba('+col+',.55)'); gr.addColorStop(.45,'rgba('+col+',.2)'); gr.addColorStop(1,'rgba('+col+',0)');
+  g.setTransform(1,0,0,.5,0,16); g.fillStyle=gr; g.fillRect(0,0,128,128); return RC[k]=cv2; }
+function boDraw(c){ const t=G.time, full=G.fullVis, me=G.player&&!G.watch?G.player.team:-1;
+  if(full||!RC.boTint||RC.boTintW!==MW){ const p=new Path2D(), a=iso(0,0), b=iso(MW,0), d=iso(MW,MH), e=iso(0,MH); p.moveTo(a[0],a[1]); p.lineTo(b[0],b[1]); p.lineTo(d[0],d[1]); p.lineTo(e[0],e[1]); p.closePath(); RC.boTint=p; RC.boTintW=MW; }
+  if(full){ c.fillStyle='rgba(3,6,20,.42)'; c.fill(RC.boTint); }
+  else { const vs=viewers(); let key=RC.fogKey+':'+G.flares.length; for(const v of vs) key+=':'+v.x+','+v.y;
+    if(key!==RC.boKey){ RC.boKey=key; const p=new Path2D(), zd=G.zDraw; G.zDraw=false;
+      for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const i=idx(x,y); if(!G.vis[i]) continue; let near=false; for(const v of vs) if(Math.hypot(x-v.x,y-v.y)<=boSight(v)-1.2){ near=true; break; } if(!near&&!boLitAt(x,y)) tilePath(p,x,y); }
+      G.zDraw=zd; RC.boDim=p; }
+    c.fillStyle='rgba(3,6,20,.32)'; c.fill(RC.boDim); }
+  const cool=boGlowSpr(false), warm=boGlowSpr(true), glow=(spr,x,y,r,a)=>{ const q=iso(x+.5,y+.5), w=r*TW*1.42; c.globalAlpha=Math.min(1,a); c.drawImage(spr,q[0]-w,q[1]-ez(Math.round(x),Math.round(y))-w/2,w*2,w); };
+  c.globalCompositeOperation='lighter';
+  for(const u of G.units) if(u.alive&&!u.inRide&&(u.team===me||full&&!u.downed)) glow(cool,u.rx,u.ry,boSight(u)*0.8,u.team===me?.5:.3);
+  for(const f of G.flares) if(G.round<=f.until) glow(warm,f.x,f.y,f.r+1,.75+.12*Math.sin(t*9+f.x)+.06*Math.sin(t*23));
+  for(const d of G.drones) if(d.alive&&shouldShow(d)) glow(cool,d.rx,d.ry,BO.droneR,.4);
+  G.boFx=G.boFx.filter(f=>t-f.t<0.8); for(const f of G.boFx) if(tileShown(f.x,f.y)) glow(warm,f.x,f.y,2.2,(1-(t-f.t)/0.8)*.9);
+  c.globalAlpha=1; c.globalCompositeOperation='source-over';
+  for(const f of G.flares) if(G.round<=f.until){ const q=iso(f.x+.5,f.y+.5); softDot(c,[255,230,190],q[0],q[1]-ez(f.x,f.y)-6,7+Math.sin(t*14)*1.5,.95); } }
+function boMinimap(c,s){ for(const f of G.flares){ if(G.round>f.until) continue; c.fillStyle='rgba(255,190,110,.28)'; c.beginPath(); c.arc((f.x+.5)*s,(f.y+.5)*s,f.r*s,0,Math.PI*2); c.fill(); }
+  G.mmP=G.mmP.filter(q=>G.time-q.t<3); for(const q of G.mmP){ const k=(G.time-q.t)/3; c.strokeStyle='rgba(255,214,90,'+(1-k)+')'; c.lineWidth=2; c.beginPath(); c.arc((q.x+.5)*s,(q.y+.5)*s,s*(1+k*4),0,Math.PI*2); c.stroke(); } }
+
+/* ---------- HUD and waiting room ---------- */
+let mchSig='';
+function modeHud(){ const el=$('#mchips'); if(!el) return; const ch=[];
+  if(G.M.inf){ const on=G.inf&&G.inf.on, sv=on?infSurvivors():G.units.filter(inPlay).length, zn=on?G.units.filter(u=>inPlay(u)&&u.team===INF_T).length:0;
+    if(on){ $('#hAlive').textContent=sv; $('#hAliveL').textContent='left'; }
+    ch.push(['inf',on?sv+' survivors · '+zn+' Infected':'Outbreak in round 1']); if(on) ch.push(['sv',G.round<=G.M.infCap?'Hold out: round '+G.M.infCap:'Final round']); }
+  if(G.M.night) ch.push(['nt','Night · sight '+BO.sight]);
+  for(const k of MUT_KEYS) if(G.mut[k]) ch.push(['mu',MUTS[k].short]);
+  const sig=ch.map(x=>x.join(':')).join('|'); if(sig===mchSig) return; mchSig=sig;
+  el.innerHTML=ch.map(x=>'<span class="mch '+x[0]+'">'+esc(x[1])+'</span>').join('');
+  const ck=$('#clocks'); if(ck) ck.style.transform=ch.length?'translateY('+(ch.length*22+4)+'px)':''; }
+function lbMut(){ return mutClean(LB.online?NET.mut:PROF.settings.mut); }
+function lbToggleMut(k){ if(!MUTS[k]) return; const m=lbMut(), n=m.includes(k)?m.filter(x=>x!==k):m.concat(k);
+  if(LB.online){ if(!NET.host) return; NET.mut=mutClean(n); PROF.settings.mut=NET.mut; saveProf(); netLobby(); }
+  else { PROF.settings.mut=mutClean(n); saveProf(); renderLobby(); } }
+function renderLobbyMut(ed){ const el=$('#wrMut'); if(!el) return; const m=lbMut();
+  if(!ed){ el.innerHTML='<div class="wt-row"><span class="lbl">Mutators</span><span class="wt-ro">'+(m.length?esc(m.map(k=>MUTS[k].name).join(', ')):'None')+'</span></div>'; return; }
+  el.innerHTML='<div class="wt-row"><span class="lbl">Mutators</span><small>'+(m.length?m.length+' on · '+(LB.online?'everyone plays with them':'they apply to this match'):'Optional rule changes for any mode')+'</small></div>'
+    +'<div class="mutg" role="group" aria-label="Mutators">'+MUT_KEYS.map(k=>'<button class="mutb'+(m.includes(k)?' on':'')+'" aria-pressed="'+m.includes(k)+'" data-wmut="'+k+'"><b>'+esc(MUTS[k].name)+'</b><small>'+esc(MUTS[k].desc)+'</small></button>').join('')+'</div>'; }
+
+// mode-select thumbnails (msThumb): Infection's green glow and spores on the Infected; Blackout's night with a flare and
+// a muzzle flash. Deterministic (hash), drawn once per card
+function msThumbMode(g,D0,D,W,H){
+  if(D0.inf){ g.globalCompositeOperation='lighter';
+    for(const i of D0.inf){ const u=D0.u[i], p=D(u[0],u[1]), gr=g.createRadialGradient(p[0],p[1]-24,0,p[0],p[1]-24,58); gr.addColorStop(0,'rgba(120,255,60,.42)'); gr.addColorStop(1,'rgba(120,255,60,0)'); g.fillStyle=gr; g.fillRect(p[0]-60,p[1]-84,120,120);
+      for(let k=0;k<9;k++){ g.fillStyle='rgba(170,255,90,'+(0.35+hash(i,k,7)*0.5)+')'; g.beginPath(); g.arc(p[0]+(hash(i,k,3)-.5)*46,p[1]-10-hash(i,k,5)*60,1.2+hash(i,k,9)*2.2,0,Math.PI*2); g.fill(); } }
+    g.globalCompositeOperation='source-over';
+    const s0=D0.u.slice(0,3), c0=D(s0.reduce((a,q)=>a+q[0],0)/3,s0.reduce((a,q)=>a+q[1],0)/3); g.strokeStyle='#3fd2ff'; g.globalAlpha=.7; g.setLineDash([5,5]); g.lineWidth=2; g.beginPath(); g.ellipse(c0[0],c0[1],62,31,0,0,Math.PI*2); g.stroke(); g.setLineDash([]); g.globalAlpha=1; }
+  if(D0.night){ const dk=document.createElement('canvas'); dk.width=W; dk.height=H; const q=dk.getContext('2d'); q.fillStyle='rgba(2,5,16,.86)'; q.fillRect(0,0,W,H); q.globalCompositeOperation='destination-out';
+    const hole=(x,y,r,a)=>{ const p=D(x,y), gr=q.createRadialGradient(p[0],p[1]-12,0,p[0],p[1]-12,r); gr.addColorStop(0,'rgba(0,0,0,'+a+')'); gr.addColorStop(1,'rgba(0,0,0,0)'); q.fillStyle=gr; q.fillRect(0,0,W,H); };
+    hole(D0.u[0][0],D0.u[0][1],80,.75); hole(D0.night[0],D0.night[1],150,1); hole(D0.u[1][0],D0.u[1][1],46,.8);
+    g.drawImage(dk,0,0); const f=D(D0.night[0],D0.night[1]), m=D(D0.u[1][0],D0.u[1][1]);
+    g.globalCompositeOperation='lighter'; let gr=g.createRadialGradient(f[0],f[1]-30,0,f[0],f[1]-30,120); gr.addColorStop(0,'rgba(255,190,110,.5)'); gr.addColorStop(1,'rgba(255,190,110,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+    gr=g.createRadialGradient(m[0]-20,m[1]-24,0,m[0]-20,m[1]-24,30); gr.addColorStop(0,'rgba(255,230,160,.9)'); gr.addColorStop(1,'rgba(255,200,120,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+    g.globalCompositeOperation='source-over'; g.fillStyle='#fff6e0'; g.beginPath(); g.arc(f[0],f[1]-64,5,0,Math.PI*2); g.fill();
+    g.strokeStyle='rgba(255,220,170,.55)'; g.lineWidth=1.5; g.beginPath(); g.moveTo(f[0],f[1]-60); g.quadraticCurveTo(f[0]-30,f[1]-120,f[0]-70,f[1]-90); g.stroke(); }
+}
 /* ================= turn flow ================= */
 async function runMatch(){
   const mid=G.matchId;
@@ -6498,6 +6778,7 @@ async function runMatch(){
     await supplyPhase(); if(G.over||G.matchId!==mid) break;
     await objectivePhase(); if(G.over||G.matchId!==mid) break;
     if(G.gm){ await gmRoundStart(); if(G.over||G.matchId!==mid) break; } // objective modes: respawns, hill moves, round banners
+    if(G.M.inf||G.M.night){ await modePhase(); if(G.over||G.matchId!==mid) break; } // the outbreak / its timer; flares burning out
     for(const u of G.units){ if(G.over||G.matchId!==mid||(G.gm&&G.gm.halt)) break; if(!u.alive) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); const b=!G.over&&bountyOn(); if(b&&b.t===u.id) bountyPing(b); }
     G.turnU=null;
     if(G.gm){ await gmRoundEnd(); if(G.over||G.matchId!==mid) break; } // objective modes: scoring, Siege round changes, the end
@@ -6817,6 +7098,7 @@ async function landDrop(){
   await wait(500);
 }
 async function unitTurn(u,mid){
+  if((G.M.inf||G.M.night)&&(await modeTurnStart(u)||!u.alive||G.over||G.matchId!==mid)) return; // true: the turn is skipped (a regenerating Infected) // Infection: rise / regenerate; Blackout: the muzzle flash fades
   const rose=u.downed&&u.swDown; if(rose) await swRise(u);
   if(u.downed){ u.bleed--; const show=shouldShow(u);
     if(u.bleed<=0){ if(show){ focusOn(u.x,u.y); await wait(300); } kill(u,G.units.find(z=>z.id===u.dnBy)||null,show,'bled out'); return; }
@@ -6892,7 +7174,7 @@ function enterTarget(kind,pre){
 function enterObj(){ const u=G.player, list=objTargets(u); if(!list.length){ hint('Nothing to shoot in sight'); return; }
   G.objT=list.map(q=>[q.x,q.y]); G.oIdx=0; G.mode='obj'; G.pending=-1; G.pendingPath=null; focusMid(u,tileDummy(list[0].x,list[0].y)); updateHUD(); }
 function fillObjPanel(){
-  const u=G.player, q=G.objT&&G.objT[G.oIdx]; if(!q) return; const o=cell(q[0],q[1]); if(!o){ G.mode='move'; updateHUD(); return; } const T=TERR[o.kind]||{name:o.kind}, B=T.boom;
+  const u=G.player, q=G.objT&&G.objT[G.oIdx]; if(!q) return; const o=cell(q[0],q[1]); if(!o){ G.mode='move'; updateHUD(); return; } const T=TERR[o.kind]||{name:o.kind}, B=boomOf(o);
   $('#tName').textContent=T.name; $('#tSub').textContent=(o.hp!=null?o.hp+' HP':'')+' · '+Math.hypot(q[0]-u.x,q[1]-u.y).toFixed(1)+' tiles'+(o.kind==='door'?' · closed door':o.t===2?' · full cover':o.t===1?' · half cover':'');
   let foes=0,ally=false,self=false; if(B) for(const v of G.units){ if(!v.alive||!inBlast(v,q[0],q[1],B.r)) continue; if(v===u) self=true; else if(!isEnemy(u,v)) ally=true; else if(shouldShow(v)) foes++; }
   $('#tHit').textContent=B?String(foes):u.W.dmg[0]+'–'+u.W.dmg[1]; $('#tHitL').textContent=B?'enemies in blast':'damage (never misses)';
@@ -6926,7 +7208,7 @@ async function execCmd0(u,c){
   else if(c.k==='sec'){ await secAttack(u,findAny(c.t),c); }   // secondary weapon: {k:'sec',t,path?,free?}
   else if(c.k==='act'){ await doActive(u,c); }              // class perk active: {k:'act',a,t?}
   else if(c.k==='throw'){ const util=u.utils[c.i]; if(!util||util.ch<=0) return; const U=UTILS[util.id];
-    if(U.dev&&(u.ap<=0||!inMap(c.x,c.y)||Math.hypot(c.x-u.x,c.y-u.y)>throwRange(u,U)+0.01||solidT(c.x,c.y))) return; // drone / sensor target checks (rooftops are fine)
+    if((U.dev||U.flare)&&(u.ap<=0||!inMap(c.x,c.y)||Math.hypot(c.x-u.x,c.y-u.y)>throwRange(u,U)+0.01||solidT(c.x,c.y))) return; // drone / sensor target checks (rooftops are fine)
     u.ap=Math.max(0,u.ap-1); if(U.dmg&&!u.moved&&u.ap>0) u.shot=true; await doThrow(u,util,c.x,c.y); }
   else if(c.k==='door'){ await doDoor(u,c.x,c.y); }       // open / close an adjacent door: {k:'door',x,y}
   else if(c.k==='breach'){ await doBreach(u,c.x,c.y); }   // smash an adjacent closed door: {k:'breach',x,y}
@@ -7049,6 +7331,7 @@ function actionList(){
   const full=u.ammo>=u.W.clip&&!(S&&S.clip&&u.sAmmo<S.clip);
   A.push({id:'reload',label:'Reload',sub:freeReload(u)?'Free':'1 AP',icon:'reload',off:!ap||full,why:full?'Magazine full':''});
   if(u.shot) for(const a of A) if(a.id!=='move'&&!a.free){ a.off=true; a.why='After shooting you can only move'; }
+  if(u.noGun) for(let i=A.length-1;i>=0;i--) if(['shoot','ow','reload','obj'].includes(A[i].id)) A.splice(i,1); // Infected / Melee only: no gun
   A.push({id:'end',label:'End turn',sub:'',icon:'end',off:false,end:true});
   // fixed order: main weapon, secondary, overwatch first; everything else after in its usual order; End turn last
   const PRI={shoot:0,sec:1,ow:2}, rk=a=>a.id in PRI?PRI[a.id]:a.end?99:10;
@@ -7113,8 +7396,8 @@ function aiScoreTile(u,x,y,threats,cost){
   for(const t of threats){
     const d=Math.hypot(t.x-x,t.y-y), los=hasLOS(t.x,t.y,x,y)&&!smokeBlocks(t.x,t.y,x,y);
     const cov=coverFrom(x,y,t.x,t.y); // height-aware: ledges, shooting over cover from above
-    if(los&&d<=sightOf(t)+0.5){ seen++; s+=cov===2?16:cov===1?7:-24; if(d<=2.2&&t.cls==='ranger') s-=8; if(G.lvl[idx(x,y)]>lvAt(t.x,t.y)) s+=12; } // they shoot uphill (-10 aim)
-    if(los&&d<=u.sight+sightBonus(u,G.lvl[idx(x,y)])){ const h=hitInfo(u,t,{fx:x,fy:y}); best=Math.max(best,h.any); if(D.flank&&h.flank) s+=D.flank; } // flankState: target in cover, but not against this tile
+    if(los&&d<=(G.M.night?boSeenFrom(t,x,y):sightOf(t))+0.5){ seen++; s+=cov===2?16:cov===1?7:-24; if(d<=2.2&&t.cls==='ranger') s-=8; if(G.lvl[idx(x,y)]>lvAt(t.x,t.y)) s+=12; } // they shoot uphill (-10 aim)
+    if(los&&d<=(G.M.night?boSightAt(u,x,y,t):u.sight+sightBonus(u,G.lvl[idx(x,y)]))){ const h=hitInfo(u,t,{fx:x,fy:y}); best=Math.max(best,h.any); if(D.flank&&h.flank) s+=D.flank; } // flankState: target in cover, but not against this tile
     if(D.owAvoid&&los&&t.overwatch&&threats.fresh&&threats.fresh.has(t.id)&&d<=sightOf(t)+0.5) s-=D.owAvoid;
   }
   s+=best*0.3;
@@ -7133,10 +7416,11 @@ function aiScoreTile(u,x,y,threats,cost){
     if(d>lim) s-=(d-lim)*w; }
   if(C) s+=cmdScore(u,C,x,y,threats);
   if(G.gm) s+=gmTileScore(u,x,y);
+  if(u.noGun||(G.inf&&G.inf.on)) s+=modeTile(u,x,y,threats); // melee-only units close in; Infection survivors bunch up and kite
   return s+RNG()*D.noise;
 }
 // AI objective values (public information only: site positions, type and progress)
-function siteVal(u,s){ if(!s||s.done||s.k==='bounty'||!standing(u)) return 0; let v=0;
+function siteVal(u,s){ if(!s||s.done||s.k==='bounty'||!standing(u)||u.inf) return 0; let v=0;
   if(s.k==='uplink') v=30+(s.prog[u.team]?12:0); else if(s.k==='vault') v=34+(s.prog[u.team]?14:0);
   else if(s.k==='med'){ const miss=u.maxHp-u.hp; v=miss>=2?8+miss*5:0; }
   if(v&&s.last[u.team]===G.round) v*=0.5; // already worked this round: holding the spot still matters
@@ -7242,7 +7526,7 @@ async function aiTurn0(u,mid){
   if(stale()) return;
   if(G.M.team>1&&await aiRevive(u)){ if(stale()||u.ap<=0) return; }
   // empty primary: reload first, unless a sidearm shot is available (it costs 1 AP and still leaves a move)
-  if(u.ammo===0&&u.ap>0&&!(u.S&&u.S.type==='pistol'&&u.sAmmo>0&&visibleEnemies(u).length)) await doReload(u);
+  if(u.ammo===0&&!u.noGun&&u.ap>0&&!(u.S&&u.S.type==='pistol'&&u.sAmmo>0&&visibleEnemies(u).length)) await doReload(u);
   const med=u.utils.find(x=>x.id==='medkit'&&x.ch>0);
   if(med&&u.hp<=u.maxHp*0.5&&u.ap>0&&!outsideStorm(u.x,u.y)) await doMedkit(u,med);
   if(stale()) return;
@@ -7262,7 +7546,7 @@ async function aiTurn0(u,mid){
     atk=aiBestAttack(u);
     if(await aiSite(u,atk)){ continue; }
     if(atk&&atk.score>=8){ await aiExecute(u,atk); continue; }
-    if(u.ammo===0){ await doReload(u); continue; }
+    if(u.ammo===0&&!u.noGun){ await doReload(u); continue; }
     const vis=visibleEnemies(u);
     if(!vis.length&&!u.moved){ const mv=aiChooseMove(u,1); u.moved=true; if(mv&&mv.cost<=u.mob+1e-6){ u.ap-=1; await moveUnit(u,mv.path); continue; } }
     if(vis.length&&u.hp<=u.maxHp*0.4&&vis.some(t=>coverFrom(u.x,u.y,t.x,t.y)>0)){ u.hunker=true; u.ap=0; if(hasP(u,'g_bulw')) u.shield+=2; if(shouldShow(u)){ floatText(u,'HUNKER DOWN',[159,215,255],18); await wait(500);} break; }
@@ -7276,6 +7560,7 @@ async function aiTurn0(u,mid){
 // drop a motion sensor where it stands. Decisions use only the team's intel; effects arrive through updateIntel.
 async function aiUtilPre(u){
   if(u.ap<2||u.shot||G.round<2||visibleEnemies(u).length) return;
+  if(G.M.night&&await aiFlare(u)) return; // Blackout: light up a heard enemy
   const di=u.utils.findIndex(x=>x.id==='drone'&&x.ch>0), si=u.utils.findIndex(x=>x.id==='sensor'&&x.ch>0);
   if(di>=0){ const rg=throwRange(u,UTILS.drone); let tgt=null,bd=1e9;
     for(const [id,e] of intelOf(u.team)){ if(e.seen||e.r<G.round-1) continue; const t=G.units.find(z=>z.id===id); if(!t||!standing(t)) continue; const d=Math.hypot(e.x-u.x,e.y-u.y); if(d<bd&&d<=rg+4){ bd=d; tgt=[e.x,e.y]; } }
@@ -7339,15 +7624,16 @@ function endMatch(win){
   if(G.over) return; G.over=true; G.turnRes=null;
   const wt=G.units.find(standing);
   if(G.watch){ // spectators and replays: who won, no rewards
-    G.result={win:false,place:0,of:nTeams(),winner:wt?(G.M.team>1?teamLabel(wt.team):wt.name):null};
-    computeVis(); turnTag('',''); $('#spec').classList.add('hidden'); banner(G.result.winner?G.result.winner+' win'+(G.M.team>1?'':'s'):'No survivors','Match over.','win',2400);
+    G.result={win:false,place:0,of:nTeams(),winner:G.M.inf?infWinner():wt?(G.M.team>1?teamLabel(wt.team):wt.name):null};
+    computeVis(); turnTag('',''); $('#spec').classList.add('hidden'); banner(G.result.winner?G.result.winner+' win'+(G.M.team>1||G.M.inf?'':'s'):'No survivors','Match over.','win',2400);
     recSave(); const mid=G.matchId; setTimeout(()=>{ if(G.matchId===mid) watchEnd('over'); },2600); return; }
   if(NET.host&&NET.cfg&&!NET.done){ NET.done=true; netLobby(); } // the match is over for everyone: nothing left to spectate
-  if(win) G.place=1; else if(!G.place) G.place=teamsLeft()+1;
-  G.result={win,place:win?1:G.place,of:nTeams(),winner:wt&&!win?(G.M.team>1?teamLabel(wt.team):wt.name):null};
+  if(win) G.place=1; else if(!G.place) G.place=G.M.inf?infPlace():teamsLeft()+1;
+  G.result={win,place:win?1:G.place,of:nTeams(),winner:G.M.inf?(win?null:infWinner()):wt&&!win?(G.M.team>1?teamLabel(wt.team):wt.name):null};
   recSave();
   computeVis(); turnTag('',''); $('#spec').classList.add('hidden'); $('#tmr').classList.add('hidden');
-  if(win){ banner(G.M.team>1?'Squad victory':'Victory','Last '+(G.M.team>1?'team':'operative')+' standing.','win',2400); buzz([40,60,40,60,120]); }
+  if(G.M.inf){ const T=infEndTxt(win); banner(T[0],T[1],win?'win':'lose',2400); if(win) buzz([40,60,40,60,120]); }
+  else if(win){ banner(G.M.team>1?'Squad victory':'Victory','Last '+(G.M.team>1?'team':'operative')+' standing.','win',2400); buzz([40,60,40,60,120]); }
   else if(G.playerDead&&G.spec) banner(G.result.winner?G.result.winner+' win'+(G.M.team>1?'':'s'):'No survivors','Match over.','lose',2400);
   else banner('Eliminated','You placed #'+G.place+' of '+nTeams()+'.','lose',2400);
   const mid=G.matchId; setTimeout(()=>{ if(G.matchId===mid) showEnd(); },2600);
@@ -7364,6 +7650,7 @@ const ICON={
   frag:'<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="7"/><path d="M10 7V4h4v3M14 4l4-2M9 13h6M12 10v8"/></svg>',
   plasma:'<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="7"/><circle cx="12" cy="14" r="2.5"/><path d="M10 7V4h4v3"/></svg>',
   smoke:'<svg viewBox="0 0 24 24"><path d="M6 17a4 4 0 0 1 .8-7.9A5.5 5.5 0 0 1 17.5 8.5 4.3 4.3 0 0 1 18 17z"/></svg>',
+  flare:'<svg viewBox="0 0 24 24"><path d="M12 13v9M9 22h6M12 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM12 2v1M5 7h1M18 7h1M7.5 2.5l.8.8M16.5 2.5l-.8.8"/></svg>',
   flash:'<svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>',
   medkit:'<svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M12 10.5v6M9 13.5h6M9 7V4.5h6V7"/></svg>',
   slash:'<svg viewBox="0 0 24 24"><path d="M5 19L19 5l1-3-3 1L3 17zM6 14l4 4M3 21l3-3"/></svg>',
@@ -7431,6 +7718,7 @@ function updateTop(){
   st.textContent=out?'In the storm!':G.drop&&!G.drop.landed?'Drop inbound':nxt?(nxt-G.round===1?(mvs?'Storm moves next round':'Storm next round'):(mvs?'Storm moves in ':'Storm in ')+(nxt-G.round)+' rounds'):'Storm at max';
   chip.classList.toggle('hot',!!out);
   if(G.gm) gmTop(); else if(chip.classList.contains('gm')){ chip.classList.remove('gm'); chip.removeAttribute('title'); $('#hAlive').parentNode.classList.remove('hidden'); }
+  modeHud(); // Infection side counts, Blackout and mutator chips
   if(G.playerDead&&!G.over) fillSpec();
 }
 /* turn order strip (HUD only; reads sim state, never writes it). Order is G.units; enemies you cannot see show as "?". */
@@ -7552,12 +7840,12 @@ function fillTargetPanel(){
 function fillThrowPanel(){
   const u=G.player, util=G.throwUtil, U=UTILS[util.id];
   $('#tName').textContent=U.name; $('#tSub').textContent=U.desc+' Range '+throwRange(u,U)+'.';
-  if(U.dev){ // never count units in the area: that would leak what fog hides
+  if(U.dev||U.flare){ // never count units in the area: that would leak what fog hides
     $('#tSub').textContent=U.info+'. Range '+throwRange(u,U)+' tiles.';
-    $('#tHit').textContent=String(U.radius); $('#tHitL').textContent=U.hitL||(util.id==='drone'?'tile reveal radius':'tile detection radius'); if(U.cover) $('#tHit').textContent='1';
-    $('#tRow').innerHTML=G.throwTile<0?'<span>Tap a tile in range'+(U.blind?' (sight not needed)':'')+'</span>':'<span>Tap '+(util.id==='drone'?'Launch':'Place')+', or the tile again, to confirm</span>';
+    $('#tHit').textContent=String(U.radius); $('#tHitL').textContent=U.hitL||(U.flare?'tile light radius':util.id==='drone'?'tile reveal radius':'tile detection radius'); if(U.cover) $('#tHit').textContent='1';
+    $('#tRow').innerHTML=G.throwTile<0?'<span>Tap a tile in range'+(U.blind?' (sight not needed)':'')+'</span>':'<span>Tap '+(U.flare?'Throw':util.id==='drone'?'Launch':'Place')+', or the tile again, to confirm</span>';
     $('#tMods').textContent='Costs 1 AP and keeps your turn going.'; $('#tChips').innerHTML='';
-    const fb=$('#tFire'); fb.textContent=util.id==='drone'?'Launch':'Place'; fb.classList.toggle('off',G.throwTile<0); return; }
+    const fb=$('#tFire'); fb.textContent=U.flare?'Throw':util.id==='drone'?'Launch':'Place'; fb.classList.toggle('off',G.throwTile<0); return; }
   let n=0,self=false,ally=false; if(G.throwTile>=0){ const tx=G.throwTile%MW,ty=(G.throwTile/MW)|0; for(const v of G.units){ if(!v.alive) continue; if(Math.hypot(v.x-tx,v.y-ty)<=U.radius+0.01){ if(v===u) self=true; else if(!isEnemy(u,v)) ally=true; else n++; } } }
   $('#tHit').textContent=G.throwTile>=0?String(n):'–'; $('#tHitL').textContent='enemies in blast';
   $('#tRow').innerHTML=G.throwTile<0?'<span>Tap a tile in range</span>':(self?'<span class="warn">You are inside the blast</span>':ally?'<span class="warn">'+mateTxt('Your partner is','A squadmate is')+' inside the blast</span>':'<span>Tap Throw, or the tile again, to confirm</span>');
@@ -7596,6 +7884,7 @@ function drawMinimap(){
     c.fillStyle=C(P.col); c.strokeStyle='#fff'; c.lineWidth=1; c.beginPath(); c.moveTo(px,py-r); c.lineTo(px+r,py); c.lineTo(px,py+r); c.lineTo(px-r,py); c.closePath(); c.fill(); c.stroke(); }
   for(const d of G.drones){ if(!d.alive||!shouldShow(d)) continue; const px=(d.x+.5)*s, py=(d.y+.5)*s, r=s*.55; c.fillStyle=mine(d)?'#7fe8ff':d.color; c.beginPath(); c.moveTo(px,py-r); c.lineTo(px+r,py); c.lineTo(px,py+r); c.lineTo(px-r,py); c.closePath(); c.fill(); } // deployed drones: small diamonds
   for(const u of G.units){ if(!u.alive||!shouldShow(u)) continue; c.fillStyle=u.isPlayer?'#3fd2ff':mine(u)?'#5dff9a':u.color; c.beginPath(); c.arc((u.x+.5)*s,(u.y+.5)*s,u.isPlayer?Math.max(s*0.75,W/MAP0*0.62):Math.max(s*0.55,W/MAP0*0.45),0,Math.PI*2); c.fill(); if(u.downed){ c.strokeStyle='#ff4d5e'; c.lineWidth=1.5; c.stroke(); } }
+  if(G.M.night) boMinimap(c,s); // flares and gunfire pulses
   const tl=screenToTileF(0,0), br=screenToTileF(VW,VH), tr=screenToTileF(VW,0), bl=screenToTileF(0,VH); c.strokeStyle='rgba(255,255,255,.35)'; c.lineWidth=1; c.beginPath(); c.moveTo(tl[0]*s,tl[1]*s); c.lineTo(tr[0]*s,tr[1]*s); c.lineTo(br[0]*s,br[1]*s); c.lineTo(bl[0]*s,bl[1]*s); c.closePath(); c.stroke();
 }
 function screenToWorld(sx,sy){ return [(sx-VW/2)/G.cam.z+G.cam.x,(sy-VH/2)/G.cam.z+G.cam.y]; }
@@ -8528,8 +8817,8 @@ function showEnd(){
   const title=r.win?(G.M.team>1?'Squad victory':'Victory'):'#'+r.place;
   $('#eRes').textContent=title; $('#eRes').className='display res '+(r.win?'win':'lose');
   const reg=G.R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
-  $('#eSub').textContent=(r.win?'Last '+(G.M.team>2?'squad':G.M.team>1?'team':'operative')+' standing':(G.M.team>2?'Your squad placed #':'You placed #')+r.place+' of '+r.of+(G.M.team>2?' squads':''))+' in '+reg+', '+G.M.name+'.'+(r.winner?' '+r.winner+' won the match.':'');
-  if(G.gm) $('#eSub').textContent=gmEndSub(r,reg);
+  $('#eSub').textContent=(G.M.inf?infEndTxt(r.win)[1].replace(/\.$/,''):r.win?'Last '+(G.M.team>2?'squad':G.M.team>1?'team':'operative')+' standing':(G.M.team>2?'Your squad placed #':'You placed #')+r.place+' of '+r.of+(G.M.team>2?' squads':''))+' in '+reg+', '+G.M.name+'.'+(r.winner?' '+r.winner+' won the match.':'')+mutTxt();
+  if(G.gm) $('#eSub').textContent=gmEndSub(r,reg)+mutTxt();
   $('#ePlate').innerHTML=plateHtml(G.player.name,G.player.ttl,G.player.bnr); endProgressHtml(rw);
   const a=rw.after; $('#eLvl').textContent=a.l; $('#eXpT').textContent='+'+rw.xp+' XP';
   const bar=$('#eXp'); bar.style.transition='none'; bar.style.width=(rw.before.cur/rw.before.need*100)+'%'; void bar.offsetWidth; bar.style.transition='';
@@ -8594,11 +8883,11 @@ async function startMatch(daily){
   // Everything setupMatch reads (loadout, gear spec, AI level, roster) is captured in pre, so the replay recorder can rebuild it.
   const dk=daily===true?dailyKey():null, pre=dk?dailyPre(dk):pickOffline(), mk=dk?pre.mode:PROF.mode;
   if(!dk) pre.slots=modeTeams(PROF.mode)?offSeats().map(x=>x.p?{h:'local'}:{b:x.b}):rosterSlots(PROF.mode,['local'],wrBots(PROF.mode)); // team modes: the seat you picked
-  pre.rp=offSpec(); if(!pre.lv) pre.lv=level(); const lo=JSON.parse(JSON.stringify(LO));
+  pre.rp=offSpec(); if(!pre.lv) pre.lv=level(); if(!dk){ const mu=mutClean(PROF.settings.mut); if(mu.length) pre.mut=mu; } const lo=JSON.parse(JSON.stringify(LO));
   setupMatch(lo,mk,null,pre); const mid=G.matchId;
   G.tm=dk?{t:DAILY.t,b:0}:{t:TM_OFF.includes(PROF.settings.timer)?PROF.settings.timer:30,b:TM_B.includes(PROF.settings.clock)?PROF.settings.clock:0}; tmInit();
   G.daily=dk?{key:dk}:null; if(dk) dailyMark(dk);
-  recStart('off',{seed:pre.seed,region:pre.region,mode:mk,slots:pre.slots,lo,rp:pre.rp,lv:pre.lv,tm:G.tm,daily:dk||undefined});
+  recStart('off',{seed:pre.seed,region:pre.region,mode:mk,slots:pre.slots,lo,rp:pre.rp,lv:pre.lv,tm:G.tm,daily:dk||undefined,mut:pre.mut});
   await mapRoulette(G.region); if(G.matchId!==mid) return;
   show('#hud',true); updateHUD(); runMatch();
 }
@@ -8670,7 +8959,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=22, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=23, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
@@ -8755,7 +9044,7 @@ async function netHost(){
   try{ await peerReady(); }catch(e){ netLeave(); netStatus(e.message); return; }
   const own0=await netPrep(); if(!NET.on||!NET.host||NET.peer) return; // cancelled meanwhile
   const tryOpen=(n,own)=>{ const code=netCode(), peer=new Peer('stormfall-'+code.toLowerCase(),peerOpts(own)); NET.peer=peer;
-    peer.on('open',id=>{ if(NET.peer!==peer) return; NET.code=code; NET.me=id; NET.mode=MODES[PROF.mode]?PROF.mode:'solo'; NET.bots=(Array.isArray(PROF.wr[NET.mode])?PROF.wr[NET.mode]:defaultBots(NET.mode)).slice(); NET.players=[cleanSpec(mySpec(),id)]; NET.tm=tmClean(PROF.settings.ntm); netStatus(''); updateOnlineBtn(); });
+    peer.on('open',id=>{ if(NET.peer!==peer) return; NET.code=code; NET.me=id; NET.mode=MODES[PROF.mode]?PROF.mode:'solo'; NET.bots=(Array.isArray(PROF.wr[NET.mode])?PROF.wr[NET.mode]:defaultBots(NET.mode)).slice(); NET.players=[cleanSpec(mySpec(),id)]; NET.tm=tmClean(PROF.settings.ntm); NET.mut=mutClean(PROF.settings.mut); netStatus(''); updateOnlineBtn(); });
     peer.on('connection',conn=>{ if(NET.peer!==peer) return; conn.on('data',d=>hostData(conn,d)); conn.on('close',()=>hostDrop(conn.peer)); conn.on('error',()=>hostDrop(conn.peer)); });
     peer.on('error',e=>{ if(NET.peer!==peer) return;
       if(e.type==='unavailable-id'&&n<4){ try{ peer.destroy(); }catch(_){} tryOpen(n+1,own); return; }
@@ -8800,7 +9089,7 @@ function hostDrop(pid){
 }
 // the room state every guest renders; in team modes the seat list (seatNorm) is authoritative and NET.bots follows it
 function netLobby(){ if(NET.host&&modeTeams(NET.mode)){ NET.seats=netSeats(); NET.bots=seatBots(NET.seats); } else NET.seats=null;
-  netRelay({t:'lobby',mode:NET.mode,bots:normBots(NET.mode,NET.players.length,NET.bots),seats:NET.seats,players:NET.players.map(p=>({pid:p.pid,name:p.name,cls:p.lo.cls,color:p.color,title:p.title,banner:p.banner})),specs:NET.specs.map(p=>p.name),tm:NET.tm,live:!!(NET.cfg&&!NET.done)}); renderOnline(); }
+  netRelay({t:'lobby',mode:NET.mode,bots:normBots(NET.mode,NET.players.length,NET.bots),seats:NET.seats,players:NET.players.map(p=>({pid:p.pid,name:p.name,cls:p.lo.cls,color:p.color,title:p.title,banner:p.banner})),specs:NET.specs.map(p=>p.name),tm:NET.tm,mut:mutClean(NET.mut),live:!!(NET.cfg&&!NET.done)}); renderOnline(); }
 // a running match for someone who is not in its roster: the start cfg and every command so far, in relay order
 function netOfferWatch(conn){ if(!NET.cfg||NET.done||!NET.log) return; try{ conn.send({t:'watch',cfg:NET.cfg,log:NET.log,r:NET.round|0}); }catch(_){} } // r: the host's round, the catch-up target
 function netStart(){
@@ -8811,7 +9100,7 @@ function netStart(){
   // team modes: the seat list (who sits where, bots with their difficulty) goes in cfg.seats and decides the teams
   const seats=modeTeams(NET.mode)?netSeats().map(x=>x.p?{p:x.p}:{b:x.b}):null;
   const cfg={m:NET.m+1,seed:(Math.random()*4294967296)>>>0,mode:NET.mode,region:fpick(REGIONS.filter(r=>r!==G.lastRegion)),players:NET.players,bots:seats?seatBots(seats):normBots(NET.mode,NET.players.length,NET.bots),aiLv:lv,tm:tmClean(NET.tm)};
-  if(seats) cfg.seats=seats;
+  if(seats) cfg.seats=seats; const mu=mutClean(NET.mut); if(mu.length) cfg.mut=mu; // mutators: only when any are on
   NET.cfg=JSON.parse(JSON.stringify(cfg)); NET.log=[]; NET.done=false; NET.round=0; netLobby(); // kept for spectators who join mid-match
   netRelay({t:'start',cfg}); startNetMatch(cfg);
 }
@@ -8823,7 +9112,7 @@ function netCfgClean(cfg){
   if(cfg.players.length>MODES[cfg.mode].players) return null;
   // validated roster: known difficulty keys only, sized and team-shaped by normBots, identical on every client
   const bots=(Array.isArray(cfg.bots)?cfg.bots.slice(0,MAXP):[]).map(d=>typeof d==='string'&&DIFFS[d]?d:'veteran');
-  cfg.slots=rosterSlots(cfg.mode,cfg.players,bots); cfg.tm=tmClean(cfg.tm);
+  cfg.slots=rosterSlots(cfg.mode,cfg.players,bots); cfg.tm=tmClean(cfg.tm); cfg.mut=mutClean(cfg.mut); if(!cfg.mut.length) delete cfg.mut;
   // team seats: used only when they are a complete, valid seat list for exactly these players, else lobby order (above)
   const ss=seatSlots(cfg); if(ss){ cfg.slots=ss; cfg.seats=ss.map(x=>x.h?{p:x.h.pid}:{b:x.b}); } else delete cfg.seats;
   return cfg; }
@@ -8873,7 +9162,7 @@ function clientData(d){
   if(d.t==='ping'){ try{ NET.hostConn.send({t:'pong'}); }catch(_){} return; }
   if(d.t==='lobby'){ NET.players=Array.isArray(d.players)?d.players:[]; NET.mode=MODES[d.mode]?d.mode:'solo'; NET.bots=Array.isArray(d.bots)?d.bots.slice(0,MAXP).filter(k=>typeof k==='string'&&DIFFS[k]):[];
     NET.seats=Array.isArray(d.seats)?d.seats.slice(0,MAXP).map(x=>x&&typeof x.p==='string'?{p:x.p}:{b:x&&DIFFS[x.b]?x.b:'veteran'}):null;
-    NET.specs=Array.isArray(d.specs)?d.specs.slice(0,8).map(n=>({name:String(n).slice(0,12)})):[]; NET.tm=tmClean(d.tm); NET.live=!!d.live; renderOnline(); return; }
+    NET.specs=Array.isArray(d.specs)?d.specs.slice(0,8).map(n=>({name:String(n).slice(0,12)})):[]; NET.tm=tmClean(d.tm); NET.mut=mutClean(d.mut); NET.live=!!d.live; renderOnline(); return; }
   if(d.t==='watch'){ const cfg=netCfgClean(d.cfg); if(cfg&&!cfg.players.some(p=>p.pid===NET.me)) startWatchNet(cfg,Array.isArray(d.log)?d.log:[],true,d.r|0); return; }
   if(d.t==='reject'){ netLeave(); netStatus(String(d.why||'The host turned you away.')); return; }
   if(d.t==='bye'){ clientLostHost('The host closed the room'); return; }
@@ -8930,14 +9219,16 @@ function renderOnline(){
    Quick; Create lobby hosts an online room for that mode (netHost reads PROF.mode), and Join with code / Watch join one.
    Thumbnails are small iso scenes drawn once per mode and cached: deterministic hash() noise, never the seeded RNG. */
 const MS={friends:false,sel:'solo',art:{},wheel:0,wlock:0,st:null,lockT:0};
-function msKeys(){ return MS.friends?['solo','duos','trios','quads','quick'].concat(GM_KEYS):['solo','duos','trios','quads','quick'].concat(GM_KEYS,['daily','tutorial']); }
+function msKeys(){ const b=['solo','duos','trios','quads','quick','infection','blackout'].concat(GM_KEYS); return MS.friends?b:b.concat(['daily','tutorial']); }
 function msCards(){ const dk=dailyKey(), dd=dyLoad().days[dk], R=REG[dailyRegion(dk)], rn=R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
   const L=[
     {k:'solo',name:'Solo',tag:'Free for all',pc:'Up to 8 players',ds:MODES.solo.desc,li:['Last operative standing wins','Second Wind: get back up once','Storm closes in from round '+MODES.solo.storm.rounds[0]]},
     {k:'duos',name:'Duos',tag:'Teams of two',pc:'Up to 4 teams × 2',ds:MODES.duos.desc,li:['Revive your downed partner','Pick your team and seat in the lobby','Bots fill the empty seats']},
     {k:'trios',name:'Trios',tag:'Teams of three',pc:'Up to 4 teams × 3',ds:MODES.trios.desc,li:['Bigger '+MODES.trios.map+'×'+MODES.trios.map+' map, up to '+MODES.trios.players+' operatives','Revive downed squadmates','Command AI squadmates with pings']},
     {k:'quads',name:'Quads',tag:'Teams of four',pc:'Up to 4 teams × 4',ds:MODES.quads.desc,li:['Biggest '+MODES.quads.map+'×'+MODES.quads.map+' map, up to '+MODES.quads.players+' operatives','Extra storm stage: first shrink in round '+MODES.quads.storm.rounds[0],'Pick your squad and seat in the lobby']},
-    {k:'quick',name:'Quick',tag:'Fast match',pc:'Up to 4 players',ds:MODES.quick.desc,li:['Small zone, storm from round '+MODES.quick.storm.rounds[0],'Fewer crates, faster fights','About six minutes']}];
+    {k:'quick',name:'Quick',tag:'Fast match',pc:'Up to 4 players',ds:MODES.quick.desc,li:['Small zone, storm from round '+MODES.quick.storm.rounds[0],'Fewer crates, faster fights','About six minutes']},
+    {k:'infection',name:'Infection',tag:'Outbreak',inf:1,pc:'Up to 8 players',ds:MODES.infection.desc,li:['Infected: claws, speed, regeneration','Taken down by the Infected? You turn','Survivors win by holding out to round '+MODES.infection.infCap]},
+    {k:'blackout',name:'Blackout',tag:'Night ops',night:1,pc:'Up to 8 players',ds:MODES.blackout.desc,li:['Sight '+BO.sight+' tiles in the dark (+1 up high)','Flares light an area for 2 rounds','Shots flash on everyone’s minimap']}];
   L.push(...gmCards());
   if(MS.friends){ L[0].li[2]='Friends join with a code, bots fill up'; L[1].li[1]='Friends pick their team and seat'; L[2].li[2]='Friends pick their squad and seat'; L[3].li[2]='Up to '+MODES.quads.players+' players in one room'; }
   else L.push(
@@ -8953,6 +9244,8 @@ function msThumb(k){ const dk=k==='daily'?dailyRegion(dailyKey()):'', key=k+dk; 
     trios:{reg:'bazaar',sd:17,r:4.6,ring:3,u:[[2.0,3.6,'#3fd2ff'],[2.9,2.5,'#3fd2ff'],[3.6,3.7,'#3fd2ff'],[6.6,6.0,'#ff4d6d'],[7.6,6.6,'#ff4d6d'],[6.7,7.3,'#ff4d6d'],[2.2,7.0,'#ffe02b'],[3.2,7.9,'#ffe02b'],[2.0,8.3,'#ffe02b']]},
     quads:{reg:'quarry',sd:19,r:4.9,ring:4,u:[[1.6,2.6,'#3fd2ff'],[2.6,1.8,'#3fd2ff'],[2.7,3.2,'#3fd2ff'],[3.6,2.3,'#3fd2ff'],[6.4,6.6,'#ff4d6d'],[7.5,6.0,'#ff4d6d'],[7.4,7.3,'#ff4d6d'],[8.4,6.7,'#ff4d6d'],[1.7,7.3,'#ffe02b'],[2.6,6.6,'#ffe02b'],[2.6,8.1,'#ffe02b'],[3.5,7.4,'#ffe02b']]},
     quick:{reg:'arctic',sd:11,r:2.7,u:[[4.0,4.3,'#3fd2ff'],[6.2,4.8,'#ff4d6d'],[4.9,6.4,'#ffe02b']]},
+    infection:{reg:'marsh',sd:23,r:4.4,inf:[3,4,5],u:[[2.4,3.4,'#3fd2ff'],[3.4,2.6,'#3fd2ff'],[3.3,3.9,'#3fd2ff'],[6.9,6.2,INF.col],[7.5,4.4,INF.col],[5.2,7.6,INF.col]]},
+    blackout:{reg:'docks',sd:29,r:4.2,night:[6.3,5.6],u:[[3.0,4.4,'#3fd2ff'],[6.9,3.4,'#ff4d6d'],[6.6,6.6,'#ffe02b'],[3.4,7.6,'#ff7a3d']]},
     daily:{reg:dk||'city',sd:13,r:4.1,amber:1,u:[[3.0,4.6,'#3fd2ff'],[6.6,3.0,'#ff7a86'],[7.1,6.6,'#ff7a86'],[4.2,7.4,'#ff7a86']]},
     tutorial:{reg:'city',sd:5,r:5.2,path:1,u:[[2.4,6.4,'#3fd2ff'],[6.9,3.0,'#ff7a86'],[7.4,4.6,'#ff7a86']]}}[k]||GM_THUMB[k];
   const R=REG[D0.reg]||REG.city, W=640, H=360, N=10, s=30, cv=document.createElement('canvas'); cv.width=W; cv.height=H; const g=cv.getContext('2d');
@@ -8987,6 +9280,7 @@ function msThumb(k){ const dk=k==='daily'?dailyRegion(dailyKey()):'', key=k+dk; 
     const o=e.op, p=D(o.x,o.y); g.fillStyle='rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(p[0],p[1],15,7,0,0,Math.PI*2); g.fill();
     g.strokeStyle=o.col; g.lineWidth=2.5; g.globalAlpha=.9; g.beginPath(); g.ellipse(p[0],p[1],17,8.5,0,0,Math.PI*2); g.stroke(); g.globalAlpha=1;
     g.save(); try{ g.translate(p[0],p[1]); g.scale(1.75,1.75); drawSoldier(g,o.o); }catch(_){} g.restore(); }
+  if(D0.inf||D0.night) msThumbMode(g,D0,D,W,H);
   if(D0.ring){ const R=D0.ring; for(let t=0;t<D0.u.length/R;t++){ const m=D0.u.slice(t*R,t*R+R), c0=D(m.reduce((a,q)=>a+q[0],0)/R,m.reduce((a,q)=>a+q[1],0)/R), rr=46+(R-2)*14; g.strokeStyle=m[0][2]; g.globalAlpha=.6; g.setLineDash([5,5]); g.lineWidth=2; g.beginPath(); g.ellipse(c0[0],c0[1],rr,rr/2,0,0,Math.PI*2); g.stroke(); g.setLineDash([]); g.globalAlpha=1; } }
   g.fillStyle=R.grade; g.fillRect(0,0,W,H);
   const sh=g.createLinearGradient(0,H*.6,0,H); sh.addColorStop(0,'rgba(5,8,13,0)'); sh.addColorStop(1,D0.amber?'rgba(60,34,0,.55)':'rgba(5,8,13,.55)'); g.fillStyle=sh; g.fillRect(0,0,W,H);
@@ -9214,13 +9508,14 @@ function renderLobby(){
   dep.innerHTML='Deploy<small>'+(per>1?nT+' teams':n+' operatives')+'</small>';
   $('#wrLeave').classList.toggle('hidden',!LB.online);
   $('#wrStat').textContent=LB.online?NET.status||'':'';
-  renderLobbyTime(ed); renderLobbySpecs();
+  renderLobbyTime(ed); renderLobbyMut(ed); renderLobbySpecs();
   if(LB.online&&NET.spec) note.textContent=NET.live?'A match is running: watch it live from the top of this screen.':'You are spectating: no operative. The match appears here when the host deploys.';
 }
 $('#lobby').addEventListener('click',e=>{
   const c=lbCtx(), per=MODES[c.mode].team, b0=c.bots.slice();
-  const t=e.target.closest('[data-lbmode],[data-bd],[data-brm],[data-trm],[data-badd],[data-ball],[data-wtt],[data-wtb],[data-wjoin],[data-wmv],[data-wmt],#wrFill,#wrMin,#wrDeploy,#wrBack,#wrLeave,#wrWatch,[data-on]'); if(!t||t.disabled) return; SFX.init(); SFX.click(); buzz(6);
+  const t=e.target.closest('[data-wmut],[data-lbmode],[data-bd],[data-brm],[data-trm],[data-badd],[data-ball],[data-wtt],[data-wtb],[data-wjoin],[data-wmv],[data-wmt],#wrFill,#wrMin,#wrDeploy,#wrBack,#wrLeave,#wrWatch,[data-on]'); if(!t||t.disabled) return; SFX.init(); SFX.click(); buzz(6);
   if(t.id==='wrWatch'){ try{ NET.hostConn.send({t:'watchme'}); }catch(_){} return; }
+  if(t.dataset.wmut!=null){ if(c.edit) lbToggleMut(t.dataset.wmut); return; }
   if(t.dataset.wtt!=null||t.dataset.wtb!=null){ if(c.edit) lbSetTime(t.dataset.wtt!=null?'t':'b',+(t.dataset.wtt!=null?t.dataset.wtt:t.dataset.wtb)); return; }
   if(t.id==='wrBack'){ closeLobby(); return; }
   if(t.id==='wrLeave'){ netLeave(); return; }
@@ -9705,7 +10000,7 @@ function setupTutorial(){
   seedRNG(TUT_SEED); UID=0; setMapSize(MAP0);
   G.M=Object.assign({},MODES.quick,{key:'tutorial',name:'Training',players:3,team:1,startR:9.5,fill:1,drops:[]}); G.SC=G.M.storm;
   G.matchId++; G.timers=[]; G.tweens=[]; G.fx=[]; G.parts=[]; G.texts=[]; G.pings=[]; G.bubbles=[]; G.cmd={}; G.tpings=[]; G.mstat={};
-  G.region='city'; G.R=REG.city; G.rosterTxt='Training'; G.gm=null;
+  G.region='city'; G.R=REG.city; G.rosterTxt='Training'; G.gm=null; G.mut={}; G.flares=[]; G.inf=null;
   const g=new Array(MW*MH).fill(null), elev=new Uint8Array(MW*MH), floorT=new Uint8Array(MW*MH);
   const put=(x,y,t,kind,h,ex)=>{ g[idx(x,y)]=Object.assign({t,kind,h:h||0,v:RNG()},ex||{}); };
   put(19,20,2,'container',38,{col:CONT_COLS[1],g:9001}); put(20,20,2,'container',38,{col:CONT_COLS[1],g:9001}); // your full cover
@@ -9971,6 +10266,7 @@ function simHash(){ let h=0x811c9dc5; const add=v=>{ v=v|0; h=Math.imul(h^(v&255
   for(const d of (G.drones||[])){ add(d.id); add(d.st==='out'?1:d.st==='dead'?2:0); add(d.x); add(d.y); add(d.hp); add(d.maxHp); add(d.shield); add(d.ap); add(d.jam|0); add(d.rb|0); add(d.depR|0); }
   for(const u of G.units) add(u.mark?u.mark.team*1000+u.mark.until:-1);
   if(G.gm) gmHash(add); // objective modes only (classic hashes unchanged)
+  if(G.M.inf||G.M.night||mutBits()) modeHash(add); // Infection / Blackout / mutator state (only when active: other hashes unchanged)
   return h>>>0; }
 function roundHash(){ const h=simHash(); G.hlog.push(h); if(NET.host&&!G.watch) NET.round=G.round; if(REC&&REC.mid===G.matchId) REC.h.push(h); if(G.watch&&G.watch.kind==='replay') replayCheck(h); }
 function recInfo(){ const r=G.result||{}, me=G.player; return {mode:G.M.key,region:G.region,place:r.place||0,of:r.of||nTeams(),win:!!r.win,winner:r.winner||null,
@@ -10025,7 +10321,7 @@ function playReplay(rep,o){ o=o||{}; if(!rep){ toast('Replay unavailable',''); r
   ffStop(); watchScreens(); NET.q=new Map(); NET.w=new Map(); show('#roul',false);
   try{ const c=JSON.parse(JSON.stringify(rep.cfg));
     if(rep.kind==='off'){ if(!c.lo||!CLASSES[c.lo.cls]||!WEAPONS[c.lo.weapon]||!Array.isArray(c.slots)||!MODES[c.mode]) throw new Error('bad cfg');
-      setupMatch(c.lo,c.mode,null,{seed:c.seed>>>0,region:REG[c.region]?c.region:'city',slots:c.slots.slice(0,MAXP),rp:c.rp&&typeof c.rp==='object'?Object.assign({},c.rp,{own:Array.isArray(c.rp.own)?c.rp.own:[]}):null,lv:clamp(c.lv|0,1,40)}); }
+      setupMatch(c.lo,c.mode,null,{seed:c.seed>>>0,region:REG[c.region]?c.region:'city',slots:c.slots.slice(0,MAXP),rp:c.rp&&typeof c.rp==='object'?Object.assign({},c.rp,{own:Array.isArray(c.rp.own)?c.rp.own:[]}):null,lv:clamp(c.lv|0,1,40),mut:mutClean(c.mut)}); }
     else { const cfg=netCfgClean(c); if(!cfg) throw new Error('bad cfg'); setupMatch(null,cfg.mode,Object.assign({},cfg,{me:rep.me||cfg.players[0].pid})); }
     G.tm=rep.cfg.tm?{t:rep.cfg.tm.t|0,b:rep.cfg.tm.b|0}:{t:0,b:0}; tmInit();
     G.watch={kind:'replay',rep,ok:0,bad:0,total:(rep.h||[]).length,other:!!(rep.b&&rep.b!==BUILD),from:o.from||''}; watchSetup();

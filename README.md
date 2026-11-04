@@ -25,11 +25,17 @@ It's live in two places:
 | King of the Hill | up to 4 teams of 2 | 32×32 | no storm; hold the moving hill (every 5 rounds) alone at round end for a point, first to 8 (or the most after round 24); respawns after 2 rounds |
 | Siege | 2 teams of 4           | 32×32 | attackers breach a walled compound and hold the data core, defenders hold 10 rounds; best of 3, sides swap; breaching charges, barricades |
 | Rumble | up to 4 teams of 2    | 24×24 | no storm, team deathmatch with respawns after 2 rounds, first to 12 eliminations (or the most after round 24) |
+| Infection | up to 8, survivors vs Infected | 40×40 | one (two with 7+) turns in round 1; the Infected regenerate and get back up, anyone they take down rises as Infected; survivors hold out to round 15 |
+| Blackout | up to 8, free for all | 40×40 | night: 3.5-tile sight, flares, drones and muzzle flashes reveal from normal range |
 
 In the team modes a downed operative bleeds out in 2 turns unless an adjacent teammate revives them; a team is out
 when nobody on it is standing. Empty seats are filled by bots, and team pings / commands steer AI teammates. The map
 size comes from the mode, so it is the same on every client, for spectators and in replays. Classic modes keep
 generating the exact same 40×40 maps for a given seed.
+
+**Mutators** (waiting room, host or offline) stack on any mode: Low gravity (+1 mobility, grenades +3 tiles, drop off any
+ledge), Explosive everything (destroyed objects explode like oil drums), One-shot, Double storm speed, Melee only and
+Perma-smoke. They travel in the match config, so guests, spectators and replays play with the same set.
 
 ## Saving your progress
 
@@ -49,7 +55,7 @@ Without a connection (or without the backend) the game works exactly as before a
 
 ## Online play
 
-1. One player taps **Play with friends**, picks a mode card (Solo, Duos, Trios, Quads or Quick) and taps **Create lobby**, then shares
+1. One player taps **Play with friends**, picks a mode card (Solo, Duos, Trios, Quads, Quick, Infection or Blackout) and taps **Create lobby**, then shares
    the 5-letter room code (or the **Invite** link).
 2. Friends open the game, tap **Play with friends**, and enter the code under **Join** (or **Watch** to spectate).
    An invite link joins automatically.
