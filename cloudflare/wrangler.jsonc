@@ -27,7 +27,9 @@
     }
   ],
 
-  // PeerJS signaling. The free plan only allows SQLite-backed Durable Objects, hence new_sqlite_classes.
+  // PeerJS signaling + friends presence/invites (one global instance; see src/presence.js for why they share it).
+  // The free plan only allows SQLite-backed Durable Objects, hence new_sqlite_classes. No new class for socials, so
+  // no Durable Object migration is needed; the D1 tables come from migrations/0002_social.sql (applied on deploy).
   "durable_objects": {
     "bindings": [{ "name": "SIGNAL", "class_name": "Signal" }]
   },

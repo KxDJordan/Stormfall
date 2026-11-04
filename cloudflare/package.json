@@ -9,9 +9,9 @@
     "db:local": "wrangler d1 migrations apply stormfall --local",
     "dev": "npm run build && npm run db:local && wrangler dev --var ALLOW_LOCALHOST:1",
     "test:unit": "node --test test/unit.test.mjs",
-    "test:api": "node --test --test-concurrency=1 test/api.test.mjs test/turn.test.mjs",
+    "test:api": "node --test --test-concurrency=1 test/api.test.mjs test/turn.test.mjs test/social.test.mjs",
     "test": "npm run test:unit && npm run test:api",
-    "test:e2e": "node test/e2e/cloud.cjs && node test/e2e/online.cjs quick 0 veteran spec",
+    "test:e2e": "node test/e2e/cloud.cjs && node test/e2e/online.cjs quick 0 veteran spec && node test/e2e/social.cjs",
     "deploy": "npm run build && wrangler d1 migrations apply stormfall --remote && wrangler deploy"
   },
   "devDependencies": {

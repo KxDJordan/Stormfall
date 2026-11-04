@@ -53,7 +53,7 @@ const LOADS={A:["specialist","volt","pistol","{volt:{optic:'acog',mag:'speed',un
         return {k:u.ammo>0?'ow':'end'}; } })()`),SPLIT);
     return p; };
   const A=await mk('A'), B=await mk('B');
-  await A.click('#bOnline'); await A.click('[data-on=host]'); await A.waitForSelector('#lobby .wr-code b',{timeout:15000});
+  await A.click('#bOnline'); await A.click('#msGo'); await A.waitForSelector('#lobby .wr-code b',{timeout:15000});
   const code=await A.textContent('#lobby .wr-code b'); console.log('room',code,'mode',MODE,'split',SPLIT,'bots',BOTS.join(','));
   await B.click('#bOnline'); await B.fill('#onCode',code); await B.click('[data-on=join]');
   await A.waitForFunction(()=>__ev('NET.players.length===2'),null,{timeout:20000});

@@ -10,11 +10,13 @@ import { Signal } from './signal.js';
 import {
   randB32, sha256hex, parseAuth, authToCode, dayKey, validDayKey, dayAccepted, cleanDaily, validSave,
   originAllowed, normIce, MemLimiter, ID_LEN, SECRET_LEN, MAX_BODY, TOP_N,
+  normFriendCode, cleanProfile, FCODE_LEN, MAX_LINKS, MAX_OUT, MAX_IN, MAX_BLOCKS,
 } from './lib.js';
 
 export { Signal };
 
 const memIp = new MemLimiter(120, 60000), memNew = new MemLimiter(5, 60000), memAcct = new MemLimiter(30, 60000);
+const memAdd = new MemLimiter(5, 60000); // friend-code lookups per account (fallback for the RL_NEW binding)
 const topMem = new Map();   // day -> {t, body}: per-isolate leaderboard cache (works on workers.dev, where the Cache API is a no-op)
 let turnMem = null;         // {ice, exp}: TURN credentials shared by everyone for a few hours
 
@@ -196,6 +198,146 @@ async function turn(env) {
   return json(200, { iceServers: turnMem.ice, ttl: left, turn: true }, { 'Cache-Control': 'private, max-age=' + Math.max(60, left) });
 }
 
+/* ---------------- socials: profiles, friends, presence socket ----------------
+   Friends are addressed by their public friend code everywhere (never by account id). Every change that affects a
+   connected player is pushed to the presence object (one Durable Object RPC per change, after the response). */
+
+const socialDO = env => env.SIGNAL.get(env.SIGNAL.idFromName('global'));
+function notify(env, ctx, a, b, kind) {
+  ctx.waitUntil(socialDO(env).link(a, b, kind).catch(e => console.log('social notify failed', e && e.message)));
+}
+
+/** auth + the caller's friend code in one read; rate limited per account */
+async function socAuth(env, auth) {
+  const a = parseAuth(auth);
+  if (!a) throw new HttpError(401, 'Unknown account');
+  const [row, sh] = await Promise.all([
+    env.DB.prepare('SELECT a.sh, p.fcode FROM accounts a LEFT JOIN profiles p ON p.acct = a.id WHERE a.id = ?').bind(a.id).first(),
+    sha256hex(a.secret),
+  ]);
+  if (!row || row.sh !== sh) throw new HttpError(401, 'Unknown account');
+  if (!await allow(env.RL_ACCT, memAcct, 'acct:' + a.id)) throw tooMany();
+  return { id: a.id, code: row.fcode || null };
+}
+
+// {auth, name, lv, cls, title, banner} -> {code}: publishes the public profile (creates it and the friend code once)
+async function socialMe(env, b) {
+  const me = await socAuth(env, b.auth), p = cleanProfile(b), now = Date.now();
+  if (me.code) {
+    await env.DB.prepare('UPDATE profiles SET name = ?, lv = ?, cls = ?, title = ?, banner = ?, updated = ? WHERE acct = ?')
+      .bind(p.name, p.lv, p.cls, p.title, p.banner, now, me.id).run();
+    return json(200, { code: me.code });
+  }
+  for (let i = 0; i < 4; i++) {
+    const code = randB32(FCODE_LEN);
+    const r = await env.DB.prepare('INSERT INTO profiles (acct, fcode, name, lv, cls, title, banner, seen, updated) VALUES (?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING')
+      .bind(me.id, code, p.name, p.lv, p.cls, p.title, p.banner, now, now).run();
+    if (r.meta.changes === 1) return json(200, { code });
+    const ex = await env.DB.prepare('SELECT fcode FROM profiles WHERE acct = ?').bind(me.id).first(); // a parallel call won
+    if (ex) return json(200, { code: ex.fcode });
+  }
+  throw new HttpError(500, 'Try again');
+}
+
+const linkRow = x => ({ c: x.fcode, n: x.name, lv: x.lv, cls: x.cls, ti: x.title, bn: x.banner, seen: x.seen, at: x.at });
+
+// {auth} -> {code, friends, inc, out, blk}: everything about me (one primary-key range + one profile seek per row)
+async function socialList(env, b) {
+  const me = await socAuth(env, b.auth);
+  if (!me.code) return json(200, { code: null, friends: [], inc: [], out: [], blk: [] });
+  const { results } = await env.DB.prepare('SELECT l.st, l.at, p.fcode, p.name, p.lv, p.cls, p.title, p.banner, p.seen FROM links l JOIN profiles p ON p.acct = l.b WHERE l.a = ? LIMIT ?')
+    .bind(me.id, MAX_LINKS + MAX_IN + MAX_BLOCKS + 10).all();
+  const out = { code: me.code, friends: [], inc: [], out: [], blk: [] }, key = { f: 'friends', i: 'inc', o: 'out', b: 'blk' };
+  for (const x of results) if (key[x.st]) out[key[x.st]].push(linkRow(x));
+  for (const k of ['inc', 'out', 'blk']) for (const x of out[k]) delete x.seen; // last seen is for friends only
+  return json(200, out);
+}
+
+/** the target of an add/act by friend code, with both directions of the link between us */
+async function socTarget(env, me, codeIn) {
+  if (!me.code) throw new HttpError(409, 'Open Friends once to get your friend code');
+  const c = normFriendCode(codeIn);
+  if (!c) throw new HttpError(400, 'Friend codes are 8 characters');
+  if (c === me.code) throw new HttpError(400, 'That is your own friend code');
+  const t = await env.DB.prepare('SELECT acct FROM profiles WHERE fcode = ?').bind(c).first();
+  if (!t) throw new HttpError(404, 'No player with that friend code');
+  const [mine, theirs] = await env.DB.batch([
+    env.DB.prepare('SELECT st FROM links WHERE a = ? AND b = ?').bind(me.id, t.acct),
+    env.DB.prepare('SELECT st FROM links WHERE a = ? AND b = ?').bind(t.acct, me.id),
+  ]);
+  return { id: t.acct, code: c, mine: mine.results[0] ? mine.results[0].st : '', theirs: theirs.results[0] ? theirs.results[0].st : '' };
+}
+async function counts(env, id) {
+  const { results } = await env.DB.prepare('SELECT st, COUNT(*) AS n FROM links WHERE a = ? GROUP BY st').bind(id).all();
+  const o = { f: 0, i: 0, o: 0, b: 0 };
+  for (const x of results) o[x.st] = x.n;
+  return o;
+}
+const UPSERT = 'INSERT INTO links (a, b, st, at) VALUES (?,?,?,?) ON CONFLICT(a, b) DO UPDATE SET st = excluded.st, at = excluded.at';
+const setBoth = (env, a, b, stA, stB, now) => [env.DB.prepare(UPSERT).bind(a, b, stA, now), env.DB.prepare(UPSERT).bind(b, a, stB, now)];
+const delBoth = (env, a, b) => [
+  env.DB.prepare('DELETE FROM links WHERE a = ? AND b = ?').bind(a, b),
+  env.DB.prepare('DELETE FROM links WHERE a = ? AND b = ?').bind(b, a),
+];
+
+// {auth, code} -> {st, code}: send a friend request (or accept theirs). Lookups are rate limited: friend codes are 40-bit
+// random, so finding one by guessing takes ~10^11 tries at 5 per minute per account.
+async function socialAdd(env, ctx, b) {
+  const me = await socAuth(env, b.auth);
+  if (!await allow(env.RL_NEW, memAdd, 'fadd:' + me.id)) throw tooMany();
+  const t = await socTarget(env, me, b.code), now = Date.now();
+  if (t.theirs === 'b') throw new HttpError(404, 'No player with that friend code'); // blocked: indistinguishable from a wrong code
+  if (t.mine === 'b') throw new HttpError(409, 'You blocked this player. Unblock them first.');
+  if (t.mine === 'f' || t.mine === 'o') return json(200, { st: t.mine, code: t.code });
+  const [cm, ct] = await Promise.all([counts(env, me.id), counts(env, t.id)]);
+  if (t.mine === 'i') { // they already asked: this accepts
+    if (cm.f >= MAX_LINKS || ct.f >= MAX_LINKS) throw new HttpError(409, 'Friends list is full (' + MAX_LINKS + ')');
+    await env.DB.batch(setBoth(env, me.id, t.id, 'f', 'f', now));
+    notify(env, ctx, me.code, t.code, 'f');
+    return json(200, { st: 'f', code: t.code });
+  }
+  if (cm.f + cm.o >= MAX_LINKS) throw new HttpError(409, 'Friends list is full (' + MAX_LINKS + ')');
+  if (cm.o >= MAX_OUT) throw new HttpError(409, 'Too many requests waiting for an answer. Cancel some first.');
+  if (ct.i >= MAX_IN || ct.f >= MAX_LINKS) throw new HttpError(409, 'That player cannot take more friend requests right now');
+  await env.DB.batch(setBoth(env, me.id, t.id, 'o', 'i', now));
+  notify(env, ctx, me.code, t.code, 'r');
+  return json(200, { st: 'o', code: t.code });
+}
+
+// {auth, code, a: accept|decline|cancel|remove|block|unblock} -> {st} (the new state from my side; '' = no link)
+async function socialAct(env, ctx, b) {
+  const me = await socAuth(env, b.auth), a = b.a;
+  if (!['accept', 'decline', 'cancel', 'remove', 'block', 'unblock'].includes(a)) throw new HttpError(400, 'Bad action');
+  const t = await socTarget(env, me, b.code), now = Date.now();
+  const need = { accept: 'i', decline: 'i', cancel: 'o', remove: 'f', unblock: 'b' }[a];
+  if (need && t.mine !== need) return json(409, { error: 'Nothing to do', st: t.mine });
+  if (a === 'accept') {
+    const [cm, ct] = await Promise.all([counts(env, me.id), counts(env, t.id)]);
+    if (cm.f >= MAX_LINKS || ct.f >= MAX_LINKS) throw new HttpError(409, 'Friends list is full (' + MAX_LINKS + ')');
+    await env.DB.batch(setBoth(env, me.id, t.id, 'f', 'f', now));
+    notify(env, ctx, me.code, t.code, 'f');
+    return json(200, { st: 'f' });
+  }
+  if (a === 'unblock') {
+    await env.DB.prepare('DELETE FROM links WHERE a = ? AND b = ?').bind(me.id, t.id).run();
+    return json(200, { st: '' });
+  }
+  if (a === 'block') {
+    if (t.mine !== 'b' && (await counts(env, me.id)).b >= MAX_BLOCKS) throw new HttpError(409, 'Block list is full');
+    await env.DB.batch([
+      env.DB.prepare("INSERT INTO links (a, b, st, at) VALUES (?,?,'b',?) ON CONFLICT(a, b) DO UPDATE SET st = 'b', at = excluded.at").bind(me.id, t.id, now),
+      env.DB.prepare('DELETE FROM links WHERE a = ? AND b = ?').bind(t.id, me.id),
+      env.DB.prepare('DELETE FROM invites WHERE to_code = ? AND from_code = ?').bind(me.code, t.code),
+      env.DB.prepare('DELETE FROM invites WHERE to_code = ? AND from_code = ?').bind(t.code, me.code),
+    ]);
+    if (t.mine || t.theirs) notify(env, ctx, me.code, t.code, 'x');
+    return json(200, { st: 'b' });
+  }
+  await env.DB.batch(delBoth(env, me.id, t.id)); // decline, cancel, remove
+  notify(env, ctx, me.code, t.code, 'x');
+  return json(200, { st: '' });
+}
+
 /* ---------------- router ---------------- */
 
 async function route(req, env, ctx, url, ip) {
@@ -208,6 +350,13 @@ async function route(req, env, ctx, url, ip) {
     return new Response(crypto.randomUUID(), { headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'no-store' } });
   }
   if (p === '/api/peerjs/peers') throw new HttpError(401, 'Peer listing is disabled');
+  if (p === '/api/social/ws') { // presence socket; the account is checked by its first message (see presence.js)
+    if (req.headers.get('Upgrade') !== 'websocket') throw new HttpError(426, 'Expected a WebSocket');
+    const c = normFriendCode(url.searchParams.get('c'));
+    if (!c) throw new HttpError(400, 'Bad friend code');
+    if (!await allow(env.RL_ACCT, memAcct, 'ws:' + c)) throw tooMany();
+    return socialDO(env).fetch(req);
+  }
   if (p === '/api/health' && M === 'GET') return json(200, { ok: true, turn: !!(env.TURN_KEY_ID && env.TURN_KEY_API_TOKEN), t: Date.now() });
   if (p === '/api/turn' && M === 'GET') return turn(env);
   if (p === '/api/daily/top' && M === 'GET') return dailyTop(env, ctx, url);
@@ -218,6 +367,10 @@ async function route(req, env, ctx, url, ip) {
     if (p === '/api/save/put') return savePut(env, b);
     if (p === '/api/daily/submit') return dailySubmit(env, ctx, url, b);
     if (p === '/api/daily/me') return dailyMe(env, b);
+    if (p === '/api/social/me') return socialMe(env, b);
+    if (p === '/api/social/list') return socialList(env, b);
+    if (p === '/api/social/add') return socialAdd(env, ctx, b);
+    if (p === '/api/social/act') return socialAct(env, ctx, b);
   }
   throw new HttpError(404, 'Not found');
 }
@@ -256,13 +409,16 @@ export default {
     }
   },
 
-  // daily housekeeping (cron): old leaderboards and accounts that never saved anything
+  // daily housekeeping (cron): old leaderboards, accounts that never saved anything (and have no friends profile),
+  // expired invites and friend requests nobody answered for 60 days
   async scheduled(evt, env) {
-    const old = dayKey(Date.now() - 40 * 86400000);
+    const now = Date.now(), old = dayKey(now - 40 * 86400000);
     await env.DB.batch([
       env.DB.prepare('DELETE FROM daily WHERE day < ?').bind(old),
       env.DB.prepare('DELETE FROM daily_count WHERE day < ?').bind(old),
-      env.DB.prepare('DELETE FROM accounts WHERE rev = 0 AND created < ?').bind(Date.now() - 7 * 86400000),
+      env.DB.prepare('DELETE FROM accounts WHERE rev = 0 AND created < ? AND id NOT IN (SELECT acct FROM profiles)').bind(now - 7 * 86400000),
+      env.DB.prepare('DELETE FROM invites WHERE exp < ?').bind(now),
+      env.DB.prepare("DELETE FROM links WHERE st IN ('i', 'o') AND at < ?").bind(now - 60 * 86400000),
     ]);
   },
 };

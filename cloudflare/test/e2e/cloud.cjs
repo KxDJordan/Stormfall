@@ -23,7 +23,7 @@ const until = (p, js, ms = 30000) => p.waitForFunction(s => window.__ev && windo
   const t0 = Date.now();
   await until(A, 'CLS.auth&&CLS.rev===1&&!CLS.dirty', 40000);
   check(true, 'progress change -> debounced push created the account and saved rev 1 (' + ((Date.now() - t0) / 1000).toFixed(1) + ' s)');
-  await ev(A, "go('profile')");
+  await ev(A, "go('profile'); setPTab('account')");
   await A.waitForTimeout(200);
   const pc = await A.textContent('#pCloud');
   check(/Cloud: synced/.test(pc) && /•/.test(pc), 'Profile shows "Cloud: synced ..." and a masked account code');
@@ -37,7 +37,7 @@ const until = (p, js, ms = 30000) => p.waitForFunction(s => window.__ev && windo
   const ctxB = await br.newContext(vp), B = await openGame(ctxB);
   await B.waitForTimeout(2500);
   check(!(await ev(B, 'CLS.auth')), 'fresh device with no progress does not create an account by itself');
-  await ev(B, "go('profile')");
+  await ev(B, "go('profile'); setPTab('account')");
   await B.click('#pCloud [data-clp=in]');
   await B.fill('#clIn', code.toLowerCase().replace(/-/g, ' ').replace(/0/g, 'o'));
   await B.click('[data-cl=check]');
@@ -62,7 +62,7 @@ const until = (p, js, ms = 30000) => p.waitForFunction(s => window.__ev && windo
   await until(B, 'CLS.rev===3&&!CLS.dirty');
   check(true, '"Keep this device" pushed on top of the cloud copy (rev 3)');
   // A was not changed since its last sync: "Sync now" loads the newer cloud save
-  await ev(A, "go('profile')");
+  await ev(A, "go('profile'); setPTab('account')");
   await Promise.all([A.waitForNavigation({ timeout: 15000 }), A.click('#pCloud [data-clp=sync]')]);
   await A.waitForFunction(() => window.__ev);
   if (await A.isVisible('#howClose')) await A.click('#howClose');
@@ -88,7 +88,7 @@ const until = (p, js, ms = 30000) => p.waitForFunction(s => window.__ev && windo
   check(await ev(B, 'PROF.credits===3333&&CLS.rev===5'), 'app start on device B pulled the newer cloud save automatically');
 
   // ---------- sign out ----------
-  await ev(B, "go('profile')");
+  await ev(B, "go('profile'); setPTab('account')");
   await B.click('#pCloud [data-clp=out]');
   check((await B.textContent('#clBody')).includes(code), 'sign-out dialog shows the account code to keep');
   await B.click('[data-cl=signout]');
@@ -143,7 +143,7 @@ const until = (p, js, ms = 30000) => p.waitForFunction(s => window.__ev && windo
   check(await ev(C, 'API_BASE') === 'http://127.0.0.1:9', 'device C points at a dead backend');
   await ev(C, "PROF.xp=50; saveProf(); CL.lastPush=0; cloudPush('manual')");
   await C.waitForTimeout(1500);
-  await ev(C, "go('profile')");
+  await ev(C, "go('profile'); setPTab('account')");
   check(/Offline/.test(await C.textContent('#pCloud')), 'Profile shows Offline: ' + (await C.textContent('#pCloud .bkst')));
   await ev(C, "go('menu')");
   await C.click('#bDaily');
@@ -152,7 +152,7 @@ const until = (p, js, ms = 30000) => p.waitForFunction(s => window.__ev && windo
   await C.click('#dyClose');
   await ev(C, "PROF.mode='quick'; saveProf(); refreshMenu();");
   await ev(C, BOT);
-  await C.click('#bDeploy'); await C.click('#wrDeploy');
+  await C.click('#bDeploy'); await C.click('[data-msk=solo]'); await C.click('#msGo'); await C.click('#wrDeploy');
   await until(C, "G.scene==='game'&&G.round>=1", 30000);
   await C.waitForFunction(() => window.__ev('G.over'), null, { timeout: 400000, polling: 1000 });
   await C.waitForSelector('#end:not(.hidden)', { timeout: 15000 });
@@ -164,7 +164,7 @@ const until = (p, js, ms = 30000) => p.waitForFunction(s => window.__ev && windo
   // ---------- meta "off": no backend calls at all ----------
   const ctxD = await br.newContext(vp), D = await openGame(ctxD, { api: 'off' });
   const calls = []; D.on('request', r => { if (/\/api\//.test(r.url())) calls.push(r.url()); });
-  await ev(D, "PROF.xp=5; saveProf(); go('profile')");
+  await ev(D, "PROF.xp=5; saveProf(); go('profile'); setPTab('account')");
   await D.waitForTimeout(2000);
   check(await ev(D, "API_BASE===''") && calls.length === 0 && /not available/.test(await D.textContent('#pCloud')), 'sf-api "off": no API calls, Profile explains');
 
