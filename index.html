@@ -440,6 +440,16 @@ button.sh,#mLvl{min-height:44px}
 @media (prefers-reduced-motion: reduce){ .toast,.tmr.warn b{animation:none} .xpbar i{transition:none} }
 
 @media (prefers-reduced-motion: reduce){ .fe{animation:none} }
+/* class perk tree (loadout) */
+.tree{display:flex;flex-direction:column;gap:8px}
+.tier{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,1fr);gap:6px;align-items:stretch}
+.tier .tl{display:flex;flex-direction:column;justify-content:center;align-items:center;border:1px solid var(--line);border-radius:3px;background:#0d151f;font-family:Teko,sans-serif;font-size:22px;line-height:1;color:var(--signal)}
+.tier .tl small{font-family:'Chakra Petch',sans-serif;font-size:9px;color:var(--muted);letter-spacing:.02em}
+.tier.lockt .tl{color:var(--muted)}
+.tier .card{min-width:0;max-width:none;flex:none;display:flex;flex-direction:column;justify-content:flex-start}
+.card .ptag{align-self:flex-start;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:1px 5px;margin-top:4px;border-radius:2px;background:rgba(255,179,64,.12);color:var(--amber)}
+.tier.lockt .card.sel{border-color:var(--line);background:#0d151f}
+.tier.lockt .card.sel::after{display:none}
 </style>
 </head>
 <body>
@@ -486,9 +496,11 @@ button.sh,#mLvl{min-height:44px}
     </div>
     <div class="lo-sec"><h3>Class <small>sets what you can carry</small></h3><div class="cards" id="clsRow"></div><p class="clsdesc" id="clsDesc"></p></div>
     <div class="lo-sec"><h3>Primary weapon <small>Mk upgrades unlock with level</small></h3><div class="cards" id="wpRow"></div></div>
+    <div class="lo-sec"><h3>Secondary <small>melee, throwing or sidearm</small></h3><div class="cards" id="secRow"></div></div>
     <div class="lo-sec"><h3>Armor</h3><div class="cards" id="arRow"></div></div>
     <div class="lo-sec"><h3>Utility <small id="utPick">pick 2</small></h3><div class="cards wrap" id="utRow"></div></div>
-    <div class="lo-sec"><h3>Perk <small>one at a time</small></h3><div class="cards wrap" id="pkRow"></div></div>
+    <div class="lo-sec"><h3>Class perks <small id="cpSub">one of two per tier</small></h3><div class="tree" id="cpRow"></div></div>
+    <div class="lo-sec"><h3>Perk <small>one at a time, any class</small></h3><div class="cards wrap" id="pkRow"></div></div>
     <div class="lo-foot"><button class="btn primary" id="loDeploy" style="width:100%">Save and deploy</button></div>
   </div></div>
 </section>
@@ -609,6 +621,8 @@ button.sh,#mLvl{min-height:44px}
       <li>Buildings with interiors have doors and windows. Windows are half cover you can see through.</li>
       <li>Shooting before you move leaves 1 AP for a move. Shooting after a move, overwatch and hunker end your turn. The railgun and gauss rifle need both AP.</li>
       <li id="howRange">Every weapon has an optimal range where its aim is best.</li>
+      <li>Every operative carries a secondary. Knives, axes and blades strike an adjacent enemy (the machete and Monoblade dash a few tiles to reach one); throwing weapons can also be thrown a few tiles, a limited number of times per match; pistols have their own magazine and range. Secondary attacks follow the shooting rules: before moving they cost 1 AP and leave a move, after moving (or after a dash) they end your turn.</li>
+      <li>At levels 3, 6, 9, 12 and 15 your class unlocks a perk tier. Pick one of two class perks per tier in Loadout and change them between matches; some are new actions with cooldowns. The separate Perk slot works with any class.</li>
       <li>Starter gear is ready at level 1; new weapons, armor, Mk upgrades and perks unlock as you level (see Loadout and Progress).</li>
       <li>The storm shrinks every other round. Supply drops are announced a round early; the pod holds the best loot in the match.</li>
       <li>Duos: you drop with an AI partner. A downed operative bleeds out in 2 turns unless an adjacent teammate revives them.</li>
@@ -733,6 +747,100 @@ const ABIL={
   hail:{name:'Hail of Bullets',short:'Hail',cd:4,desc:'Guaranteed hit, uses 2 ammo. Ends turn.'},
   zap:{name:'Combat Protocol',short:'Protocol',cd:3,desc:'Drone zap: 3 armor-piercing damage, never misses. Costs 1 AP and does not end your turn.'}
 };
+/* Secondary weapons (one per operative, next to the primary).
+   type melee: strikes an adjacent enemy; dash>0 lets it dash up to that many tiles of movement to reach one (ends the turn).
+   type thrown: melee up close, or thrown at an enemy up to `range` tiles away, `uses` throws per match, own range curve.
+   type pistol: a short-range gun with its own clip and range curve; it is fired through hitInfo/fireShot like the primary.
+   Attacks follow the primary-shot AP rule: before moving 1 AP (then only a move), after moving or a dash it ends the turn. */
+const SECONDARIES={
+  knife:{name:'Combat Knife',short:'Knife',type:'melee',dmg:[2,4],acc:90,crit:15,critDmg:2,desc:'Quiet and quick. Strikes an adjacent enemy.'},
+  pistol:{name:'P9 Sidearm',short:'Pistol',type:'pistol',dmg:[2,3],clip:3,crit:10,critDmg:1,aim:0,fx:'single',rt:[[3,10],[6,0]],fall:8,desc:'Backup gun for an empty magazine, or for after you have moved with a heavy rifle.'},
+  tknife:{name:'Throwing Knives',short:'Knives',type:'thrown',dmg:[2,3],acc:90,crit:15,critDmg:2,range:5,uses:3,aim:0,rt:[[2,15],[4,5],[5,-5]],desc:'Stab up close or throw them. Silent.'},
+  silencer:{name:'Whisper Pistol',short:'Whisper',type:'pistol',dmg:[2,4],clip:3,crit:10,critDmg:1,aim:5,fx:'single',silent:true,rt:[[4,5],[7,0]],fall:8,desc:'Suppressed: its shots make no noise for enemies to track.'},
+  machete:{name:'Jungle Machete',short:'Machete',type:'melee',dmg:[3,5],acc:85,crit:15,critDmg:2,dash:3,desc:'Dash in and hack at an enemy.'},
+  hatchet:{name:'Tomahawk',short:'Tomahawk',type:'thrown',dmg:[3,5],acc:85,crit:10,critDmg:2,range:6,uses:2,aim:-5,rt:[[3,10],[5,0],[6,-10]],desc:'Heavy chop up close, or throw it.'},
+  baton:{name:'Shock Baton',short:'Baton',type:'melee',dmg:[2,3],acc:90,crit:0,critDmg:0,pierce:true,stun:true,desc:'An electric jolt for an adjacent enemy.'},
+  magnum:{name:'Ironclad Magnum',short:'Magnum',type:'pistol',dmg:[3,5],clip:2,crit:20,critDmg:2,aim:0,fx:'single',rt:[[2,0],[6,5],[8,-5]],fall:10,desc:'Hand cannon: two rounds, big hits.'},
+  machpistol:{name:'Hornet Machine Pistol',short:'Hornet',type:'pistol',dmg:[2,4],clip:4,crit:10,critDmg:1,aim:5,fx:'burst',rt:[[3,15],[5,0]],fall:12,desc:'Sprays at close range.'},
+  axe:{name:'Breaching Axe',short:'Axe',type:'melee',dmg:[4,7],acc:80,crit:10,critDmg:2,pierce:true,desc:'Slow, brutal swing.'},
+  katana:{name:'Monoblade',short:'Monoblade',type:'melee',dmg:[4,6],acc:92,crit:20,critDmg:2,dash:4,desc:'A precision cut after a long dash.'}
+};
+for(const k in SECONDARIES){ const S=SECONDARIES[k]; S.id=k;
+  // pistols and throws get a weapon-like object (aim, range(), crit) so hitInfo/fireShot handle them like the primary
+  if(S.rt) S.W={id:k,name:S.name,short:S.short,dmg:S.dmg,clip:S.clip||0,crit:S.crit,critDmg:S.critDmg,aim:S.aim||0,fx:S.type==='thrown'?'throw':S.fx,pierce:!!S.pierce,silent:S.type==='thrown'||!!S.silent,rt:S.rt,fall:S.fall||0,range:rangeFn(S.rt,S.fall),sec:true}; }
+CLASSES.ranger.secs=['knife','pistol','tknife','machete','machpistol','katana'];
+CLASSES.sharpshooter.secs=['pistol','knife','silencer','tknife','magnum','katana'];
+CLASSES.grenadier.secs=['pistol','knife','machete','hatchet','magnum','axe'];
+CLASSES.specialist.secs=['pistol','knife','silencer','baton','hatchet','machpistol'];
+/* Class perk trees: a tier unlocks every 3 levels (unlock ids ct1..ct5); each tier is a choice of two.
+   Perk effects are flags on the unit (u.cp[id]) read by the combat code; `act` names an active ability in ACTS. */
+const CP_LVL=[3,6,9,12,15];
+const CPERKS={
+  ranger:[
+    [{id:'r_lunge',name:'Long Reach',desc:'Blade Strike and dashing melee weapons reach 2 tiles farther. Blade Strike cooldown −1.'},
+     {id:'r_point',name:'Point Blank',desc:'+15 aim and +1 damage with your primary within 3 tiles.'}],
+    [{id:'r_implac',name:'Implacable',desc:'After you down or eliminate an enemy you may still move (1 AP), once per turn.'},
+     {id:'r_slip',name:'Slippery',desc:'After you move, +15 defense until your next turn.'}],
+    [{id:'r_storm',name:'Bladestorm',desc:'Enemies that move next to you take an automatic strike (90%, 3–5 damage), once per enemy turn.'},
+     {id:'r_rapid',name:'Rapid Fire',act:'rapid',desc:'Active: two primary shots at −15 aim each. Uses 2 ammo, ends turn. Cooldown 4.'}],
+    [{id:'r_reaper',name:'Reaper',desc:'Blade Strike and melee hits deal +2 damage. A Blade Strike takedown resets its cooldown.'},
+     {id:'r_guard',name:'Close Guard',desc:'Overwatch shots within 5 tiles have no reaction penalty.'}],
+    [{id:'r_whirl',name:'Whirlwind',act:'whirl',desc:'Active: strike every adjacent enemy (90%, 4–6 damage). Ends turn. Cooldown 5.'},
+     {id:'r_ghost',name:'Phantom',desc:'Enemies can only see and target you within 7 tiles.'}]],
+  sharpshooter:[
+    [{id:'s_steady',name:'Steady Aim',desc:'+10 aim on shots taken before you move.'},
+     {id:'s_quick',name:'Quickdraw',desc:'Pistol shots cost 1 AP and never end your turn or block more actions.'}],
+    [{id:'s_dead',name:'Deadeye Mastery',desc:'Deadeye costs only 5 aim instead of 15. Deadeye cooldown −1.'},
+     {id:'s_lowpro',name:'Low Profile',desc:'Half cover counts as full cover against you.'}],
+    [{id:'s_kz',name:'Kill Zone',act:'kz',desc:'Active: overwatch that fires at up to 3 different enemies who move in sight. Ends turn. Cooldown 5.'},
+     {id:'s_vital',name:'Vital Point',desc:'+15% crit chance and +1 crit damage with your primary.'}],
+    [{id:'s_eagle',name:'Eagle Eye',desc:'High ground gives +25 aim instead of +15, and +1 more sight.'},
+     {id:'s_zone',name:'In the Zone',desc:'A primary-weapon takedown refunds 1 AP, once per turn.'}],
+    [{id:'s_hands',name:'Lightning Hands',act:'hands',desc:'Active: a secondary attack (no dash) that costs no AP and keeps your turn going. Cooldown 4.'},
+     {id:'s_mark',name:'Executioner',desc:'+25 aim against enemies below half health.'}]],
+  grenadier:[
+    [{id:'g_ord',name:'Heavy Ordnance',desc:'+1 charge on every damaging grenade.'},
+     {id:'g_shred',name:'Shredder',desc:'Your primary shots ignore armor.'}],
+    [{id:'g_supp',name:'Suppression',act:'supp',desc:'Active: pin an enemy: −20 aim through its next turn and its overwatch breaks. 1 ammo, follows shooting AP rules. Cooldown 4.'},
+     {id:'g_volat',name:'Volatile Mix',desc:'Your grenades deal +1 damage.'}],
+    [{id:'g_hail',name:'Bullet Storm',desc:'Hail of Bullets cooldown −1 and +1 damage.'},
+     {id:'g_launch',name:'Grenade Launcher',desc:'Grenades reach 3 tiles farther.'}],
+    [{id:'g_bulw',name:'Bulwark',desc:'+2 HP, and hunkering down also grants +2 shield.'},
+     {id:'g_holo',name:'Holo-Targeting',desc:'Primary hits and grazes mark the target: your team gets +15 aim against it through next round.'}],
+    [{id:'g_rupt',name:'Rupture',act:'rupt',desc:'Active: a guaranteed primary hit with +3 damage; the target takes +1 damage from every hit for the rest of the match. Ends turn. Cooldown 5.'},
+     {id:'g_jugg',name:'Juggernaut',desc:'+1 armor. Disorientation wears off as soon as your turn starts.'}]],
+  specialist:[
+    [{id:'p_over',name:'Overclock',desc:'Combat Protocol deals +1 damage. Cooldown −1.'},
+     {id:'p_medic',name:'Field Medic',desc:'+1 medkit charge, and medkits also give +2 shield.'}],
+    [{id:'p_aid',name:'Aid Protocol',act:'aid',desc:'Active: the drone gives you or an ally in sight +3 shield. 1 AP, keeps your turn going. Cooldown 3.'},
+     {id:'p_hay',name:'Haywire',desc:'Combat Protocol also disorients the target (−20 aim) and breaks its overwatch.'}],
+    [{id:'p_cap',name:'Capacitor Discharge',act:'cap',desc:'Active: 3 armor-piercing damage to an enemy in sight and 2 to every enemy within 2 tiles of it. Follows shooting AP rules. Cooldown 5.'},
+     {id:'p_shield',name:'Drone Shield',desc:'Start each of your turns with at least 1 shield.'}],
+    [{id:'p_guard',name:'Guardian',desc:'When your overwatch fires, the drone also zaps the target for 2.'},
+     {id:'p_restore',name:'Restoration',desc:'At the start of your turn the drone heals you and teammates within 3 tiles for 1.'}],
+    [{id:'p_chain',name:'Chain Lightning',desc:'Combat Protocol arcs to the nearest other enemy you see within 4 tiles of the target.'},
+     {id:'p_stim',name:'Combat Stims',act:'stim',desc:'Active: +1 AP this turn (free action). Cooldown 5.'}]]
+};
+const CP={}; for(const c in CPERKS) CPERKS[c].forEach((tier,i)=>tier.forEach((p,j)=>{ p.cls=c; p.tier=i; p.opt=j; CP[p.id]=p; }));
+// active abilities granted by class perks; tgt picks the targeting UI (enemy, ally, sec = secondary targets, self = no target)
+const ACTS={
+  rapid:{perk:'r_rapid',name:'Rapid Fire',short:'Rapid',cd:4,tgt:'enemy'},
+  whirl:{perk:'r_whirl',name:'Whirlwind',short:'Whirl',cd:5,tgt:'self'},
+  kz:{perk:'s_kz',name:'Kill Zone',short:'Kill Zone',cd:5,tgt:'self'},
+  hands:{perk:'s_hands',name:'Lightning Hands',short:'Hands',cd:4,tgt:'sec'},
+  supp:{perk:'g_supp',name:'Suppression',short:'Suppress',cd:4,tgt:'enemy'},
+  rupt:{perk:'g_rupt',name:'Rupture',short:'Rupture',cd:5,tgt:'enemy'},
+  aid:{perk:'p_aid',name:'Aid Protocol',short:'Aid',cd:3,tgt:'ally'},
+  cap:{perk:'p_cap',name:'Capacitor Discharge',short:'Discharge',cd:5,tgt:'enemy'},
+  stim:{perk:'p_stim',name:'Combat Stims',short:'Stims',cd:5,tgt:'self'}
+};
+const cap1=t=>t.charAt(0).toUpperCase()+t.slice(1);
+for(const k in ACTS) ACTS[k].desc=cap1(CP[ACTS[k].perk].desc.replace(/^Active: /,''));
+const hasP=(u,id)=>!!(u&&u.cp&&u.cp[id]);
+// cooldown of a class ability after perk modifiers
+function abilCd(u,ab){ return ABIL[ab].cd-((ab==='slash'&&hasP(u,'r_lunge'))||(ab==='deadeye'&&hasP(u,'s_dead'))||(ab==='hail'&&hasP(u,'g_hail'))||(ab==='zap'&&hasP(u,'p_over'))?1:0); }
+// chosen class perks for a class, given a 5-entry pick array and an "is this tier owned" test
+function cpList(cls,tree,has){ const out=[]; if(!CPERKS[cls]) return out; for(let i=0;i<5;i++) if(has('ct'+(i+1))) out.push(CPERKS[cls][i][tree&&tree[i]===1?1:0].id); return out; }
 const RIVALS=[['VIPER','#ff4d5e'],['JACKAL','#ff9f1c'],['RAVEN','#c77dff'],['MANTIS','#a6ff3c'],['COBRA','#ffd23c'],['WRAITH','#ff6bd6'],['GHOUL','#ff7a5c'],['HYDRA','#5cffc4'],['SPECTRE','#ff9fb0']];
 const PLAYER_COL='#3fd2ff';
 const BODY={ranger:{m:[62,88,58],d:[34,48,30],a:[112,142,86]},sharpshooter:{m:[58,70,90],d:[33,40,53],a:[125,144,173]},grenadier:{m:[92,76,54],d:[52,42,29],a:[154,128,88]},specialist:{m:[46,82,88],d:[26,48,52],a:[95,154,160]}};
@@ -927,8 +1035,9 @@ function coverFrom(dx,dy,ax,ay){
 }
 function inSmoke(x,y){ return G.smoke.some(s=>Math.hypot(x-s.x,y-s.y)<=s.r+0.01); }
 function outsideStorm(x,y){ const s=G.storm; return Math.hypot(x+.5-s.cx,y+.5-s.cy)>s.r; }
-function sightOf(u){ return u.sight+(hi(u.x,u.y)?2:0); }
-function canSee(a,b){ return Math.hypot(a.x-b.x,a.y-b.y)<=sightOf(a)+0.01&&hasLOS(a.x,a.y,b.x,b.y); }
+function sightOf(u){ return u.sight+(hi(u.x,u.y)?(hasP(u,'s_eagle')?3:2):0); }
+// Phantom (Ranger perk): the unit can only be spotted within 7 tiles
+function canSee(a,b){ return Math.hypot(a.x-b.x,a.y-b.y)<=(hasP(b,'r_ghost')?Math.min(7,sightOf(a)):sightOf(a))+0.01&&hasLOS(a.x,a.y,b.x,b.y); }
 function visibleEnemies(u){ return G.units.filter(t=>t.alive&&t!==u&&isEnemy(u,t)&&canSee(u,t)); }
 function viewers(){ if(!G.player) return []; return G.units.filter(u=>u.alive&&u.team===G.player.team); }
 function shouldShow(u){ if(G.scene!=='game') return false; if(G.fullVis) return true; if(G.player&&u.team===G.player.team) return true; return G.vis[idx(u.x,u.y)]===1; }
@@ -975,26 +1084,35 @@ function sanitize(lo){
   const n=utilSlots();
   const us=(Array.isArray(lo.utils)?lo.utils:[]).filter((u,i,a)=>Cl.utils.includes(u)&&utilOwned(u)&&a.indexOf(u)===i).slice(0,n);
   for(const u of Cl.utils){ if(us.length>=n) break; if(!us.includes(u)&&utilOwned(u)) us.push(u); }
-  o.utils=us; o.perk=lo.perk&&PERKS[lo.perk]&&own(lo.perk)?lo.perk:null; return o;
+  o.utils=us; o.perk=lo.perk&&PERKS[lo.perk]&&own(lo.perk)?lo.perk:null;
+  // secondary (saves from before secondaries existed get the class starter) and class perk picks per class (0/1 per tier)
+  o.sec=Cl.secs.includes(lo.sec)&&sOwned(lo.sec)?lo.sec:Cl.secs.find(k=>sOwned(k));
+  const tr={}; for(const k in CLASSES){ const a=lo.tree&&Array.isArray(lo.tree[k])?lo.tree[k]:[]; tr[k]=[0,1,2,3,4].map(i=>a[i]===1?1:0); } o.tree=tr;
+  return o;
 }
 function randomLoadout(not,lv){ lv=lv||1; const keys=Object.keys(CLASSES).filter(k=>k!==not); const cls=pick(keys),Cl=CLASSES[cls];
   const pool=Cl.utils.filter(u=>!UTILS[u].shop||lvlOwn('u_'+u,lv)), perks=Object.keys(PERKS).filter(k=>lvlOwn(k,lv));
-  return {cls,weapon:pick(Cl.weapons.filter(k=>wOwned(k,lv))),armor:pick(Cl.armors.filter(k=>aOwned(k,lv))),utils:shuffle(pool).slice(0,lvlOwn('pouch',lv)?3:2),perk:perks.length&&RNG()<0.8?pick(perks):null,lv}; }
+  return {cls,weapon:pick(Cl.weapons.filter(k=>wOwned(k,lv))),armor:pick(Cl.armors.filter(k=>aOwned(k,lv))),utils:shuffle(pool).slice(0,lvlOwn('pouch',lv)?3:2),perk:perks.length&&RNG()<0.8?pick(perks):null,
+    sec:pick(Cl.secs.filter(k=>sOwned(k,lv))),tree:[0,1,2,3,4].map(()=>RNG()<0.5?0:1),lv}; }
 function makeUnit(lo,isPlayer,name,color,prof,team){
   // players use their account unlocks; AI uses the same unlock table at its matchmade level (lo.lv)
   const lv=lo.lv||1, has=id=>prof?(prof.own?prof.own.includes(id):own(id)):lvlOwn(id,lv), eq=prof?(prof.own?prof:PROF.equip):null;
   const mk=has('mk3_'+lo.weapon)?3:has('mk2_'+lo.weapon)?2:1, Cl=CLASSES[lo.cls],Ar=ARMORS[lo.armor],Wp=applyMk(Object.assign({},WEAPONS[lo.weapon]),mk);
   let hpB=0,perk=null;
   if(has('ar_'+lo.armor)) hpB=1; perk=lo.perk&&has(lo.perk)?lo.perk:null; const P=(perk&&PERKS[perk])||{}, aimB=P.aim||0, sh=P.shield||0;
+  // secondary and class perks (lo.tree is the 5 picks for this class; the local loadout keeps one array per class)
+  const sOk=k=>UNLOCK_LVL['s_'+k]==null||has('s_'+k), sid=Cl.secs.includes(lo.sec)&&sOk(lo.sec)?lo.sec:Cl.secs.find(sOk), S=SECONDARIES[sid];
+  const cp={}; for(const id of cpList(lo.cls,Array.isArray(lo.tree)?lo.tree:lo.tree&&lo.tree[lo.cls],has)) cp[id]=true;
   const u={id:UID++,name,isPlayer,color,col:hexc(color),cls:lo.cls,wid:lo.weapon,aid:lo.armor,W:Wp,mk,perk,team:team||0,
-    maxHp:Cl.hp+Ar.hp+hpB,aim:Cl.aim+aimB,mob:mobOf(lo.cls,lo.armor,lo.weapon,perk),def:Ar.def,armor:Ar.armor,sight:9+(Cl.sight||0)+(Ar.sight||0),
-    utils:lo.utils.map(id=>({id,ch:UTILS[id].charges+((lo.cls==='grenadier'&&UTILS[id].dmg)?1:0)+((lo.cls==='specialist'&&id==='medkit')?1:0)})),
+    sid,S,sAmmo:S.clip||0,sUses:S.uses||0,cp,tk:0,
+    maxHp:Cl.hp+Ar.hp+hpB+(cp.g_bulw?2:0),aim:Cl.aim+aimB,mob:mobOf(lo.cls,lo.armor,lo.weapon,perk),def:Ar.def,armor:Ar.armor+(cp.g_jugg?1:0),sight:9+(Cl.sight||0)+(Ar.sight||0),
+    utils:lo.utils.map(id=>({id,ch:UTILS[id].charges+((lo.cls==='grenadier'&&UTILS[id].dmg)?1:0)+((lo.cls==='specialist'&&id==='medkit')?1:0)+((cp.g_ord&&UTILS[id].dmg)||(cp.p_medic&&id==='medkit')?1:0)})),
     ammo:Wp.clip,shield:sh,ap:0,cd:{},alive:true,downed:false,bleed:0,x:0,y:0,rx:0,ry:0,rz:0,face:1,flash:0,deadT:0,drop:0,overwatch:false,hunker:false,disorient:0,moved:false,kills:0,ph:Math.random()*6,walk:0,
     skin:eq?(SKINS[eq.skin]?eq.skin:'default'):(RNG()<0.35?pick(Object.keys(SKINS)):'default'),finish:eq?(FINISHES[eq.finish]?eq.finish:'default'):(RNG()<0.3?pick(Object.keys(FINISHES)):'default'),trail:eq?(TRAILS[eq.trail]?eq.trail:'default'):'default'};
   u.hp=u.maxHp; return u;
 }
 function placeUnit(u,x,y){ u.x=u.rx=x; u.y=u.ry=y; u.rz=ez(x,y); }
-function throwRange(u,U){ return U.range+(u.cls==='grenadier'?2:0); }
+function throwRange(u,U){ return U.range+(u.cls==='grenadier'?2:0)+(hasP(u,'g_launch')?3:0); }
 function faceTo(u,x,y){ const a=iso(u.x,u.y),b=iso(x,y); if(Math.abs(b[0]-a[0])>1) u.face=b[0]>a[0]?1:-1; }
 function unitScreen(u){ const p=iso(u.rx+.5,u.ry+.5); return [p[0],p[1]-u.drop*420-(u.rz||0)]; }
 function muzzle(u){ const p=unitScreen(u); return [p[0]+u.face*(3+GUNLEN[u.wid]),p[1]-20]; }
@@ -1348,6 +1466,10 @@ function drawSoldier(c,o){
   c.fillStyle=C(B.d,1); rr(c,-tw-4.5,-27+bob,6,12,2); c.fill();
   if(o.cls==='ranger'){ c.strokeStyle='#c8d2dc'; c.lineWidth=1.8; c.beginPath(); c.moveTo(-tw-1,-10+bob); c.lineTo(-tw+7,-36+bob); c.stroke(); c.strokeStyle='#1b1d22'; c.lineWidth=3; c.beginPath(); c.moveTo(-tw-2,-7+bob); c.lineTo(-tw,-13+bob); c.stroke(); }
   if(o.cls==='sharpshooter'){ c.fillStyle=C(B.d,.8); c.beginPath(); c.moveTo(-tw-4,-26+bob); c.lineTo(-tw-9,-12+bob); c.lineTo(-tw-2,-14+bob); c.fill(); }
+  // secondary carried on the back (drawn before the torso): long blades over the shoulder, axes on the back hip
+  const sw=o.sec, ST=sw&&SECONDARIES[sw]&&SECONDARIES[sw].type;
+  if(sw==='machete'||sw==='katana'){ const L=sw==='katana'?40:33; c.strokeStyle=sw==='katana'?'#dfe8f2':'#b9c2ca'; c.lineWidth=sw==='katana'?1.6:2.4; c.beginPath(); c.moveTo(-tw-3,-8+bob); c.lineTo(-tw+4,-L+bob); c.stroke(); c.strokeStyle='#1b1d22'; c.lineWidth=2.8; c.beginPath(); c.moveTo(-tw+3.3,-L+3+bob); c.lineTo(-tw+4.6,-L-2+bob); c.stroke(); }
+  else if(sw==='hatchet'||sw==='axe'){ const hw=sw==='axe'?6:4.5; c.strokeStyle='#5a4330'; c.lineWidth=1.8; c.beginPath(); c.moveTo(-tw-1,-5+bob); c.lineTo(-tw-2,-22+bob); c.stroke(); c.fillStyle='#aab3bd'; c.beginPath(); c.moveTo(-tw-1.5,-23+bob); c.lineTo(-tw-2-hw,-25.5+bob); c.lineTo(-tw-2-hw,-17.5+bob); c.lineTo(-tw-1.5,-19+bob); c.closePath(); c.fill(); }
   // front leg
   c.fillStyle=C(B.d,1); c.fillRect(0.5,-12+step,3.8,12-step);
   c.fillStyle='#14161a'; c.fillRect(-5,-2.5,4.6,2.5); c.fillRect(0,-2.5,5.4,2.5);
@@ -1361,6 +1483,9 @@ function drawSoldier(c,o){
   c.fillStyle=C(B.a,.95); c.beginPath(); c.arc(0.5,-31.5+bob,5.6,Math.PI*1.05,Math.PI*1.95); c.fill();
   c.fillStyle=o.color; rr(c,1.2,-33+bob,5,2.8,1); c.fill();
   c.globalAlpha*=0.35; rr(c,0,-34.5+bob,7.5,5.6,2); c.fill(); c.globalAlpha/=0.35;
+  // secondary on the front hip: pistol holster, knife sheath, baton or knife rig
+  if(ST==='pistol'){ c.fillStyle='#22262d'; rr(c,tw-3.4,-13+bob,3.8,6,1); c.fill(); c.fillStyle='#14161a'; c.fillRect(tw-2.8,-14.6+bob,2.6,2.2); }
+  else if(sw==='knife'||sw==='baton'||sw==='tknife'){ c.fillStyle=sw==='baton'?'#2e3742':'#1d2026'; c.fillRect(tw-2.6,-13+bob,2.2,7); if(sw==='baton'){ c.fillStyle=o.color; c.fillRect(tw-2.6,-7+bob,2.2,1.2); } if(sw==='tknife'){ c.fillStyle='#c9d1da'; c.fillRect(tw-0.2,-12+bob,1,4); c.fillRect(tw+1.2,-12+bob,1,4); } }
   // weapon
   c.save(); c.translate(2,-20+bob);
   c.fillStyle=(o.finish&&FINISHES[o.finish]&&FINISHES[o.finish].c)||'#1b1e24'; const w=o.weapon;
@@ -1422,7 +1547,7 @@ function drawUnit(c,u){
     if(G.mode==='target'&&G.targets[G.tIdx]===u){ c.strokeStyle='rgba(255,77,94,.95)'; c.lineWidth=2; const r=20+Math.sin(t*6)*2; c.beginPath(); c.ellipse(p[0],p[1],r,r*0.48,0,0,Math.PI*2); c.stroke(); for(let a=0;a<4;a++){ const an=a*Math.PI/2+t; c.beginPath(); c.moveTo(p[0]+Math.cos(an)*(r+3),p[1]+Math.sin(an)*(r+3)*0.48); c.lineTo(p[0]+Math.cos(an)*(r+9),p[1]+Math.sin(an)*(r+9)*0.48); c.stroke(); } }
   }
   c.save(); if(!u.alive) c.globalAlpha=0.8; if(u.drop>0) c.globalAlpha=1-u.drop*0.3;
-  drawSoldier(c,{x:p[0],y:p[1],cls:u.cls,armor:u.aid,weapon:u.wid,color:u.alive?u.color:'#555b63',face:u.face,bob,step,flash:u.flash,deadT:down?0.8:(u.alive?0:Math.max(0.001,u.deadT)),time:t,ph:u.ph,skin:u.skin,finish:u.finish});
+  drawSoldier(c,{x:p[0],y:p[1],cls:u.cls,armor:u.aid,weapon:u.wid,sec:u.sid,color:u.alive?u.color:'#555b63',face:u.face,bob,step,flash:u.flash,deadT:down?0.8:(u.alive?0:Math.max(0.001,u.deadT)),time:t,ph:u.ph,skin:u.skin,finish:u.finish});
   c.restore();
   if(!u.alive||u.drop>0||G.scene!=='game') return;
   const y0=p[1]-50;
@@ -1693,6 +1818,9 @@ function drawFx(c){
   c.globalCompositeOperation='source-over';
   for(const f of G.fx){ if(f.type!=='nade') continue; const k=clamp(f.t/f.life,0,1); const x=lerp(f.a[0],f.b[0],k), y=lerp(f.a[1],f.b[1],k)-Math.sin(k*Math.PI)*f.h;
     c.fillStyle='#2a2f36'; c.beginPath(); c.arc(x,y,3.5,0,Math.PI*2); c.fill(); c.fillStyle=f.col; c.beginPath(); c.arc(x+1,y-1,1.3,0,Math.PI*2); c.fill(); }
+  for(const f of G.fx){ if(f.type!=='knife') continue; const k=clamp(f.t/f.life,0,1); const x=lerp(f.a[0],f.b[0],k), y=lerp(f.a[1],f.b[1],k)-Math.sin(k*Math.PI)*f.h;
+    c.save(); c.translate(x,y); c.rotate(k*(f.axe?11:16)*(f.b[0]<f.a[0]?-1:1)); c.fillStyle='#5a4330'; c.fillRect(-7,-1,7,2); c.fillStyle='#dfe7ef';
+    if(f.axe){ c.beginPath(); c.moveTo(-1,-1); c.lineTo(4,-4.5); c.lineTo(4,3.5); c.closePath(); c.fill(); } else c.fillRect(0,-1.2,7,2.4); c.restore(); }
   // texts
   c.textAlign='center';
   for(const tx of G.texts){ const k=tx.t/tx.life; const a=k<0.75?1:1-(k-0.75)/0.25; const y=tx.y-ease(Math.min(1,k*1.6))*26;
@@ -1776,21 +1904,29 @@ function focusMid(a,b){ const p=iso((a.x+b.x)/2+.5,(a.y+b.y)/2+.5); G.cam.tx=p[0
 
 /* ================= combat ================= */
 function hitInfo(a,t,o){
-  o=o||{}; const ax=o.fx!=null?o.fx:a.x, ay=o.fy!=null?o.fy:a.y;
+  // o.W: fire a secondary (pistol or throw) instead of the primary; class perk modifiers come from a.cp / t.cp
+  o=o||{}; const ax=o.fx!=null?o.fx:a.x, ay=o.fy!=null?o.fy:a.y, W=o.W||a.W, prim=!o.W;
   const d=Math.hypot(t.x-ax,t.y-ay), mods=[];
-  let aim=a.aim; const wm=a.W.aim+a.W.range(Math.round(d)); if(wm) mods.push(['range',wm]); aim+=wm;
+  let aim=a.aim; const wm=W.aim+W.range(Math.round(d)); if(wm) mods.push(['range',wm]); aim+=wm;
   const ha=hi(ax,ay), ht=hi(t.x,t.y);
-  if(ha>ht){ aim+=15; mods.push(['high ground',15]); } else if(ha<ht){ aim-=10; mods.push(['shooting uphill',-10]); }
+  if(ha>ht){ const hg=hasP(a,'s_eagle')?25:15; aim+=hg; mods.push(['high ground',hg]); } else if(ha<ht){ aim-=10; mods.push(['shooting uphill',-10]); }
   if(a.disorient>0){ aim-=20; mods.push(['disoriented',-20]); }
-  if(o.reaction){ aim-=15; mods.push(['reaction shot',-15]); }
-  if(o.deadeye){ aim-=15; mods.push(['deadeye',-15]); }
+  if(o.reaction&&!(hasP(a,'r_guard')&&d<=5.01)){ aim-=15; mods.push(['reaction shot',-15]); }
+  if(o.deadeye){ const p=hasP(a,'s_dead')?5:15; aim-=p; mods.push(['deadeye',-p]); }
+  if(o.aimMod){ aim+=o.aimMod; mods.push([o.aimLbl||'ability',o.aimMod]); }
+  if(prim&&hasP(a,'r_point')&&d<=3.01){ aim+=15; mods.push(['point blank',15]); }
+  if(hasP(a,'s_steady')&&!a.moved&&!o.reaction&&o.fx==null){ aim+=10; mods.push(['steady aim',10]); }
+  if(hasP(a,'s_mark')&&!t.downed&&t.hp*2<t.maxHp){ aim+=25; mods.push(['executioner',25]); }
+  if(t.holo&&t.holo.team===a.team&&G.round<=t.holo.until){ aim+=15; mods.push(['holo-targeted',15]); }
   let cov=coverFrom(t.x,t.y,ax,ay), over=false; let def=t.def; if(t.def) mods.push(['defense',-t.def]);
+  if(t.slip){ def+=15; mods.push(['slippery',-15]); }
   if(ha>ht&&cov===1){ cov=0; over=true; }
-  if(cov===1){ def+=20; mods.push(['half cover',-20]); } else if(cov===2){ def+=40; mods.push(['full cover',-40]); }
+  const lowpro=cov===1&&hasP(t,'s_lowpro'); if(lowpro) cov=2;
+  if(cov===1){ def+=20; mods.push(['half cover',-20]); } else if(cov===2){ def+=40; mods.push([lowpro?'low profile (full cover)':'full cover',-40]); }
   if(t.hunker&&cov){ def+=20; mods.push(['hunkered',-20]); }
   if(inSmoke(t.x,t.y)){ def+=20; mods.push(['smoke',-20]); }
   let hit=clamp(Math.round(aim-def),0,100);
-  let crit=a.W.crit+(cov===0?(over?20:40):0); if(t.hunker) crit=0; crit=clamp(crit,0,100);
+  let crit=W.crit+(cov===0?(over?20:40):0)+(prim&&hasP(a,'s_vital')?15:0); if(t.hunker) crit=0; crit=clamp(crit,0,100);
   if(t.downed){ hit=100; crit=0; }
   const full=hit>=100?100:Math.max(0,hit-5), graze=(hit>=100||hit<=0)?0:Math.min(100,hit+10)-full;
   return {hit,crit,cov,d,mods,aim:a.aim,full,graze,any:full+graze,elevAdv:ha>ht,over};
@@ -1805,6 +1941,7 @@ function mine(u){ return !!(u&&G.player&&u.team===G.player.team); }
 function applyDamage(t,d,src,o){
   o=o||{}; if(!t.alive) return;
   if(t.downed){ if(o.anim) floatText(t,'FINISHED',[255,77,94],20); kill(t,src,o.anim,o.how); return; }
+  if(t.rupt&&src&&src!==t) d+=t.rupt; // Rupture (Grenadier perk): +1 damage from every hit
   let dmg=o.pierce?d:Math.max(1,d-t.armor); const total=dmg; let abs=0;
   if(t.shield>0){ abs=Math.min(t.shield,dmg); t.shield-=abs; dmg-=abs; }
   t.hp-=dmg; t.flash=0.3;
@@ -1815,6 +1952,7 @@ function applyDamage(t,d,src,o){
 }
 function down(t,src,anim,how){
   t.downed=true; t.hp=0; t.bleed=2; t.overwatch=false; t.hunker=false; t.shield=0;
+  if(src&&src!==t&&isEnemy(src,t)) src.tk=(src.tk||0)+1; // takedowns (downs + eliminations) feed Implacable / In the Zone / Reaper
   feedLine((src&&src!==t?src.name+' downed ':'')+t.name+(src?'':' went down'),mine(t)||mine(src));
   if(anim){ floatText(t,'DOWNED',[255,120,90],24); G.cam.shake=Math.max(G.cam.shake,6); }
   if(t.isPlayer){ banner('You’re down','Bleeding out. Your partner can revive you.','lose',2200); buzz([60,40,60]); }
@@ -1832,7 +1970,7 @@ function playerOut(){
 }
 function kill(t,src,anim,how){
   t.alive=false; t.downed=false; t.deadT=0.001; t.overwatch=false; t.hunker=false;
-  if(src&&src!==t&&isEnemy(src,t)){ src.kills++; if(src.isPlayer){ G.stats.kills++; floatText(src,'+'+killValue(src)+' CR',[255,179,64],17); buzz(25); } else if(Math.random()<0.3&&shouldShow(src)) bubble(src,fpick(TAUNTS)); }
+  if(src&&src!==t&&isEnemy(src,t)){ src.kills++; src.tk=(src.tk||0)+1; if(src.isPlayer){ G.stats.kills++; floatText(src,'+'+killValue(src)+' CR',[255,179,64],17); buzz(25); } else if(Math.random()<0.3&&shouldShow(src)) bubble(src,fpick(TAUNTS)); }
   feedLine(src&&src!==t?(src.name+' eliminated '+t.name+(how?' ('+how+')':'')):(t.name+(how==='bled out'?' bled out':' was lost to the storm')),mine(t)||mine(src));
   const p=chest(t);
   if(anim){ G.texts.push({x:p[0],y:p[1]-48,txt:'ELIMINATED',col:[255,77,94],size:26,t:0,life:1.8}); for(let i=0;i<18;i++) part({x:p[0],y:p[1],vx:frand(-120,120),vy:frand(-120,40),life:frand(.3,.7),size:1.8,col:t.col,type:'spark',grav:260}); G.cam.shake=Math.max(G.cam.shake,8); }
@@ -1852,21 +1990,28 @@ async function fireShot(a,t,o){
   let res; if(o.guaranteed) res='hit'; else { const r=RNG()*100; res=r<info.full?'hit':r<info.full+info.graze?'graze':'miss'; }
   const hit=res!=='miss';
   const crit=res==='hit'&&RNG()*100<(o.guaranteed?info.crit*0.5:info.crit);
-  a.ammo=Math.max(0,a.ammo-(o.ammoCost||1)); faceTo(a,t.x,t.y);
+  // o.W fires a secondary (pistol or throw); its ammo is u.sAmmo (pistol clip) or u.sUses (throws left), named by o.ammoKey
+  const W=o.W||a.W, prim=!o.W, ak=o.ammoKey||'ammo';
+  a[ak]=Math.max(0,a[ak]-(o.ammoCost||1)); faceTo(a,t.x,t.y);
   if(a.isPlayer){ G.stats.shots++; if(hit) G.stats.hits++; if(res==='graze') G.stats.grazes++; if(hit&&info.elevAdv) G.stats.highHits++; if(hit&&o.reaction) G.stats.owHits++; }
-  const anim=shouldShow(a)||shouldShow(t); const kind=o.fxk||a.W.fx;
+  const anim=shouldShow(a)||shouldShow(t); const kind=o.fxk||W.fx;
   if(anim){ focusMid(a,t); if(o.reaction) floatText(a,'OVERWATCH',[127,232,255],18); else if(o.label) floatText(a,o.label,[255,190,80],18); await wait(o.reaction?260:480); if(!a.alive||!t.alive) return false; shotFX(a,t,hit,kind); await wait(FXDUR[kind]||150); }
   else if(G.player&&!G.fullVis&&viewers().some(v=>Math.hypot(a.x-v.x,a.y-v.y)<17)) ping(a.x,a.y);
-  makeNoise(a);
-  if(hit){ let d=rollDmg(a.W.dmg); if(crit) d+=a.W.critDmg; if(o.deadeye) d=Math.ceil(d*1.5); if(res==='graze') d=Math.max(1,Math.ceil(d/2)); applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how,pierce:!!a.W.pierce}); }
+  if(!W.silent) makeNoise(a);
+  if(hit){ let d=rollDmg(W.dmg)+(o.bonus||0)+(prim&&hasP(a,'r_point')&&info.d<=3.01?1:0); if(crit) d+=W.critDmg+(prim&&hasP(a,'s_vital')?1:0); if(o.deadeye) d=Math.ceil(d*1.5); if(res==='graze') d=Math.max(1,Math.ceil(d/2));
+    if(prim&&!o.reaction&&hasP(a,'g_holo')) t.holo={team:a.team,until:G.round+1};
+    applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how,pierce:!!W.pierce||(prim&&hasP(a,'g_shred'))}); }
   else if(anim) floatText(t,'MISSED',[200,210,220],20);
   if(anim) await wait(t.alive?650:1000);
   return hit;
 }
-const FXDUR={burst:330,pellet:140,beam:160,single:140,heavy:440};
+const FXDUR={burst:330,pellet:140,beam:160,single:140,heavy:440,throw:420};
 function shotFX(a,t,hit,kind){
   const m=muzzle(a), tp=chest(t); const col=mine(a)?[110,225,255]:[255,110,90];
   let end=tp; if(!hit){ const an=Math.random()*Math.PI*2; end=[tp[0]+Math.cos(an)*24+(tp[0]-m[0])*0.3,tp[1]+Math.sin(an)*14+(tp[1]-m[1])*0.3]; }
+  // thrown secondary: a spinning blade on a shallow arc, then a cut on impact
+  if(kind==='throw'){ const a0=chest(a); SFX.slash(); addFx({type:'knife',a:[a0[0],a0[1]-4],b:end,h:16+Math.hypot(end[0]-a0[0],end[1]-a0[1])*0.12,life:.34,axe:a.sid==='hatchet'});
+    later(330,()=>{ impact(end,hit,col); if(hit) addFx({type:'slash',x:end[0],y:end[1],rot:a.face>0?0.3:-0.3,col,life:.3}); }); return; }
   const n={burst:3,heavy:6}[kind]||1, gap=kind==='heavy'?60:85;
   SFX.shot(kind);
   for(let i=0;i<n;i++) later(i*gap,()=>{
@@ -1884,7 +2029,7 @@ async function moveUnit(u,path){
     const anim=shouldShow(u)||tileShown(nx,ny);
     faceTo(u,nx,ny);
     if(anim){ if(!(G.spec&&G.spec.follow)) focusOn(nx,ny); const diag=nx!==u.x&&ny!==u.y, climb=hi(nx,ny)!==hi(u.x,u.y); await new Promise(res=>G.tweens.push({u,fx:u.rx,fy:u.ry,tx:nx,ty:ny,fz:u.rz,tz:ez(nx,ny),t:0,dur:climb?0.32:diag?0.2:0.15,res})); }
-    placeUnit(u,nx,ny);
+    placeUnit(u,nx,ny); if(hasP(u,'r_slip')) u.slip=true;
     if(u.team===(G.player&&G.player.team)) computeVis();
     pickup(u);
     await triggerOverwatch(u);
@@ -1892,7 +2037,14 @@ async function moveUnit(u,path){
 }
 async function triggerOverwatch(m){
   for(const w of G.units){ if(!m.alive||m.downed||G.over) return; if(w===m||!standing(w)||!w.overwatch||w.ammo<=0||!isEnemy(w,m)) continue; if(!canSee(w,m)) continue;
-    w.overwatch=false; await fireShot(w,m,{reaction:true}); }
+    // Kill Zone (Sharpshooter perk): overwatch stays up for up to 3 shots, one per enemy
+    if(w.kz>0){ const key=m.id+':'+G.round; if(w.kzSeen===key) continue; w.kzSeen=key; w.kz--; if(w.kz<=0) w.overwatch=false; } else w.overwatch=false;
+    await fireShot(w,m,{reaction:true});
+    if(hasP(w,'p_guard')&&standing(w)&&standing(m)) await doZap(w,m,{dmg:2,label:'GUARDIAN'}); }
+  // Bladestorm (Ranger perk): an automatic strike on an enemy that moves next to you, once per enemy turn
+  for(const w of G.units){ if(!standing(m)||G.over) return; if(w===m||!standing(w)||!hasP(w,'r_storm')||!isEnemy(w,m)) continue;
+    if(!canMelee(w.x,w.y,m.x,m.y)||!canSee(w,m)) continue; const key=m.id+':'+G.round; if(w.bsSeen===key) continue; w.bsSeen=key;
+    await doMelee(w,m,meleeInfo(w,m,{acc:90,dmg:[3,5],crit:10,critDmg:2}),{label:'BLADESTORM',how:'bladestorm'}); }
 }
 function pickup(u){
   const i=G.crates.findIndex(q=>q.x===u.x&&q.y===u.y); if(i<0) return; const q=G.crates.splice(i,1)[0];
@@ -1909,16 +2061,24 @@ function pickup(u){
     if(u.perk==='pk_scav'){ u.shield+=2; if(msg.indexOf('SHIELD')<0) msg+='  +2 SHIELD'; else msg='+4 SHIELD'; }
     if(u.isPlayer) G.stats.crates++;
   }
-  u.ammo=u.W.clip;
+  u.ammo=u.W.clip; if(u.S&&u.S.clip) u.sAmmo=u.S.clip; if(q.drop&&u.S&&u.S.uses) u.sUses++;
   if(shouldShow(u)){ floatText(u,msg,[255,200,90],q.drop?18:20); const p=chest(u); for(let k=0;k<(q.drop?30:14);k++) part({x:p[0],y:p[1]+10,vx:frand(-40,40),vy:frand(-20,10),vz:frand(30,90),life:frand(.5,1),size:2,col:[255,200,90],type:'ember',grav:-20}); SFX.heal(); }
 }
-async function doReload(u){ u.ap-=1; u.ammo=u.W.clip; if(shouldShow(u)){ floatText(u,'RELOADED',[200,220,240],18); SFX.click(); await wait(500);} }
-async function doMedkit(u,util){ util.ch--; u.ap-=1; const amt=u.cls==='specialist'?UTILS.medkit.healSpec:UTILS.medkit.heal; const h=Math.min(amt,u.maxHp-u.hp); u.hp+=h;
-  if(shouldShow(u)){ focusOn(u.x,u.y); floatText(u,'+'+h+' HP',[93,255,154],22); const p=chest(u); for(let k=0;k<16;k++) part({x:p[0]+frand(-10,10),y:p[1]+12,vz:frand(30,80),vx:frand(-10,10),life:frand(.6,1.1),size:2,col:[93,255,154],type:'ember',grav:-10}); SFX.heal(); await wait(650); } }
-async function doZap(u,t){
+async function doReload(u){ u.ap-=1; u.ammo=u.W.clip; if(u.S&&u.S.clip) u.sAmmo=u.S.clip; if(shouldShow(u)){ floatText(u,'RELOADED',[200,220,240],18); SFX.click(); await wait(500);} }
+async function doMedkit(u,util){ util.ch--; u.ap-=1; const amt=u.cls==='specialist'?UTILS.medkit.healSpec:UTILS.medkit.heal; const h=Math.min(amt,u.maxHp-u.hp); u.hp+=h; const sh=hasP(u,'p_medic')?2:0; u.shield+=sh;
+  if(shouldShow(u)){ focusOn(u.x,u.y); floatText(u,'+'+h+' HP'+(sh?' +'+sh+' SHIELD':''),[93,255,154],22); const p=chest(u); for(let k=0;k<16;k++) part({x:p[0]+frand(-10,10),y:p[1]+12,vz:frand(30,80),vx:frand(-10,10),life:frand(.6,1.1),size:2,col:[93,255,154],type:'ember',grav:-10}); SFX.heal(); await wait(650); } }
+function droneAt(u){ const p=unitScreen(u); return [p[0]-u.face*13,p[1]-44]; }
+// o.dmg/o.label: a side zap (Guardian) instead of Combat Protocol; Overclock, Haywire and Chain Lightning only modify the real ability
+async function doZap(u,t,o){
+  o=o||{}; const main=!o.dmg, dmg=o.dmg||(3+(hasP(u,'p_over')?1:0));
   const anim=shouldShow(u)||shouldShow(t);
-  if(anim){ focusMid(u,t); floatText(u,'COMBAT PROTOCOL',[127,232,255],17); await wait(450); const p=unitScreen(u); const dr=[p[0]-u.face*13,p[1]-44]; bolt(dr,chest(t)); SFX.zap(); await wait(180); }
-  applyDamage(t,3,u,{pierce:true,anim,how:'drone'}); if(anim) await wait(t.alive?600:1000);
+  if(anim){ focusMid(u,t); floatText(u,o.label||'COMBAT PROTOCOL',[127,232,255],17); await wait(main?450:250); bolt(droneAt(u),chest(t)); SFX.zap(); await wait(180); }
+  applyDamage(t,dmg,u,{pierce:true,anim,how:'drone'});
+  if(main&&hasP(u,'p_hay')&&standing(t)){ t.disorient=Math.max(t.disorient,2); t.overwatch=false; if(anim) floatText(t,'DISORIENTED',[255,179,64],16); }
+  if(main&&hasP(u,'p_chain')&&standing(u)&&!G.over){ const dd=v=>Math.hypot(v.x-t.x,v.y-t.y);
+    const c2=visibleEnemies(u).filter(v=>v!==t&&!v.downed&&dd(v)<=4.01).sort((a,b)=>dd(a)-dd(b))[0];
+    if(c2){ const an2=anim||shouldShow(c2); if(an2){ bolt(chest(t),chest(c2)); SFX.zap(); await wait(200); } applyDamage(c2,dmg,u,{pierce:true,anim:an2,how:'chain lightning'}); } }
+  if(anim) await wait(t.alive?600:1000);
 }
 async function doSlash(u,t,path){
   if(path&&path.length>1) await moveUnit(u,path);
@@ -1926,9 +2086,115 @@ async function doSlash(u,t,path){
   const anim=shouldShow(u)||shouldShow(t); faceTo(u,t.x,t.y);
   if(anim){ focusMid(u,t); await wait(220); const p=chest(t); addFx({type:'slash',x:p[0],y:p[1],rot:u.face>0?0.3:-0.3,col:mine(u)?[120,230,255]:[255,120,100],life:.4}); SFX.slash(); for(let i=0;i<10;i++) part({x:p[0],y:p[1],vx:frand(-160,160),vy:frand(-120,60),life:frand(.2,.4),size:1.6,col:[255,255,255],type:'spark',grav:200}); await wait(140); }
   if(u.isPlayer) G.stats.shots++;
-  if(RNG()<0.95||t.downed){ if(u.isPlayer) G.stats.hits++; const crit=RNG()<0.2; applyDamage(t,ri(4,6)+(crit?2:0),u,{crit,anim,how:'blade'}); }
+  if(RNG()<0.95||t.downed){ if(u.isPlayer) G.stats.hits++; const crit=RNG()<0.2; applyDamage(t,ri(4,6)+(crit?2:0)+(hasP(u,'r_reaper')?2:0),u,{crit,anim,how:'blade'}); }
   else if(anim) floatText(t,'MISSED',[200,210,220],20);
   if(anim) await wait(t.alive?600:1000);
+}
+// Blade Strike, shared by the command path and the AI: ends the turn; Reaper resets the cooldown on a takedown
+async function doBlade(u,t,path){ const tk0=u.tk||0; u.ap=0; u.cd.slash=abilCd(u,'slash'); await doSlash(u,t,path);
+  if(hasP(u,'r_reaper')&&(u.tk||0)>tk0) u.cd.slash=0; afterAttack(u,tk0,false); }
+
+/* ---------- secondaries & melee ---------- */
+// adjacent and not cutting a full-cover corner (same rule as Blade Strike)
+function canMelee(ax,ay,tx,ty){ const dx=ax-tx, dy=ay-ty; if(Math.max(Math.abs(dx),Math.abs(dy))!==1) return false; return !(dx&&dy&&(isFull(ax,ty)||isFull(tx,ay))); }
+// melee hit: the weapon's base accuracy minus target defense; cover does not help at arm's length
+function meleeInfo(a,t,S){ const mods=[]; let hit=S.acc;
+  if(t.def){ hit-=t.def; mods.push(['defense',-t.def]); }
+  if(t.slip){ hit-=15; mods.push(['slippery',-15]); }
+  if(a.disorient>0){ hit-=20; mods.push(['disoriented',-20]); }
+  hit=clamp(hit,0,100); let crit=clamp(S.crit||0,0,100); if(t.downed){ hit=100; crit=0; }
+  const b=hasP(a,'r_reaper')?2:0;
+  return {hit,full:hit,graze:0,any:hit,crit,mods,cov:-1,dmg:[S.dmg[0]+b,S.dmg[1]+b],critDmg:S.critDmg||0,pierce:!!S.pierce,stun:!!S.stun,base:S.acc}; }
+async function doMelee(u,t,M,o){
+  o=o||{}; if(!standing(u)||!t.alive||G.over) return false;
+  const anim=shouldShow(u)||shouldShow(t); faceTo(u,t.x,t.y);
+  if(anim){ focusMid(u,t); if(o.label) floatText(u,o.label,[255,190,80],17); await wait(o.label?320:220); const p=chest(t); addFx({type:'slash',x:p[0],y:p[1],rot:u.face>0?0.3:-0.3,col:mine(u)?[120,230,255]:[255,120,100],life:.4}); SFX.slash(); for(let i=0;i<8;i++) part({x:p[0],y:p[1],vx:frand(-150,150),vy:frand(-110,50),life:frand(.2,.4),size:1.5,col:M.stun?[150,240,255]:[255,255,255],type:'spark',grav:200}); if(M.stun) bolt([p[0]-u.face*10,p[1]],p); await wait(140); }
+  if(u.isPlayer) G.stats.shots++;
+  const hit=t.downed||RNG()*100<M.hit;
+  if(hit){ if(u.isPlayer) G.stats.hits++; const crit=!t.downed&&RNG()*100<M.crit; applyDamage(t,ri(M.dmg[0],M.dmg[1])+(crit?M.critDmg:0),u,{crit,anim,how:o.how||'blade',pierce:M.pierce});
+    if(M.stun&&standing(t)){ t.disorient=Math.max(t.disorient,2); t.overwatch=false; if(anim) floatText(t,'DISORIENTED',[255,179,64],16); } }
+  else if(anim) floatText(t,'MISSED',[200,210,220],20);
+  if(anim) await wait(t.alive?600:1000);
+  return hit;
+}
+// what the secondary can do to each visible enemy right now: {t,mode:'melee'|'throw'|'pistol',path?}
+// free = Lightning Hands (no dash). A dash is limited by the weapon (+2 with Long Reach) and by the AP left.
+function secTargets(u,free){
+  const S=u.S, out=[]; if(!S) return out;
+  const vis=visibleEnemies(u);
+  if(S.type==='pistol'){ if(u.sAmmo>0) for(const t of vis) out.push({t,mode:'pistol'}); return out; }
+  const dash=!free&&S.dash?Math.min(S.dash+(hasP(u,'r_lunge')?2:0),u.mob*Math.max(1,u.ap)):0;
+  for(const s of slashTargets(u,dash)) if(s.path.length<=1||s.path.length-1<=dash) out.push({t:s.t,mode:'melee',path:s.path});
+  if(S.type==='thrown'&&u.sUses>0) for(const t of vis){ if(out.some(q=>q.t===t&&q.path.length<=1)) continue; const i=out.findIndex(q=>q.t===t); if(tdist(u,t)<=S.range+0.01){ if(i>=0) out.splice(i,1); out.push({t,mode:'throw'}); } }
+  return out;
+}
+function secInfo(u,t,mode){ const S=u.S; if(mode==='melee') return meleeInfo(u,t,S); return Object.assign(hitInfo(u,t,{W:S.W}),{dmg:S.dmg,critDmg:S.critDmg,pierce:!!S.pierce}); }
+// shared AP rule for attacks that behave like a primary shot: before moving 1 AP and only a move after; after moving it ends the turn
+function apShot(u){ if(u.moved||u.W.heavy) u.ap=0; else { u.ap=Math.max(0,u.ap-1); u.shot=true; } }
+// a secondary attack command {k:'sec',t,path?,free?}; the mode is re-derived here from the board so every client agrees
+async function secAttack(u,t,c){
+  const S=u.S; if(!S||!t||!t.alive||!isEnemy(u,t)||!canSee(u,t)) return;
+  const free=!!c.free; if(free&&(!hasP(u,'s_hands')||(u.cd.hands||0)>0)) return; if(!free&&u.ap<=0) return;
+  const lunge=hasP(u,'r_lunge')?2:0;
+  let path=!free&&S.dash&&Array.isArray(c.path)&&c.path.length>1?c.path:null;
+  if(path&&(path.length-1>S.dash+lunge||!Array.isArray(path[0])||path[0][0]!==u.x||path[0][1]!==u.y||path.some(p=>!Array.isArray(p)||!inMap(p[0],p[1])))) path=null;
+  const ex=path?path[path.length-1][0]:u.x, ey=path?path[path.length-1][1]:u.y;
+  const mode=S.type==='pistol'?(u.sAmmo>0?'pistol':null):canMelee(ex,ey,t.x,t.y)?'melee':(S.type==='thrown'&&u.sUses>0&&tdist(u,t)<=S.range+0.01)?'throw':null;
+  if(!mode) return; if(mode!=='melee') path=null;
+  const tk0=u.tk||0;
+  if(free) u.cd.hands=ACTS.hands.cd;
+  else if(mode==='pistol'&&hasP(u,'s_quick')) u.ap=Math.max(0,u.ap-1);
+  else if(path) u.ap=0; else apShot2(u);
+  if(path){ await moveUnit(u,path); u.moved=true; if(!standing(u)||!t.alive||G.over) return; if(!canMelee(u.x,u.y,t.x,t.y)) return; }
+  const lbl=free?'LIGHTNING HANDS':null;
+  if(mode==='melee') await doMelee(u,t,meleeInfo(u,t,S),{label:lbl,how:S.short.toLowerCase()});
+  else await fireShot(u,t,{W:S.W,ammoKey:mode==='pistol'?'sAmmo':'sUses',how:S.short.toLowerCase(),label:lbl});
+  afterAttack(u,tk0,false);
+}
+// secondaries never count as heavy: before moving 1 AP and then only a move, after moving the attack ends the turn
+function apShot2(u){ if(u.moved) u.ap=0; else { u.ap=Math.max(0,u.ap-1); u.shot=true; } }
+// takedown follow-ups: Implacable (Ranger) leaves a move, In the Zone (Sharpshooter, primary only) refunds 1 AP
+function afterAttack(u,tk0,prim){
+  if(!standing(u)||G.over||(u.tk||0)<=tk0) return;
+  if(hasP(u,'r_implac')&&!u.implUsed){ u.implUsed=true; u.ap=Math.max(u.ap,1); u.shot=true; if(shouldShow(u)) floatText(u,'IMPLACABLE',[93,255,154],17); }
+  else if(hasP(u,'s_zone')&&prim&&!u.zoneUsed){ u.zoneUsed=true; u.ap+=1; u.shot=false; if(shouldShow(u)) floatText(u,'IN THE ZONE +1 AP',[93,255,154],17); }
+}
+
+/* ---------- class perk actives ({k:'act',a,t?}) ---------- */
+async function doActive(u,c){
+  const k=c.a, A=ACTS[k]; if(!A||!hasP(u,A.perk)||(u.cd[k]||0)>0||u.ap<=0) return;
+  const t=c.t!=null?G.units.find(x=>x.id===c.t):null, tk0=u.tk||0, an=()=>shouldShow(u);
+  const foe=!!(t&&t.alive&&isEnemy(u,t)&&canSee(u,t));
+  if(k==='rapid'){ if(!foe||u.ammo<2||u.W.heavy) return; u.ap=0; u.cd[k]=A.cd;
+    await fireShot(u,t,{aimMod:-15,aimLbl:'rapid fire',label:'RAPID FIRE'});
+    if(standing(u)&&t.alive&&u.ammo>0&&!G.over) await fireShot(u,t,{aimMod:-15,aimLbl:'rapid fire'});
+    afterAttack(u,tk0,true); }
+  else if(k==='rupt'){ if(!foe||u.ammo<1) return; u.ap=0; u.cd[k]=A.cd; await fireShot(u,t,{guaranteed:true,bonus:3,label:'RUPTURE'}); if(t.alive){ t.rupt=1; if(shouldShow(t)) floatText(t,'RUPTURED',[255,120,90],16); } afterAttack(u,tk0,true); }
+  else if(k==='supp'){ if(!foe||u.ammo<1) return; apShot(u); u.cd[k]=A.cd; await doSuppress(u,t); }
+  else if(k==='cap'){ if(!foe||tdist(u,t)>12) return; apShot(u); u.cd[k]=A.cd; await doDischarge(u,t); afterAttack(u,tk0,false); }
+  else if(k==='aid'){ if(!t||!standing(t)||t.team!==u.team||(t!==u&&(!canSee(u,t)||tdist(u,t)>10))) return; u.ap-=1; u.cd[k]=A.cd; t.shield+=3;
+    if(shouldShow(u)||shouldShow(t)){ focusMid(u,t); floatText(u,'AID PROTOCOL',[127,232,255],17); await wait(300); bolt(droneAt(u),chest(t)); floatText(t,'+3 SHIELD',[111,208,255],20); const p=chest(t); addFx({type:'ring',x:p[0],y:p[1]+19,r:40,col:[111,208,255],life:.5}); SFX.heal(); await wait(550); } }
+  else if(k==='whirl'){ const adj=visibleEnemies(u).filter(v=>canMelee(u.x,u.y,v.x,v.y)); if(!adj.length) return; u.ap=0; u.cd[k]=A.cd;
+    if(an()){ floatText(u,'WHIRLWIND',[255,190,80],18); await wait(250); }
+    for(const v of adj){ if(!standing(u)||G.over) break; if(v.alive) await doMelee(u,v,meleeInfo(u,v,{acc:90,dmg:[4,6],crit:15,critDmg:2}),{how:'whirlwind'}); }
+    afterAttack(u,tk0,false); }
+  else if(k==='kz'){ if(u.ammo<1) return; u.ap=0; u.cd[k]=A.cd; u.overwatch=true; u.kz=3; u.kzSeen=null; if(an()){ floatText(u,'KILL ZONE',mine(u)?[127,232,255]:[255,140,120],20); await wait(400); } }
+  else if(k==='stim'){ u.ap+=1; u.cd[k]=A.cd; if(an()){ floatText(u,'COMBAT STIMS +1 AP',[93,255,154],18); const p=chest(u); addFx({type:'ring',x:p[0],y:p[1]+19,r:36,col:[93,255,154],life:.45}); SFX.heal(); await wait(450); } }
+}
+async function doSuppress(u,t){
+  u.ammo=Math.max(0,u.ammo-1); faceTo(u,t.x,t.y); const anim=shouldShow(u)||shouldShow(t);
+  if(anim){ focusMid(u,t); floatText(u,'SUPPRESSION',[255,190,80],18); await wait(420); shotFX(u,t,false,'heavy'); await wait(FXDUR.heavy); }
+  makeNoise(u);
+  if(t.alive&&!t.downed){ t.disorient=Math.max(t.disorient,1); t.overwatch=false; if(anim) floatText(t,'SUPPRESSED',[255,179,64],18); }
+  if(anim) await wait(600);
+}
+async function doDischarge(u,t){
+  const anim=shouldShow(u)||shouldShow(t), splash=G.units.filter(v=>v!==t&&v.alive&&isEnemy(u,v)&&Math.hypot(v.x-t.x,v.y-t.y)<=2.01);
+  if(anim){ focusMid(u,t); floatText(u,'DISCHARGE',[127,232,255],18); await wait(420); const p=chest(t); bolt(droneAt(u),p); for(const v of splash) if(shouldShow(v)) bolt(p,chest(v)); addFx({type:'ring',x:p[0],y:p[1]+19,r:2*TW,col:[120,240,255],life:.5}); SFX.zap(); G.cam.shake=Math.max(G.cam.shake,5); await wait(220); }
+  makeNoise(u);
+  applyDamage(t,3,u,{pierce:true,anim,how:'discharge'});
+  for(const v of splash) applyDamage(v,2,u,{pierce:true,anim:anim||shouldShow(v),how:'discharge'});
+  if(anim) await wait(800);
 }
 async function doThrow(u,util,tx,ty){
   const U=UTILS[util.id]; util.ch--; faceTo(u,tx,ty);
@@ -1942,7 +2208,7 @@ async function doThrow(u,util,tx,ty){
     if(!U.arc) for(let y=Math.floor(ty-U.radius);y<=Math.ceil(ty+U.radius);y++) for(let x=Math.floor(tx-U.radius);x<=Math.ceil(tx+U.radius);x++){ if(!inMap(x,y)||Math.hypot(x-tx,y-ty)>U.radius+0.01) continue; const o=G.grid[idx(x,y)]; if(!o) continue;
       if(o.t===2) G.grid[idx(x,y)]={t:1,kind:'rubble',h:0,v:RNG()}; else G.grid[idx(x,y)]=null; }
     G.decals.push({x:tx+.5,y:ty+.5,r:U.radius}); G.losCache.fill(0); buildGround(); computeVis();
-    for(const v of hitU){ if(u.isPlayer&&isEnemy(u,v)) G.stats.nadeHits++; applyDamage(v,rollDmg(U.dmg),u,{anim:anim||shouldShow(v),how:U.short.toLowerCase(),pierce:!!U.arc}); if(U.arc&&v.alive&&!v.downed){ v.disorient=2; v.overwatch=false; if(anim||shouldShow(v)) floatText(v,'DISORIENTED',[255,179,64],16); } }
+    for(const v of hitU){ if(u.isPlayer&&isEnemy(u,v)) G.stats.nadeHits++; applyDamage(v,rollDmg(U.dmg)+(hasP(u,'g_volat')?1:0),u,{anim:anim||shouldShow(v),how:U.short.toLowerCase(),pierce:!!U.arc}); if(U.arc&&v.alive&&!v.downed){ v.disorient=2; v.overwatch=false; if(anim||shouldShow(v)) floatText(v,'DISORIENTED',[255,179,64],16); } }
   } else if(util.id==='smoke'){
     G.smoke.push({x:tx,y:ty,r:U.radius,until:G.round+2});
     if(anim){ const p=tileC(tx,ty); for(let i=0;i<20;i++) part({x:p[0]+frand(-40,40),y:p[1]+frand(-18,18),z:frand(0,20),vx:frand(-20,20),vy:frand(-10,10),vz:frand(5,30),life:frand(1.2,2.2),size:frand(14,24),col:[210,215,225],type:'smoke'}); SFX.noise(.8,'lowpass',900,.4); }
@@ -2028,13 +2294,23 @@ async function unitTurn(u,mid){
     if(u.isPlayer){ turnTag('You’re down: '+u.bleed+' turn left','enemy'); updateHUD(); await wait(500); }
     return; }
   u.ap=2; u.overwatch=false; u.hunker=false; u.moved=false; u.shot=false;
+  u.slip=false; u.kz=0; u.implUsed=false; u.zoneUsed=false; // per-turn class perk state
   for(const k in u.cd) if(u.cd[k]>0) u.cd[k]--;
+  await turnStartPerks(u);
   if(outsideStorm(u.x,u.y)){ const d=G.SC.dmg[G.storm.stage]||1; if(d>0){ const show=shouldShow(u); if(show){ focusOn(u.x,u.y); await wait(300); floatText(u,'STORM',G.R.storm,18); }
       applyDamage(u,d,null,{pierce:true,anim:show}); if(show) await wait(700); if(!standing(u)||G.over||G.matchId!==mid) return; } }
   if(u.isPlayer&&!G.autoPlayer) await playerTurn(u); else if(u.net) await netTurn(u,mid); else await aiTurn(u,mid);
   if(u.disorient>0) u.disorient--;
 }
 
+// start-of-turn class perks: Juggernaut, Drone Shield, Restoration
+async function turnStartPerks(u){
+  if(hasP(u,'g_jugg')&&u.disorient>0) u.disorient=0;
+  let show=false;
+  if(hasP(u,'p_shield')&&u.shield<1){ u.shield=1; if(shouldShow(u)){ floatText(u,'DRONE SHIELD',[111,208,255],16); show=true; } }
+  if(hasP(u,'p_restore')) for(const m of G.units){ if(!standing(m)||m.team!==u.team||Math.hypot(m.x-u.x,m.y-u.y)>3.01||m.hp>=m.maxHp) continue; m.hp+=1; if(shouldShow(m)){ floatText(m,'+1 HP',[93,255,154],18); show=true; } }
+  if(show) await wait(450);
+}
 /* ================= player turn ================= */
 function playerTurn(u){
   return new Promise(res=>{ G.turnRes=res; G.mode='move'; G.pending=-1; G.pendingPath=null; G.busy=false; G.turnMax=PROF.settings.timer||(NET.on?45:0); G.turnLeft=G.turnMax; refreshReach(); focusOn(u.x,u.y); computeVis(); turnTag('Your turn','you'); buzz(15); updateHUD(); });
@@ -2050,8 +2326,9 @@ function afterAction(){
   G.mode='move'; G.pending=-1; G.pendingPath=null; refreshReach(); updateHUD();
 }
 function inputOpen(){ return G.scene==='game'&&!!G.turnRes&&!G.busy&&!G.paused&&!G.over; }
-function slashTargets(u){
-  const R=computeReach(u,u.mob*u.ap), out=[];
+// maxCost: how far the dash may go (default: Blade Strike, the whole move budget, +2 with Long Reach)
+function slashTargets(u,maxCost){
+  const R=computeReach(u,maxCost!=null?maxCost:u.mob*u.ap+(hasP(u,'r_lunge')?2:0)), out=[];
   for(const t of visibleEnemies(u)){ let best=null,bc=Infinity;
     for(const d of DIRS8){ const x=t.x+d[0],y=t.y+d[1]; if(!inMap(x,y)) continue; const i=idx(x,y); let c;
       if(x===u.x&&y===u.y) c=0; else { if(G.grid[i]||unitAt(x,y)) continue; c=R.dist[i]; }
@@ -2062,12 +2339,14 @@ function slashTargets(u){
 }
 function enterTarget(kind,pre){
   const u=G.player; let list;
-  G.slashPaths=null;
+  G.slashPaths=null; G.secMap=null;
   if(kind==='slash'){ const s=slashTargets(u); G.slashPaths=new Map(s.map(q=>[q.t,q.path])); list=s.map(q=>q.t); }
-  else if(kind==='zap') list=visibleEnemies(u).filter(t=>tdist(u,t)<=12);
+  else if(kind==='sec'||kind==='hands'){ const s=secTargets(u,kind==='hands'); G.secMap=new Map(s.map(q=>[q.t,q])); list=s.map(q=>q.t); }
+  else if(kind==='zap'||kind==='cap') list=visibleEnemies(u).filter(t=>tdist(u,t)<=12);
+  else if(kind==='aid') list=[u].concat(G.units.filter(m=>m!==u&&m.team===u.team&&standing(m)&&tdist(u,m)<=10&&canSee(u,m)));
   else list=visibleEnemies(u);
   if(!list.length){ hint('No targets in sight'); return; }
-  const score=t=>kind==='slash'||kind==='zap'||kind==='hail'?-t.hp:hitInfo(u,t,{deadeye:kind==='deadeye'}).any;
+  const score=t=>kind==='aid'?(t.hp+t.shield)/t.maxHp*-100:kind==='sec'||kind==='hands'?secInfo(u,t,G.secMap.get(t).mode).any:kind==='slash'||kind==='zap'||kind==='hail'||kind==='cap'||kind==='rupt'||kind==='supp'?-t.hp:hitInfo(u,t,{deadeye:kind==='deadeye',aimMod:kind==='rapid'?-15:0}).any;
   list.sort((a,b)=>score(b)-score(a));
   G.targets=list; G.tIdx=Math.max(0,list.indexOf(pre)); G.tKind=kind; G.mode='target'; G.pending=-1; G.pendingPath=null;
   focusMid(u,list[G.tIdx]); updateHUD();
@@ -2080,26 +2359,30 @@ async function execCmd(u,c){
   const byId=id=>G.units.find(x=>x.id===id);
   if(c.k==='move'){ if(!Array.isArray(c.path)) return; u.ap-=c.ap; await moveUnit(u,c.path); u.moved=true; if(u.shot) u.ap=0; }
   else if(c.k==='fire'){ const t=byId(c.t), k=c.kind; if(!t) return;
-    if(k==='zap'){ u.ap-=1; u.cd.zap=ABIL.zap.cd; await doZap(u,t); return; }
-    if(k==='slash'){ u.ap=0; u.cd.slash=ABIL.slash.cd; await doSlash(u,t,c.path); return; }
-    const o={}; if(k==='deadeye'){ o.deadeye=true; o.label='DEADEYE'; u.cd.deadeye=ABIL.deadeye.cd; } if(k==='hail'){ o.guaranteed=true; o.ammoCost=2; o.fxk='heavy'; o.label='HAIL OF BULLETS'; u.cd.hail=ABIL.hail.cd; }
+    if(k==='zap'){ u.ap-=1; u.cd.zap=abilCd(u,'zap'); await doZap(u,t); return; }
+    if(k==='slash'){ await doBlade(u,t,c.path); return; }
+    const o={}; if(k==='deadeye'){ o.deadeye=true; o.label='DEADEYE'; u.cd.deadeye=abilCd(u,'deadeye'); } if(k==='hail'){ o.guaranteed=true; o.ammoCost=2; o.fxk='heavy'; o.label='HAIL OF BULLETS'; u.cd.hail=abilCd(u,'hail'); if(hasP(u,'g_hail')) o.bonus=1; }
     // shooting before moving keeps 1 AP for a move (not another action); heavy weapons and shots after moving end the turn
     if(u.moved||u.W.heavy||k==='hail') u.ap=0; else { u.ap=Math.max(0,u.ap-1); u.shot=true; }
-    await fireShot(u,t,o); }
+    const tk0=u.tk||0; await fireShot(u,t,o); afterAttack(u,tk0,true); }
+  else if(c.k==='sec'){ await secAttack(u,byId(c.t),c); }   // secondary weapon: {k:'sec',t,path?,free?}
+  else if(c.k==='act'){ await doActive(u,c); }              // class perk active: {k:'act',a,t?}
   else if(c.k==='throw'){ const util=u.utils[c.i]; if(!util) return; const U=UTILS[util.id]; if(U.endTurn) u.ap=0; else u.ap-=1; await doThrow(u,util,c.x,c.y); }
   else if(c.k==='revive'){ const t=byId(c.t); if(t) await doRevive(u,t); }
   else if(c.k==='util'){ const util=u.utils[c.i]; if(!util||util.ch<=0) return;
     if(util.id==='shieldcell'){ util.ch--; u.ap-=1; u.shield+=3; if(shouldShow(u)){ floatText(u,'+3 SHIELD',[111,208,255],22); SFX.heal(); const p=chest(u); addFx({type:'ring',x:p[0],y:p[1]+19,r:40,col:[111,208,255],life:.5}); await wait(550); } }
     else if(util.id==='medkit') await doMedkit(u,util); }
   else if(c.k==='ow'){ u.overwatch=true; u.ap=0; if(shouldShow(u)) floatText(u,'OVERWATCH',mine(u)?[127,232,255]:[255,140,120],20); }
-  else if(c.k==='hunker'){ u.hunker=true; u.ap=0; if(shouldShow(u)) floatText(u,'HUNKER DOWN',[159,215,255],20); }
+  else if(c.k==='hunker'){ u.hunker=true; u.ap=0; if(hasP(u,'g_bulw')) u.shield+=2; if(shouldShow(u)) floatText(u,'HUNKER DOWN'+(hasP(u,'g_bulw')?' +2 SHIELD':''),[159,215,255],20); }
   else if(c.k==='reload') await doReload(u);
   else u.ap=0;
 }
 async function pFire(){
   if(!inputOpen()) return; const u=G.player, t=G.targets[G.tIdx], k=G.tKind; if(!t) return;
   G.busy=true; G.mode='idle'; updateHUD();
-  const c={k:'fire',kind:k,t:t.id}; if(k==='slash') c.path=G.slashPaths&&G.slashPaths.get(t);
+  let c={k:'fire',kind:k,t:t.id}; if(k==='slash') c.path=G.slashPaths&&G.slashPaths.get(t);
+  if(k==='sec'||k==='hands'){ const s=G.secMap&&G.secMap.get(t); c={k:'sec',t:t.id}; if(s&&s.path&&s.path.length>1) c.path=s.path; if(k==='hands') c.free=1; }
+  else if(ACTS[k]) c={k:'act',a:k,t:t.id};
   await playCmd(c);
 }
 async function pThrow(){
@@ -2117,7 +2400,8 @@ function onAction(id){
   if(id==='move'){ pMove(); return; }
   if(u.shot&&id!=='end'){ hint('After shooting you can only move'); return; }
   if(id==='revive'){ const t=adjDowned(u); if(!t) return; G.busy=true; G.mode='idle'; playCmd({k:'revive',t:t.id}); return; }
-  if(id==='shoot'||id==='slash'||id==='deadeye'||id==='hail'||id==='zap'){ enterTarget(id); return; }
+  if(id==='shoot'||id==='slash'||id==='deadeye'||id==='hail'||id==='zap'||id==='sec'){ enterTarget(id); return; }
+  if(ACTS[id]&&hasP(u,ACTS[id].perk)){ if(ACTS[id].tgt==='self'){ G.busy=true; G.mode='idle'; playCmd({k:'act',a:id}); } else enterTarget(id); return; }
   if(/^u\d$/.test(id)){ const util=u.utils[+id[1]]; if(!util||util.ch<=0) return;
     if(util.id==='shieldcell'||util.id==='medkit'){ G.busy=true; G.mode='idle'; playCmd({k:'util',i:+id[1]}); } else enterThrow(util); return; }
   if(id==='ow'||id==='hunker'||id==='end'){ G.busy=true; playCmd({k:id}); return; }
@@ -2137,10 +2421,22 @@ function actionList(){
     if((ab==='deadeye')&&(!vis.length||!u.ammo||sniperBlock)){ abOff=true; why=!vis.length?'No enemy in sight':!u.ammo?'Out of ammo':'Needs 2 AP'; }
     if(ab==='hail'&&(!vis.length||u.ammo<2)){ abOff=true; why=!vis.length?'No enemy in sight':'Needs 2 ammo'; } }
   A.push({id:ab,label:A2.short,sub:cd?cd+' turn'+(cd>1?'s':''):'Ready',icon:ab,off:abOff,why,abil:true});
+  // secondary weapon
+  const S=u.S; if(S){ const st=secTargets(u,false), sOut=S.type==='pistol'&&u.sAmmo<=0;
+    A.push({id:'sec',label:S.short,sub:S.type==='pistol'?u.sAmmo+'/'+S.clip:S.type==='thrown'?'×'+u.sUses:'Melee',icon:S.type==='pistol'?'pistol':S.type==='thrown'?'thrown':'melee',
+      off:!ap||sOut||!st.length,why:sOut?'Out of ammo: reload':!st.length?(S.type==='melee'?(S.dash?'No enemy within '+(S.dash+(hasP(u,'r_lunge')?2:0))+' tiles':'No enemy adjacent'):S.type==='thrown'?'No enemy in throwing range':'No enemies in sight'):''}); }
+  // class perk actives
+  for(const k in ACTS){ const X=ACTS[k]; if(!hasP(u,X.perk)) continue; const c2=u.cd[k]||0; let off=!ap||c2>0, w=c2>0?'Ready in '+c2+' turn'+(c2>1?'s':''):'';
+    if(!off){ const no=m=>{ off=true; w=m; };
+      if((k==='rapid'||k==='rupt'||k==='supp')&&!vis.length) no('No enemy in sight'); else if(k==='rapid'&&u.ammo<2) no('Needs 2 ammo'); else if((k==='rupt'||k==='supp'||k==='kz')&&!u.ammo) no('Out of ammo');
+      else if(k==='cap'&&!vis.some(t=>tdist(u,t)<=12)) no('No enemy in sight'); else if(k==='whirl'&&!vis.some(t=>canMelee(u.x,u.y,t.x,t.y))) no('No enemy adjacent');
+      else if(k==='hands'&&!secTargets(u,true).length) no('No target for your '+(S?S.short.toLowerCase():'secondary')); }
+    A.push({id:k,label:X.short,sub:c2?c2+' turn'+(c2>1?'s':''):'Ready',icon:'a_'+k,off,why:w,abil:true}); }
   u.utils.forEach((ut,i)=>A.push({id:'u'+i,label:UTILS[ut.id].short,sub:'×'+ut.ch,icon:ut.id,off:!ap||ut.ch<=0,why:ut.ch<=0?'None left':''}));
   A.push({id:'ow',label:'Overwatch',sub:'Ends turn',icon:'overwatch',off:!ap||!u.ammo,why:!u.ammo?'Out of ammo':''});
   A.push({id:'hunker',label:'Hunker',sub:'Ends turn',icon:'hunker',off:!ap});
-  A.push({id:'reload',label:'Reload',sub:'1 AP',icon:'reload',off:!ap||u.ammo>=u.W.clip,why:u.ammo>=u.W.clip?'Magazine full':''});
+  const full=u.ammo>=u.W.clip&&!(S&&S.clip&&u.sAmmo<S.clip);
+  A.push({id:'reload',label:'Reload',sub:'1 AP',icon:'reload',off:!ap||full,why:full?'Magazine full':''});
   if(u.shot) for(const a of A) if(a.id!=='move'){ a.off=true; a.why='After shooting you can only move'; }
   A.push({id:'end',label:'End turn',sub:'',icon:'end',off:false,end:true});
   return A;
@@ -2214,8 +2510,17 @@ function aiBestAttack(u){
       if(u.cls==='sharpshooter'&&!u.cd.deadeye&&!t.downed){ const h2=hitInfo(u,t,{deadeye:true}); res.push({k:'deadeye',t,hit:h2.any,score:(h2.full+h2.graze*0.5)*avg*1.5/10+(avg*1.5>=eff?h2.any/6:0)}); }
       if(u.cls==='grenadier'&&!u.cd.hail&&u.ammo>=2&&!t.downed) res.push({k:'hail',t,hit:100,score:avg*9+(avg>=eff?14:0)}); }
     if(u.cls==='specialist'&&!u.cd.zap&&tdist(u,t)<=12) res.push({k:'zap',t,hit:100,score:28+(eff<=3?20:0)});
+    // class perk actives aimed at an enemy
+    if(canFire&&!t.downed){
+      if(hasP(u,'r_rapid')&&!u.cd.rapid&&u.ammo>=2){ const h=hitInfo(u,t,{aimMod:-15}), e=(h.full+h.graze*0.5)/100; res.push({k:'rapid',t,hit:h.any,score:2*e*avg*10/1.1+(e>0.4&&2*avg>=eff?12:0)}); }
+      if(hasP(u,'g_rupt')&&!u.cd.rupt) res.push({k:'rupt',t,hit:100,score:(avg+3)*9+(avg+3>=eff?14:0)});
+      if(hasP(u,'g_supp')&&!u.cd.supp&&t.disorient<=0){ const h=hitInfo(u,t); res.push({k:'supp',t,hit:100,score:12+(t.overwatch?12:0)+(h.any<40?10:0)}); } }
+    if(hasP(u,'p_cap')&&!u.cd.cap&&!t.downed&&tdist(u,t)<=12){ const n=vis.filter(v=>v!==t&&Math.hypot(v.x-t.x,v.y-t.y)<=2.01).length; res.push({k:'cap',t,hit:100,score:26+(eff<=3?18:0)+n*16}); }
   }
-  if(u.cls==='ranger'&&!u.cd.slash) for(const s of slashTargets(u)){ const eff=s.t.hp+s.t.shield; res.push({k:'slash',t:s.t,path:s.path,hit:95,score:50+(5.5>=eff?15:0)-(s.path.length>1?4:0)}); }
+  // secondary weapon (melee, dash, throw or pistol); preferred when the primary cannot fire
+  for(const s of secTargets(u,false)){ const sc=secScore(u,s)+(canFire?0:4); res.push({k:'sec',t:s.t,path:s.path,hit:secInfo(u,s.t,s.mode).any,score:sc}); }
+  if(hasP(u,'r_whirl')&&!u.cd.whirl){ const adj=vis.filter(v=>canMelee(u.x,u.y,v.x,v.y)); if(adj.length) res.push({k:'whirl',t:adj[0],hit:90,score:adj.length*36+(adj.some(v=>v.hp+v.shield<=5)?12:0)}); }
+  if(u.cls==='ranger'&&!u.cd.slash) for(const s of slashTargets(u)){ const eff=s.t.hp+s.t.shield, rb=hasP(u,'r_reaper')?2:0; res.push({k:'slash',t:s.t,path:s.path,hit:95,score:50+(5.5+rb>=eff?15:0)-(s.path.length>1?4:0)}); }
   for(const util of u.utils){ const U=UTILS[util.id]; if(!U.dmg||util.ch<=0) continue; const rg=throwRange(u,U), ag=(U.dmg[0]+U.dmg[1])/2;
     for(const c of vis){ if(c.downed||tdist(u,c)>rg) continue;
       const inR=G.units.filter(v=>v.alive&&Math.hypot(v.x-c.x,v.y-c.y)<=U.radius+0.01&&(!isEnemy(u,v)||vis.includes(v))); if(inR.some(v=>!isEnemy(u,v))) continue;
@@ -2224,12 +2529,19 @@ function aiBestAttack(u){
   if(!res.length) return null;
   res.sort((a,b)=>b.score-a.score); return res[0];
 }
+// expected value of a secondary attack option from secTargets (same shape as the primary-shot score)
+function secScore(u,s){ const si=secInfo(u,s.t,s.mode), avg=(si.dmg[0]+si.dmg[1])/2, eff=s.t.downed?0.5:s.t.hp+s.t.shield;
+  return (si.full+si.graze*0.5)*(avg+si.crit/100*(si.critDmg||1))/10+(avg>=eff?si.any/6:0)-(s.path&&s.path.length>1?4:0); }
 async function aiExecute(u,a){
-  if(a.k==='shoot'){ u.ap=0; await fireShot(u,a.t,{}); }
-  else if(a.k==='deadeye'){ u.ap=0; u.cd.deadeye=ABIL.deadeye.cd; await fireShot(u,a.t,{deadeye:true,label:'DEADEYE'}); }
-  else if(a.k==='hail'){ u.ap=0; u.cd.hail=ABIL.hail.cd; await fireShot(u,a.t,{guaranteed:true,ammoCost:2,fxk:'heavy',label:'HAIL OF BULLETS'}); }
-  else if(a.k==='zap'){ u.ap-=1; u.cd.zap=ABIL.zap.cd; await doZap(u,a.t); }
-  else if(a.k==='slash'){ u.ap=0; u.cd.slash=ABIL.slash.cd; await doSlash(u,a.t,a.path); }
+  const tk0=u.tk||0;
+  if(a.k==='shoot'){ u.ap=0; await fireShot(u,a.t,{}); afterAttack(u,tk0,true); }
+  else if(a.k==='deadeye'){ u.ap=0; u.cd.deadeye=abilCd(u,'deadeye'); await fireShot(u,a.t,{deadeye:true,label:'DEADEYE'}); afterAttack(u,tk0,true); }
+  else if(a.k==='hail'){ u.ap=0; u.cd.hail=abilCd(u,'hail'); await fireShot(u,a.t,{guaranteed:true,ammoCost:2,fxk:'heavy',label:'HAIL OF BULLETS',bonus:hasP(u,'g_hail')?1:0}); afterAttack(u,tk0,true); }
+  else if(a.k==='zap'){ u.ap-=1; u.cd.zap=abilCd(u,'zap'); await doZap(u,a.t); }
+  else if(a.k==='slash'){ await doBlade(u,a.t,a.path); }
+  // secondaries and class perk actives run through the same code as player commands, so AI follows the same AP rules
+  else if(a.k==='sec'){ await execCmd(u,{k:'sec',t:a.t.id,path:a.path}); }
+  else if(ACTS[a.k]){ await execCmd(u,{k:'act',a:a.k,t:a.t?a.t.id:null}); }
   else if(a.k==='throw'){ const U=UTILS[a.util.id]; if(U.endTurn) u.ap=0; else u.ap-=1; await doThrow(u,a.util,a.x,a.y); }
 }
 async function aiRevive(u){
@@ -2249,26 +2561,39 @@ async function aiTurn(u,mid){
   if(shouldShow(u)){ turnTag(u.name+' · '+CLASSES[u.cls].name,mine(u)?'you':'enemy'); focusOn(u.x,u.y); await wait(380); } else { turnTag('Hostile activity','enemy'); await wait(70); }
   if(stale()) return;
   if(G.M.team>1&&await aiRevive(u)){ if(stale()||u.ap<=0) return; }
-  if(u.ammo===0&&u.ap>0) await doReload(u);
+  // empty primary: reload first, unless a sidearm shot is available (it costs 1 AP and still leaves a move)
+  if(u.ammo===0&&u.ap>0&&!(u.S&&u.S.type==='pistol'&&u.sAmmo>0&&visibleEnemies(u).length)) await doReload(u);
   const med=u.utils.find(x=>x.id==='medkit'&&x.ch>0);
   if(med&&u.hp<=u.maxHp*0.5&&u.ap>0&&!outsideStorm(u.x,u.y)) await doMedkit(u,med);
   if(stale()) return;
+  await aiPerkPre(u,stale); if(stale()||u.ap<=0) return;
   let atk=aiBestAttack(u);
   const stay=atk&&(atk.hit>=70||(u.W.heavy&&atk.k!=='zap')||atk.k==='throw'||atk.k==='hail')&&atk.score>=18&&!outsideStorm(u.x,u.y);
   if(u.ap>0&&!stay){ const mv=aiChooseMove(u); if(mv){ const ap=mv.cost<=u.mob+1e-6?1:2; if(ap<=u.ap){ u.ap-=ap; await moveUnit(u,mv.path); u.moved=true; } } }
   let guard=0;
-  while(!stale()&&u.ap>0&&guard++<3){
+  while(!stale()&&u.ap>0&&guard++<4){
+    // after an attack that leaves only a move (pre-move secondary/perk shot, Implacable): take cover with 1 AP
+    if(u.shot){ const mv=aiChooseMove(u,1); u.ap=0; if(mv&&mv.cost<=u.mob+1e-6){ await moveUnit(u,mv.path); u.moved=true; } break; }
     atk=aiBestAttack(u);
     if(atk&&atk.score>=8){ await aiExecute(u,atk); continue; }
     if(u.ammo===0){ await doReload(u); continue; }
     const vis=visibleEnemies(u);
     if(!vis.length&&!u.moved){ const mv=aiChooseMove(u,1); u.moved=true; if(mv&&mv.cost<=u.mob+1e-6){ u.ap-=1; await moveUnit(u,mv.path); continue; } }
-    if(vis.length&&u.hp<=u.maxHp*0.4&&vis.some(t=>coverFrom(u.x,u.y,t.x,t.y)>0)){ u.hunker=true; u.ap=0; if(shouldShow(u)){ floatText(u,'HUNKER DOWN',[159,215,255],18); await wait(500);} break; }
+    if(vis.length&&u.hp<=u.maxHp*0.4&&vis.some(t=>coverFrom(u.x,u.y,t.x,t.y)>0)){ u.hunker=true; u.ap=0; if(hasP(u,'g_bulw')) u.shield+=2; if(shouldShow(u)){ floatText(u,'HUNKER DOWN',[159,215,255],18); await wait(500);} break; }
+    if(u.ammo>0&&hasP(u,'s_kz')&&!u.cd.kz&&knownThreats(u).length){ await execCmd(u,{k:'act',a:'kz'}); break; }
     if(u.ammo>0){ u.overwatch=true; u.ap=0; if(shouldShow(u)){ floatText(u,'OVERWATCH',mine(u)?[127,232,255]:[255,140,120],18); await wait(500);} break; }
     u.ap=0;
   }
 }
 
+// free or cheap class-perk actions the AI takes before its main decision: Combat Stims, Aid Protocol, Lightning Hands
+async function aiPerkPre(u,stale){
+  if(hasP(u,'p_stim')&&!u.cd.stim&&u.ap>0&&visibleEnemies(u).length) await execCmd(u,{k:'act',a:'stim'});
+  if(stale()) return;
+  if(hasP(u,'p_aid')&&!u.cd.aid&&u.ap>0){ const tgt=u.hp<=u.maxHp*0.6&&u.shield<2?u:G.units.find(m=>m!==u&&m.team===u.team&&standing(m)&&m.hp<=m.maxHp*0.5&&m.shield<2&&tdist(u,m)<=10&&canSee(u,m)); if(tgt) await execCmd(u,{k:'act',a:'aid',t:tgt.id}); }
+  if(stale()) return;
+  if(hasP(u,'s_hands')&&!u.cd.hands&&u.ap>0){ let best=null,bs=8; for(const s of secTargets(u,true)){ const sc=secScore(u,s); if(sc>bs){ bs=sc; best=s; } } if(best) await execCmd(u,{k:'sec',t:best.t.id,free:1}); }
+}
 /* ================= end ================= */
 function endMatch(win){
   if(G.over) return; G.over=true; G.turnRes=null;
@@ -2307,6 +2632,21 @@ function turnTag(t,cls){ const el=$('#turnTag'); if(!t){ el.style.opacity=0; ret
 let bannerTimer=null;
 function banner(t,s,cls,ms){ const b=$('#banner'); $('#bt').textContent=t; $('#bs').textContent=s||''; $('#bs').style.display=s?'':'none'; b.className='on '+(cls||''); clearTimeout(bannerTimer); bannerTimer=setTimeout(()=>{ b.className=cls||''; },ms||1800); }
 ICON.revive=ICON.medkit; ICON.arc=ICON.flash; ICON.shieldcell=ICON.hunker;
+// secondaries and class perk actives
+Object.assign(ICON,{
+  melee:'<svg viewBox="0 0 24 24"><path d="M14 3l7 7-9 9-3-1-1-3zM8 15l-5 5M6 13l5 5"/></svg>',
+  thrown:'<svg viewBox="0 0 24 24"><path d="M4 20l9-9M13 11l3-7 4 4-7 3zM3 9h4M5 5h3M7 2h2"/></svg>',
+  pistol:'<svg viewBox="0 0 24 24"><path d="M3 8h15v4H9l-1 7H4l1-7H3zM18 9h3M12 12v2h-3"/></svg>',
+  a_rapid:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5M9 10l3 2-3 2M12 10l3 2-3 2"/></svg>',
+  a_whirl:'<svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 0 1 8 8M20 12l-3-1M12 20a8 8 0 0 1-8-8M4 12l3 1M6 6l3 3M18 18l-3-3"/><circle cx="12" cy="12" r="2"/></svg>',
+  a_kz:'<svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3"/></svg>',
+  a_hands:'<svg viewBox="0 0 24 24"><path d="M13 2L6 13h5l-1 9 8-12h-5zM3 6h3M2 10h3"/></svg>',
+  a_supp:'<svg viewBox="0 0 24 24"><path d="M3 6h12M3 12h15M3 18h12"/><path d="M19 4v4M19 16v4M21 6h-4M21 18h-4"/></svg>',
+  a_rupt:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4l-2 6 4 2-3 8"/></svg>',
+  a_aid:'<svg viewBox="0 0 24 24"><path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M12 9v6M9 12h6"/></svg>',
+  a_cap:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/></svg>',
+  a_stim:'<svg viewBox="0 0 24 24"><path d="M17 3l4 4M19 5l-9 9-3-3 9-9M10 14l-2 2M7 11l-2 2M5 15l-2 6 6-2"/></svg>'
+});
 function updateTop(){
   if(G.scene!=='game'||!G.storm) return;
   $('#hRound').textContent=Math.max(1,G.round); $('#hAlive').textContent=teamsLeft(); $('#hAliveL').textContent=G.M.team>1?'teams':'left';
@@ -2329,10 +2669,10 @@ function updateHUD(){
   if(G.playerDead){ up.classList.add('hidden'); $('#actions').classList.add('hidden'); $('#tgt').classList.add('hidden'); $('#spec').classList.toggle('hidden',!!G.over||!G.spec); fillSpec(); return; }
   up.classList.remove('hidden'); $('#spec').classList.add('hidden');
   up.classList.toggle('downed',!!u.downed);
-  $('#uName').textContent=u.name; $('#uCls').textContent=CLASSES[u.cls].name+' · '+WEAPONS[u.wid].short+(weaponMkU(u)>1?' Mk '+(weaponMkU(u)===2?'II':'III'):'');
+  $('#uName').textContent=u.name; $('#uCls').textContent=CLASSES[u.cls].name+' · '+WEAPONS[u.wid].short+(weaponMkU(u)>1?' Mk '+(weaponMkU(u)===2?'II':'III'):'')+(u.S?' + '+u.S.short:'');
   let ph=''; for(let i=0;i<u.maxHp;i++) ph+='<i class="pip'+(i<u.hp?' on':'')+'"></i>'; for(let i=0;i<u.shield;i++) ph+='<i class="pip sh"></i>'; $('#uHp').innerHTML=ph;
-  $('#uAp').innerHTML='<i class="'+(u.ap>=1?'on':'')+'"></i><i class="'+(u.ap>=2?'on':'')+'"></i>';
-  $('#uAmmo').textContent='Ammo '+u.ammo+'/'+u.W.clip;
+  $('#uAp').innerHTML='<i class="'+(u.ap>=1?'on':'')+'"></i><i class="'+(u.ap>=2?'on':'')+'"></i>'+(u.ap>=3?'<i class="on"></i>':'');
+  $('#uAmmo').textContent='Ammo '+u.ammo+'/'+u.W.clip+(u.S&&u.S.clip?' · '+u.S.short+' '+u.sAmmo+'/'+u.S.clip:u.S&&u.S.uses?' · '+u.S.short+' ×'+u.sUses:'');
   const sts=[]; if(u.downed) sts.push('Downed: '+u.bleed+' turn'+(u.bleed===1?'':'s')+' to bleed out'); if(u.overwatch) sts.push('Overwatch'); if(u.hunker) sts.push('Hunkered'); if(u.disorient>0) sts.push('Disoriented'); if(hi(u.x,u.y)) sts.push('High ground'); if(inSmoke(u.x,u.y)) sts.push('In smoke'); if(outsideStorm(u.x,u.y)) sts.push('In storm'); $('#uSt').textContent=sts.join(' · ');
   const al=$('#uAlly'), pt=G.M.team>1?G.units.find(m=>m!==u&&m.team===u.team):null;
   if(pt){ al.classList.remove('hidden'); al.classList.toggle('down',!standing(pt)); al.textContent=!pt.alive?pt.name+' is out':pt.downed?pt.name+' is down: get adjacent to revive':pt.name+' '+pt.hp+'/'+pt.maxHp+' HP'+(pt.shield?' +'+pt.shield:''); } else al.classList.add('hidden');
@@ -2349,16 +2689,29 @@ function weaponMkU(u){ return u.mk||1; }
 function fillTargetPanel(){
   const u=G.player, t=G.targets[G.tIdx], k=G.tKind; if(!t) return;
   $('#tName').textContent=t.name; $('#tSub').textContent=CLASSES[t.cls].name+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(u,t).toFixed(1)+' tiles'+(hi(t.x,t.y)?' · high ground':'');
-  let hit,crit,dmg,cov,mods=[],gr=0,full=0;
-  if(k==='zap'){ hit=100; crit=0; dmg='3'; cov=-1; }
-  else if(k==='slash'){ hit=95; crit=20; dmg='4–6'; cov=-1; }
-  else { const h=hitInfo(u,t,{deadeye:k==='deadeye'}); hit=k==='hail'?100:h.any; full=k==='hail'?100:h.full; gr=k==='hail'?0:h.graze; crit=k==='hail'?Math.round(h.crit/2):h.crit; cov=h.over?-2:h.cov; mods=h.mods; let d0=u.W.dmg[0],d1=u.W.dmg[1]; if(k==='deadeye'){ d0=Math.ceil(d0*1.5); d1=Math.ceil((d1+u.W.critDmg)*1.5); dmg=d0+'–'+d1; } else dmg=d0+'–'+(d1)+(crit?' (crit +'+u.W.critDmg+')':''); }
-  $('#tHit').textContent=hit+'%'; $('#tHitL').textContent=k==='shoot'?'chance to hit':(ABIL[k]?ABIL[k].name:'');
+  let hit,crit,dmg,cov,mods=[],gr=0,full=0,lbl=null,note=null,aimTxt='Aim '+u.aim+' ';
+  const rb=hasP(u,'r_reaper')?2:0, zd=3+(hasP(u,'p_over')?1:0);
+  if(k==='zap'){ hit=100; crit=0; dmg=String(zd)+(hasP(u,'p_chain')?' (+ chain)':''); cov=-1; }
+  else if(k==='slash'){ hit=95; crit=20; dmg=(4+rb)+'–'+(6+rb); cov=-1; }
+  else if(k==='sec'||k==='hands'){ const q=G.secMap&&G.secMap.get(t), md=q?q.mode:'melee', si=secInfo(u,t,md), S=u.S;
+    hit=si.any; full=si.full; gr=si.graze; crit=si.crit; cov=md==='melee'?-1:si.over?-2:si.cov; mods=si.mods; dmg=si.dmg[0]+'–'+si.dmg[1]+(crit&&si.critDmg?' (crit +'+si.critDmg+')':'');
+    if(md==='melee'){ aimTxt=S.name+' '+(si.base!=null?si.base:'')+' '; gr=0; }
+    lbl=(k==='hands'?'Lightning Hands · ':'')+(md==='melee'?(q&&q.path&&q.path.length>1?'dash and strike':'melee strike'):md==='throw'?'throw ('+u.sUses+' left)':S.short+' '+u.sAmmo+'/'+S.clip);
+    note=(md==='melee'?'Melee ignores cover. ':'')+(k==='hands'?'Costs no AP and keeps your turn going.':(md==='pistol'&&hasP(u,'s_quick'))?'Quickdraw: costs 1 AP, keeps your turn going.':(q&&q.path&&q.path.length>1)||u.moved?'Ends your turn.':'Costs 1 AP; afterwards you can only move.'); }
+  else if(k==='aid'){ hit=100; crit=0; dmg='+3 shield'; cov=-1; lbl='Aid Protocol'; }
+  else if(k==='cap'){ hit=100; crit=0; dmg='3 (+2 within 2 tiles)'; cov=-1; }
+  else if(k==='supp'){ hit=100; crit=0; dmg='none, −20 aim'; cov=-1; }
+  else if(k==='rupt'){ const d0=u.W.dmg[0]+3,d1=u.W.dmg[1]+3; hit=100; crit=Math.round(hitInfo(u,t).crit/2); dmg=d0+'–'+d1; cov=-1; }
+  else { const h=hitInfo(u,t,{deadeye:k==='deadeye',aimMod:k==='rapid'?-15:0,aimLbl:'rapid fire'}); hit=k==='hail'?100:h.any; full=k==='hail'?100:h.full; gr=k==='hail'?0:h.graze; crit=k==='hail'?Math.round(h.crit/2):h.crit; cov=h.over?-2:h.cov; mods=h.mods; let d0=u.W.dmg[0],d1=u.W.dmg[1]; if(k==='deadeye'){ d0=Math.ceil(d0*1.5); d1=Math.ceil((d1+u.W.critDmg)*1.5); dmg=d0+'–'+d1; } else dmg=d0+'–'+(d1)+(crit?' (crit +'+u.W.critDmg+')':''); }
+  if(k==='rapid') dmg+=' ×2';
+  $('#tHit').textContent=k==='aid'?'+3':hit+'%'; $('#tHitL').textContent=lbl||(k==='shoot'?'chance to hit':ABIL[k]?ABIL[k].name:ACTS[k]?ACTS[k].name:'');
   const covTxt=t.downed?'<span style="color:#5dff9a">Downed: guaranteed</span>':cov===-1?'':cov===-2?'<span style="color:#5dff9a">Shooting over cover</span>':cov===2?'<span class="warn">Full cover</span>':cov===1?'<span class="warn">Half cover</span>':'<span style="color:#5dff9a">Flanked</span>';
   $('#tRow').innerHTML=(gr?'<span>Full '+full+'% · Graze '+gr+'%</span>':'')+'<span>Crit '+crit+'%</span><span>Damage '+dmg+'</span>'+covTxt+(t.armor?'<span>Armor 1</span>':'');
-  $('#tMods').textContent=mods.length?('Aim '+u.aim+' '+mods.map(m=>(m[1]>0?'+':'')+m[1]+' '+m[0]).join(', ')+'. Grazes deal half damage.'):(ABIL[k]?ABIL[k].desc:'');
-  $('#tChips').innerHTML=G.targets.length>1?G.targets.map((q,i)=>'<button class="tchip'+(i===G.tIdx?' sel':'')+'" data-ti="'+i+'">'+q.name+' '+(k==='shoot'||k==='deadeye'?hitInfo(u,q,{deadeye:k==='deadeye'}).any+'%':'')+'</button>').join(''):'';
-  const fb=$('#tFire'); fb.textContent=k==='shoot'?'Fire':k==='slash'?'Strike':k==='zap'?'Zap':ABIL[k].short; fb.classList.remove('off');
+  $('#tMods').textContent=(mods.length?(aimTxt+mods.map(m=>(m[1]>0?'+':'')+m[1]+' '+m[0]).join(', ')+'.'+(gr?' Grazes deal half damage.':'')):(ABIL[k]?ABIL[k].desc:ACTS[k]?ACTS[k].desc:''))+(note?' '+note:'');
+  const chipHit=q=>k==='shoot'||k==='deadeye'||k==='rapid'?hitInfo(u,q,{deadeye:k==='deadeye',aimMod:k==='rapid'?-15:0}).any+'%':(k==='sec'||k==='hands')&&G.secMap&&G.secMap.get(q)?secInfo(u,q,G.secMap.get(q).mode).any+'%':'';
+  $('#tChips').innerHTML=G.targets.length>1?G.targets.map((q,i)=>'<button class="tchip'+(i===G.tIdx?' sel':'')+'" data-ti="'+i+'">'+(q===u?'You':q.name)+' '+chipHit(q)+'</button>').join(''):'';
+  const q0=(k==='sec'||k==='hands')&&G.secMap&&G.secMap.get(t);
+  const fb=$('#tFire'); fb.textContent=k==='shoot'?'Fire':k==='slash'?'Strike':k==='zap'?'Zap':q0?(q0.mode==='throw'?'Throw':q0.mode==='pistol'?'Fire':'Strike'):ABIL[k]?ABIL[k].short:ACTS[k]?ACTS[k].short:'Go'; fb.classList.remove('off');
 }
 function fillThrowPanel(){
   const u=G.player, util=G.throwUtil, U=UTILS[util.id];
@@ -2461,6 +2814,9 @@ PERKS.pk_aim.desc='+'+PERKS.pk_aim.aim+' aim on every shot.'; PERKS.pk_mob.desc=
 /* ================= progression ================= */
 // w_<weapon> / a_<armor>: gear that is locked until that level. Gear without one is starter gear (level 1).
 const UNLOCKS={2:['u_shieldcell','w_carbine'],3:['mk2_rifle','mk2_shotgun','mk2_smg'],4:['u_arc','pk_scav','a_ghillie'],5:['mk2_sniper','mk2_dmr','mk2_cannon','w_slug'],6:['ar_light','ar_medium','ar_heavy','pk_aim','mk2_carbine'],7:['pk_plate','w_volt','a_stalker'],8:['mk3_rifle','mk3_shotgun','mk3_smg','ar_ghillie'],9:['pk_mob','w_minigun','mk2_slug'],10:['mk3_sniper','mk3_dmr','mk3_cannon','pouch','a_bastion'],11:['mk3_carbine','mk2_volt','ar_stalker'],12:['pk_bounty','w_gauss','mk2_minigun'],13:['mk3_slug','ar_bastion'],14:['mk2_gauss','mk3_minigun','mk3_volt'],15:['mk3_gauss']};
+// s_<secondary>: secondary weapons beyond the starters; ct1..ct5: class perk tiers (levels 3, 6, 9, 12, 15)
+[[2,'s_tknife'],[3,'s_silencer'],[4,'s_machete'],[5,'s_hatchet'],[6,'s_baton'],[7,'s_magnum'],[8,'s_machpistol'],[9,'s_axe'],[11,'s_katana']].forEach(e=>UNLOCKS[e[0]].push(e[1]));
+CP_LVL.forEach((l,i)=>UNLOCKS[l].push('ct'+(i+1)));
 const UNLOCK_LVL={}; for(const l in UNLOCKS) for(const id of UNLOCKS[l]) UNLOCK_LVL[id]=+l;
 function unlockName(id){
   if(id.startsWith('mk2_')) return WEAPONS[id.slice(4)].name+' Mk II';
@@ -2470,6 +2826,8 @@ function unlockName(id){
   if(id.startsWith('w_')) return WEAPONS[id.slice(2)].name;
   if(id.startsWith('a_')) return ARMORS[id.slice(2)].name;
   if(id==='pouch') return 'Third utility slot';
+  if(id.startsWith('s_')&&SECONDARIES[id.slice(2)]) return SECONDARIES[id.slice(2)].name;
+  if(/^ct[1-5]$/.test(id)){ const i=+id[2]-1, cls=(LO&&LO.cls)||'ranger', T=CPERKS[cls][i]; return 'Class perk tier '+(i+1)+' ('+CLASSES[cls].name+': '+T[0].name+' or '+T[1].name+')'; }
   if(PERKS[id]) return PERKS[id].name+' perk';
   return id;
 }
@@ -2485,6 +2843,7 @@ function lvlOwn(id,lv){ return UNLOCK_LVL[id]!=null&&lv>=UNLOCK_LVL[id]; }
 function gearLvl(id){ return UNLOCK_LVL[id]||1; }
 function wOwned(k,lv){ const id='w_'+k; return UNLOCK_LVL[id]==null||(lv!=null?lvlOwn(id,lv):own(id)); }
 function aOwned(k,lv){ const id='a_'+k; return UNLOCK_LVL[id]==null||(lv!=null?lvlOwn(id,lv):own(id)); }
+function sOwned(k,lv){ const id='s_'+k; return UNLOCK_LVL[id]==null||(lv!=null?lvlOwn(id,lv):own(id)); }
 const MIN_MOB=4;
 function mobOf(cls,ar,wp,perk){ return Math.max(MIN_MOB,CLASSES[cls].mob+ARMORS[ar].mob+(WEAPONS[wp].mob||0)+((PERKS[perk]&&PERKS[perk].mob)||0)); }
 function aiLevel(){ return Math.max(1,level()+ri(-2,1)); }
@@ -2616,13 +2975,13 @@ function refreshMenu(){
   const li=lvlInfo(); $('#mLvlN').textContent=li.l; $('#mName').textContent=LO.name; $('#mXp').style.width=(li.cur/li.need*100)+'%'; $('#mXpT').textContent=li.cur+' / '+li.need+' XP';
   $('#mCr').textContent=PROF.credits; $('#mSh').textContent=PROF.shards;
   $('#opName').textContent=LO.name; const Cl=CLASSES[LO.cls], mk=weaponMk(LO.weapon);
-  $('#opSub').innerHTML=Cl.name+' with '+WEAPONS[LO.weapon].name+(mk>1?' Mk '+(mk===2?'II':'III'):'')+'<br>'+ARMORS[LO.armor].name+', '+LO.utils.map(u=>UTILS[u].short).join(' + ')+(LO.perk?', '+PERKS[LO.perk].name:'');
+  $('#opSub').innerHTML=Cl.name+' with '+WEAPONS[LO.weapon].name+(mk>1?' Mk '+(mk===2?'II':'III'):'')+' + '+SECONDARIES[LO.sec].name+'<br>'+ARMORS[LO.armor].name+', '+LO.utils.map(u=>UTILS[u].short).join(' + ')+(LO.perk?', '+PERKS[LO.perk].name:'');
   $('#modes').innerHTML=Object.values(MODES).map(m=>'<button class="mode'+(PROF.mode===m.key?' sel':'')+'" data-mode="'+m.key+'">'+m.name+'<small>'+m.short+'</small></button>').join('');
   $('#modeDesc').textContent=MODES[PROF.mode].desc;
   drawOpCard();
 }
 $('#modes').addEventListener('click',e=>{ const b=e.target.closest('[data-mode]'); if(!b) return; PROF.mode=b.dataset.mode; saveProf(); SFX.click(); buzz(6); refreshMenu(); });
-function drawOpCard(){ const c=$('#opc').getContext('2d'); c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,128,152); const g=c.createRadialGradient(64,120,4,64,120,70); g.addColorStop(0,'rgba(63,210,255,.35)'); g.addColorStop(1,'rgba(63,210,255,0)'); c.fillStyle=g; c.fillRect(0,0,128,152); c.save(); c.translate(60,134); c.scale(3,3); drawSoldier(c,{x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,color:visorCol(),face:1,time:0,ph:0,skin:PROF.equip.skin,finish:PROF.equip.finish}); c.restore(); }
+function drawOpCard(){ const c=$('#opc').getContext('2d'); c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,128,152); const g=c.createRadialGradient(64,120,4,64,120,70); g.addColorStop(0,'rgba(63,210,255,.35)'); g.addColorStop(1,'rgba(63,210,255,0)'); c.fillStyle=g; c.fillRect(0,0,128,152); c.save(); c.translate(60,134); c.scale(3,3); drawSoldier(c,{x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:visorCol(),face:1,time:0,ph:0,skin:PROF.equip.skin,finish:PROF.equip.finish}); c.restore(); }
 function startMatch(){
   if(NET.on){ if(!confirm('Leave the online room and play offline?')) return; netLeave(); }
   SFX.init(); applySettings(); LO=sanitize(LO); saveLO(); for(const m of META) show('#'+m,false); show('#nav',false); show('#end',false); show('#hud',true); $('#feed').innerHTML=''; closeEmotes();
@@ -2634,7 +2993,7 @@ function startMatch(){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=2, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=3, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 // matchmaking defaults to the free public PeerJS server; set window.STORMFALL_PEER={host,port,path,secure} before this script to use your own
 const peerOpts=()=>Object.assign({debug:0},window.STORMFALL_PEER||{});
 function peerReady(){
@@ -2643,13 +3002,17 @@ function peerReady(){
   return load('vendor/peerjs.min.js').catch(()=>load('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'))
     .then(()=>{ if(!window.Peer) throw new Error('missing'); }).catch(()=>{ throw new Error('Could not load the networking library. Check your connection.'); });
 }
-function mySpec(){ LO=sanitize(LO); const o=[]; for(const id of ['mk2_'+LO.weapon,'mk3_'+LO.weapon,'ar_'+LO.armor,'w_'+LO.weapon,'a_'+LO.armor,LO.perk]) if(id&&own(id)) o.push(id);
-  return {name:LO.name,lo:{cls:LO.cls,weapon:LO.weapon,armor:LO.armor,utils:LO.utils.slice(),perk:LO.perk},own:o,color:visorCol(),skin:PROF.equip.skin,finish:PROF.equip.finish,trail:PROF.equip.trail,lv:level()}; }
+function mySpec(){ LO=sanitize(LO); const o=[]; for(const id of ['mk2_'+LO.weapon,'mk3_'+LO.weapon,'ar_'+LO.armor,'w_'+LO.weapon,'a_'+LO.armor,LO.perk,'s_'+LO.sec,'ct1','ct2','ct3','ct4','ct5']) if(id&&own(id)) o.push(id);
+  return {name:LO.name,lo:{cls:LO.cls,weapon:LO.weapon,armor:LO.armor,utils:LO.utils.slice(),perk:LO.perk,sec:LO.sec,tree:LO.tree[LO.cls].slice()},own:o,color:visorCol(),skin:PROF.equip.skin,finish:PROF.equip.finish,trail:PROF.equip.trail,lv:level()}; }
 function cleanSpec(sp,pid){ sp=sp&&typeof sp==='object'?sp:{}; const lo=sp.lo&&typeof sp.lo==='object'?sp.lo:{}; const cls=CLASSES[lo.cls]?lo.cls:'ranger', Cl=CLASSES[cls];
   const utils=(Array.isArray(lo.utils)?lo.utils:[]).filter((u,i,a)=>Cl.utils.includes(u)&&a.indexOf(u)===i).slice(0,3); if(!utils.length) utils.push(Cl.utils[0]);
-  const own=(Array.isArray(sp.own)?sp.own:[]).filter(x=>typeof x==='string').slice(0,8), lv=clamp(sp.lv|0,1,40), gear=id=>UNLOCK_LVL[id]==null||lv>=UNLOCK_LVL[id]||own.includes(id);
+  const lv=clamp(sp.lv|0,1,40);
+  // perk tiers (ct1..ct5) and secondaries (s_*) must match the claimed level; other ids keep the old rule (level or owned)
+  const own=(Array.isArray(sp.own)?sp.own:[]).filter(x=>typeof x==='string'&&(!/^(ct\d|s_\w+)$/.test(x)||lv>=(UNLOCK_LVL[x]||99))).slice(0,16), gear=id=>UNLOCK_LVL[id]==null||lv>=UNLOCK_LVL[id]||own.includes(id);
+  const tree=[0,1,2,3,4].map(i=>Array.isArray(lo.tree)&&lo.tree[i]===1?1:0);
   return {pid,name:String(sp.name||'GUEST').replace(/[^\w \-]/g,'').slice(0,12).toUpperCase()||'GUEST',
-    lo:{cls,weapon:Cl.weapons.includes(lo.weapon)&&gear('w_'+lo.weapon)?lo.weapon:Cl.weapons[0],armor:Cl.armors.includes(lo.armor)&&gear('a_'+lo.armor)?lo.armor:Cl.armors[0],utils,perk:PERKS[lo.perk]?lo.perk:null},
+    lo:{cls,weapon:Cl.weapons.includes(lo.weapon)&&gear('w_'+lo.weapon)?lo.weapon:Cl.weapons[0],armor:Cl.armors.includes(lo.armor)&&gear('a_'+lo.armor)?lo.armor:Cl.armors[0],utils,perk:PERKS[lo.perk]?lo.perk:null,
+      sec:Cl.secs.includes(lo.sec)&&gear('s_'+lo.sec)?lo.sec:Cl.secs[0],tree},
     own,
     color:/^#[0-9a-f]{6}$/i.test(sp.color)?sp.color:'#eef4fa',skin:String(sp.skin||'default'),finish:String(sp.finish||'default'),trail:String(sp.trail||'default'),lv}; }
 
@@ -2844,17 +3207,39 @@ function renderLoadout(){
   $('#utPick').textContent='pick '+utilSlots()+(own('pouch')?'':' · third slot at level '+UNLOCK_LVL.pouch);
   $('#utRow').innerHTML=Cl.utils.map(k=>{ const u=UTILS[k], ok=utilOwned(k); const ch=u.charges+((draft.cls==='grenadier'&&u.dmg)?1:0)+((draft.cls==='specialist'&&k==='medkit')?1:0); return '<button class="card'+(draft.utils.includes(k)?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-ut="'+k+'"':'data-lock="1"')+'><div class="t">'+u.name+' ×'+ch+'</div><div class="d">'+u.desc+'</div>'+(ok?'':'<div class="lk">Unlocks at level '+UNLOCK_LVL['u_'+k]+'</div>')+'</button>'; }).join('');
   $('#pkRow').innerHTML='<button class="card'+(!draft.perk?' sel':'')+'" data-pk=""><div class="t">No perk</div><div class="d">Run without a perk.</div></button>'+Object.keys(PERKS).map(k=>{ const ok=own(k); return '<button class="card'+(draft.perk===k?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-pk="'+k+'"':'data-lock="1"')+'><div class="t">'+PERKS[k].name+'</div><div class="d">'+PERKS[k].desc+'</div>'+(ok?'':'<div class="lk">Unlocks at level '+UNLOCK_LVL[k]+'</div>')+'</button>'; }).join('');
-  const W=effWeapon(draft.weapon),A=ARMORS[draft.armor],pk=draft.perk;
-  const stats=[['Health',Cl.hp+A.hp+(own('ar_'+draft.armor)?1:0)],['Aim',aimNow],['Mobility',mobOf(draft.cls,draft.armor,draft.weapon,pk)],['Defense',A.def],['Sight',9+Cl.sight+(A.sight||0)],['Armor',A.armor]];
+  // secondary cards: stats and range text are generated from the same data hitInfo/meleeInfo use
+  $('#secRow').innerHTML=Cl.secs.map(k=>{ const S=SECONDARIES[k], ok=sOwned(k);
+    return '<button class="card'+(k===draft.sec?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-sec="'+k+'"':'data-lock="'+UNLOCK_LVL['s_'+k]+'"')+'><div class="t">'+S.name+gearTag('s_'+k,ok)+'</div><div class="d">'+secDesc(S)+'<br>'+S.desc+'</div>'+bars(secBars(S,aimNow),true)
+      +(ok?'':'<div class="lk">Unlocks at level '+UNLOCK_LVL['s_'+k]+'</div>')+'</button>'; }).join('');
+  // class perk tree: 5 tiers, two options each; locked tiers show their level
+  const tr=draft.tree&&draft.tree[draft.cls]||[0,0,0,0,0], nOwn=CP_LVL.filter((l,i)=>own('ct'+(i+1))).length;
+  $('#cpSub').textContent=nOwn?nOwn+' of 5 tiers unlocked · one of two per tier':'first tier at level '+CP_LVL[0];
+  $('#cpRow').innerHTML=CPERKS[draft.cls].map((T,i)=>{ const ok=own('ct'+(i+1));
+    return '<div class="tier'+(ok?'':' lockt')+'"><div class="tl"><small>LV</small>'+CP_LVL[i]+'<small>'+(ok?'OPEN':'LOCKED')+'</small></div>'+T.map((p,j)=>'<button class="card'+(tr[i]===j?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-cp="'+i+':'+j+'"':'data-lock="'+CP_LVL[i]+'"')+'><div class="t">'+p.name+'</div>'+(p.act?'<span class="ptag">Active · cd '+ACTS[p.act].cd+'</span>':'<span class="ptag" style="background:rgba(93,255,154,.1);color:var(--ok)">Passive</span>')+'<div class="d">'+cap1(p.desc.replace(/^Active: /,''))+'</div></button>').join('')+'</div>'; }).join('');
+  const W=effWeapon(draft.weapon),A=ARMORS[draft.armor],pk=draft.perk, cps=cpList(draft.cls,tr,own);
+  const stats=[['Health',Cl.hp+A.hp+(own('ar_'+draft.armor)?1:0)+(cps.includes('g_bulw')?2:0)],['Aim',aimNow],['Mobility',mobOf(draft.cls,draft.armor,draft.weapon,pk)],['Defense',A.def],['Sight',9+Cl.sight+(A.sight||0)],['Armor',A.armor+(cps.includes('g_jugg')?1:0)]];
   $('#statGrid').innerHTML=stats.map(s=>'<div class="stat"><b>'+s[1]+'</b>'+s[0]+'</div>').join('');
 }
 $('#loadout').addEventListener('click',e=>{ const b=e.target.closest('.card'); if(!b||!draft) return; SFX.click(); buzz(6);
   if(b.dataset.lock){ hintMeta(+b.dataset.lock>1?'Unlocks at level '+b.dataset.lock+'. Keep leveling.':'Keep leveling to unlock this.'); return; }
-  if(b.dataset.cls){ draft.cls=b.dataset.cls; const n=sanitize(draft); draft.weapon=n.weapon; draft.armor=n.armor; draft.utils=n.utils; }
+  if(b.dataset.cls){ draft.cls=b.dataset.cls; const n=sanitize(draft); draft.weapon=n.weapon; draft.armor=n.armor; draft.utils=n.utils; draft.sec=n.sec; draft.tree=n.tree; }
+  else if(b.dataset.sec) draft.sec=b.dataset.sec;
+  else if(b.dataset.cp){ const [i,j]=b.dataset.cp.split(':').map(Number); draft.tree=sanitize(draft).tree; draft.tree[draft.cls][i]=j; }
   else if(b.dataset.pk!==undefined) draft.perk=b.dataset.pk||null; else if(b.dataset.wp) draft.weapon=b.dataset.wp; else if(b.dataset.ar) draft.armor=b.dataset.ar;
   else if(b.dataset.ut){ const k=b.dataset.ut; if(draft.utils.includes(k)){ if(draft.utils.length>1) draft.utils=draft.utils.filter(x=>x!==k); } else { draft.utils.push(k); if(draft.utils.length>utilSlots()) draft.utils.shift(); } }
   renderLoadout(); });
 function hintMeta(t){ toast(t,''); }
+// loadout text for a secondary, generated from the numbers the game uses
+function secDesc(S){ const t=[S.dmg[0]+'–'+S.dmg[1]+' dmg'+(S.critDmg?' (crit +'+S.critDmg+')':'')+', '+S.crit+'% crit'];
+  if(S.type==='pistol'){ const ob=optBand(S.W); t.push(S.clip+' rounds (reload refills it)'); return t.join(', ')+'<br><b class="opt">Optimal '+bandTxt(ob)+' ('+sgn(ob.mod)+' aim)</b><br>Aim by range: '+rangeTxt(S.W)+(S.silent?'<br>Silent: no noise.':''); }
+  const m='<br><b class="opt">Melee: '+S.acc+'% base hit minus target defense, ignores cover</b><br>'+(S.dash?'Dash up to '+S.dash+' tiles to reach a target (ends turn)':'Adjacent enemies only')+(S.pierce?'. Ignores armor':'')+(S.stun?'. Disorients (−20 aim) and breaks overwatch':'');
+  if(S.type==='thrown') return t.join(', ')+m+'<br><b class="opt">Throw up to '+S.range+' tiles, '+S.uses+' per match</b><br>Throw aim by range: '+rangeTxt(S.W);
+  return t.join(', ')+m; }
+// hit-chance bars vs an exposed target with no defense: by range band for guns/throws, by target defense for melee
+function secBars(S,aim){ if(S.type==='pistol') return bandHit(S.W,aim);
+  const rows=[['Melee, no defense',S.acc],['Melee vs Stalker (−20)',S.acc-20]];
+  if(S.type==='thrown') for(let a=1;a<=S.range;a+=2){ const b=Math.min(S.range,a+1); let s=0; for(let d=a;d<=b;d++) s+=clamp(Math.round(aim+S.W.aim+S.W.range(d)),0,100); rows.push(['Throw '+a+'–'+b,Math.round(s/(b-a+1))]); }
+  return rows; }
 function drawPreview(){
   const c=$('#pv').getContext('2d'); if(!draft) return; c.setTransform(1,0,0,1,0,0); const w=280,h=340; c.clearRect(0,0,w,h);
   const g=c.createLinearGradient(0,0,0,h); g.addColorStop(0,'#0b1220'); g.addColorStop(1,'#101a26'); c.fillStyle=g; c.fillRect(0,0,w,h);
@@ -2862,7 +3247,7 @@ function drawPreview(){
   const t=G.time; const rg=c.createRadialGradient(140,290,5,140,290,120); rg.addColorStop(0,'rgba(63,210,255,.45)'); rg.addColorStop(1,'rgba(63,210,255,0)'); c.fillStyle=rg; c.fillRect(0,170,w,170);
   c.strokeStyle='rgba(63,210,255,.7)'; c.lineWidth=2; c.beginPath(); c.ellipse(140,292,70,18,0,0,Math.PI*2); c.stroke();
   c.strokeStyle='rgba(63,210,255,.35)'; c.setLineDash([10,8]); c.lineDashOffset=-t*20; c.beginPath(); c.ellipse(140,292,90,24,0,0,Math.PI*2); c.stroke(); c.setLineDash([]);
-  c.save(); c.translate(134,290); c.scale(5.6,5.6); drawSoldier(c,{x:0,y:0,cls:draft.cls,armor:draft.armor,weapon:draft.weapon,color:visorCol(),face:1,bob:Math.sin(t*2)*0.5,time:t,ph:0,skin:PROF.equip.skin,finish:PROF.equip.finish}); c.restore();
+  c.save(); c.translate(134,290); c.scale(5.6,5.6); drawSoldier(c,{x:0,y:0,cls:draft.cls,armor:draft.armor,weapon:draft.weapon,sec:draft.sec,color:visorCol(),face:1,bob:Math.sin(t*2)*0.5,time:t,ph:0,skin:PROF.equip.skin,finish:PROF.equip.finish}); c.restore();
 }
 
 /* ================= store ================= */
@@ -2889,7 +3274,7 @@ function drawCosPreview(cv2){
   const [cat,key]=cv2.dataset.pv.split(':'); const c=cv2.getContext('2d'); c.clearRect(0,0,320,192);
   const eq=Object.assign({},PROF.equip); eq[cat]=key;
   if(cat==='trail'){ const tc=TRAILS[key].c||visorCol(); const g=c.createLinearGradient(160,0,160,170); g.addColorStop(0,'rgba(255,255,255,0)'); g.addColorStop(1,tc); c.fillStyle=g; c.fillRect(150,0,20,170); }
-  c.save(); c.translate(150,178); c.scale(3.6,3.6); drawSoldier(c,{x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,color:(VISORS[eq.visor]||VISORS.cyan).c,face:1,time:0,ph:0,skin:eq.skin,finish:eq.finish,noShadow:false}); c.restore();
+  c.save(); c.translate(150,178); c.scale(3.6,3.6); drawSoldier(c,{x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:(VISORS[eq.visor]||VISORS.cyan).c,face:1,time:0,ph:0,skin:eq.skin,finish:eq.finish,noShadow:false}); c.restore();
 }
 $('#store').addEventListener('click',e=>{
   const t=e.target.closest('[data-tab]'); if(t){ stTab=t.dataset.tab; SFX.click(); renderStore(); return; }
