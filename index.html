@@ -1822,7 +1822,7 @@ function afterAction(){
   const u=G.player; G.busy=false;
   if(G.over||!standing(u)){ finishPlayerTurn(); return; }
   computeVis();
-  if(u.ap<=0){ G.mode='idle'; updateHUD(); later(300,finishPlayerTurn); return; }
+  if(u.ap<=0){ G.mode='idle'; G.busy=true; updateHUD(); later(300,finishPlayerTurn); return; } // busy: no input while the turn closes
   G.mode='move'; G.pending=-1; G.pendingPath=null; refreshReach(); updateHUD();
 }
 function inputOpen(){ return G.scene==='game'&&!!G.turnRes&&!G.busy&&!G.paused&&!G.over; }
@@ -1851,7 +1851,7 @@ function enterTarget(kind,pre){
 function enterThrow(util){ G.mode='throw'; G.throwUtil=util; G.throwTile=-1; G.pending=-1; G.pendingPath=null; G.cam.tz=Math.min(G.cam.tz,defaultZ()*0.85); hint('Tap a tile to aim'); updateHUD(); }
 /* Every player action is a command. Locally it runs through execCmd straight away; online the same
    command is sent to the other clients, which run it through execCmd when that unit's turn reaches it. */
-async function playCmd(c){ if(NET.on) netSendCmd(c); await execCmd(G.player,c); afterAction(); }
+async function playCmd(c){ c.r=G.round; if(NET.on) netSendCmd(c); await execCmd(G.player,c); afterAction(); }
 async function execCmd(u,c){
   const byId=id=>G.units.find(x=>x.id===id);
   if(c.k==='move'){ if(!Array.isArray(c.path)) return; u.ap-=c.ap; await moveUnit(u,c.path); u.moved=true; }
@@ -2425,6 +2425,7 @@ async function netTurn(u,mid){
   if(shouldShow(u)){ turnTag(u.name+' · '+CLASSES[u.cls].name,mine(u)?'you':'enemy'); focusOn(u.x,u.y); } else turnTag('Waiting for '+u.name,'enemy');
   while(standing(u)&&u.ap>0&&!G.over&&G.matchId===mid){
     const c=await netNext(u.id); if(G.matchId!==mid) return;
+    if(c&&c.k!=='ai'&&c.r!==G.round) continue; // stale command from an earlier turn
     if(!c||typeof c!=='object'||c.k==='ai'){ u.net=null; u.human=false; feedLine(u.name+' left. AI takes over.',mine(u)); await aiTurn(u,mid); return; }
     await execCmd(u,c);
   }
