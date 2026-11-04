@@ -1315,6 +1315,7 @@ function rangeTxt(w){ const out=[]; let from=1; for(const s of w.rt){ const to=s
 // average hit chance against an exposed target with no defense across each range band, for a shooter with this aim
 function bandHit(w,aim){ return RANGE_BANDS.map(b=>{ let s=0; for(let d=b[1];d<=b[2];d++) s+=clamp(Math.round(aim+w.aim+w.range(d)),0,100); return [b[0]+' '+b[1]+'–'+b[2],Math.round(s/(b[2]-b[1]+1))]; }); }
 function weaponTraits(w){ const t=[]; if(w.heavy) t.push('Needs both AP: cannot move and fire'); if(w.mob||w.amob) t.push(sgn((w.mob||0)+(w.amob||0))+' mobility'); if(w.pierce) t.push('Ignores armor'); return t; }
+const SMOKE_SIGHT=2.5, SMOKE_NEAR=2.01; // smoke: sight inside a cloud, and how close you can still see into one
 const UTILS={
   frag:{name:'Frag Grenade',short:'Frag',charges:2,range:8,radius:1.6,dmg:[3,4],note:'Knocks cover down a stage and sets off explosives.'},
   plasma:{name:'Plasma Grenade',short:'Plasma',charges:1,range:8,radius:2.1,dmg:[5,6],note:'Knocks cover down a stage and sets off explosives. Grenadier only.'},
@@ -1330,7 +1331,7 @@ const UTILS={
 // utility descriptions are generated from the numbers above
 for(const k in UTILS){ const U=UTILS[k], t=[];
   if(U.dmg) t.push(U.dmg[0]+'–'+U.dmg[1]+(U.arc?' armor-piercing':'')+' damage in a '+U.radius+'-tile radius');
-  if(U.smokeDef) t.push('+'+U.smokeDef+' defense inside a '+U.radius+'-tile cloud for '+U.rounds+' rounds');
+  if(U.smokeDef) t.push('A '+U.radius+'-tile cloud for '+U.rounds+' rounds: nobody sees into or through it beyond 2 tiles, units inside see only '+SMOKE_SIGHT+' tiles, and close shots across it take −'+U.smokeDef+' aim');
   if(U.disAim) t.push((U.dmg?'Disorients':'Disorients everyone within '+U.radius+' tiles')+' (−'+U.disAim+' aim for '+U.turns+' turns) and breaks overwatch');
   if(U.heal) t.push('Heal '+U.heal+' HP (Specialist heals '+U.healSpec+'). Costs 1 AP');
   if(U.shield) t.push('+'+U.shield+' shield. Costs 1 AP and keeps your turn going');
@@ -1990,6 +1991,11 @@ function wxHear(){ return wxNow().hear||1; }
 // {cov, over}: over = the defender would have cover against a shooter at its own height, but the shooter's height removes it
 function elevCover(tx,ty,ax,ay){ const cov=coverFrom(tx,ty,ax,ay); return {cov,over:cov===0&&coverFrom(tx,ty,ax,ay,lvAt(tx,ty))>0}; }
 function inSmoke(x,y){ return G.smoke.some(s=>Math.hypot(x-s.x,y-s.y)<=s.r+0.01); }
+// smoke blocks sight: you can't see into or through a cloud, except right next to you (2 tiles); inside one, sight is SMOKE_SIGHT
+function smokeBlocks(ax,ay,tx,ty){ return G.smoke.length>0&&Math.hypot(tx-ax,ty-ay)>SMOKE_NEAR&&smokeOnLine(ax,ay,tx,ty); }
+// does the line of fire from (ax,ay) to (tx,ty) pass through a smoke cloud? (shooter or target inside one counts too)
+function smokeOnLine(ax,ay,tx,ty){ if(!G.smoke.length) return false; const dx=tx-ax, dy=ty-ay, L2=dx*dx+dy*dy;
+  for(const s of G.smoke){ const k=L2?clamp(((s.x-ax)*dx+(s.y-ay)*dy)/L2,0,1):0; if(Math.hypot(ax+dx*k-s.x,ay+dy*k-s.y)<=s.r+0.01) return true; } return false; }
 function outsideStorm(x,y){ const s=G.storm; return Math.hypot(x+.5-s.cx,y+.5-s.cy)>s.r; }
 // storm schedule (sim): stage i -> {round, r, move}; endless relocation stages follow the listed ones
 function stormStage(i){ const S=G.SC, n=S.rounds.length, mR=S.minR||0;
@@ -2013,9 +2019,9 @@ function pickStormCenter(cx,cy,curR,nr){
   const c=pick(cand); return [c%MW+.5,((c/MW)|0)+.5]; }
 // high ground: +2 sight on a platform or one-story roof, +3 on a two-story roof (Eagle Eye: +1 more)
 function sightBonus(u,lv){ return lv?(lv>=3?3:2)+(hasP(u,'s_eagle')?1:0):0; }
-function sightOf(u){ const ws=wxNow().sight||0; return Math.max(ws?4:0,u.sight+ws)+sightBonus(u,lvAt(u.x,u.y)); } // weather (sand/fog) + height
+function sightOf(u){ const ws=wxNow().sight||0, sr=Math.max(ws?4:0,u.sight+ws)+sightBonus(u,lvAt(u.x,u.y)); return G.smoke.length&&inSmoke(u.x,u.y)?Math.min(sr,SMOKE_SIGHT):sr; } // weather (sand/fog) + height; inside smoke you see only a couple of tiles
 // Phantom (Ranger perk): the unit can only be spotted within 7 tiles
-function canSee(a,b){ return Math.hypot(a.x-b.x,a.y-b.y)<=(hasP(b,'r_ghost')?Math.min(7,sightOf(a)):sightOf(a))+0.01&&hasLOS(a.x,a.y,b.x,b.y); }
+function canSee(a,b){ return Math.hypot(a.x-b.x,a.y-b.y)<=(hasP(b,'r_ghost')?Math.min(7,sightOf(a)):sightOf(a))+0.01&&hasLOS(a.x,a.y,b.x,b.y)&&!smokeBlocks(a.x,a.y,b.x,b.y); }
 // Scout Drone reveals (sim state, per team): consulted by computeVis for the local team and by updateIntel for AI teams
 function revealedFor(team,x,y){ for(const r of G.reveals||[]) if(r.team===team&&G.round<=r.until&&Math.hypot(x-r.x,y-r.y)<=r.r+0.01) return true; return false; }
 function visibleEnemies(u){ return G.units.filter(t=>t.alive&&t!==u&&isEnemy(u,t)&&canSee(u,t)); }
@@ -2029,7 +2035,7 @@ function computeVis(){
   G.fullVis=false; v.fill(0);
   for(const p of vs){ const sr=sightOf(p);
     for(let y=Math.max(0,Math.floor(p.y-sr));y<=Math.min(MH-1,Math.ceil(p.y+sr));y++) for(let x=Math.max(0,Math.floor(p.x-sr));x<=Math.min(MW-1,Math.ceil(p.x+sr));x++){
-      const i=idx(x,y); if(v[i]) continue; if(Math.hypot(x-p.x,y-p.y)<=sr+0.01&&hasLOS(p.x,p.y,x,y)){ v[i]=1; G.seen[i]=1; } } }
+      const i=idx(x,y); if(v[i]) continue; if(Math.hypot(x-p.x,y-p.y)<=sr+0.01&&hasLOS(p.x,p.y,x,y)&&!smokeBlocks(p.x,p.y,x,y)){ v[i]=1; G.seen[i]=1; } } }
   for(const r of G.reveals||[]){ if(r.team!==G.player.team||G.round>r.until) continue;
     for(let y=Math.max(0,Math.floor(r.y-r.r));y<=Math.min(MH-1,Math.ceil(r.y+r.r));y++) for(let x=Math.max(0,Math.floor(r.x-r.r));x<=Math.min(MW-1,Math.ceil(r.x+r.r));x++)
       if(Math.hypot(x-r.x,y-r.y)<=r.r+0.01){ v[idx(x,y)]=1; G.seen[idx(x,y)]=1; } }
@@ -4825,7 +4831,7 @@ function hitInfo(a,t,o){
   const lowpro=cov===1&&hasP(t,'s_lowpro'); if(lowpro) cov=2;
   if(cov===1){ def+=20; mods.push(['half cover',-20]); } else if(cov===2){ def+=40; mods.push([lowpro?'low profile (full cover)':'full cover',-40]); }
   if(t.hunker&&cov){ def+=20; mods.push(['hunkered',-20]); }
-  if(inSmoke(t.x,t.y)){ def+=20; mods.push(['smoke',-20]); }
+  if(smokeOnLine(ax,ay,t.x,t.y)){ def+=UTILS.smoke.smokeDef; mods.push(['through smoke',-UTILS.smoke.smokeDef]); } // any shot whose line crosses a cloud
   let hit=clamp(Math.round(aim-def),0,100);
   let crit=W.crit+(cov===0?(over?20:fs.flanked?FLANK.crit:40):0)+(prim&&hasP(a,'s_vital')?15:0); if(t.hunker) crit=0; crit=clamp(crit,0,100);
   if(t.downed){ hit=100; crit=0; }
@@ -5146,7 +5152,7 @@ async function doThrow(u,util,tx,ty){
     // destroys cover one stage (arc leaves it standing) and sets off explosives in the blast
     if(!U.arc) await terrBlast(tx,ty,U.radius,u);
   } else if(util.id==='smoke'){
-    G.smoke.push({x:tx,y:ty,r:U.radius,until:G.round+2});
+    G.smoke.push({x:tx,y:ty,r:U.radius,until:G.round+2}); computeVis(); // smoke changes what everyone can see
     if(anim){ const p=tileC(tx,ty); addFx({type:'shock',x:p[0],y:p[1],r:U.radius*TW,col:[220,226,236],life:.4,flat:1}); for(let i=0;i<20;i++) part({x:p[0]+frand(-40,40),y:p[1]+frand(-18,18),z:frand(0,20),vx:frand(-20,20),vy:frand(-10,10),vz:frand(5,30),life:frand(1.2,2.2),size:frand(14,24),col:[210,215,225],type:'smoke'}); SFX.noise(.8,'lowpass',900,.4); }
   } else if(util.id==='flash'){
     if(anim){ const p=tileC(tx,ty); addFx({type:'flash',x:p[0],y:p[1]-10,r:180,col:[255,255,255],life:.35}); addFx({type:'ring',x:p[0],y:p[1],r:U.radius*TW,col:[255,255,255],life:.45}); flashFx(p); G.flashA=Math.max(G.flashA,0.45); SFX.noise(.5,'highpass',2000,.6); SFX.tone(3000,2800,.6,.05,'sine'); }
@@ -5393,7 +5399,7 @@ async function runMatch(){
     await objectivePhase(); if(G.over||G.matchId!==mid) break;
     for(const u of G.units){ if(G.over||G.matchId!==mid) break; if(!u.alive) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); const b=!G.over&&bountyOn(); if(b&&b.t===u.id) bountyPing(b); }
     G.turnU=null;
-    G.smoke=G.smoke.filter(s=>s.until>G.round);
+    { const n=G.smoke.length; G.smoke=G.smoke.filter(s=>s.until>G.round); if(G.smoke.length!==n) computeVis(); }
     for(const t in G.cmd) if(G.cmd[t].until<=G.round) delete G.cmd[t]; // team orders (pings / quick chat) expire
   }
 }
@@ -5687,7 +5693,7 @@ function aiScoreTile(u,x,y,threats,cost){
   if(mv&&zx===st.cx&&zy===st.cy) s-=Math.max(0,Math.hypot(x+.5-st.ncx,y+.5-st.ncy)-st.nextR)*0.8;
   let best=0, seen=0;
   for(const t of threats){
-    const d=Math.hypot(t.x-x,t.y-y), los=hasLOS(t.x,t.y,x,y);
+    const d=Math.hypot(t.x-x,t.y-y), los=hasLOS(t.x,t.y,x,y)&&!smokeBlocks(t.x,t.y,x,y);
     const cov=coverFrom(x,y,t.x,t.y); // height-aware: ledges, shooting over cover from above
     if(los&&d<=sightOf(t)+0.5){ seen++; s+=cov===2?16:cov===1?7:-24; if(d<=2.2&&t.cls==='ranger') s-=8; if(G.lvl[idx(x,y)]>lvAt(t.x,t.y)) s+=12; } // they shoot uphill (-10 aim)
     if(los&&d<=u.sight+sightBonus(u,G.lvl[idx(x,y)])){ const h=hitInfo(u,t,{fx:x,fy:y}); best=Math.max(best,h.any); if(D.flank&&h.flank) s+=D.flank; } // flankState: target in cover, but not against this tile
@@ -5700,7 +5706,7 @@ function aiScoreTile(u,x,y,threats,cost){
   const q=G.crates.find(q=>q.x===x&&q.y===y); if(q) s+=q.drop?45:14;
   const ob=siteAt(x,y); if(ob) s+=siteVal(u,ob); // objectives are public
   if(threats.length&&u._site) s-=Math.hypot(u._site[0]-x,u._site[1]-y)*0.9; // keep working toward a contested site while fighting
-  if(inSmoke(x,y)) s+=6;
+  if(G.smoke.length){ let n=0; for(const t of threats) if(smokeOnLine(t.x,t.y,x,y)) n++; if(n) s+=6*Math.min(2,n); } // smoke between me and them
   if(threats.length) for(const d of DIRS8){ const o=cell(x+d[0],y+d[1]); if(o&&TERR[o.kind]&&TERR[o.kind].boom){ s-=8; break; } } // don't hide behind a fuel barrel
   // stay near the team leader; a human leader's orders (G.cmd[team], from pings / quick chat) tighten or loosen the leash
   const C=!u.human&&G.cmd&&G.cmd[u.team];
@@ -6842,7 +6848,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=15, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=16, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 // matchmaking defaults to the free public PeerJS server; set window.STORMFALL_PEER={host,port,path,secure} before this script to use your own
 const peerOpts=()=>Object.assign({debug:0},window.STORMFALL_PEER||{});
 function peerReady(){
