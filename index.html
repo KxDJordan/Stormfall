@@ -30,7 +30,7 @@
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:'Chakra Petch',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;overflow:hidden;
   -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;font-size:15px}
-#gc{position:fixed;inset:0;display:block;touch-action:none}
+#gc{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
 button:focus-visible,input:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
 .hidden{display:none!important}
@@ -603,7 +603,7 @@ button.sh,#mLvl{min-height:44px}
       <li>Full cover blocks 40 aim, half cover 20. Shots inside the graze band deal half damage instead of missing outright.</li>
       <li>High ground (raised platforms) gives +15 aim, +2 sight, and lets you shoot over half cover. Climbing costs 1 extra move.</li>
       <li>Buildings with interiors have doors and windows. Windows are half cover you can see through.</li>
-      <li>Shooting, overwatch and hunker end your turn. Railguns need both AP.</li>
+      <li>Shooting before you move leaves 1 AP for a move. Shooting after a move, overwatch and hunker end your turn. Railguns need both AP.</li>
       <li>The storm shrinks every other round. Supply drops are announced a round early; the pod holds the best loot in the match.</li>
       <li>Duos: you drop with an AI partner. A downed operative bleeds out in 2 turns unless an adjacent teammate revives them.</li>
       <li>AI opponents carry gear matched to your level and only know what they can see or hear.</li>
@@ -853,10 +853,20 @@ function genMap(rk){
 }
 
 /* ================= line of sight & cover ================= */
+// Walks every grid cell the sight line crosses (Amanatides-Woo). Sampling missed thin wall corners and let
+// lines squeeze through the seam between two diagonal walls. Grazing a single wall corner is still allowed.
 function rayClear(x0,y0,x1,y1,sx,sy,tx,ty){
-  const dx=x1-x0,dy=y1-y0,len=Math.hypot(dx,dy),n=Math.max(2,Math.ceil(len/0.18));
-  for(let i=1;i<n;i++){ const px=x0+dx*i/n,py=y0+dy*i/n,cx=Math.floor(px),cy=Math.floor(py);
-    if((cx===sx&&cy===sy)||(cx===tx&&cy===ty)) continue; if(isFull(cx,cy)) return false; }
+  const blk=(x,y)=>!((x===sx&&y===sy)||(x===tx&&y===ty))&&isFull(x,y);
+  let cx=Math.floor(x0), cy=Math.floor(y0); const ex=Math.floor(x1), ey=Math.floor(y1);
+  if(blk(cx,cy)) return false;
+  const dx=x1-x0, dy=y1-y0, stx=Math.sign(dx), sty=Math.sign(dy);
+  const tdx=stx?1/Math.abs(dx):Infinity, tdy=sty?1/Math.abs(dy):Infinity;
+  let tmx=stx?(stx>0?cx+1-x0:x0-cx)*tdx:Infinity, tmy=sty?(sty>0?cy+1-y0:y0-cy)*tdy:Infinity, guard=0;
+  while((cx!==ex||cy!==ey)&&guard++<128){
+    if(Math.abs(tmx-tmy)<1e-9){ if(blk(cx+stx,cy)&&blk(cx,cy+sty)) return false; cx+=stx; cy+=sty; tmx+=tdx; tmy+=tdy; }
+    else if(tmx<tmy){ cx+=stx; tmx+=tdx; } else { cy+=sty; tmy+=tdy; }
+    if(blk(cx,cy)) return false;
+  }
   return true;
 }
 function stepOffs(x,y){ const o=[[0,0]]; for(const d of DIRS4){ if(inMap(x+d[0],y+d[1])&&!isFull(x+d[0],y+d[1])) o.push([d[0]*0.42,d[1]*0.42]); } return o; }
@@ -1010,8 +1020,15 @@ function setupMenuScene(){
 /* ================= rendering: ground cache ================= */
 const cv=$('#gc'), ctx=cv.getContext('2d');
 let VW=window.innerWidth||390, VH=window.innerHeight||800, DPR=1;
-function resize(){ DPR=Math.min(2,window.devicePixelRatio||1); const de=document.documentElement; VW=Math.min(window.innerWidth||390,(de&&de.clientWidth)||9999); VH=Math.min(window.innerHeight||800,(de&&de.clientHeight)||9999); cv.width=VW*DPR|0; cv.height=VH*DPR|0; cv.style.width=VW+'px'; cv.style.height=VH+'px'; G.bg=null; initWeather(); }
-window.addEventListener('resize',resize);
+// The canvas is position:fixed;inset:0, so CSS sizes it to the full viewport. Read its real box instead of
+// window sizes (which disagree on mobile when the browser toolbar shows or hides) and follow it with a ResizeObserver.
+function resize(){ DPR=Math.min(2,window.devicePixelRatio||1); cv.style.width=''; cv.style.height='';
+  const r=cv.getBoundingClientRect(); VW=Math.round(r.width)||window.innerWidth||390; VH=Math.round(r.height)||window.innerHeight||800;
+  const w=Math.round(VW*DPR), h=Math.round(VH*DPR); if(cv.width===w&&cv.height===h&&G.bg) return;
+  cv.width=w; cv.height=h; G.bg=null; initWeather(); }
+window.addEventListener('resize',resize); window.addEventListener('orientationchange',()=>setTimeout(resize,250));
+if(window.visualViewport) visualViewport.addEventListener('resize',resize);
+try{ new ResizeObserver(()=>resize()).observe(cv); }catch(e){}
 const GOX=MH*TW/2+PAD, GOY=PAD;
 function poly(c,pts){ c.beginPath(); c.moveTo(pts[0][0],pts[0][1]); for(let i=1;i<pts.length;i++) c.lineTo(pts[i][0],pts[i][1]); c.closePath(); }
 function tilePath(c,x,y,ins){ ins=ins||0; const z=G.zDraw?ez(x,y):0; const a=iso(x+ins,y+ins),b=iso(x+1-ins,y+ins),d=iso(x+1-ins,y+1-ins),e=iso(x+ins,y+1-ins); c.moveTo(a[0],a[1]-z); c.lineTo(b[0],b[1]-z); c.lineTo(d[0],d[1]-z); c.lineTo(e[0],e[1]-z); c.closePath(); }
@@ -1803,7 +1820,7 @@ async function unitTurn(u,mid){
     if(show){ focusOn(u.x,u.y); floatText(u,'BLEEDING OUT',[255,120,120],18); await wait(700); }
     if(u.isPlayer){ turnTag('You’re down: '+u.bleed+' turn left','enemy'); updateHUD(); await wait(500); }
     return; }
-  u.ap=2; u.overwatch=false; u.hunker=false; u.moved=false;
+  u.ap=2; u.overwatch=false; u.hunker=false; u.moved=false; u.shot=false;
   for(const k in u.cd) if(u.cd[k]>0) u.cd[k]--;
   if(outsideStorm(u.x,u.y)){ const d=G.SC.dmg[G.storm.stage]||1; if(d>0){ const show=shouldShow(u); if(show){ focusOn(u.x,u.y); await wait(300); floatText(u,'STORM',G.R.storm,18); }
       applyDamage(u,d,null,{pierce:true,anim:show}); if(show) await wait(700); if(!standing(u)||G.over||G.matchId!==mid) return; } }
@@ -1854,12 +1871,14 @@ function enterThrow(util){ G.mode='throw'; G.throwUtil=util; G.throwTile=-1; G.p
 async function playCmd(c){ c.r=G.round; if(NET.on) netSendCmd(c); await execCmd(G.player,c); afterAction(); }
 async function execCmd(u,c){
   const byId=id=>G.units.find(x=>x.id===id);
-  if(c.k==='move'){ if(!Array.isArray(c.path)) return; u.ap-=c.ap; await moveUnit(u,c.path); u.moved=true; }
+  if(c.k==='move'){ if(!Array.isArray(c.path)) return; u.ap-=c.ap; await moveUnit(u,c.path); u.moved=true; if(u.shot) u.ap=0; }
   else if(c.k==='fire'){ const t=byId(c.t), k=c.kind; if(!t) return;
     if(k==='zap'){ u.ap-=1; u.cd.zap=ABIL.zap.cd; await doZap(u,t); return; }
     if(k==='slash'){ u.ap=0; u.cd.slash=ABIL.slash.cd; await doSlash(u,t,c.path); return; }
     const o={}; if(k==='deadeye'){ o.deadeye=true; o.label='DEADEYE'; u.cd.deadeye=ABIL.deadeye.cd; } if(k==='hail'){ o.guaranteed=true; o.ammoCost=2; o.fxk='heavy'; o.label='HAIL OF BULLETS'; u.cd.hail=ABIL.hail.cd; }
-    u.ap=0; await fireShot(u,t,o); }
+    // shooting before moving keeps 1 AP for a move (not another action); heavy weapons and shots after moving end the turn
+    if(u.moved||u.W.heavy||k==='hail') u.ap=0; else { u.ap=Math.max(0,u.ap-1); u.shot=true; }
+    await fireShot(u,t,o); }
   else if(c.k==='throw'){ const util=u.utils[c.i]; if(!util) return; const U=UTILS[util.id]; if(U.endTurn) u.ap=0; else u.ap-=1; await doThrow(u,util,c.x,c.y); }
   else if(c.k==='revive'){ const t=byId(c.t); if(t) await doRevive(u,t); }
   else if(c.k==='util'){ const util=u.utils[c.i]; if(!util||util.ch<=0) return;
@@ -1889,6 +1908,7 @@ async function pMove(){
 function onAction(id){
   const u=G.player; if(!inputOpen()) return;
   if(id==='move'){ pMove(); return; }
+  if(u.shot&&id!=='end'){ hint('After shooting you can only move'); return; }
   if(id==='revive'){ const t=adjDowned(u); if(!t) return; G.busy=true; G.mode='idle'; playCmd({k:'revive',t:t.id}); return; }
   if(id==='shoot'||id==='slash'||id==='deadeye'||id==='hail'||id==='zap'){ enterTarget(id); return; }
   if(/^u\d$/.test(id)){ const util=u.utils[+id[1]]; if(!util||util.ch<=0) return;
@@ -1914,6 +1934,7 @@ function actionList(){
   A.push({id:'ow',label:'Overwatch',sub:'Ends turn',icon:'overwatch',off:!ap||!u.ammo,why:!u.ammo?'Out of ammo':''});
   A.push({id:'hunker',label:'Hunker',sub:'Ends turn',icon:'hunker',off:!ap});
   A.push({id:'reload',label:'Reload',sub:'1 AP',icon:'reload',off:!ap||u.ammo>=u.W.clip,why:u.ammo>=u.W.clip?'Magazine full':''});
+  if(u.shot) for(const a of A) if(a.id!=='move'){ a.off=true; a.why='After shooting you can only move'; }
   A.push({id:'end',label:'End turn',sub:'',icon:'end',off:false,end:true});
   return A;
 }
@@ -1990,7 +2011,7 @@ function aiBestAttack(u){
   if(u.cls==='ranger'&&!u.cd.slash) for(const s of slashTargets(u)){ const eff=s.t.hp+s.t.shield; res.push({k:'slash',t:s.t,path:s.path,hit:95,score:50+(5.5>=eff?15:0)-(s.path.length>1?4:0)}); }
   for(const util of u.utils){ const U=UTILS[util.id]; if(!U.dmg||util.ch<=0) continue; const rg=throwRange(u,U), ag=(U.dmg[0]+U.dmg[1])/2;
     for(const c of vis){ if(c.downed||tdist(u,c)>rg) continue;
-      const inR=G.units.filter(v=>v.alive&&Math.hypot(v.x-c.x,v.y-c.y)<=U.radius+0.01); if(inR.some(v=>!isEnemy(u,v))) continue;
+      const inR=G.units.filter(v=>v.alive&&Math.hypot(v.x-c.x,v.y-c.y)<=U.radius+0.01&&(!isEnemy(u,v)||vis.includes(v))); if(inR.some(v=>!isEnemy(u,v))) continue;
       const n=inR.length; const h=canFire?hitInfo(u,c).any:0;
       const sc=n*ag*10*(n>1?1:(h<45?0.85:0.45)); res.push({k:'throw',util,x:c.x,y:c.y,t:c,hit:100,score:sc}); } }
   if(!res.length) return null;
@@ -2170,7 +2191,7 @@ function onTap(sx,sy){
   SFX.init(); closeEmotes(); if(!inputOpen()) return; const u=G.player;
   const hu=unitAtScreen(sx,sy);
   if(G.mode==='target'){ if(hu){ const i=G.targets.indexOf(hu); if(i>=0){ G.tIdx=i; focusMid(u,hu); updateHUD(); SFX.click(); } } return; }
-  if(G.mode==='move'&&hu&&isEnemy(u,hu)){ if(u.ap>0&&u.ammo>0&&!(u.W.heavy&&u.ap<2)&&canSee(u,hu)){ enterTarget('shoot',hu); SFX.click(); return; } }
+  if(G.mode==='move'&&hu&&isEnemy(u,hu)){ if(u.ap>0&&!u.shot&&u.ammo>0&&!(u.W.heavy&&u.ap<2)&&canSee(u,hu)){ enterTarget('shoot',hu); SFX.click(); return; } }
   const tt=screenToTile(sx,sy), tx=tt[0], ty=tt[1];
   if(G.mode==='throw'){ if(!inMap(tx,ty)) return; const U=UTILS[G.throwUtil.id]; if(Math.hypot(tx-u.x,ty-u.y)<=throwRange(u,U)&&G.vis[idx(tx,ty)]){ const i=idx(tx,ty); if(G.throwTile===i){ pThrow(); return; } G.throwTile=i; SFX.click(); updateHUD(); } else hint('Out of range'); return; }
   if(G.mode==='move'){ if(!inMap(tx,ty)||!G.reach){ return; } const i=idx(tx,ty), d=G.reach.dist[i];
@@ -2395,7 +2416,7 @@ function startMatch(){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=1, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=2, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 // matchmaking defaults to the free public PeerJS server; set window.STORMFALL_PEER={host,port,path,secure} before this script to use your own
 const peerOpts=()=>Object.assign({debug:0},window.STORMFALL_PEER||{});
 function peerReady(){
@@ -2624,8 +2645,10 @@ function drawPreview(){
 let stTab='Featured';
 const ST_TABS=['Featured','Skins','Visors','Finishes','Trails','Shards'];
 const ST_DESC={Featured:'Today’s rotation. 25% off, refreshes daily.',Skins:'Armor colorways for every class.',Visors:'Visor, chest stripe and ground ring color.',Finishes:'Weapon paint.',Trails:'The beam you leave behind on drop-in.',Shards:'Premium currency for rare cosmetics. You also earn shards from level-ups and weekly quests.'};
-function cosItems(cat){ const T=COS[cat]; return Object.keys(T).map(k=>({id:cat+':'+k,cat,key:k,name:T[k].name,price:T[k].price,cur:T[k].cur||'cr'})); }
-function featured(){ const all=['skin','visor','finish','trail'].flatMap(cosItems).filter(i=>i.price>0); const s=seedOf(dayKey()+'f'); return all.map((it,i)=>[hash(i,s,9),it]).sort((a,b)=>a[0]-b[0]).slice(0,4).map(e=>Object.assign({},e[1],{old:e[1].price,price:Math.ceil(e[1].price*0.75)})); }
+function baseItems(cat){ const T=COS[cat]; return Object.keys(T).map(k=>({id:cat+':'+k,cat,key:k,name:T[k].name,price:T[k].price,cur:T[k].cur||'cr'})); }
+// category tabs show today's featured discount too, so an item costs the same wherever you buy it
+function cosItems(cat){ const f=new Map(featured().map(it=>[it.id,it])); return baseItems(cat).map(it=>f.get(it.id)||it); }
+function featured(){ const all=['skin','visor','finish','trail'].flatMap(baseItems).filter(i=>i.price>0); const s=seedOf(dayKey()+'f'); return all.map((it,i)=>[hash(i,s,9),it]).sort((a,b)=>a[0]-b[0]).slice(0,4).map(e=>Object.assign({},e[1],{old:e[1].price,price:Math.ceil(e[1].price*0.75)})); }
 function renderStore(){
   $('#stCr').textContent=PROF.credits; $('#stSh').textContent=PROF.shards;
   $('#stTabs').innerHTML=ST_TABS.map(t=>'<button class="tab'+(t===stTab?' sel':'')+'" data-tab="'+t+'">'+t+'</button>').join('');
