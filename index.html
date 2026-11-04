@@ -607,7 +607,7 @@ button.sh,#mLvl{min-height:44px}
       <li>Full cover blocks 40 aim, half cover 20. Shots inside the graze band deal half damage instead of missing outright.</li>
       <li>High ground (raised platforms) gives +15 aim, +2 sight, and lets you shoot over half cover. Climbing costs 1 extra move.</li>
       <li>Buildings with interiors have doors and windows. Windows are half cover you can see through.</li>
-      <li>Shooting before you move leaves 1 AP for a move. Shooting after a move, overwatch and hunker end your turn. The railgun and gauss rifle need both AP.</li>
+      <li>Grenades and other throwables cost 1 AP. Shooting or throwing a grenade before you move leaves 1 AP for a move; attacking after a move, overwatch and hunker end your turn. The railgun and gauss rifle need both AP.</li>
       <li id="howRange">Every weapon has an optimal range where its aim is best.</li>
       <li>Starter gear is ready at level 1; new weapons, armor, Mk upgrades and perks unlock as you level (see Loadout and Progress).</li>
       <li>The storm shrinks every other round. Supply drops are announced a round early; the pod holds the best loot in the match.</li>
@@ -709,13 +709,13 @@ function rangeTxt(w){ const out=[]; let from=1; for(const s of w.rt){ const to=s
 function bandHit(w,aim){ return RANGE_BANDS.map(b=>{ let s=0; for(let d=b[1];d<=b[2];d++) s+=clamp(Math.round(aim+w.aim+w.range(d)),0,100); return [b[0]+' '+b[1]+'–'+b[2],Math.round(s/(b[2]-b[1]+1))]; }); }
 function weaponTraits(w){ const t=[]; if(w.heavy) t.push('Needs both AP: cannot move and fire'); if(w.mob) t.push(sgn(w.mob)+' mobility'); if(w.pierce) t.push('Ignores armor'); return t; }
 const UTILS={
-  frag:{name:'Frag Grenade',short:'Frag',charges:2,range:8,radius:1.6,dmg:[3,4],endTurn:true,note:'Destroys cover.'},
-  plasma:{name:'Plasma Grenade',short:'Plasma',charges:1,range:8,radius:2.1,dmg:[5,6],endTurn:true,note:'Destroys cover. Grenadier only.'},
+  frag:{name:'Frag Grenade',short:'Frag',charges:2,range:8,radius:1.6,dmg:[3,4],note:'Destroys cover.'},
+  plasma:{name:'Plasma Grenade',short:'Plasma',charges:1,range:8,radius:2.1,dmg:[5,6],note:'Destroys cover. Grenadier only.'},
   smoke:{name:'Smoke Grenade',short:'Smoke',charges:1,range:8,radius:1.6,smokeDef:20,rounds:2},
   flash:{name:'Flashbang',short:'Flash',charges:1,range:8,radius:1.6,disAim:20,turns:2},
   medkit:{name:'Medkit',short:'Medkit',charges:1,heal:2,healSpec:4},
   shieldcell:{name:'Shield Cell',short:'Shield',charges:1,shield:3,shop:true},
-  arc:{name:'Arc Grenade',short:'Arc',charges:1,range:8,radius:1.6,dmg:[2,3],arc:true,disAim:20,turns:2,endTurn:true,shop:true,note:'Leaves cover standing.'}
+  arc:{name:'Arc Grenade',short:'Arc',charges:1,range:8,radius:1.6,dmg:[2,3],arc:true,disAim:20,turns:2,shop:true,note:'Leaves cover standing.'}
 };
 // utility descriptions are generated from the numbers above
 for(const k in UTILS){ const U=UTILS[k], t=[];
@@ -729,7 +729,7 @@ for(const k in UTILS){ const U=UTILS[k], t=[];
 for(const k in CLASSES) CLASSES[k].utils.push('arc','shieldcell');
 const ABIL={
   slash:{name:'Blade Strike',short:'Blade',cd:3,desc:'Dash to an enemy you can reach and slash: 95% hit, 4–6 damage. Ends turn.'},
-  deadeye:{name:'Deadeye',short:'Deadeye',cd:3,desc:'−15 aim, +50% damage. Ends turn.'},
+  deadeye:{name:'Deadeye',short:'Deadeye',cd:3,desc:'−15 aim, +50% damage. Like a normal shot, you can still move after if you haven’t moved yet.'},
   hail:{name:'Hail of Bullets',short:'Hail',cd:4,desc:'Guaranteed hit, uses 2 ammo. Ends turn.'},
   zap:{name:'Combat Protocol',short:'Protocol',cd:3,desc:'Drone zap: 3 armor-piercing damage, never misses. Costs 1 AP and does not end your turn.'}
 };
@@ -737,7 +737,7 @@ const RIVALS=[['VIPER','#ff4d5e'],['JACKAL','#ff9f1c'],['RAVEN','#c77dff'],['MAN
 const PLAYER_COL='#3fd2ff';
 const BODY={ranger:{m:[62,88,58],d:[34,48,30],a:[112,142,86]},sharpshooter:{m:[58,70,90],d:[33,40,53],a:[125,144,173]},grenadier:{m:[92,76,54],d:[52,42,29],a:[154,128,88]},specialist:{m:[46,82,88],d:[26,48,52],a:[95,154,160]}};
 const GUNLEN={rifle:16,shotgun:15,sniper:24,dmr:19,cannon:20,smg:11,carbine:14,slug:16,minigun:20,gauss:27,volt:13};
-const STORM={rounds:[4,6,8,10,12,14,16],radii:[14,10.5,7.5,5,3,1.4,0],dmg:[0,1,1,2,2,3,4,6]};
+const STORM={rounds:[4,6,8,10,12,14,16],radii:[19,14,10,6.5,4,1.8,0],dmg:[0,1,1,2,2,3,4,6]};
 
 const REG={
   city:{key:'city',name:'NEO-KOWLOON',sub:'Night, acid rain',g1:[40,42,53],g2:[31,33,43],walk:[64,66,80],grid:'rgba(150,170,255,.075)',slabL:[22,19,33],slabR:[34,30,48],
@@ -772,11 +772,11 @@ const SFX={ac:null,on:true,nb:null,
 };
 
 /* ================= state ================= */
-const MW=30, MH=30, CX=14.5, TW=64, TH=32, PAD=70, SLAB=54, ZMIN=0.42, ZMAX=2.4, EZ=24;
+const MW=40, MH=40, CX=(MW-1)/2, TW=64, TH=32, PAD=70, SLAB=54, ZMIN=0.42, ZMAX=2.4, EZ=24;
 const MODES={
-  solo:{key:'solo',name:'Solo',short:'8 players',desc:'Eight operatives, everyone for themselves.',players:8,team:1,storm:STORM,startR:23,drops:[3,6,9,12],place:[0,300,200,150,110,80,60,40,25],xp:[0,450,330,260,200,160,130,100,80]},
-  duos:{key:'duos',name:'Duos',short:'4 teams',desc:'Four teams of two. You drop with an AI partner who can revive you.',players:8,team:2,storm:STORM,startR:23,drops:[3,6,9,12],place:[0,300,180,100,50],xp:[0,450,300,190,120]},
-  quick:{key:'quick',name:'Quick',short:'4 players',desc:'Four operatives and a tight storm. About six minutes.',players:4,team:1,storm:{rounds:[3,5,7,9,11],radii:[8.5,6,4,2.4,1.1,0],dmg:[0,1,2,2,3,4,6]},startR:12,drops:[2,5,8],place:[0,180,100,60,30],xp:[0,300,200,130,90]}
+  solo:{key:'solo',name:'Solo',short:'8 players',desc:'Eight operatives, everyone for themselves.',players:8,team:1,storm:STORM,startR:30,drops:[3,6,9,12],place:[0,300,200,150,110,80,60,40,25],xp:[0,450,330,260,200,160,130,100,80]},
+  duos:{key:'duos',name:'Duos',short:'4 teams',desc:'Four teams of two. You drop with an AI partner who can revive you.',players:8,team:2,storm:STORM,startR:30,drops:[3,6,9,12],place:[0,300,180,100,50],xp:[0,450,300,190,120]},
+  quick:{key:'quick',name:'Quick',short:'4 players',desc:'Four operatives and a tight storm. About six minutes.',players:4,team:1,storm:{rounds:[3,5,7,9,11],radii:[11.5,8,5.5,3.2,1.5,0],dmg:[0,1,2,2,3,4,6]},startR:16,drops:[2,5,8],place:[0,180,100,60,30],xp:[0,300,200,130,90]}
 };
 const G={scene:'menu',region:'city',R:REG.city,grid:null,lanes:{x:[],y:[]},units:[],player:null,crates:[],smoke:[],decals:[],
   fx:[],parts:[],texts:[],pings:[],timers:[],tweens:[],time:0,cam:{x:0,y:0,z:1,tx:0,ty:0,tz:1,shake:0},
@@ -815,12 +815,13 @@ function buzz(p){ try{ if(PROF.settings.haptics&&navigator.vibrate) navigator.vi
 /* ================= map generation ================= */
 function genMap(rk){
   const g=new Array(MW*MH).fill(null);
+  const K=MW*MH/900, N=n=>Math.round(n*K); // object counts were tuned for 30x30; keep the same density on bigger maps
   const ok=(x,y)=>x>=1&&y>=1&&x<MW-1&&y<MH-1;
   const free=(x,y)=>ok(x,y)&&!g[idx(x,y)];
   const put=(x,y,t,kind,h,ex)=>{ if(!ok(x,y)) return false; g[idx(x,y)]=Object.assign({t,kind,h:h||0,v:RNG()},ex||{}); return true; };
   const rectFree=(x0,y0,w,h,m)=>{ for(let y=y0-m;y<y0+h+m;y++) for(let x=x0-m;x<x0+w+m;x++){ if(!inMap(x,y)) continue; if(g[idx(x,y)]) return false; } return true; };
   const fillRect=(x0,y0,w,h,t,kind,H,ex)=>{ for(let y=y0;y<y0+h;y++) for(let x=x0;x<x0+w;x++) put(x,y,t,kind,H,ex); };
-  const scatter=(n,fn)=>{ let tries=400; while(n>0&&tries-->0){ if(fn(ri(1,MW-2),ri(1,MH-2))) n--; } };
+  const scatter=(n,fn)=>{ let tries=400*K; while(n>0&&tries-->0){ if(fn(ri(1,MW-2),ri(1,MH-2))) n--; } };
   const lanes={x:[],y:[]};
   const elev=new Uint8Array(MW*MH), floorT=new Uint8Array(MW*MH);
   const interior=(x0,y0,w,h)=>{
@@ -832,8 +833,8 @@ function genMap(rk){
   };
   const interiors=n=>{ let k=0,tr=0; while(k<n&&tr++<200){ const w=ri(5,7),h=ri(5,6),x=ri(2,MW-2-w),y=ri(2,MH-2-h); if(rectFree(x,y,w,h,1)){ interior(x,y,w,h); k++; } } };
   if(rk==='city'){
-    lanes.x=[4,11,18,25]; lanes.y=[4,11,18,25];
-    const blocks=[[1,3],[5,10],[12,17],[19,24],[26,28]]; let gid=0;
+    for(let l=4;l<MW-3;l+=7){ lanes.x.push(l); lanes.y.push(l); }
+    const blocks=[]; let b0=1; for(const l of lanes.x){ blocks.push([b0,l-1]); b0=l+1; } blocks.push([b0,MW-2]); let gid=0;
     for(const bx of blocks) for(const by of blocks){
       const w=bx[1]-bx[0]+1,h=by[1]-by[0]+1;
       if(w>=6&&h>=6&&RNG()<0.38){ const iw=ri(5,Math.min(7,w)), ih=ri(5,Math.min(7,h)); interior(bx[0]+ri(0,w-iw),by[0]+ri(0,h-ih),iw,ih); }
@@ -846,31 +847,31 @@ function genMap(rk){
         if(w>=3&&RNG()<0.65){ const x=ri(bx[0],bx[1]-1),y=ri(by[0],by[1]); if(free(x,y)&&free(x+1,y)){ const ex={col:pick(CONT_COLS),g:1000+gid++}; put(x,y,2,'container',38,ex); put(x+1,y,2,'container',38,ex); } }
       }
     }
-    scatter(28,(x,y)=>{ const lx=lanes.x.includes(x),ly=lanes.y.includes(y); if((!lx&&!ly)||(lx&&ly)||!free(x,y)) return false; return put(x,y,1,RNG()<0.6?'car':'barrier',0,{col:pick(CAR_COLS)}); });
-    scatter(16,(x,y)=>free(x,y)&&!lanes.x.includes(x)&&!lanes.y.includes(y)&&rectFree(x,y,1,1,1)&&put(x,y,1,pick(['crates','barrier','planter'])));
+    scatter(N(28),(x,y)=>{ const lx=lanes.x.includes(x),ly=lanes.y.includes(y); if((!lx&&!ly)||(lx&&ly)||!free(x,y)) return false; return put(x,y,1,RNG()<0.6?'car':'barrier',0,{col:pick(CAR_COLS)}); });
+    scatter(N(16),(x,y)=>free(x,y)&&!lanes.x.includes(x)&&!lanes.y.includes(y)&&rectFree(x,y,1,1,1)&&put(x,y,1,pick(['crates','barrier','planter'])));
   } else if(rk==='arctic'){
-    interiors(3);
+    interiors(N(3));
     let n=0,tries=0;
-    while(n<9&&tries++<400){ const w=ri(2,3),h=ri(2,3),x=ri(2,MW-2-w),y=ri(2,MH-2-h); if(rectFree(x,y,w,h,2)){ fillRect(x,y,w,h,2,'bunker',ri(40,50),{g:n}); n++; } }
+    while(n<N(9)&&tries++<800){ const w=ri(2,3),h=ri(2,3),x=ri(2,MW-2-w),y=ri(2,MH-2-h); if(rectFree(x,y,w,h,2)){ fillRect(x,y,w,h,2,'bunker',ri(40,50),{g:n}); n++; } }
     n=0;tries=0;
-    while(n<12&&tries++<400){ let x=ri(2,MW-3),y=ri(2,MH-3); if(!rectFree(x,y,1,1,1)) continue; for(let k=ri(2,4);k>0;k--){ if(free(x,y)) put(x,y,2,'rock',ri(34,58)); const d=pick(DIRS4); if(ok(x+d[0],y+d[1])&&x+d[0]>1&&y+d[1]>1&&x+d[0]<MW-2&&y+d[1]<MH-2){x+=d[0];y+=d[1];} } n++; }
+    while(n<N(12)&&tries++<800){ let x=ri(2,MW-3),y=ri(2,MH-3); if(!rectFree(x,y,1,1,1)) continue; for(let k=ri(2,4);k>0;k--){ if(free(x,y)) put(x,y,2,'rock',ri(34,58)); const d=pick(DIRS4); if(ok(x+d[0],y+d[1])&&x+d[0]>1&&y+d[1]>1&&x+d[0]<MW-2&&y+d[1]<MH-2){x+=d[0];y+=d[1];} } n++; }
     n=0;tries=0;
-    while(n<15&&tries++<400){ const hz=RNG()<.5,len=ri(2,3),x=ri(2,MW-3-len),y=ri(2,MH-3-len); let good=true; for(let k=0;k<len;k++){ if(!rectFree(hz?x+k:x,hz?y:y+k,1,1,k===0?1:0)) good=false; } if(!good) continue; for(let k=0;k<len;k++) put(hz?x+k:x,hz?y:y+k,1,'sandbag'); n++; }
-    scatter(18,(x,y)=>rectFree(x,y,1,1,1)&&put(x,y,1,pick(['crate','crate','icerock','barrels'])));
+    while(n<N(15)&&tries++<800){ const hz=RNG()<.5,len=ri(2,3),x=ri(2,MW-3-len),y=ri(2,MH-3-len); let good=true; for(let k=0;k<len;k++){ if(!rectFree(hz?x+k:x,hz?y:y+k,1,1,k===0?1:0)) good=false; } if(!good) continue; for(let k=0;k<len;k++) put(hz?x+k:x,hz?y:y+k,1,'sandbag'); n++; }
+    scatter(N(18),(x,y)=>rectFree(x,y,1,1,1)&&put(x,y,1,pick(['crate','crate','icerock','barrels'])));
   } else {
-    interiors(2);
+    interiors(N(2));
     let n=0,tries=0;
-    while(n<7&&tries++<400){ let x=ri(3,MW-4),y=ri(3,MH-4); if(!rectFree(x-1,y-1,3,3,1)) continue; let size=ri(4,8); const H0=ri(58,84);
+    while(n<N(7)&&tries++<800){ let x=ri(3,MW-4),y=ri(3,MH-4); if(!rectFree(x-1,y-1,3,3,1)) continue; let size=ri(4,8); const H0=ri(58,84);
       for(let k=0;k<size*4&&size>0;k++){ if(free(x,y)){ put(x,y,2,'mesa',H0+ri(-10,10),{g:n}); size--; } const d=pick(DIRS4); const nx=x+d[0],ny=y+d[1]; if(nx>1&&ny>1&&nx<MW-2&&ny<MH-2){x=nx;y=ny;} } n++; }
     n=0;tries=0;
-    while(n<9&&tries++<400){ const hz=RNG()<.5,len=ri(3,5),x=ri(2,MW-3-len),y=ri(2,MH-3-len); let good=true; for(let k=0;k<len;k++){ if(!rectFree(hz?x+k:x,hz?y:y+k,1,1,0)) good=false; } if(!good||!rectFree(x,y,1,1,1)) continue; const gap=ri(1,len-2);
+    while(n<N(9)&&tries++<800){ const hz=RNG()<.5,len=ri(3,5),x=ri(2,MW-3-len),y=ri(2,MH-3-len); let good=true; for(let k=0;k<len;k++){ if(!rectFree(hz?x+k:x,hz?y:y+k,1,1,0)) good=false; } if(!good||!rectFree(x,y,1,1,1)) continue; const gap=ri(1,len-2);
       for(let k=0;k<len;k++){ if(k===gap) continue; const low=RNG()<0.25; put(hz?x+k:x,hz?y:y+k,low?1:2,low?'ruinlow':'ruin',low?0:ri(34,50)); } n++; }
-    scatter(16,(x,y)=>rectFree(x,y,1,1,1)&&put(x,y,1,'rocks'));
-    scatter(7,(x,y)=>free(x+1,y)&&rectFree(x,y,2,1,1)&&put(x,y,1,'wreck',0,{part:0})&&put(x+1,y,1,'wreck',0,{part:1}));
-    scatter(9,(x,y)=>rectFree(x,y,1,1,1)&&put(x,y,1,pick(['barrels','sandbag'])));
+    scatter(N(16),(x,y)=>rectFree(x,y,1,1,1)&&put(x,y,1,'rocks'));
+    scatter(N(7),(x,y)=>free(x+1,y)&&rectFree(x,y,2,1,1)&&put(x,y,1,'wreck',0,{part:0})&&put(x+1,y,1,'wreck',0,{part:1}));
+    scatter(N(9),(x,y)=>rectFree(x,y,1,1,1)&&put(x,y,1,pick(['barrels','sandbag'])));
   }
   // connectivity: merge pockets by opening walls
-  for(let it=0;it<80;it++){
+  for(let it=0;it<160;it++){
     const lab=new Int16Array(MW*MH).fill(-1), list=[];
     for(let i=0;i<MW*MH;i++){ if(g[i]||lab[i]>=0) continue; const comp=[],st=[i]; lab[i]=list.length;
       while(st.length){ const k=st.pop(); comp.push(k); const x=k%MW,y=(k/MW)|0; for(const d of DIRS4){ const nx=x+d[0],ny=y+d[1]; if(!inMap(nx,ny)) continue; const j=idx(nx,ny); if(g[j]||lab[j]>=0) continue; lab[j]=list.length; st.push(j); } }
@@ -883,7 +884,7 @@ function genMap(rk){
     if(!done){ for(const k of small){ const x=k%MW,y=(k/MW)|0; for(const d of DIRS4){ const nx=x+d[0],ny=y+d[1]; if(inMap(nx,ny)&&g[idx(nx,ny)]){ g[idx(nx,ny)]=null; done=true; break; } } if(done) break; } }
   }
   let np=0,tp=0;
-  while(np<7&&tp++<900){ const w=ri(2,4),h=ri(2,4),x=ri(2,MW-3-w),y=ri(2,MH-3-h); let good=true;
+  while(np<N(7)&&tp++<1800){ const w=ri(2,4),h=ri(2,4),x=ri(2,MW-3-w),y=ri(2,MH-3-h); let good=true;
     for(let yy=y-1;yy<=y+h&&good;yy++) for(let xx=x-1;xx<=x+w;xx++){ const inner=xx>=x&&xx<x+w&&yy>=y&&yy<y+h; if(!inMap(xx,yy)||elev[idx(xx,yy)]||floorT[idx(xx,yy)]||(inner&&g[idx(xx,yy)])){ good=false; break; } }
     if(rk==='city'&&(lanes.x.some(l=>l>=x&&l<x+w)||lanes.y.some(l=>l>=y&&l<y+h))) good=false;
     if(!good) continue;
@@ -1014,10 +1015,16 @@ function setupMatch(lo,mk,net){
   const near=floors.filter(i=>Math.hypot(i%MW-CX,((i/MW)|0)-CX)<=(G.M.key==='quick'?3:5));
   const sc=pick(near.length?near:floors);
   G.storm={cx:sc%MW+.5,cy:((sc/MW)|0)+.5,r:G.M.startR,nextR:G.SC.radii[0],stage:0,anim:null};
-  const lo2=G.M.key==='quick'?[3.5,8]:[9,14.2];
-  const cand=floors.filter(i=>{ const d=Math.hypot(i%MW+.5-G.storm.cx,((i/MW)|0)+.5-G.storm.cy); return d>=lo2[0]&&d<=lo2[1]; });
+  // Spawns: pick team anchors inside the starting zone, each as far as possible from the ones already chosen
+  // (farthest-point sampling over every candidate), with a penalty for being in line of sight of another team.
+  const lo2=G.M.key==='quick'?[3,G.M.startR-2.5]:[6,G.M.startR-3.5];
+  const cand=floors.filter(i=>{ const d=Math.hypot(i%MW+.5-G.storm.cx,((i/MW)|0)+.5-G.storm.cy); return d>=lo2[0]&&d<=lo2[1]&&!G.elev[i]; });
   const nT=nTeams(), anchors=[pick(cand)];
-  while(anchors.length<nT){ let best=-1,bd=-1; for(let k=0;k<70;k++){ const c=pick(cand); if(anchors.includes(c)) continue; let md=99; for(const s of anchors) md=Math.min(md,Math.hypot(c%MW-s%MW,((c/MW)|0)-((s/MW)|0))); if(md>bd){bd=md;best=c;} } anchors.push(best>=0?best:pick(floors)); }
+  while(anchors.length<nT){ let best=-1,bs=-1e9;
+    for(const c of cand){ if(anchors.includes(c)) continue; const cx=c%MW,cy=(c/MW)|0; let md=1e9, seen=false;
+      for(const a of anchors){ const ax=a%MW,ay=(a/MW)|0, d=Math.hypot(cx-ax,cy-ay); if(d<md) md=d; if(d<=11&&!seen&&hasLOS(ax,ay,cx,cy)) seen=true; }
+      const sc=md-(seen?6:0); if(sc>bs){ bs=sc; best=c; } }
+    anchors.push(best>=0?best:pick(floors)); }
   const names=shuffle(RIVALS.slice()); let ni=0; const list=[];
   if(net){
     // humans fill teams in lobby order (duos pairs them up); AI fills every empty slot
@@ -1035,7 +1042,7 @@ function setupMatch(lo,mk,net){
   for(let t=0;t<nT;t++){ const a=anchors[t], mem=list.filter(u=>u.team===t); let ax=a%MW, ay=(a/MW)|0;
     mem.forEach((u,k)=>{ let x=ax,y=ay; if(k>0||taken.has(idx(x,y))){ let found=false; for(let r=1;r<4&&!found;r++) for(const d of DIRS8){ const nx=ax+d[0]*r,ny=ay+d[1]*r; if(inMap(nx,ny)&&!G.grid[idx(nx,ny)]&&!taken.has(idx(nx,ny))){ x=nx;y=ny;found=true;break; } } }
       taken.add(idx(x,y)); placeUnit(u,x,y); u.face=RNG()<.5?1:-1; }); }
-  const crateN=G.M.key==='quick'?7:11, inR=i=>Math.hypot(i%MW+.5-G.storm.cx,((i/MW)|0)+.5-G.storm.cy)<=G.M.startR-1;
+  const crateN=Math.round((G.M.key==='quick'?7:11)*MW*MH/900), inR=i=>Math.hypot(i%MW+.5-G.storm.cx,((i/MW)|0)+.5-G.storm.cy)<=G.M.startR-1;
   for(let k=0;k<crateN;k++){ let best=-1,bd=-1; for(let t=0;t<50;t++){ const c=pick(floors); if(!inR(c)||taken.has(c)||G.crates.some(q=>idx(q.x,q.y)===c)) continue; let md=99; for(const s of [...taken].concat(G.crates.map(q=>idx(q.x,q.y)))) md=Math.min(md,Math.hypot(c%MW-s%MW,((c/MW)|0)-((s/MW)|0))); if(md>bd){bd=md;best=c;} } if(best>=0) G.crates.push({x:best%MW,y:(best/MW)|0,ph:RNG()*6}); }
   G.intel={}; G.noise=[]; G.round=0; G.over=false; G.playerDead=false; G.spec=null; G.speed=1; G.rewarded=null; G.result=null; G.place=0; G.busy=true; G.mode='idle'; G.reach=null; G.pending=-1; G.turnRes=null; G.paused=false; G.turnMax=0;
   G.stats={shots:0,hits:0,grazes:0,dmg:0,kills:0,rounds:0,crates:0,drops:0,owHits:0,highHits:0,nadeHits:0,revives:0};
@@ -2086,7 +2093,7 @@ async function execCmd(u,c){
     // shooting before moving keeps 1 AP for a move (not another action); heavy weapons and shots after moving end the turn
     if(u.moved||u.W.heavy||k==='hail') u.ap=0; else { u.ap=Math.max(0,u.ap-1); u.shot=true; }
     await fireShot(u,t,o); }
-  else if(c.k==='throw'){ const util=u.utils[c.i]; if(!util) return; const U=UTILS[util.id]; if(U.endTurn) u.ap=0; else u.ap-=1; await doThrow(u,util,c.x,c.y); }
+  else if(c.k==='throw'){ const util=u.utils[c.i]; if(!util) return; const U=UTILS[util.id]; u.ap=Math.max(0,u.ap-1); if(U.dmg&&!u.moved&&u.ap>0) u.shot=true; await doThrow(u,util,c.x,c.y); }
   else if(c.k==='revive'){ const t=byId(c.t); if(t) await doRevive(u,t); }
   else if(c.k==='util'){ const util=u.utils[c.i]; if(!util||util.ch<=0) return;
     if(util.id==='shieldcell'){ util.ch--; u.ap-=1; u.shield+=3; if(shouldShow(u)){ floatText(u,'+3 SHIELD',[111,208,255],22); SFX.heal(); const p=chest(u); addFx({type:'ring',x:p[0],y:p[1]+19,r:40,col:[111,208,255],life:.5}); await wait(550); } }
@@ -2230,7 +2237,7 @@ async function aiExecute(u,a){
   else if(a.k==='hail'){ u.ap=0; u.cd.hail=ABIL.hail.cd; await fireShot(u,a.t,{guaranteed:true,ammoCost:2,fxk:'heavy',label:'HAIL OF BULLETS'}); }
   else if(a.k==='zap'){ u.ap-=1; u.cd.zap=ABIL.zap.cd; await doZap(u,a.t); }
   else if(a.k==='slash'){ u.ap=0; u.cd.slash=ABIL.slash.cd; await doSlash(u,a.t,a.path); }
-  else if(a.k==='throw'){ const U=UTILS[a.util.id]; if(U.endTurn) u.ap=0; else u.ap-=1; await doThrow(u,a.util,a.x,a.y); }
+  else if(a.k==='throw'){ const U=UTILS[a.util.id]; u.ap=Math.max(0,u.ap-1); if(U.dmg&&!u.moved&&u.ap>0) u.shot=true; await doThrow(u,a.util,a.x,a.y); }
 }
 async function aiRevive(u){
   const dn=G.units.find(m=>m!==u&&m.team===u.team&&m.alive&&m.downed); if(!dn) return false;
@@ -2258,6 +2265,8 @@ async function aiTurn(u,mid){
   if(u.ap>0&&!stay){ const mv=aiChooseMove(u); if(mv){ const ap=mv.cost<=u.mob+1e-6?1:2; if(ap<=u.ap){ u.ap-=ap; await moveUnit(u,mv.path); u.moved=true; } } }
   let guard=0;
   while(!stale()&&u.ap>0&&guard++<3){
+    if(u.shot){ // threw a grenade before moving: the remaining AP can only be a move
+      const mv=!u.moved&&aiChooseMove(u,1); if(mv&&mv.cost<=u.mob+1e-6){ u.ap-=1; await moveUnit(u,mv.path); u.moved=true; } u.ap=0; break; }
     atk=aiBestAttack(u);
     if(atk&&atk.score>=8){ await aiExecute(u,atk); continue; }
     if(u.ammo===0){ await doReload(u); continue; }
@@ -2366,7 +2375,7 @@ function fillThrowPanel(){
   let n=0,self=false,ally=false; if(G.throwTile>=0){ const tx=G.throwTile%MW,ty=(G.throwTile/MW)|0; for(const v of G.units){ if(!v.alive) continue; if(Math.hypot(v.x-tx,v.y-ty)<=U.radius+0.01){ if(v===u) self=true; else if(!isEnemy(u,v)) ally=true; else n++; } } }
   $('#tHit').textContent=G.throwTile>=0?String(n):'–'; $('#tHitL').textContent='enemies in blast';
   $('#tRow').innerHTML=G.throwTile<0?'<span>Tap a tile in range</span>':(self?'<span class="warn">You are inside the blast</span>':ally?'<span class="warn">Your partner is inside the blast</span>':'<span>Tap Throw, or the tile again, to confirm</span>');
-  $('#tMods').textContent=U.endTurn?'Ends turn.':'Costs 1 AP.'; $('#tChips').innerHTML='';
+  $('#tMods').textContent=U.dmg?'Costs 1 AP. Throw before moving and you can still move.':'Costs 1 AP.'; $('#tChips').innerHTML='';
   const fb=$('#tFire'); fb.textContent='Throw'; fb.classList.toggle('off',G.throwTile<0);
 }
 function drawMinimap(){
