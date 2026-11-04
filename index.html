@@ -4772,14 +4772,14 @@ function aiScoreTile(u,x,y,threats,cost){
   for(const t of threats){
     const d=Math.hypot(t.x-x,t.y-y), los=hasLOS(t.x,t.y,x,y);
     const cov=coverFrom(x,y,t.x,t.y); // height-aware: ledges, shooting over cover from above
-    if(los&&d<=sightOf(t)+0.5){ seen++; s+=cov===2?16:cov===1?7:-24; if(d<=2.2&&t.cls==='ranger') s-=8; }
+    if(los&&d<=sightOf(t)+0.5){ seen++; s+=cov===2?16:cov===1?7:-24; if(d<=2.2&&t.cls==='ranger') s-=8; if(G.lvl[idx(x,y)]>lvAt(t.x,t.y)) s+=12; } // they shoot uphill (-10 aim)
     if(los&&d<=u.sight+sightBonus(u,G.lvl[idx(x,y)])){ const h=hitInfo(u,t,{fx:x,fy:y}).any; best=Math.max(best,h); if(D.flank&&!t.downed&&coverFrom(t.x,t.y,x,y)===0) s+=D.flank; }
     if(D.owAvoid&&los&&t.overwatch&&threats.fresh&&threats.fresh.has(t.id)&&d<=sightOf(t)+0.5) s-=D.owAvoid;
   }
   s+=best*0.3;
   if(!threats.length&&u._goal) s-=Math.hypot(u._goal[0]-x,u._goal[1]-y)*0.45;
   if(seen>=3) s-=10;
-  { const lv=G.lvl[idx(x,y)]; if(lv) s+=lv>=2?(threats.length?10:5):7; } // high ground; rooftops (by ladder) mostly once there is someone to watch
+  { const lv=G.lvl[idx(x,y)]; if(lv) s+=lv>=2?(threats.length?15:9):7; } // high ground; rooftops (by ladder) mostly once there is someone to watch
   const q=G.crates.find(q=>q.x===x&&q.y===y); if(q) s+=q.drop?45:14;
   if(inSmoke(x,y)) s+=6;
   if(threats.length) for(const d of DIRS8){ const o=cell(x+d[0],y+d[1]); if(o&&TERR[o.kind]&&TERR[o.kind].boom){ s-=8; break; } } // don't hide behind a fuel barrel
