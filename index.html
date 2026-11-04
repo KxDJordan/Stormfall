@@ -5731,7 +5731,7 @@ function applyDamage(t,d,src,o){
   if(t.hp<=0){ t.hp=0; if(G.M.team>1&&G.units.some(m=>m!==t&&m.team===t.team&&standing(m))) down(t,src,o.anim,o.how); else if(G.M.team===1&&t.sw>0) swDown(t,src,o.anim); else kill(t,src,o.anim,o.how); }
 }
 function down(t,src,anim,how){
-  t.downed=true; t.hp=0; t.bleed=2; t.overwatch=false; t.hunker=false; t.shield=0;
+  t.downed=true; t.hp=0; t.bleed=2; t.overwatch=false; t.hunker=false; t.shield=0; t.dnBy=src&&src!==t&&isEnemy(src,t)?src.id:null; // the elimination goes to whoever downed them
   if(src&&src!==t&&isEnemy(src,t)) src.tk=(src.tk||0)+1; // takedowns (downs + eliminations) feed Implacable / In the Zone / Reaper
   feedLine((src&&src!==t?src.name+' downed ':'')+t.name+(src?'':' went down'),mine(t)||mine(src));
   if(anim){ floatText(t,'DOWNED',[255,120,90],24); G.cam.shake=Math.max(G.cam.shake,6); }
@@ -5749,12 +5749,13 @@ function playerOut(){
   buzz([80,50,80]); updateHUD();
 }
 function kill(t,src,anim,how){
+  if(!src&&t.downed&&t.dnBy!=null) src=G.units.find(z=>z.id===t.dnBy)||null;
   t.vDeathS=src&&src!==t?(iso(t.x,t.y)[0]>=iso(src.x,src.y)[0]?1:-1):-t.face; // visual: which way the body falls
   t.alive=false; t.downed=false; t.swDown=false; t.deadT=0.001; t.overwatch=false; t.hunker=false;
   if(t.dr&&t.dr.st!=='dead'){ if(t.dr.alive) droneWreck(t.dr,null,!!anim||shouldShow(t.dr),true); t.dr.st='dead'; t.dr.alive=false; t.dr.rb=99; } // the Specialist is out: its drone goes down with it
   bountyKill(t,src);
   if(src&&src!==t&&isEnemy(src,t)){ src.kills++; src.tk=(src.tk||0)+1; if(src.isPlayer){ G.stats.kills++; cst(src,'k_'+(G.cctx||'prim')); floatText(src,'+'+killValue(src)+' CR',[255,179,64],17); buzz(25); } else if(Math.random()<0.3&&shouldShow(src)) bubble(src,fpick(TAUNTS)); }
-  feedLine(src&&src!==t?(src.name+' eliminated '+t.name+(how?' ('+how+')':'')):(t.name+(how==='bled out'?' bled out':how==='explosion'?' was caught in a blast':' was lost to the storm')),mine(t)||mine(src));
+  feedLine(src&&src!==t?(src.name+' eliminated '+t.name+(how?' ('+how+')':'')):(t.name+(how==='bled out'?' bled out':how==='explosion'?' was caught in a blast':how==='team wiped'?' was eliminated with their team':' was lost to the storm')),mine(t)||mine(src));
   const p=chest(t);
   // the killer's kill effect (visual only; bleed-outs, storm and blasts with no killer get the standard one)
   if(anim){ const kk=src&&src!==t&&isEnemy(src,t)&&KFX[src.kfx]?src.kfx:'default', K=KFX[kk];
@@ -5766,7 +5767,7 @@ function kill(t,src,anim,how){
   if(!G.crates.some(q=>q.x===t.x&&q.y===t.y)) G.crates.push({x:t.x,y:t.y,ph:RNG()*6});
   if(!teamStanding(t.team)){
     if(G.player&&t.team===G.player.team&&!G.place) G.place=teamsLeft()+1;
-    for(const m of G.units) if(m.team===t.team&&m.alive&&m.downed&&m!==t) finishOff(m);
+    for(const m of G.units) if(m.team===t.team&&m.alive&&m.downed&&m!==t){ const k=src&&src!==m&&isEnemy(src,m)?src:null; kill(m,k||G.units.find(z=>z.id===m.dnBy)||null,anim||shouldShow(m),'team wiped'); }
   }
   if(t.isPlayer) playerOut();
   updateTop();
@@ -6047,7 +6048,7 @@ async function deployDevice(u,util,tx,ty,anim){
     if(mine(u)) floatText(tileDummy(tx,ty),util.id==='drone'?'AREA REVEALED':'SENSOR ONLINE',[127,232,255],16); await wait(500); }
 }
 async function doRevive(u,t){
-  u.ap=0; faceTo(u,t.x,t.y); t.downed=false; t.hp=3; t.bleed=0;
+  u.ap=0; faceTo(u,t.x,t.y); t.downed=false; t.hp=3; t.bleed=0; t.dnBy=null;
   if(u.isPlayer) G.stats.revives++;
   feedLine(u.name+' revived '+t.name,mine(u));
   if(shouldShow(u)||shouldShow(t)){ focusMid(u,t); vAnim(u,'revive',.85); floatText(t,'REVIVED',[93,255,154],24); healFx(t); const p=chest(t); addFx({type:'ring',x:p[0],y:p[1]+19,r:50,col:[93,255,154],life:.6}); SFX.heal(); await wait(850); }
@@ -6387,7 +6388,7 @@ function swDown(t,src,anim){
   if(t.isPlayer){ banner('Second Wind','You’re down, not out: you get back up next turn unless someone finishes you.','warn',2400); buzz([60,40,60]); }
   updateHUD(); }
 async function swRise(u){
-  u.downed=false; u.swDown=false; u.hp=3; u.bleed=0; feedLine(u.name+' got back up',mine(u));
+  u.downed=false; u.swDown=false; u.hp=3; u.bleed=0; u.dnBy=null; feedLine(u.name+' got back up',mine(u));
   if(shouldShow(u)){ focusOn(u.x,u.y); floatText(u,'BACK UP · 3 HP',[93,255,154],22); healFx(u); SFX.heal(); await wait(700); }
   if(u.isPlayer){ banner('Back on your feet','3 HP and 1 AP. Find cover.','win',1500); computeVis(); }
   updateHUD(); }
@@ -6463,7 +6464,7 @@ async function landDrop(){
 async function unitTurn(u,mid){
   const rose=u.downed&&u.swDown; if(rose) await swRise(u);
   if(u.downed){ u.bleed--; const show=shouldShow(u);
-    if(u.bleed<=0){ if(show){ focusOn(u.x,u.y); await wait(300); } kill(u,null,show,'bled out'); return; }
+    if(u.bleed<=0){ if(show){ focusOn(u.x,u.y); await wait(300); } kill(u,G.units.find(z=>z.id===u.dnBy)||null,show,'bled out'); return; }
     if(show){ focusOn(u.x,u.y); floatText(u,'BLEEDING OUT',[255,120,120],18); await wait(700); }
     if(u.isPlayer){ turnTag('You’re down: '+u.bleed+' turn left','enemy'); updateHUD(); await wait(500); }
     return; }
@@ -8012,7 +8013,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=20, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=21, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
