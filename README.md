@@ -66,8 +66,9 @@ browser ──► Worker "stormfall" (workers.dev or your domain)
              ├─ static assets: index.html, vendor/, assets/, manifest.json   (served without running the Worker)
              ├─ /api/account, /api/save/*, /api/daily/*                     ──► D1 "stormfall" (SQLite)
              ├─ /api/turn                                                   ──► Cloudflare Realtime TURN (optional)
-             └─ /api/peerjs (WebSocket), /api/peerjs/id                     ──► Durable Object "Signal" (SQLite-backed,
-                                                                                WebSocket Hibernation)
+             ├─ /api/social/* (friends, requests, profiles)                 ──► D1
+             └─ /api/peerjs (WebSocket), /api/peerjs/id, /api/social/ws     ──► Durable Object "Signal" (SQLite-backed,
+                                                                                WebSocket Hibernation): signaling + presence
 ```
 
 - **One Worker with Static Assets** (not Pages + Functions): one deploy, one URL, one config, and the
@@ -99,6 +100,7 @@ All JSON. POST bodies are sent as `text/plain` and GETs have no custom headers, 
 | `GET /api/peerjs/id` | a fresh peer id (PeerJS protocol) | – |
 | `GET /api/peerjs?key=peerjs&id=&token=&version=` | WebSocket to the signaling Durable Object | – |
 | `GET /api/health` | `{ok, turn}` | – |
+| `/api/social/*` | friends, requests, presence socket, invites: see **Socials** below | |
 
 Signaling messages (PeerJS server protocol): server → client `OPEN`, `ID-TAKEN` (room code already in use),
 `INVALID-KEY`, `ERROR`, `EXPIRE` (peer not connected → the client's "No room called …"); client ↔ client relayed by
@@ -113,7 +115,8 @@ auto-response, so it never wakes the object.
 - `daily(day, acct, score, at, name, cls, place, kills, dmg, rounds, win)`, PK `(day, acct)`, index
   `daily_rank(day, score DESC, at)`; `daily_count(day PK, n)`. Leaderboards older than 40 days and accounts that never
   saved anything (after 7 days) are deleted by a daily cron.
-- No PII: the only player-entered text is the callsign shown on the leaderboard (A–Z, 0–9, 12 characters).
+- No PII: the only player-entered text is the callsign shown on the leaderboard (A–Z, 0–9, 12 characters). Friends
+  see the same callsign plus level, class and name plate ids (see Socials).
 
 ### Free-tier budget
 
@@ -146,6 +149,103 @@ cached in isolate memory, the Cache API and the browser; the client only asks fo
 50; rate limits per IP and per account with the free Rate Limiting binding (falling back to an in-memory window);
 WebSocket Hibernation with a heartbeat auto-response and a 25 s PeerJS ping; TURN credentials minted once and cached
 both in the Worker and in the browser for their lifetime; a daily cron that prunes old rows; no KV.
+
+### Socials: friends, presence, room invites
+
+Each account can publish a small **public profile** (callsign, level, class, name plate title and banner: no PII) and
+gets a **friend code**: 8 random Crockford base32 characters (40 bits), shown as `XXXX-XXXX`, separate from the private
+account code. Players add each other by code or by a share link `?friend=CODE`, which opens Friends with the code
+filled in. Requests can be accepted, declined, cancelled; friends removed or blocked (a blocked player's request
+disappears, and looking up your code then answers exactly like a wrong code). Caps: 100 friends + outgoing requests,
+30 outgoing pending, 50 incoming pending, 100 blocks; requests nobody answers are dropped after 60 days.
+
+**Presence** runs over one hibernating WebSocket per open app, served by the same `Signal` Durable Object as PeerJS
+signaling. Why the same object and not a new class: an object is billed for duration only while it is awake, and one
+global object awake 24 h at 128 MB is ~11,000 GB-s, under the free 13,000 GB-s/day, so one object can never exceed
+the free duration however busy it gets (two always-awake objects could). It also shares the single WebSocket
+auto-response pair (`{"type":"HEARTBEAT"}`), so heartbeats from idle apps never wake it. Social sockets carry the tag
+`S` and are counted, capped (5,000; 4 per account) and swept separately from PeerJS peers.
+
+- The socket (`/api/social/ws?c=<friend code>`) authenticates with its **first message** `{t:'auth', auth:'ID.SECRET'}`,
+  checked against D1 by the object (secret hash, and that the code belongs to that account). The secret never appears
+  in a URL or header (so never in logs). Unauthenticated sockets are ignored and closed after 20 s.
+- Clients send **transitions only** (`menu` / `lobby` / `match`, plus room code and mode in a lobby); the object
+  forwards a change to friends only if the visible state changed, and only to friends whose own list includes the
+  sender (both sides must agree). The room code is shown to friends only while "Friends can join my rooms" is on
+  (Friends sheet; on by default), which enables **Join** on the friends list.
+- Heartbeat every 50 s (runtime auto-response, never wakes the object). An alarm every 3 minutes (only while presence
+  sockets exist) closes sockets whose heartbeats stopped for 150 s, e.g. a phone that went to sleep. The client closes
+  its socket 2 minutes after the app goes to the background and reconnects with backoff (4 s … 5 min).
+- When the last socket of an account closes, friends get `off` and `profiles.seen` is written (one row): Friends shows
+  "last seen" from the list when the socket is down, so presence degrades gracefully.
+- **Only players who use Friends pay for any of this.** A friend code is created the first time Friends is opened, so
+  before that nobody can be your friend; the socket opens only for players with friends or pending requests, or who
+  opened Friends in this session (otherwise one list call per app start shows new requests).
+
+**Invites.** In an online room, **Invite friends** (next to Invite in the waiting room) opens the friends picker (online
+first). The invite (room code + mode) goes over the socket; the object checks that you are friends and that you are in
+that room. Online friends get a card with **Join** (the existing join flow, same as a `?join=` link) and **Decline**
+(the host is told) wherever they are in the menus; during a match they get a small non-blocking **Invite** badge
+instead (Join waits until the match ends). Invites expire after 5 minutes and vanish when the host's room starts or
+closes (seen through the host's presence). Offline friends: the invite is kept in D1 for 5 minutes (one row) and
+delivered (then deleted) when they open the app, only if the host is still in that room; it is deleted as soon as the
+host's room starts or closes. This is worth one write: "come play" is most useful in the minutes after it is sent, and
+a stale invite is filtered anyway.
+
+| Endpoint | Does | D1 cost |
+|---|---|---|
+| `POST /api/social/me` `{auth, name, lv, cls, title, banner}` | publish the public profile (only when it changed) → `{code}` | 1 read + 1 write |
+| `POST /api/social/list` `{auth}` | `{code, friends, inc, out, blk}`: friends with `seen`; requests and blocks without | 1 + 2 per link |
+| `POST /api/social/add` `{auth, code}` | send a request (or accept theirs) → `{st: 'o' \| 'f'}`; 5 lookups/min per account | ~3 reads + counts, 2 writes |
+| `POST /api/social/act` `{auth, code, a}` | `accept`, `decline`, `cancel`, `remove`, `block`, `unblock` → `{st}` | ~3 reads, 1–4 writes |
+| `GET /api/social/ws?c=CODE` | presence WebSocket (Durable Object), protocol below | at auth: 1 + 2 per friend reads |
+
+Every change to friends is pushed to the presence object (one Durable Object RPC per add/act) so the other side's
+list, badge and presence update live (`fx`). Socket messages, client → server: `auth {auth, s, r, m, o}`,
+`st {s, r, m, o}`, `inv {to, r, m}`, `dec {c, r}`; server → client: `hi {c, on, inv}` (online friends + pending
+invites), `p {c, s, r?, m?}` (`s: 'off'` = went offline), `fx` (refetch the list), `inv {c, n, r, m, exp}`,
+`invd {c, live, exp}`, `invn {c, r}` (declined), `err {e}`. Rate limits: account-keyed `RL_ACCT` on every social call
+and socket connect, `RL_NEW` keyed per account for friend-code lookups (enumerating 2^40 codes at 5/min is hopeless),
+and per socket 40 messages and 12 invites a minute (a flood closes the socket).
+
+D1 (migration `0002_social.sql`, applied by the deploy workflow like `0001`): `profiles(acct PK, fcode UNIQUE, name, lv,
+cls, title, banner, seen, updated)`; `links(a, b, st, at)` PK `(a, b)`, both directions stored so "everything about me"
+is one primary-key range, `st` = `f` friends / `o` outgoing / `i` incoming / `b` blocked, partial index on `at` for
+pending requests; `invites(to_code, from_code, room, mode, name, exp)` PK `(to_code, from_code)`, indexes on `exp` (cron)
+and `from_code` (room closed). The cron also drops expired invites and old requests, and never deletes an account that
+has a profile.
+
+Client (all in `index.html`, section "socials"): a Friends sheet (`openFriends()`, `#frSheet`), invite cards (`#sfInv`)
+and the in-match badge (`#sfInvBadge`). It hooks into the rest of the game in three places only: the Friends button in
+the Home header (`#bFriends`), `friendsInviteButtonHtml()` in `renderLobby()`'s room row, and `socialBoot()` at boot.
+Presence is derived from the existing state (`G.scene`, `inRoom()`, `NET.code`, `NET.mode`) by a 2 s local check that
+sends only transitions; nothing touches the simulation, and invites only call `openOnline()` + `netJoin()`. Without a
+backend the Friends button is hidden and a `?friend=` link explains that Friends need the online service.
+
+#### Socials budget (free plan)
+
+Per player who uses Friends, per day (typical: 10 friends, 2 app sessions, 5 matches, 3 invites):
+
+| | Worker requests | DO requests | D1 reads | D1 writes |
+|---|---|---|---|---|
+| Presence: 2 socket connects (auth reads 1 + 2 × 10 friends) | 2 | 2 | ~44 | 0 |
+| Status transitions (~20 messages, billed 20:1) + 3 invites | 0 | ~1 | 0 | 0–3 (offline invites) |
+| Heartbeats (auto-response) | 0 | 0 | 0 | 0 |
+| 2 socket closes (last seen) | 0 | ~2 | 0 | 2 |
+| Opening Friends twice (list) | 2 | 0 | ~42 | 0 |
+| Profile publish when level/name/plate changed | 1 | 0 | 1 | 1 |
+| One friend add / accept (both sides, with the DO push) | 1 | 1 | ~25 | 2 |
+| Sweep alarm (shared by everyone: every 3 min while anyone is online) | 0 | ≤ 480/day total | 0 | ≤ 1 per stale socket |
+| **Total** | **~6** | **~6** | **~110** | **~5** |
+
+Next to the rest of the backend (~11 Worker requests, ~3 DO requests, ~7 D1 writes per active player), socials add
+about half again in Worker requests; DO requests stay well under the 100,000/day limit (~9,000 social players ≈ 54,000
+plus signaling), D1 reads stay tiny next to 5 M, and writes stay far under 100 k. Players who never open Friends add
+nothing. Duration is bounded by the single object (see above). Optimizations: hibernation with auto-response heartbeats,
+transitions only, no polling anywhere (presence is pushed; the list is refetched only when the server says it changed or
+when Friends opens after 30 s), the room code withheld unless joining is allowed, attachments instead of storage for
+socket state (no Durable Object storage writes), one D1 batch per socket auth, one write per session for last seen,
+offline invites only when the friend is not connected, every query on a primary key or index, caps on lists.
 
 ### One-time setup
 
@@ -180,6 +280,7 @@ npm run dev           # builds public/, applies migrations to a local D1, runs w
 npm test              # unit tests + API tests against a fresh local Worker (wrangler dev / Miniflare)
 node test/e2e/cloud.cjs                         # browser tests (Playwright + Chromium) against npm run dev
 node test/e2e/online.cjs quick 0 veteran spec   # two browsers + a spectator, lockstep over the own signaling DO
+node test/e2e/social.cjs                        # two players: friends, presence, invites, join, match in lockstep
 ```
 
 ## Files

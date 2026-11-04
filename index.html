@@ -887,17 +887,86 @@ body.sheet-open .nav{display:none}
 #teRecap{margin-top:var(--s3)}
 #teRecap li{font-size:12.5px}
 @media (prefers-reduced-motion: reduce){ .np.bn-anim::after,#coachRing{animation:none!important} #coach{transition:none} }
+/* ---------- socials: Friends sheet, invite cards (self-contained; see the socials section in the script) ---------- */
+.frbtn{position:relative}
+.frbtn .frdot,.frinv .frdot{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--amber);color:var(--amber-ink);font:700 11px/18px 'Chakra Petch',sans-serif;text-align:center;pointer-events:none}
+#frSheet{z-index:42}
+#frSheet .sheet-box{min-height:62%}
+@media (min-width:760px){ #frSheet .sheet-box{width:min(560px,calc(100vw - 48px));height:auto} }
+.frsec{margin:0 0 var(--s4)}
+.frsec>h4{display:flex;align-items:center;gap:var(--s2);margin:0 0 var(--s2);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.frsec>h4 em{font-style:normal;color:var(--text2)}
+.frme{display:flex;align-items:center;gap:var(--s3);padding:10px 10px 10px 14px;background:var(--surf);border:1px solid var(--signal-line);border-radius:var(--r2)}
+.frme .wr-code{flex:1;min-width:0}
+.frme .wr-code b{font-size:30px;letter-spacing:.1em}
+.frme .btn{flex:none}
+.fradd{display:flex;gap:var(--s2);margin-top:var(--s2)}
+.fradd input{flex:1;min-width:0;min-height:var(--tap);font:600 22px/1 Teko,sans-serif;letter-spacing:.16em;text-transform:uppercase;background:#0b121a;color:var(--text);border:1px solid var(--line2);border-radius:var(--r1);padding:6px 10px 2px;-webkit-user-select:text;user-select:text}
+.frnote{margin:6px 0 0;font-size:12.5px;color:var(--muted);line-height:1.4}
+.frnote.warn{color:var(--amber)}
+.frlist{display:flex;flex-direction:column;gap:6px}
+.frrow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;align-items:center;min-height:58px;padding:7px 8px 7px 10px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r2)}
+.frrow .av{position:relative;width:36px;height:36px;display:grid;place-items:center;border-radius:var(--r2);background:rgba(255,255,255,.05);border:1.5px solid var(--line2);color:var(--text2);font:600 22px/1 Teko,sans-serif;padding-top:3px;font-style:normal}
+.frrow .av::after{content:"";position:absolute;right:-4px;bottom:-4px;width:12px;height:12px;border-radius:50%;background:var(--dim);border:2px solid var(--panel-solid)}
+.frrow.s-menu .av::after{background:var(--ok)}
+.frrow.s-lobby .av::after{background:var(--signal)}
+.frrow.s-match .av::after{background:var(--amber)}
+.frrow.s-menu .av,.frrow.s-lobby .av,.frrow.s-match .av{border-color:var(--signal-line);color:var(--text)}
+.frrow .np{padding:2px 8px 2px 8px}
+.frrow .np>b{font-size:20px}
+.frrow .frst{display:block;font-size:11.5px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:normal}
+.frrow .frst.on{color:var(--ok)} .frrow .frst.lob{color:var(--signal)} .frrow .frst.mt{color:var(--amber)}
+.frbtns{display:flex;gap:6px;align-items:center}
+.frbtns .btn.sm{min-height:38px;padding:0 12px;font-size:13px}
+.frbtns .iconbtn{width:38px;height:38px;font-size:18px}
+.frmore{grid-column:1/-1;display:flex;gap:6px;justify-content:flex-end}
+.frmore .btn.sm{min-height:36px;font-size:12.5px}
+.frempty{padding:12px;border:1px dashed var(--line2);border-radius:var(--r2);color:var(--muted);font-size:13px;line-height:1.45}
+.frset{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r2);font-size:13.5px}
+.frset small{display:block;color:var(--muted);font-size:11.5px}
+.frlive{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);letter-spacing:.04em}
+.frlive i{width:8px;height:8px;border-radius:50%;background:var(--dim)} .frlive.on i{background:var(--ok)}
+.frblk summary{cursor:pointer;color:var(--muted);font-size:12.5px;min-height:var(--tap);display:flex;align-items:center}
+.wr-room:has(.frinv){flex-wrap:wrap}
+.wr-room:has(.frinv) .wr-rs{flex:1 1 150px}
+.wr-room:has(.frinv)>.btn{flex:1 1 0}
+.wr-room .frinv{position:relative}
+/* invite cards: bottom of the screen on menus; a small badge during a match (never interrupts play) */
+#sfInv{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + var(--navh) + 12px);z-index:45;display:flex;flex-direction:column;gap:8px;width:min(calc(100vw - 24px),420px);pointer-events:none}
+body.sheet-open #sfInv{display:none}
+.ivcard{pointer-events:auto;position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:center;padding:12px 12px 14px 14px;background:rgba(12,18,26,.98);border:1px solid var(--signal-line);border-left:3px solid var(--signal);border-radius:var(--r2);box-shadow:0 10px 30px rgba(0,0,0,.55);animation:tin .3s var(--ease)}
+.ivcard small{display:block;color:var(--signal);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.ivcard b{display:block;font-size:15px;line-height:1.25}
+.ivcard span{display:block;color:var(--muted);font-size:12px}
+.ivcard .frbtns .btn.sm{min-height:40px}
+.ivcard .ivt{position:absolute;left:0;bottom:0;height:3px;background:var(--signal);opacity:.7}
+#sfInvBadge{position:fixed;right:calc(var(--sar) + 10px);top:calc(var(--sat) + 160px);z-index:7;display:flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border-radius:17px;background:rgba(12,18,26,.92);border:1px solid var(--signal-line);color:var(--text);font-size:12.5px;font-weight:600}
+@media (min-width:820px){ #sfInvBadge{top:calc(var(--sat) + 194px)} } /* below the minimap */
+#sfInvBadge i{font-style:normal;min-width:18px;height:18px;border-radius:9px;background:var(--signal);color:var(--signal-ink);font-size:11px;line-height:18px;text-align:center}
+@media (prefers-reduced-motion:reduce){ .ivcard{animation:none} }
 </style>
 </head>
 <body>
 <canvas id="gc"></canvas>
 <div id="toasts" aria-live="polite"></div>
+<!-- SOCIALS (self-contained: Friends sheet, invite cards, in-match invite badge; filled by the socials section of the script) -->
+<div id="sfInv" aria-live="polite"></div>
+<button id="sfInvBadge" class="hidden" aria-label="Room invites">Invite <i>1</i></button>
+<div class="sheet hidden" id="frSheet">
+  <div class="sheet-bg" data-frx></div>
+  <div class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="frTitle">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head"><div><small id="frKick">Social</small><h3 id="frTitle">Friends</h3></div><span class="frlive" id="frLive"><i></i><span></span></span><button class="iconbtn" data-frx aria-label="Close">×</button></div>
+    <div class="sheet-body" id="frBody"></div>
+  </div>
+</div>
 
 <!-- PLAY -->
 <section id="menu" class="screen mscreen">
   <div class="mtop">
     <button class="lvlcard" id="mLvl" aria-label="Open profile"><span class="lvlb" id="mLvlN">1</span><span class="lvlinfo"><b id="mName">NOMAD</b><span class="xpbar"><i id="mXp"></i></span><small id="mXpT"></small></span></button>
     <div class="wallet"><span class="cr" id="mCr" aria-label="Credits">0</span><button class="sh" id="mSh" aria-label="Shards: get more">0</button></div>
+    <button class="iconbtn frbtn" id="bFriends" aria-label="Friends"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.3c2.1.7 3.5 2.8 3.5 5.7"/></svg></button><!-- socials hook: Friends -->
   </div>
   <div class="menu-col">
     <div class="brand">
@@ -7156,7 +7225,7 @@ function renderLobby(){
   const c=lbCtx(), M=MODES[c.mode], per=M.team, nH=c.humans.length, bots=c.bots, n=nH+bots.length, over=nH>M.players, ed=c.edit;
   const nT=Math.ceil(n/per), maxT=M.players/per, minN=rosterMin(c.mode,nH), canAdd=ed&&!over&&n+per<=M.players, fill=bots.length?bots[bots.length-1]:(DIFFS[PROF.diff]?PROF.diff:'veteran');
   $('#wrKick').textContent=LB.online?'Online room':'Offline · vs AI';
-  $('#wrRoom').innerHTML=LB.online?'<div class="wr-code"><small>Room code</small><b>'+esc(NET.code)+'</b></div><span class="wr-rs">'+(NET.host?'Share the code or invite link. Friends join from Play online.':'Hosted by '+esc((NET.players[0]&&NET.players[0].name)||'host'))+'</span><button class="btn sm" data-on="invite">Invite</button>':''; $('#wrRoom').classList.toggle('hidden',!LB.online);
+  $('#wrRoom').innerHTML=LB.online?'<div class="wr-code"><small>Room code</small><b>'+esc(NET.code)+'</b></div><span class="wr-rs">'+(NET.host?'Share the code or invite link. Friends join from Play online.':'Hosted by '+esc((NET.players[0]&&NET.players[0].name)||'host'))+'</span><button class="btn sm" data-on="invite">Invite</button>'+friendsInviteButtonHtml():''; $('#wrRoom').classList.toggle('hidden',!LB.online);
   $('#wrModes').innerHTML=Object.values(MODES).map(m=>'<button role="radio" aria-checked="'+(c.mode===m.key)+'" class="'+(c.mode===m.key?'sel':'')+'" data-lbmode="'+m.key+'"'+(ed?'':' disabled')+'>'+m.name+'<small>'+(m.team>1?'up to '+m.players/m.team+' teams':'up to '+m.players)+'</small></button>').join('');
   $('#wrDesc').textContent=M.desc;
   const ds=[...new Set(bots)];
@@ -8330,12 +8399,262 @@ $('#daily').addEventListener('click',e=>{ const b=e.target.closest('[data-dy]');
 $('#dyClose').addEventListener('click',()=>show('#daily',false));
 $('#eCard').addEventListener('click',async()=>{ if(!G.daily) return; SFX.click(); const cv=await dailyCard(G.daily.key); if(cv){ dyCardCv=cv; shareCard(cv,G.daily.key); } });
 
+/* ================= socials: friends, presence, room invites =================
+   Needs the backend (cloudflare/: /api/social/* and the presence socket /api/social/ws) and the anonymous cloud account
+   (the same one as cloud save). Without a backend the Friends button is hidden and nothing here runs; when the backend
+   is unreachable Friends says so and everything else keeps working. Nothing here touches the match simulation: invites
+   only start the existing join flow (openOnline + netJoin).
+   - Profile: a small public row (callsign, level, class, name plate title/banner), published only when it changes.
+   - Friend code: 8 characters (XXXX-XXXX), public, separate from the private account code. Share link: ?friend=CODE.
+   - Presence: one WebSocket to the backend's Signal Durable Object while the app is visible (closed 2 minutes after it
+     goes to the background), only for players who have friends or requests or opened Friends this session (a player
+     who never opened Friends has no friend code, so no friends, and costs the backend nothing here). It sends only transitions (menu / lobby / match), plus a heartbeat every 50 s that the
+     server answers without waking up. A local check every 2 s finds transitions (no network unless something changed).
+     When the socket is down, friends show "last seen" from the friends list.
+   - Invites: from an online room (Invite friends). The friend sees a card with Join / Decline on the menus and a small
+     badge during a match. They expire after 5 minutes and vanish when the host's room starts or closes.
+   Hooks elsewhere (one line each): the Friends button on Home (#bFriends), friendsInviteButtonHtml() in renderLobby,
+   socialBoot() at boot. */
+const SOC_KEY='stormfall_social', SOC_TTL=5*60000, SOC_HB=50000;
+const SOC={ws:null,authed:false,pres:{},tries:0,retry:0,hbT:0,pong:0,sent:'',open:false,mode:'',add:'',msg:'',warn:false,busy:false,listBusy:false,pubT:0,hideT:0,more:'',conf:'',invd:{},fxT:0,top:''};
+let SOCS=socLoad(); // persisted: {acct, code, ph: published profile hash, list: {t, friends, inc, out, blk}, allow, inv: [{c,n,r,m,exp}]}
+function socLoad(){ try{ const o=JSON.parse(localStorage.getItem(SOC_KEY)||'null'); if(o&&typeof o==='object') return Object.assign({allow:true,inv:[]},o,{inv:Array.isArray(o.inv)?o.inv:[]}); }catch(e){} return {allow:true,inv:[]}; }
+function socStore(){ try{ localStorage.setItem(SOC_KEY,JSON.stringify(SOCS)); }catch(e){} }
+function socOn(){ return !!API_BASE&&!!CLS.auth&&!CLS.out; }
+function fcFmt(c){ return c?c.slice(0,4)+'-'+c.slice(4):''; }
+function fcNorm(s){ const c=String(s||'').toUpperCase().replace(/[^0-9A-Z]/g,'').replace(/O/g,'0').replace(/[IL]/g,'1').replace(/U/g,'V'); return /^[0-9A-HJKMNP-TV-Z]{8}$/.test(c)?c:''; }
+const ROOM_RE=/^[A-HJKMNP-Z2-9]{5}$/; // CODE_ABC
+function friendLink(){ return location.origin+location.pathname+'?friend='+SOCS.code; }
+function socProfile(){ return {name:LO.name,lv:level(),cls:LO.cls,title:myTitle(),banner:myBanner()}; }
+function socInMatch(){ return G.scene==='game'&&!G.over; }
+function socFriend(c){ const L=SOCS.list; return L&&L.friends.find(f=>f.c===c)||null; }
+// another account on this device (signed in with another code): start over
+function socAcctCheck(){ const id=clId(); if(SOCS.acct!==id){ SOCS={allow:SOCS.allow!==false,inv:[],acct:id}; socStore(); socClose(); SOC.top=''; } }
+
+/* --- REST: publish the profile, the friends list, add, actions --- */
+async function socPublish(force){
+  if(!socOn()) return false; socAcctCheck(); if(SOC.busy) return !!SOCS.code;
+  const p=socProfile(), h=JSON.stringify(p); if(!force&&SOCS.code&&h===SOCS.ph) return true;
+  SOC.busy=true; SOC.pubT=Date.now();
+  try{ const r=await clApi('social/me',Object.assign({auth:CLS.auth},p)); if(r.s===200&&r.j.code){ SOCS.code=r.j.code; SOCS.ph=h; socStore(); return true; } return false; }
+  catch(e){ return false; } finally{ SOC.busy=false; renderFriends(); } }
+async function socList(){ if(!socOn()||!SOCS.code||SOC.listBusy) return; SOC.listBusy=true;
+  try{ const r=await clApi('social/list',{auth:CLS.auth}); if(r.s===200){ const j=r.j; SOCS.list={t:Date.now(),friends:j.friends||[],inc:j.inc||[],out:j.out||[],blk:j.blk||[]}; socStore(); } }
+  catch(e){} finally{ SOC.listBusy=false; renderFriends(); socBadge(); } }
+function socNote(t,warn){ SOC.msg=t||''; SOC.warn=!!warn; const el=$('#frMsg'); if(el){ el.textContent=SOC.msg; el.classList.toggle('warn',SOC.warn); } }
+async function socAdd(code){ const c=fcNorm(code);
+  if(!c){ socNote('Friend codes are 8 characters, like ABCD-1234.',true); return; }
+  if(c===SOCS.code){ socNote('That is your own friend code.',true); return; }
+  socNote('Sending…');
+  try{ const r=await clApi('social/add',{auth:CLS.auth,code:c});
+    if(r.s===200){ SOC.add=''; const inp=$('#frAdd'); if(inp) inp.value=''; const f=r.j.st==='f';
+      socNote(f?'You are now friends.':'Request sent. They see it in their Friends.'); toast(f?'Friend added':'Friend request sent',fcFmt(c)); socList(); }
+    else socNote(r.j&&r.j.error||'Could not add that code ('+r.s+').',true); }
+  catch(e){ socNote(e&&e.message==='busy'?'Too many tries. Wait a minute and try again.':'Can’t reach the online service right now.',true); } }
+async function socAct(c,a){
+  try{ const r=await clApi('social/act',{auth:CLS.auth,code:c,a}); const f=socFriend(c)||(SOCS.list&&[].concat(SOCS.list.inc,SOCS.list.out,SOCS.list.blk).find(x=>x.c===c)), n=f?f.n:fcFmt(c);
+    if(r.s===200) toast({accept:'Friend added',decline:'Request declined',cancel:'Request cancelled',remove:'Friend removed',block:'Player blocked',unblock:'Player unblocked'}[a]||'Done',n);
+    else if(r.s!==409) toast(r.j&&r.j.error||'That did not work',''); }
+  catch(e){ toast('Can’t reach the online service',''); }
+  SOC.more=''; SOC.conf=''; if(a==='block'||a==='remove'){ delete SOC.pres[c]; socInvDrop(x=>x.c===c); } socList(); }
+
+/* --- presence socket --- */
+function socPresence(){ if(G.scene==='game'&&!G.over&&!(G.watch&&G.watch.kind==='replay')) return {s:'match'};
+  if(inRoom()) return {s:'lobby',r:NET.code,m:NET.mode,o:SOCS.allow!==false?1:0}; return {s:'menu'}; }
+// the socket is opened only for players who have friends or pending requests, or who opened Friends in this session
+function socWants(){ const L=SOCS.list; return SOC.used||!L||L.friends.length+L.out.length+L.inc.length>0; }
+function socConnect(){
+  if(SOC.ws||!socOn()||!SOCS.code||document.hidden||!window.WebSocket||!socWants()) return;
+  clearTimeout(SOC.retry); SOC.retry=0; let ws;
+  try{ ws=new WebSocket(API_BASE.replace(/^http/,'ws')+'/api/social/ws?c='+SOCS.code); }catch(e){ socRetry(); return; }
+  SOC.ws=ws; SOC.authed=false;
+  ws.onopen=()=>{ if(SOC.ws!==ws) return; const p=socPresence(); SOC.sent=JSON.stringify(p); SOC.pong=Date.now();
+    try{ ws.send(JSON.stringify(Object.assign({t:'auth',auth:CLS.auth},p))); }catch(_){}
+    clearInterval(SOC.hbT); SOC.hbT=setInterval(()=>{ if(SOC.ws!==ws) return;
+      if(Date.now()-SOC.pong>SOC_HB*2.6){ try{ ws.close(); }catch(_){} socDown(ws); return; } // no answer to two heartbeats: dead link
+      try{ ws.send('{"type":"HEARTBEAT"}'); }catch(_){} },SOC_HB); };
+  ws.onmessage=e=>{ if(SOC.ws!==ws) return; SOC.pong=Date.now(); let m; try{ m=JSON.parse(e.data); }catch(_){ return; } if(m&&typeof m==='object') socMsg(m); };
+  ws.onclose=e=>{ if(SOC.ws===ws) socDown(ws,e.code); };
+  ws.onerror=()=>{};
+}
+function socDown(ws,code){ if(SOC.ws!==ws) return; SOC.ws=null; SOC.authed=false; SOC.pres={}; clearInterval(SOC.hbT);
+  if(code===4001){ SOCS.ph=''; socStore(); } // the server did not recognise the account/code: publish again before retrying
+  renderFriends(); socRetry(); }
+function socRetry(){ clearTimeout(SOC.retry); SOC.retry=0; if(!socOn()) return; SOC.tries++;
+  const ms=Math.min(300000,4000*Math.pow(2,Math.min(SOC.tries-1,7)))*(0.8+Math.random()*0.4); // 4 s, 8 s, … 5 min
+  SOC.retry=setTimeout(async()=>{ SOC.retry=0; if(!SOCS.ph||!SOCS.code){ if(!await socPublish(true)){ socRetry(); return; } } socConnect(); },ms); }
+function socClose(){ clearTimeout(SOC.retry); SOC.retry=0; clearInterval(SOC.hbT); const ws=SOC.ws; SOC.ws=null; SOC.authed=false; SOC.pres={}; if(ws){ try{ ws.close(1000,'bye'); }catch(_){} } }
+function socSync(){ if(!SOC.ws||!SOC.authed) return; const p=socPresence(), k=JSON.stringify(p); if(k===SOC.sent) return; SOC.sent=k;
+  try{ SOC.ws.send(JSON.stringify(Object.assign({t:'st'},p))); }catch(_){} }
+function socMsg(m){
+  if(m.t==='hi'){ SOC.authed=true; SOC.tries=0; SOC.pres=m.on&&typeof m.on==='object'?m.on:{}; socSync();
+    for(const x of Array.isArray(m.inv)?m.inv:[]) socInvAdd(x,true);
+    if(!SOCS.list||Date.now()-SOCS.list.t>120000) socList(); renderFriends(); socInvRender(); socBadge(); return; }
+  if(m.t==='p'){ const c=fcNorm(m.c); if(!c) return;
+    if(m.s==='off'){ delete SOC.pres[c]; const f=socFriend(c); if(f){ f.seen=Date.now(); socStore(); } } else SOC.pres[c]={s:m.s,r:m.r,m:m.m};
+    socInvDrop(x=>x.c===c&&(m.s!=='lobby'||(!!m.r&&m.r!==x.r))); // the host's room started or closed: its invites are void
+    renderFriends(); return; }
+  if(m.t==='fx'){ clearTimeout(SOC.fxT); SOC.fxT=setTimeout(socList,250); return; }
+  if(m.t==='inv'){ socInvAdd(m); return; }
+  if(m.t==='invd'){ const f=socFriend(m.c), n=f?f.n:fcFmt(m.c); SOC.invd[m.c]=+m.exp||Date.now()+SOC_TTL;
+    toast(m.live?'Invite sent':'Invite saved',m.live?n+' got your invite':n+' is offline: they see it if they open the game in the next 5 minutes'); renderFriends(); return; }
+  if(m.t==='invn'){ const f=socFriend(m.c); delete SOC.invd[m.c]; toast((f?f.n:'A friend')+' declined your invite',''); renderFriends(); return; }
+  if(m.t==='err'){ if(m.e==='rate') toast('Slow down','Too many invites. Try again in a minute.'); else if(m.e==='room') toast('Open an online room first',''); else if(m.e==='notfriend') socList(); }
+}
+
+/* --- invites: cards on the menus, a badge during a match --- */
+function socInvAdd(x,quiet){ const c=fcNorm(x.c), r=String(x.r||''), exp=+x.exp||0; if(!c||!ROOM_RE.test(r)||exp<=Date.now()) return;
+  if(SOCS.list&&SOCS.list.blk.some(b=>b.c===c)) return;
+  SOCS.inv=SOCS.inv.filter(y=>y.c!==c); SOCS.inv.push({c,n:String(x.n||'').slice(0,12),r,m:MODES[x.m]?x.m:'',exp}); SOCS.inv=SOCS.inv.slice(-5); socStore();
+  if(!quiet){ try{ SFX.click(); }catch(_){} buzz([12,50,12]); }
+  socInvRender(); socBadge(); renderFriends(); }
+function socInvDrop(pred){ const n=SOCS.inv.length; SOCS.inv=SOCS.inv.filter(x=>!pred(x)); if(SOCS.inv.length!==n){ socStore(); socInvRender(); socBadge(); renderFriends(); } }
+function socInvLive(){ const now=Date.now(); return SOCS.inv.filter(x=>x.exp>now&&!(NET.on&&NET.code===x.r)); }
+function socInvRender(){ const box=$('#sfInv'), bd=$('#sfInvBadge'); if(!box||!bd) return; const L=socInvLive(), match=socInMatch();
+  bd.classList.toggle('hidden',!L.length||!match); bd.querySelector('i').textContent=L.length;
+  const want=match||SOC.open?[]:L.slice(-2);
+  for(const el of [...box.children]) if(!want.some(x=>x.c+x.r===el.dataset.k)) el.remove();
+  for(const x of want){ if(box.querySelector('[data-k="'+x.c+x.r+'"]')) continue;
+    const el=document.createElement('div'), M=MODES[x.m], left=x.exp-Date.now(); el.className='ivcard'; el.dataset.k=x.c+x.r; el.setAttribute('role','alert');
+    el.innerHTML='<div><small>Room invite'+(M?' · '+esc(M.name):'')+'</small><b>'+esc(x.n||fcFmt(x.c))+' invites you</b><span>Room '+esc(x.r)+' · expires in '+Math.max(1,Math.round(left/60000))+' min</span></div>'
+      +'<div class="frbtns"><button class="btn sm primary" data-ivj="'+x.c+'">Join</button><button class="btn sm ghost" data-ivd="'+x.c+'">Decline</button></div><i class="ivt"></i>';
+    box.appendChild(el); const t=el.querySelector('.ivt'); t.style.width=Math.max(0,left/SOC_TTL*100)+'%';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ t.style.transition='width '+Math.max(0,left/1000)+'s linear'; t.style.width='0%'; })); } }
+function socJoin(room){ room=String(room||''); if(!ROOM_RE.test(room)) return;
+  if(socInMatch()){ toast('Finish your match first','The invite stays in Friends until it expires.'); return; }
+  socInvDrop(x=>x.r===room); closeFriends();
+  if(NET.on&&NET.code===room){ openOnline(); return; }
+  if(NET.on) netLeave();
+  if(G.scene==='game') toMenu();
+  openOnline(); netJoin(room); } // the same path as an invite link (?join=CODE)
+function socDecline(c){ const x=SOCS.inv.find(y=>y.c===c); if(!x) return;
+  if(SOC.ws&&SOC.authed){ try{ SOC.ws.send(JSON.stringify({t:'dec',c,r:x.r})); }catch(_){} } socInvDrop(y=>y.c===c); }
+function socInvite(c){
+  if(!inRoom()){ toast('Open an online room first',''); return; }
+  if(!SOC.ws||!SOC.authed){ toast('Friends are offline right now','Invites need the online service. Try again in a moment.'); SOC.tries=0; socConnect(); return; }
+  socSync(); // the server checks that you are in this room
+  try{ SOC.ws.send(JSON.stringify({t:'inv',to:c,r:NET.code,m:NET.mode})); }catch(_){}
+  SOC.invd[c]=Date.now()+SOC_TTL; renderFriends(); }
+function socBadge(){ const n=(SOCS.list?SOCS.list.inc.length:0)+socInvLive().length, txt=n>9?'9+':String(n);
+  for(const b of [$('#bFriends'),document.querySelector('#wrRoom .frinv')]){ if(!b) continue; let d=b.querySelector('.frdot');
+    if(!n){ if(d) d.remove(); continue; } if(!d){ d=document.createElement('i'); d.className='frdot'; b.appendChild(d); } d.textContent=txt; } }
+
+/* --- hooks for other screens --- */
+// the online waiting room's Invite friends button (renderLobby); empty without a backend
+function friendsInviteButtonHtml(){ return API_BASE&&NET.on&&NET.code?'<button class="btn sm frinv" data-fr="invite">Invite friends</button>':''; }
+
+/* --- the Friends sheet --- */
+function openFriends(mode){ SOC.mode=mode==='invite'?'invite':''; SOC.open=true; SOC.used=true; SOC.more=''; SOC.conf=''; SOC.top=''; SOC.msg=''; SOC.warn=false;
+  document.body.classList.add('sheet-open'); const sh=$('#frSheet'); sh.classList.remove('hidden'); requestAnimationFrame(()=>sh.classList.add('on'));
+  renderFriends(); $('#frBody').scrollTop=0; socInvRender();
+  if(socOn()){ SOC.tries=0;
+    if(!SOCS.code||SOCS.acct!==clId()) socPublish().then(ok=>{ if(ok){ socList(); socConnect(); } });
+    else { if(!SOCS.list||Date.now()-SOCS.list.t>30000) socList(); if(!SOC.ws){ clearTimeout(SOC.retry); SOC.retry=0; socConnect(); } } } }
+function closeFriends(){ if(!SOC.open) return; SOC.open=false; document.body.classList.remove('sheet-open'); const sh=$('#frSheet'); sh.classList.remove('on'); sh.classList.add('hidden'); socInvRender(); }
+function socStatus(f){ const p=SOC.pres[f.c];
+  if(p){ if(p.s==='match') return {k:'match',t:'In a match',cl:'mt'}; if(p.s==='lobby') return {k:'lobby',t:'In a lobby'+(MODES[p.m]?' · '+MODES[p.m].name:''),cl:'lob'}; return {k:'menu',t:'Online',cl:'on'}; }
+  return {k:'off',t:f.seen?'Last seen '+agoTxt(Date.now()-f.seen):'Offline',cl:''}; }
+const SOC_ORD={lobby:0,menu:1,match:2,off:3};
+function frRow(f,kind){ const st=kind==='f'?socStatus(f):null, bk=bnKey(f.bn), C=hasK(CLASSES,f.cls)?CLASSES[f.cls]:null, inv=SOC.mode==='invite';
+  let b='';
+  if(kind==='f'){ const p=SOC.pres[f.c];
+    if(inv||inRoom()) b+=SOC.invd[f.c]>Date.now()?'<button class="btn sm" disabled>Invited</button>':'<button class="btn sm'+(st.k==='off'?'':' primary')+'" data-fra="inv" data-c="'+f.c+'">Invite</button>';
+    if(!inv&&p&&p.s==='lobby'&&p.r&&!(NET.on&&NET.code===p.r)) b+='<button class="btn sm primary" data-fra="join" data-c="'+f.c+'">Join</button>';
+    if(!inv) b+='<button class="iconbtn" data-fra="more" data-c="'+f.c+'" aria-label="More for '+esc(f.n)+'" aria-expanded="'+(SOC.more===f.c)+'">⋯</button>'; }
+  else if(kind==='i') b='<button class="btn sm primary" data-fra="accept" data-c="'+f.c+'">Accept</button><button class="btn sm ghost" data-fra="decline" data-c="'+f.c+'">Decline</button>';
+  else if(kind==='o') b='<button class="btn sm ghost" data-fra="cancel" data-c="'+f.c+'">Cancel</button>';
+  else if(kind==='b') b='<button class="btn sm ghost" data-fra="unblock" data-c="'+f.c+'">Unblock</button>';
+  const more=kind==='f'&&SOC.more===f.c?'<div class="frmore"><button class="btn sm ghost" data-fra="remove" data-c="'+f.c+'">'+(SOC.conf==='remove'?'Tap again to remove':'Remove friend')+'</button><button class="btn sm ghost" data-fra="block" data-c="'+f.c+'">'+(SOC.conf==='block'?'Tap again to block':'Block')+'</button></div>':'';
+  const info='Lv '+(f.lv|0)+(C?' · '+C.name:'')+(st?' · '+st.t:kind==='o'?' · waiting for an answer':'');
+  return '<div class="frrow s-'+(st?st.k:'x')+'" data-row="'+f.c+'"><i class="av">'+esc((f.n||'?')[0])+'</i><div class="np sm bn-'+bk+(BANNERS[bk].anim?' bn-anim':'')+'"><b>'+esc(f.n)+'</b><small>'+esc(titleName(f.ti))+'</small><i class="frst'+(st&&st.cl?' '+st.cl:'')+'">'+esc(info)+'</i></div><div class="frbtns">'+b+'</div>'+more+'</div>'; }
+function socLiveTag(){ const el=$('#frLive'); if(!el) return; const on=!!(SOC.ws&&SOC.authed); el.classList.toggle('on',on); el.querySelector('span').textContent=!socOn()?'':on?'Live':'Offline'; el.classList.toggle('hidden',!socOn()); }
+function renderFriends(){ const el=$('#frBody'); if(!el||!SOC.open) return; socLiveTag();
+  $('#frKick').textContent=SOC.mode==='invite'?'Online room '+(NET.code||''):'Social'; $('#frTitle').textContent=SOC.mode==='invite'?'Invite friends':'Friends';
+  let top='', key;
+  if(!API_BASE){ key='nobackend'; top='<div class="frempty">Friends need the Stormfall online service, and this copy of the game runs without it. Everything else works as usual, and you can still play online with a room code.</div>'; }
+  else if(!socOn()){ key='off'+CLS.out; top='<div class="frsec"><div class="frempty">'+(CLS.out?'You signed out of cloud save on this device. ':'')+'Friends use your Stormfall account, the same one as cloud save. It is anonymous: no email, nothing but your callsign, level and name plate are shown to friends.</div></div>'
+      +(SOC.add?'<p class="frnote">Then you can add '+esc(fcFmt(SOC.add))+' as a friend.</p>':'')+'<button class="btn primary" style="width:100%" data-fra="on">Turn on online account</button><p class="frnote" id="frMsg" aria-live="polite"></p>'; }
+  else if(!SOCS.code){ key='nocode'+SOC.busy; top=SOC.busy?'<div class="onwait"><i class="spin" aria-hidden="true"></i><span>Getting your friend code…</span></div>':'<div class="frempty">Can’t reach the online service right now. Friends come back when it is reachable.</div><p><button class="btn sm" data-fra="retry">Try again</button></p>'; }
+  else if(SOC.mode==='invite'){ key='inv'+NET.code; top='<p class="frnote" style="margin:0 0 var(--s3)">Pick friends to invite to room <b>'+esc(NET.code||'')+'</b>'+(MODES[NET.mode]?' ('+esc(MODES[NET.mode].name)+')':'')+'. Online friends get it right away; offline friends see it if they open the game within 5 minutes.</p>'; }
+  else { key='me'+SOCS.code;
+    top='<div class="frsec"><h4>Your friend code</h4><div class="frme"><div class="wr-code"><small>Share it, or send the link</small><b id="frCode">'+esc(fcFmt(SOCS.code))+'</b></div><button class="btn sm" data-fra="copy">Copy</button><button class="btn sm" data-fra="share">Link</button></div>'
+      +'<div class="fradd"><input id="frAdd" maxlength="9" placeholder="FRIEND CODE" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Friend code to add" value="'+esc(SOC.add?fcFmt(SOC.add):'')+'"><button class="btn sm primary" data-fra="add">Add</button></div>'
+      +'<p class="frnote" id="frMsg" aria-live="polite"></p></div>'; }
+  if(SOC.top!==key){ SOC.top=key; el.innerHTML=top+'<div id="frLists"></div>'; socNote(SOC.add&&key.startsWith('me')?'Tap Add to send '+fcFmt(SOC.add)+' a friend request.':SOC.msg,SOC.warn); }
+  const box=$('#frLists'); if(!box) return; if(!socOn()||!SOCS.code){ box.innerHTML=''; return; }
+  const L=SOCS.list||{friends:[],inc:[],out:[],blk:[]}, inv=SOC.mode==='invite', now=Date.now();
+  const fr=L.friends.slice().sort((a,b)=>SOC_ORD[socStatus(a).k]-SOC_ORD[socStatus(b).k]||(b.seen|0)-(a.seen|0)||String(a.n).localeCompare(b.n));
+  let h='';
+  const ivs=socInvLive(); if(ivs.length&&!inv) h+='<div class="frsec"><h4>Room invites</h4><div class="frlist">'+ivs.map(x=>'<div class="frrow s-lobby"><i class="av">'+esc((x.n||'?')[0])+'</i><div class="np sm"><b>'+esc(x.n||fcFmt(x.c))+'</b><i class="frst lob">'+esc((MODES[x.m]?MODES[x.m].name+' · ':'')+'room '+x.r+' · '+Math.max(1,Math.round((x.exp-now)/60000))+' min left')+'</i></div><div class="frbtns"><button class="btn sm primary" data-ivj="'+x.c+'"'+(socInMatch()?' disabled':'')+'>Join</button><button class="btn sm ghost" data-ivd="'+x.c+'">Decline</button></div></div>').join('')+(socInMatch()?'<p class="frnote">Finish your match to join.</p>':'')+'</div></div>';
+  if(L.inc.length&&!inv) h+='<div class="frsec"><h4>Friend requests <em>'+L.inc.length+'</em></h4><div class="frlist">'+L.inc.map(f=>frRow(f,'i')).join('')+'</div></div>';
+  h+='<div class="frsec"><h4>Friends <em>'+fr.length+'</em>'+(SOC.listBusy&&!SOCS.list?' <i class="spin" aria-hidden="true"></i>':'')+'</h4>'+(fr.length?'<div class="frlist">'+fr.map(f=>frRow(f,'f')).join('')+'</div>'
+    :'<div class="frempty">'+(SOCS.list?'No friends yet. Share your friend code, or add a friend’s code above.':'Loading…')+'</div>')+'</div>';
+  if(!inv){
+    if(L.out.length) h+='<div class="frsec"><h4>Sent requests <em>'+L.out.length+'</em></h4><div class="frlist">'+L.out.map(f=>frRow(f,'o')).join('')+'</div></div>';
+    h+='<div class="frsec"><div class="frset"><div>Friends can join my rooms<small>Shows your room code to friends so they can tap Join</small></div><div class="seg" role="radiogroup" aria-label="Friends can join my rooms"><button role="radio" aria-checked="'+(SOCS.allow!==false)+'" class="'+(SOCS.allow!==false?'sel':'')+'" data-fra="allow" data-v="1">On</button><button role="radio" aria-checked="'+(SOCS.allow===false)+'" class="'+(SOCS.allow===false?'sel':'')+'" data-fra="allow" data-v="0">Off</button></div></div></div>';
+    if(L.blk.length) h+='<details class="frsec frblk"><summary>Blocked players ('+L.blk.length+')</summary><div class="frlist">'+L.blk.map(f=>frRow(f,'b')).join('')+'</div></details>';
+    if(!(SOC.ws&&SOC.authed)) h+='<p class="frnote">Live status is offline right now: friends show when they were last seen.</p>'; }
+  const op=box.querySelector('details[open]'); box.innerHTML=h; if(op){ const d=box.querySelector('details'); if(d) d.open=true; } }
+$('#frSheet').addEventListener('click',async e=>{
+  if(e.target.closest('[data-frx]')){ SFX.click(); closeFriends(); return; }
+  const j=e.target.closest('[data-ivj],[data-ivd]'); if(j&&!j.disabled){ SFX.init(); SFX.click(); if(j.dataset.ivj) socJoin((SOCS.inv.find(x=>x.c===j.dataset.ivj)||{}).r); else socDecline(j.dataset.ivd); return; }
+  const b=e.target.closest('[data-fra]'); if(!b||b.disabled) return; SFX.init(); SFX.click(); const a=b.dataset.fra, c=b.dataset.c;
+  if(a==='on'){ b.disabled=true; CLS.out=false; clStore(); CL.ready=true; CLS.dirty=true; CL.until=0; CL.down=false; CL.lastPush=0; socNote('Turning on…');
+    await cloudPush('on'); if(CLS.auth&&await socPublish(true)){ SOC.top=''; SOC.msg=''; socList(); socConnect(); renderFriends(); } else { b.disabled=false; socNote('Can’t reach the online service right now. Try again later.',true); } return; }
+  if(a==='retry'){ CL.until=0; CL.down=false; if(await socPublish(true)){ socList(); socConnect(); } renderFriends(); return; }
+  if(a==='copy'){ try{ await navigator.clipboard.writeText(fcFmt(SOCS.code)); toast('Friend code copied',fcFmt(SOCS.code)); }catch(_){ toast('Your friend code',fcFmt(SOCS.code)); } return; }
+  if(a==='share'){ const link=friendLink(), txt='Add me as a friend on Stormfall: '+fcFmt(SOCS.code);
+    try{ if(navigator.share&&matchMedia('(pointer:coarse)').matches){ await navigator.share({title:'Stormfall',text:txt,url:link}); return; } }catch(_){ return; }
+    try{ await navigator.clipboard.writeText(link); toast('Friend link copied',link); }catch(_){ toast('Friend link',link); } return; }
+  if(a==='add'){ socAdd($('#frAdd').value); return; }
+  if(a==='allow'){ SOCS.allow=b.dataset.v==='1'; socStore(); socSync(); renderFriends(); return; }
+  if(a==='more'){ SOC.more=SOC.more===c?'':c; SOC.conf=''; renderFriends(); return; }
+  if(a==='inv'){ socInvite(c); return; }
+  if(a==='join'){ const p=SOC.pres[c]; if(p&&p.r) socJoin(p.r); return; }
+  if(a==='remove'||a==='block'){ if(SOC.conf!==a){ SOC.conf=a; renderFriends(); return; } }
+  if(['accept','decline','cancel','remove','block','unblock'].includes(a)){ b.disabled=true; await socAct(c,a); }
+});
+$('#frSheet').addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.preventDefault(); closeFriends(); } else if(e.key==='Enter'&&e.target.id==='frAdd') socAdd(e.target.value); });
+$('#frSheet').addEventListener('input',e=>{ if(e.target.id==='frAdd') SOC.add=fcNorm(e.target.value); });
+$('#sfInv').addEventListener('click',e=>{ const b=e.target.closest('[data-ivj],[data-ivd]'); if(!b) return; SFX.init(); SFX.click();
+  if(b.dataset.ivj) socJoin((SOCS.inv.find(x=>x.c===b.dataset.ivj)||{}).r); else socDecline(b.dataset.ivd); });
+$('#sfInvBadge').addEventListener('click',()=>{ SFX.click(); openFriends(); });
+$('#bFriends').addEventListener('click',()=>{ SFX.init(); SFX.click(); buzz(6); openFriends(); });
+$('#lobby').addEventListener('click',e=>{ if(!e.target.closest('[data-fr]')) return; SFX.init(); SFX.click(); openFriends('invite'); });
+
+/* --- the 2 s local check (no network unless something changed), visibility, boot --- */
+function socTick(){
+  if(!API_BASE) return;
+  if(!socOn()){ if(SOC.ws) socClose(); return; }
+  socAcctCheck();
+  if(SOCS.code){ // only players who opened Friends once have a code (so only they can have friends and need any of this)
+    if(!socInMatch()&&SOCS.ph!==JSON.stringify(socProfile())&&Date.now()-SOC.pubT>60000&&!SOC.busy) socPublish();
+    if(socWants()){ if(!SOC.ws&&!SOC.retry&&!document.hidden) socConnect(); }
+    else if(SOC.ws) socClose();
+    else if(!SOC.listed){ SOC.listed=true; socList(); } } // no friends yet: one list call per app start shows new requests
+  socSync();
+  if(!inRoom()) SOC.invd={};
+  socInvDrop(x=>x.exp<=Date.now()||NET.on&&NET.code===x.r);
+  socInvRender(); socBadge(); if(SOC.open) socLiveTag();
+}
+document.addEventListener('visibilitychange',()=>{ if(!API_BASE) return; clearTimeout(SOC.hideT);
+  if(document.hidden) SOC.hideT=setTimeout(()=>{ if(document.hidden&&!NET.on) socClose(); },120000); // backgrounded: show as offline
+  else if(!SOC.ws&&socOn()){ SOC.tries=0; socConnect(); } });
+function socialBoot(){
+  if(!API_BASE){ const b=$('#bFriends'); if(b) b.classList.add('hidden'); }
+  try{ const q=new URLSearchParams(location.search), f=q.get('friend');
+    if(f!=null){ q.delete('friend'); const qs=q.toString(); history.replaceState(null,'',location.pathname+(qs?'?'+qs:'')); SOC.add=fcNorm(f);
+      const go=()=>{ if(!$('#how').classList.contains('hidden')){ setTimeout(go,400); return; } openFriends(); }; setTimeout(go,400); } }catch(e){} // after the first-run briefing
+  socInvDrop(x=>x.exp<=Date.now()); socBadge();
+  if(!API_BASE) return;
+  setInterval(socTick,2000); setTimeout(socTick,1500); }
+
 /* ================= debug hooks (used for automated checks) ================= */
 window.__stormfall={G,setupMatch,runMatch,onAction,pFire,pMove,pThrow,enterTarget,actionList,sanitize,update,render,startMatch,PROF:()=>PROF,go,renderStore,renderQuests,renderProfile,grantRewards,claimQuest,sendEmote};
 
 /* ================= boot ================= */
 { const st=document.createElement('style'); st.id='bannerCss'; st.textContent=plateCssText(); document.head.appendChild(st); } // name plate banners from BANNERS
-applySettings(); refreshQuests(); resize(); setupMenuScene(); go('menu'); cloudBoot();
+applySettings(); refreshQuests(); resize(); setupMenuScene(); go('menu'); cloudBoot(); socialBoot();
 if(!PROF.seenBrief){ howButtons(); show('#how',true); }
 requestAnimationFrame(t=>{ lastT=t; frame(t); });
 })();

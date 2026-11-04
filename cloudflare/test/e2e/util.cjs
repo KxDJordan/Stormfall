@@ -7,7 +7,9 @@ function hooked(apiMeta) {
   let s = fs.readFileSync(SRC, 'utf8');
   const i = s.lastIndexOf('})();');
   s = s.slice(0, i) + 'window.__ev=s=>eval(s);\n' + s.slice(i);
-  if (apiMeta != null) s = s.replace(/<meta name="sf-api" content="[^"]*">/, `<meta name="sf-api" content="${apiMeta}">`);
+  // default: same origin (the local Worker). index.html on main points at the production Worker for GitHub Pages.
+  if (apiMeta == null) apiMeta = '';
+  s = s.replace(/<meta name="sf-api" content="[^"]*">/, `<meta name="sf-api" content="${apiMeta}">`);
   return s;
 }
 // serve the hooked page for "/" and "/index.html"; everything else (vendor/, assets/, /api) goes to the Worker
