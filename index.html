@@ -166,6 +166,64 @@ body.sheet-open .nav{display:none}
 @media (min-width:900px){ #menu{padding-left:calc(var(--sal) + 40px);padding-top:calc(var(--sat) + 24px)} .mtop{max-width:none} #menu>.menu-col{max-width:420px} #menu{background:linear-gradient(90deg,rgba(4,6,10,.92) 0%,rgba(4,6,10,.75) 30%,rgba(4,6,10,0) 52%),linear-gradient(180deg,rgba(4,6,10,.5),rgba(4,6,10,0) 30%)} }
 @media (max-height:700px){ .brand h1{font-size:clamp(48px,14vw,90px)} .opcard canvas{height:56px;width:48px} }
 
+/* ---------- daily challenge (menu) ---------- */
+.dailyb{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;min-height:50px;padding:6px 12px 6px 6px;text-align:left;border:1px solid rgba(255,179,64,.45);border-radius:var(--r2);background:linear-gradient(90deg,rgba(255,179,64,.16),rgba(12,18,26,.88) 55%)}
+.dailyb .dk{display:grid;place-items:center;height:38px;padding:3px 9px 0;border-radius:4px;background:var(--amber);color:var(--amber-ink);font:600 21px/1 Teko,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.dailyb .dm{min-width:0;display:flex;flex-direction:column}
+.dailyb .dm b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dailyb .dm small{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dailyb .ds{font:600 20px/1 Teko,sans-serif;color:var(--amber);text-align:right;padding-top:3px;white-space:nowrap}
+.dailyb .ds small{display:block;font:600 10px/1.2 'Chakra Petch',sans-serif;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.dyhero{position:relative;border-radius:var(--r2);overflow:hidden;border:1px solid var(--line2);margin-bottom:var(--s3)}
+.dyhero canvas{display:block;width:100%;height:auto}
+.dyhero .dyreg{position:absolute;left:10px;bottom:8px;font:600 28px/.9 Teko,sans-serif;text-shadow:0 2px 6px rgba(0,0,0,.8)}
+.dyrules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:var(--s3)}
+.dyrules div{background:var(--surf);border:1px solid var(--line);border-radius:var(--r1);padding:7px 8px;font-size:11.5px;color:var(--muted)}
+.dyrules b{display:block;font:600 21px/1 Teko,sans-serif;color:var(--text);padding-top:2px}
+.dyhist .hrow b{width:auto;min-width:42px}
+.dyscore{background:linear-gradient(90deg,rgba(255,179,64,.14),rgba(255,179,64,0));border-left:3px solid var(--amber);border-radius:var(--r1);padding:10px 12px;margin:var(--s3) 0}
+.dyscore .big{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.dyscore .big b{font:600 40px/.9 Teko,sans-serif;color:var(--amber)}
+.dyscore .big span{font-size:12px;color:var(--muted);text-align:right}
+.dyscore .ln{display:flex;justify-content:space-between;font-size:12.5px;color:var(--text2);margin-top:3px}
+.dcardv{width:100%;height:auto;display:block;border-radius:var(--r2);border:1px solid var(--line2);margin-bottom:var(--s2)}
+/* ---------- replays, spectating, clocks ---------- */
+.endbtns2{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s2)}
+.endbtns2 .btn{width:auto;min-width:0}
+.rprow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 8px 8px 10px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r1);margin-bottom:6px;font-size:13px}
+.rprow>b{font:600 24px/1 Teko,sans-serif;min-width:34px;text-align:center}
+.rprow>b.w{color:var(--signal)}
+.rprow .rpi{min-width:0;display:flex;flex-direction:column}
+.rprow .rpi span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rprow .rpi small{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rprow .rpb{display:flex;gap:4px}
+.rprow .rpb .btn{min-height:40px;padding:0 10px;font-size:13px}
+.rprow .rpb .iconbtn{width:40px;height:40px;font-size:18px}
+.rpimp{margin-left:auto;min-height:34px!important}
+#rpmTxt{width:100%;min-height:120px;resize:vertical;background:#0b121a;color:var(--text2);border:1px solid var(--line2);border-radius:var(--r1);padding:8px;font:500 11px/1.35 ui-monospace,Menlo,monospace;word-break:break-all;-webkit-user-select:text;user-select:text}
+.rpmb{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:var(--s2)}
+.rpmb .btn{width:100%}
+.wekick{color:var(--muted);font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px}
+.wever{font-size:13px;padding:8px 10px;border-radius:var(--r1);border-left:3px solid var(--ok);background:rgba(93,255,154,.08);color:var(--text2);margin-top:var(--s2)}
+.wever.bad{border-left-color:var(--hostile);background:rgba(255,77,94,.1)}
+.spec .r3{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:6px;align-items:center;margin-top:6px}
+.spec .r3 .btn{min-height:42px;font-size:13.5px;padding:0 10px}
+.spec .sprog{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.spec .sprog i{display:block;height:100%;width:0;background:var(--signal);transition:width .3s}
+.spec.watch{border-left-color:var(--signal)}
+#clocks{position:absolute;left:calc(var(--sal) + 10px);right:calc(var(--sar) + 116px);top:calc(var(--sat) + 90px);display:flex;flex-wrap:wrap;gap:4px;pointer-events:none}
+#clocks .ck{display:flex;align-items:baseline;gap:5px;height:24px;padding:3px 7px 0;border-radius:4px;background:rgba(8,12,18,.85);border:1px solid rgba(255,255,255,.16);font:600 12px/1 'Chakra Petch',sans-serif;color:#cfd9e3}
+#clocks .ck b{font:600 18px/1 Teko,sans-serif;color:var(--text)}
+#clocks .ck.cur{border-color:var(--signal);box-shadow:0 0 8px rgba(63,210,255,.35)}
+#clocks .ck.low b{color:var(--amber)}
+#clocks .ck.out b{color:var(--hostile)}
+.wr-time{display:flex;flex-direction:column;gap:6px;padding:var(--s3);background:var(--surf);border:1px solid var(--line);border-radius:var(--r2)}
+.wr-time .wt-row{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);flex-wrap:wrap}
+.wr-time .seg button{min-height:36px;min-width:40px;padding:0 8px}
+.wr-time small{color:var(--muted);font-size:11.5px}
+.wr-time .wt-ro{font-size:14px}
+.wr-specs{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;padding:8px 12px;border:1px dashed var(--line2);border-radius:var(--r2);color:var(--text2);font-size:13px}
+.wr-specs .btn{margin-left:auto}
 /* ---------- waiting room ---------- */
 .wr-wrap{width:100%;max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:var(--s3)}
 #lobby .lo-scroll{padding-bottom:var(--s5)}
@@ -475,6 +533,7 @@ body.sheet-open .nav{display:none}
 #end .res{font-size:clamp(64px,19vw,104px);padding-top:6px}
 #end .res.win{color:var(--signal)}
 #end .res.lose{color:var(--hostile)}
+#wend .res{font-size:clamp(46px,13vw,72px);padding-top:4px;color:var(--signal)}
 #eSub{margin:2px 0 var(--s3)}
 .xpbox{margin:0 0 var(--s3)}
 .xprow{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted);margin-bottom:6px}
@@ -697,6 +756,7 @@ body.sheet-open .nav{display:none}
       <div class="modes" id="modes" role="radiogroup" aria-label="Mode"></div>
       <p class="modedesc" id="modeDesc"></p>
       <button class="btn primary deploy" id="bDeploy">Play</button>
+      <button class="dailyb" id="bDaily" aria-label="Daily challenge"><span class="dk">Daily</span><span class="dm"><b id="dyTitle">Daily challenge</b><small id="dySub"></small></span><span class="ds" id="dyStat"></span></button>
       <div class="menu-row"><button class="btn" id="bOnline">Play online<small>Host or join</small></button><button class="btn ghost" id="bHow">How to play<small>Rules</small></button></div>
     </div>
   </div>
@@ -714,6 +774,8 @@ body.sheet-open .nav{display:none}
     <p class="modedesc" id="wrDesc"></p>
     <div class="wr-count" id="wrCount" aria-live="polite"></div>
     <div class="wr-slots" id="wrSlots"></div>
+    <div class="wr-time" id="wrTime"></div>
+    <div class="wr-specs hidden" id="wrSpecs"></div>
     <div class="wr-quick" id="wrQuick">
       <div class="wq-row"><span class="lbl">Set all bots</span><div class="dall" id="wrAll" role="group" aria-label="Set every bot's difficulty"></div></div>
       <div class="wq-row2"><button class="btn sm" id="wrFill">Fill with bots</button><button class="btn sm ghost" id="wrMin">Fewest bots</button></div>
@@ -798,6 +860,7 @@ body.sheet-open .nav{display:none}
     <div class="sec"><h3>Career</h3><div class="endgrid" id="pStats"></div></div>
     <div class="sec"><h3>Weapon mastery <small>hits, damage and takedowns with a weapon level it up</small></h3><div id="pMast"></div></div>
     <div class="sec"><h3>Level rewards <small>gear unlocks</small></h3><div class="track" id="pTrack"></div></div>
+    <div class="sec"><h3>Replays <small>your last 10 matches, saved on this device</small><button class="btn sm ghost rpimp" id="rpImport">Import</button></h3><div id="pReps"></div></div>
     <div class="sec"><h3>Recent matches</h3><div id="pHist"></div></div>
     <div class="sec"><h3>Settings</h3><div class="settings" id="pSet"></div></div>
   </div></div>
@@ -822,6 +885,7 @@ body.sheet-open .nav{display:none}
     <button class="topbtn pe" id="bPause" aria-label="Pause">❚❚</button>
   </div>
   <div id="torder" role="list" aria-label="Turn order"></div>
+  <div id="clocks" class="hidden" aria-label="Chess clocks"></div>
   <div id="emoteTray" class="pe hidden"></div>
   <div id="pingTray" class="pe hidden" role="dialog" aria-label="Team ping"></div>
   <canvas id="minimap" width="192" height="192"></canvas>
@@ -833,6 +897,7 @@ body.sheet-open .nav{display:none}
     <div class="spec pe hidden" id="spec">
       <div class="r1"><b id="spName">Spectating</b><span id="spSub"></span></div>
       <div class="r2"><button class="btn sm" id="spPrev">‹ Prev</button><button class="btn sm" id="spNext">Next ›</button><button class="btn sm" id="spSpeed">1×</button><button class="btn primary sm" id="spLeave">Results</button></div>
+      <div class="r3 hidden" id="spR3"><button class="btn sm" id="spPlay" aria-label="Pause replay">❚❚ Pause</button><button class="btn sm" id="spFinal">⏭ Final turns</button><span class="sprog"><i id="spProg"></i></span></div>
     </div>
     <div class="tgt pe hidden" id="tgt">
       <div class="row1">
@@ -869,6 +934,32 @@ body.sheet-open .nav{display:none}
     <div class="mhead"><h2 class="display" id="pauseT">Paused</h2></div>
     <div class="mbody"><div id="pauseSet"></div></div>
     <div class="mfoot"><button class="btn primary" id="pResume">Resume</button><button class="btn ghost" id="pQuit">Abandon match</button></div>
+  </div>
+</div>
+
+<!-- WATCH END (replay finished / spectated match over) -->
+<div class="modal hidden" id="wend" role="dialog" aria-modal="true" aria-labelledby="weT">
+  <div class="mbox">
+    <div class="mbody" style="padding-top:var(--s4)"><div class="wekick" id="weK">Replay</div><div class="display res" id="weT"></div><p id="weS"></p><div id="weV"></div></div>
+    <div class="mfoot" id="weB"></div>
+  </div>
+</div>
+
+<!-- REPLAY share / import -->
+<div class="modal hidden" id="rpm" role="dialog" aria-modal="true" aria-labelledby="rpmT">
+  <div class="mbox">
+    <div class="mhead"><h2 class="display" id="rpmT">Replay</h2><button class="iconbtn" id="rpmClose" aria-label="Close">×</button></div>
+    <div class="mbody"><p id="rpmS"></p><textarea id="rpmTxt" spellcheck="false" aria-label="Replay text"></textarea><p class="onstat" id="rpmStat" aria-live="polite"></p><input type="file" id="rpmFile" accept=".txt,.stormfall,text/plain" class="hidden"></div>
+    <div class="mfoot" id="rpmB"></div>
+  </div>
+</div>
+
+<!-- DAILY CHALLENGE -->
+<div class="modal hidden" id="daily" role="dialog" aria-modal="true" aria-labelledby="dyT">
+  <div class="mbox">
+    <div class="mhead"><h2 class="display" id="dyT">Daily challenge</h2><button class="iconbtn" id="dyClose" aria-label="Close">×</button></div>
+    <div class="mbody" id="dyBody"></div>
+    <div class="mfoot" id="dyB"></div>
   </div>
 </div>
 
@@ -924,10 +1015,12 @@ body.sheet-open .nav{display:none}
       <div class="xpbox"><div class="xprow"><span>Level <b id="eLvl">1</b></span><span id="eXpT"></span></div><span class="xpbar big"><i id="eXp"></i></span></div>
       <div class="rewards" id="eRew"></div>
       <div id="eUnl"></div>
+      <div id="eDaily" class="hidden"></div>
       <div id="eMast"></div>
       <div class="endgrid" id="eGrid"></div>
     </div>
-    <div class="mfoot"><div class="endbtns"><button class="btn primary" id="eAgain">Play again</button><button class="btn" id="eShare">Share</button><button class="btn ghost" id="eMenu">Menu</button></div></div>
+    <div class="mfoot"><div class="endbtns"><button class="btn primary" id="eAgain">Play again</button><button class="btn" id="eShare">Share</button><button class="btn ghost" id="eMenu">Menu</button></div>
+      <div class="endbtns2"><button class="btn" id="eReplay">Watch the final turns</button><button class="btn hidden" id="eCard">Daily card</button></div></div>
   </div>
 </div>
 
@@ -938,8 +1031,8 @@ body.sheet-open .nav{display:none}
 const $=s=>document.querySelector(s);
 // Gameplay randomness goes through RNG, a seeded generator, so every client in an online match
 // rolls the same numbers. Purely visual randomness (particles, bubbles, weather) uses frand/fpick.
-let RNG=Math.random;
-function seedRNG(seed){ let a=seed>>>0; RNG=function(){ a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
+let RNG=Math.random, RNGA=0; // RNGA: the seeded generator's state (read by simHash for replay / spectator checks)
+function seedRNG(seed){ RNGA=seed>>>0; RNG=function(){ const a=RNGA=(RNGA+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
 const rand=(a,b)=>a+RNG()*(b-a);
 const ri=(a,b)=>Math.floor(a+RNG()*(b-a+1));
 const pick=a=>a[Math.floor(RNG()*a.length)];
@@ -1327,7 +1420,8 @@ const G={scene:'menu',region:'city',R:REG.city,grid:null,lanes:{x:[],y:[]},units
   reveals:[],sensors:[],lkp:new Map(),cues:[],groundDirty:false}; // reveals/sensors: sim (per team); lkp/cues: local player's visual memory
 let UID=0;
 // online session state (see "online play" below)
-const NET={on:false,host:false,peer:null,me:'',code:'',hostConn:null,conns:new Map(),players:[],mode:'solo',bots:[],m:0,q:new Map(),w:new Map(),status:'',inMatch:false};
+const NET={on:false,host:false,peer:null,me:'',code:'',hostConn:null,conns:new Map(),players:[],mode:'solo',bots:[],m:0,q:new Map(),w:new Map(),status:'',inMatch:false,
+  spec:false,specs:[],tm:{t:45,b:0},cfg:null,log:null,done:true}; // spec: I joined to watch; specs: spectators in the room; cfg/log: host's running match (start cfg + every relayed command, in order)
 
 const idx=(x,y)=>y*MW+x;
 const inMap=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH;
@@ -1569,7 +1663,7 @@ function shouldShow(u){ if(G.scene!=='game') return false; if(G.fullVis) return 
 function tileShown(x,y){ return G.fullVis||G.vis[idx(x,y)]===1; }
 function computeVis(){
   const v=G.vis;
-  if(G.scene!=='game'){ v.fill(1); G.fullVis=true; return; }
+  if(G.scene!=='game'||G.watch){ v.fill(1); G.fullVis=true; return; } // spectators and replays see the whole map
   const vs=viewers(); if(!vs.length||G.over){ v.fill(1); G.fullVis=true; return; }
   G.fullVis=false; v.fill(0);
   for(const p of vs){ const sr=sightOf(p);
@@ -1674,6 +1768,8 @@ function pickOffline(){ const seed=(Math.random()*4294967296)>>>0; seedRNG(seed)
 function setupMatch(lo,mk,net,pre){
   // net = online match config from the host: same seed, region, difficulty and roster on every client
   seedRNG(net?net.seed:pre?pre.seed:(Math.random()*4294967296)>>>0); UID=0;
+  // offline: pre.lv fixes the AI level and pre.rp is the player's gear/cosmetics spec, so a replay (or the daily) builds the same match
+  G.lvFix=!net&&pre&&pre.lv?pre.lv:0; G.watch=null; G.hlog=[]; G.clk={}; G.clkAct=null; G.player=null; G.daily=null;
   // roster: net.slots (online, built from the host's cfg), pre.slots (offline waiting room), or a full default roster
   const M0=MODES[mk]||MODES.solo, per=M0.team;
   let slots=net?net.slots:pre&&pre.slots;
@@ -1706,8 +1802,8 @@ function setupMatch(lo,mk,net,pre){
   // keeps gear matched to that team (no difficulty gear offset); its aim and behavior follow its difficulty.
   for(let t=0;t<nT;t++){ const tc=names[ni%names.length][1], hum=slots.slice(t*per,t*per+per).some(s=>s&&s.h);
     for(let k=0;k<per;k++){ const s=slots[t*per+k]||{b:'veteran'};
-      if(s.h){ let u; if(net){ const h=s.h, me=h.pid===net.me; u=makeUnit(Object.assign({},h.lo,{lv:h.lv}),me,h.name,h.color,h,t); u.net=me?null:h.pid; if(me) G.player=u; }
-        else { u=makeUnit(lo,true,lo.name,visorCol(),PROF,t); G.player=u; }
+      if(s.h){ let u; if(net){ const h=s.h, me=h.pid===net.me; u=makeUnit(Object.assign({},h.lo,{lv:h.lv}),me,h.name,h.color,h,t); u.net=me?null:h.pid; u.pid=h.pid; if(me) G.player=u; }
+        else { const rp=pre&&pre.rp; u=makeUnit(lo,true,lo.name,rp?rp.color:visorCol(),rp||PROF,t); G.player=u; }
         u.human=true; list.push(u); continue; }
       const DF=DIFFS[s.b]||DIFFS.veteran; let u;
       if(net){ const r=names[ni++%names.length]; u=makeUnit(randomLoadout(undefined,Math.max(1,net.aiLv+ri(-2,1)+(hum?0:DF.gear))),false,r[0],per>1?tc:r[1],null,t); }
@@ -3767,14 +3863,14 @@ function render(){
   if(G.grid) drawCueArrows(c);
   drawWeather(c);
   c.drawImage(overlayTex(),0,0,VW,VH);
-  if(G.scene==='game'&&G.player&&G.player.alive&&outsideStorm(G.player.x,G.player.y)){ c.fillStyle=C(G.R.storm,1,.08+.05*Math.sin(G.time*4)); c.fillRect(0,0,VW,VH); }
+  if(G.scene==='game'&&!G.watch&&G.player&&G.player.alive&&outsideStorm(G.player.x,G.player.y)){ c.fillStyle=C(G.R.storm,1,.08+.05*Math.sin(G.time*4)); c.fillRect(0,0,VW,VH); }
   if(G.flashA>0){ c.fillStyle='rgba(255,220,180,'+G.flashA+')'; c.fillRect(0,0,VW,VH); }
 }
 
 /* ================= update loop ================= */
 function update(dt){
   G.time+=dt;
-  const gdt=G.paused?0:dt*(G.playerDead&&!G.over?(G.speed||1):1);
+  const gdt=G.paused?0:dt*(G.playerDead&&!G.over?(G.speed||1):1)*(FF.on?FF.mul:1); // FF: fast-forward (spectator catch-up, replay jumps)
   if(gdt>0){ const due=[]; G.timers=G.timers.filter(t=>{ t.t-=gdt; if(t.t<=0){ due.push(t.fn); return false; } return true; }); due.forEach(f=>f()); }
   for(let i=G.tweens.length-1;i>=0;i--){ const tw=G.tweens[i]; tw.t+=gdt; const k=Math.min(1,tw.t/tw.dur);
     if(tw.u){ tw.u.rx=lerp(tw.fx,tw.tx,k); tw.u.ry=lerp(tw.fy,tw.ty,k); tw.u.walk+=gdt; if(tw.tz!=null) tw.u.rz=lerp(tw.fz,tw.tz,k)+(tw.fz!==tw.tz?Math.sin(k*Math.PI)*10:0); }
@@ -3812,7 +3908,7 @@ let lastT=0, mmT=0, pvF=false;
 function frame(now){
   const dt=Math.min(0.05,Math.max(0,(now-lastT)/1000)); lastT=now;
   update(dt); updateLKP(); render();
-  if(G.scene==='game'){ mmT-=dt; if(mmT<=0){ mmT=0.15; drawMinimap(); updateTurnOrder(); } }
+  if(G.scene==='game'){ mmT-=dt; if(mmT<=0){ mmT=0.15; drawMinimap(); updateTurnOrder(); updateClocks(); if(G.watch&&G.playerDead) fillSpec(); } }
   if(!$('#loadout').classList.contains('hidden')) { drawPreview(); drawMfAnim(); }
   // menu previews animate: operative card, and the store tiles on screen (every other frame)
   if(!$('#menu').classList.contains('hidden')) drawOpCard();
@@ -3822,8 +3918,8 @@ function frame(now){
 
 /* ================= camera helpers ================= */
 function defaultZ(){ return VW<600?0.95:1.2; }
-function focusOn(x,y,z){ const p=iso(x+.5,y+.5); G.cam.tx=p[0]; G.cam.ty=p[1]-10; if(z) G.cam.tz=z; }
-function focusMid(a,b){ const p=iso((a.x+b.x)/2+.5,(a.y+b.y)/2+.5); G.cam.tx=p[0]; G.cam.ty=p[1]-10; const d=Math.hypot(a.x-b.x,a.y-b.y); G.cam.tz=clamp(Math.min(defaultZ()*1.1,(VW*0.8)/(d*TW*0.75+60)),0.55,defaultZ()*1.15); }
+function focusOn(x,y,z){ if(G.spec&&G.spec.free&&G.scene==='game') return; const p=iso(x+.5,y+.5); G.cam.tx=p[0]; G.cam.ty=p[1]-10; if(z) G.cam.tz=z; }
+function focusMid(a,b){ if(G.spec&&G.spec.free&&G.scene==='game') return; const p=iso((a.x+b.x)/2+.5,(a.y+b.y)/2+.5); G.cam.tx=p[0]; G.cam.ty=p[1]-10; const d=Math.hypot(a.x-b.x,a.y-b.y); G.cam.tz=clamp(Math.min(defaultZ()*1.1,(VW*0.8)/(d*TW*0.75+60)),0.55,defaultZ()*1.15); }
 
 /* ================= combat ================= */
 function hitInfo(a,t,o){
@@ -4310,7 +4406,7 @@ async function runMatch(){
   const mid=G.matchId;
   await intro(); if(G.matchId!==mid) return;
   while(!G.over&&G.matchId===mid){
-    G.round++; G.turnU=null; if(standing(G.player)) G.stats.rounds=G.round; updateTop();
+    G.round++; G.turnU=null; if(standing(G.player)) G.stats.rounds=G.round; roundHash(); updateTop();
     await stormPhase(); if(G.over||G.matchId!==mid) break;
     await supplyPhase(); if(G.over||G.matchId!==mid) break;
     for(const u of G.units){ if(G.over||G.matchId!==mid) break; if(!u.alive) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); }
@@ -4397,11 +4493,11 @@ async function turnStartPerks(u){
 }
 /* ================= player turn ================= */
 function playerTurn(u){
-  return new Promise(res=>{ G.turnRes=res; G.mode='move'; G.pending=-1; G.pendingPath=null; G.busy=false; G.turnMax=PROF.settings.timer||(NET.on?45:0); G.turnLeft=G.turnMax; refreshReach(); focusOn(u.x,u.y); computeVis(); turnTag('Your turn','you'); buzz(15); updateHUD(); });
+  return new Promise(res=>{ G.turnRes=res; G.mode='move'; G.pending=-1; G.pendingPath=null; G.busy=false; G.turnMax=tmTurnMax(); G.turnLeft=G.turnMax; refreshReach(); focusOn(u.x,u.y); computeVis(); turnTag('Your turn','you'); buzz(15); updateHUD(); });
 }
 function timeUp(){ const u=G.player; if(!inputOpen()){ G.turnLeft=0; return; } G.turnLeft=0; hint('Time’s up'); SFX.tone(400,200,.25,.1,'square'); buzz([40,40,40]); G.mode='move'; G.pending=-1; G.pendingPath=null; G.busy=true; playCmd({k:'end'}); }
 function refreshReach(){ const u=G.player; G.reach=u.ap>0?computeReach(u,u.mob*u.ap):null; }
-function finishPlayerTurn(){ const r=G.turnRes; if(!r) return; G.turnRes=null; G.mode='idle'; G.reach=null; G.pending=-1; G.pendingPath=null; updateHUD(); r(); }
+function finishPlayerTurn(){ const r=G.turnRes; if(!r) return; tmTurnEnd(); G.turnRes=null; G.mode='idle'; G.reach=null; G.pending=-1; G.pendingPath=null; updateHUD(); r(); }
 function afterAction(){
   const u=G.player; G.busy=false;
   if(G.over||!standing(u)){ finishPlayerTurn(); return; }
@@ -4452,7 +4548,7 @@ async function pObj(){ if(!inputOpen()) return; const q=G.objT&&G.objT[G.oIdx]; 
 function enterThrow(util){ G.mode='throw'; G.throwUtil=util; G.throwTile=-1; G.pending=-1; G.pendingPath=null; G.cam.tz=Math.min(G.cam.tz,defaultZ()*0.85); hint('Tap a tile to aim'); updateHUD(); }
 /* Every player action is a command. Locally it runs through execCmd straight away; online the same
    command is sent to the other clients, which run it through execCmd when that unit's turn reaches it. */
-async function playCmd(c){ c.r=G.round; if(NET.on) netSendCmd(c); await execCmd(G.player,c); afterAction(); }
+async function playCmd(c){ c.r=G.round; if(G.tm&&G.tm.b&&G.turnRes) c.bk=tmLeft(); recCmd(G.player.id,c); if(NET.on) netSendCmd(c); await execCmd(G.player,c); afterAction(); }
 async function execCmd(u,c){
   const byId=id=>G.units.find(x=>x.id===id);
   if(c.k==='move'){ if(!Array.isArray(c.path)) return; u.ap-=c.ap; await moveUnit(u,c.path); u.moved=true; if(u.shot) u.ap=0; }
@@ -4752,8 +4848,14 @@ async function aiPerkPre(u,stale){
 function endMatch(win){
   if(G.over) return; G.over=true; G.turnRes=null;
   const wt=G.units.find(standing);
+  if(G.watch){ // spectators and replays: who won, no rewards
+    G.result={win:false,place:0,of:nTeams(),winner:wt?(G.M.team>1?teamLabel(wt.team):wt.name):null};
+    computeVis(); turnTag('',''); $('#spec').classList.add('hidden'); banner(G.result.winner?G.result.winner+' win'+(G.M.team>1?'':'s'):'No survivors','Match over.','win',2400);
+    recSave(); const mid=G.matchId; setTimeout(()=>{ if(G.matchId===mid) watchEnd('over'); },2600); return; }
+  if(NET.host&&NET.cfg&&!NET.done){ NET.done=true; netLobby(); } // the match is over for everyone: nothing left to spectate
   if(win) G.place=1; else if(!G.place) G.place=teamsLeft()+1;
   G.result={win,place:win?1:G.place,of:nTeams(),winner:wt&&!win?(G.M.team>1?teamLabel(wt.team):wt.name):null};
+  recSave();
   computeVis(); turnTag('',''); $('#spec').classList.add('hidden'); $('#tmr').classList.add('hidden');
   if(win){ banner(G.M.team>1?'Squad victory':'Victory','Last '+(G.M.team>1?'team':'operative')+' standing.','win',2400); buzz([40,60,40,60,120]); }
   else if(G.playerDead&&G.spec) banner(G.result.winner?G.result.winner+' win'+(G.M.team>1?'':'s'):'No survivors','Match over.','lose',2400);
@@ -4810,7 +4912,7 @@ function updateTop(){
   if(G.scene!=='game'||!G.storm) return;
   $('#hRound').textContent=Math.max(1,G.round); $('#hAlive').textContent=teamsLeft(); $('#hAliveL').textContent=G.M.team>1?'teams':'left';
   const ns=nextStorm(), nxt=ns&&ns.round, mvs=ns&&(ns.move||stormMoving()); const st=$('#hStorm'), chip=$('#hStormChip');
-  const out=G.player&&standing(G.player)&&outsideStorm(G.player.x,G.player.y);
+  const out=!G.watch&&G.player&&standing(G.player)&&outsideStorm(G.player.x,G.player.y);
   st.textContent=out?'In the storm!':G.drop&&!G.drop.landed?'Drop inbound':nxt?(nxt-G.round===1?(mvs?'Storm moves next round':'Storm next round'):(mvs?'Storm moves in ':'Storm in ')+(nxt-G.round)+' rounds'):'Storm at max';
   chip.classList.toggle('hot',!!out);
   if(G.playerDead&&!G.over) fillSpec();
@@ -4831,7 +4933,7 @@ function updateTurnOrder(){
   const ev=[]; const si=stormIdxAt(G.round+1);
   if(si>=0){ const S=stormStage(si); ev.push(['st',S.move?'move':'storm',S.move?'Storm moves at round start':'Storm closes at round start']); }
   if(G.drop&&!G.drop.landed&&G.drop.land===G.round+1) ev.push(['dr','drop','Supply drop lands']);
-  const tok=(u,cur)=>{ const me=u===G.player, al=!me&&mine(u), known=me||al||shouldShow(u), dead=!u.alive;
+  const tok=(u,cur)=>{ const me=u===G.player&&!G.watch, al=!me&&mine(u), known=me||al||shouldShow(u), dead=!u.alive;
     const cls='tk'+(cur?' cur':'')+(me?' me':al?' ally':known?' foe':' unk')+(dead?' dead':u.downed?' down':'');
     const label=(me?'You':known?u.name+' ('+CLASSES[u.cls].name+')':'Unknown operative')+(dead?', out':u.downed?', downed':'')+(cur?', acting now':'');
     return [cls+(known&&!me&&!al?'|'+u.color:''),'<div class="'+cls+'" role="listitem" title="'+label+'" aria-label="'+label+'"'+(known&&!me&&!al&&!dead?' style="color:'+u.color+'"':'')+'>'+(dead?'×':known?ICON[CLS_ICON[u.cls]]:'?')+'</div>']; };
@@ -4953,6 +5055,8 @@ function screenToTile(sx,sy){
 function unitAtScreen(sx,sy){ let best=null,bd=1e9; for(const u of G.units){ if(!u.alive||u.isPlayer||!shouldShow(u)) continue; const p=unitScreen(u); const s=[(p[0]-G.cam.x)*G.cam.z+VW/2,(p[1]-18-G.cam.y)*G.cam.z+VH/2]; const d=Math.hypot(s[0]-sx,s[1]-sy); if(d<Math.max(26,26*G.cam.z)&&d<bd){ bd=d; best=u; } } return best; }
 function onTap(sx,sy){
   SFX.init(); closeEmotes();
+  // spectating (eliminated, live spectator or replay): tap an operative to follow it
+  if(G.playerDead&&G.spec&&!G.over){ const hu=unitAtScreen(sx,sy); if(hu&&hu.alive){ G.spec.follow=hu; G.spec.free=false; G.cam.tz=defaultZ(); SFX.click(); fillSpec(); } return; }
   if(G.pingMode){ G.pingMode=false; const tt=screenToTile(sx,sy); updatePingBtn(); if(inMap(tt[0],tt[1])) openPingTray(tt[0],tt[1]); return; }
   closePingTray(); if(!inputOpen()) return; const u=G.player;
   const hu=unitAtScreen(sx,sy);
@@ -5004,7 +5108,7 @@ const PING_LIFE=2; // rounds a ping stays up
 let pingCd=0, pingAt=null;
 function teamMode(){ return G.scene==='game'&&G.M&&G.M.team>1&&!!G.player; }
 function aiMate(u){ return G.units.find(m=>m!==u&&m.team===u.team&&standing(m)&&!m.human)||null; }
-function updatePingBtn(){ const b=$('#bPing'); if(!b) return; b.classList.toggle('hidden',!teamMode()||G.over); b.classList.toggle('on',!!G.pingMode); }
+function updatePingBtn(){ const b=$('#bPing'); if(!b) return; b.classList.toggle('hidden',!teamMode()||G.over||!!G.watch); const em=$('#bEmote'); if(em) em.classList.toggle('hidden',!!G.watch); b.classList.toggle('on',!!G.pingMode); }
 function closePingTray(){ const t=$('#pingTray'); if(t) t.classList.add('hidden'); pingAt=null; }
 function openPingTray(x,y){
   if(!teamMode()||!G.player.alive) return; pingAt=[x,y]; closeEmotes();
@@ -5081,7 +5185,7 @@ function drawTeamPings(c){
 /* ================= input ================= */
 const ptrs=new Map(); let drag=null, pinch=null;
 cv.addEventListener('pointerdown',e=>{ try{cv.setPointerCapture(e.pointerId);}catch(_){} ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY});
-  if(ptrs.size===1){ drag={moved:false}; const d0=drag, x0=e.clientX, y0=e.clientY; if(teamMode()&&G.player.alive) setTimeout(()=>{ if(drag===d0&&!d0.moved&&ptrs.size===1){ d0.moved=true; const tt=screenToTile(x0,y0); if(inMap(tt[0],tt[1])) openPingTray(tt[0],tt[1]); } },480); } else if(ptrs.size===2){ const v=[...ptrs.values()]; pinch={d:Math.hypot(v[0].x-v[1].x,v[0].y-v[1].y)||1,z:G.cam.z}; if(drag) drag.moved=true; } });
+  if(ptrs.size===1){ drag={moved:false}; const d0=drag, x0=e.clientX, y0=e.clientY; if(teamMode()&&G.player.alive&&!G.watch) setTimeout(()=>{ if(drag===d0&&!d0.moved&&ptrs.size===1){ d0.moved=true; const tt=screenToTile(x0,y0); if(inMap(tt[0],tt[1])) openPingTray(tt[0],tt[1]); } },480); } else if(ptrs.size===2){ const v=[...ptrs.values()]; pinch={d:Math.hypot(v[0].x-v[1].x,v[0].y-v[1].y)||1,z:G.cam.z}; if(drag) drag.moved=true; } });
 cv.addEventListener('pointermove',e=>{ const p=ptrs.get(e.pointerId); if(!p) return; const dx=e.clientX-p.x, dy=e.clientY-p.y; p.x=e.clientX; p.y=e.clientY;
   if(ptrs.size>=2&&pinch){ const v=[...ptrs.values()]; const d=Math.hypot(v[0].x-v[1].x,v[0].y-v[1].y); G.cam.z=G.cam.tz=clamp(pinch.z*d/pinch.d,ZMIN,ZMAX); return; }
   if(drag){ if(!drag.moved&&Math.hypot(p.x-p.sx,p.y-p.sy)>11) drag.moved=true; if(drag.moved&&G.scene==='game'){ G.cam.x-=dx/G.cam.z; G.cam.y-=dy/G.cam.z; G.cam.tx=G.cam.x; G.cam.ty=G.cam.y; } } });
@@ -5249,7 +5353,7 @@ function mfinFor(k){ const f=PROF.mfin&&PROF.mfin[k]; return f&&MFIN[f]&&mastTra
 // what reaching mastery level l on weapon k unlocks: attachments and finishes
 function mastUnlocks(k,l){ const o=[]; for(const id in ATTACH) if(attNeed(k,id)===l) o.push(ATTACH[id].name); for(const f in MFIN) if(MFIN[f].m===l) o.push(MFIN[f].name+' finish'); return o; }
 function wName(k){ return (WEAPONS[k]||SECONDARIES[k]||{short:k}).short; }
-function aiLevel(off){ return Math.max(1,level()+ri(-2,1)+(off||0)); }
+function aiLevel(off){ return Math.max(1,(G.lvFix||level())+ri(-2,1)+(off||0)); }
 function utilSlots(){ return own('pouch')?3:2; }
 function utilOwned(id){ return !UTILS[id].shop||own('u_'+id); }
 function killValue(u){ return Math.round(60*(u&&u.perk==='pk_bounty'?1.5:1)); }
@@ -5361,12 +5465,12 @@ function showEnd(){
   for(const m of rw.mast||[]) if(m.a.l>m.b.l) setTimeout(()=>toast(wName(m.k)+' mastery '+m.a.l,m.unl.length?'Unlocked '+m.unl.join(', '):'','lvl'),700);
   const acc=s.shots?Math.round(s.hits/s.shots*100)+'%':'—';
   $('#eGrid').innerHTML='<div><b>'+s.kills+'</b>eliminations</div><div><b>'+s.dmg+'</b>damage dealt</div><div><b>'+acc+'</b>accuracy, '+s.grazes+' graze'+(s.grazes===1?'':'s')+'</div><div><b>'+s.rounds+'</b>rounds survived</div>';
-  $('#eAgain').textContent=NET.on?'Back to room':'Play again';
+  $('#eAgain').textContent=NET.on?'Back to room':G.daily?'Play':'Play again';
+  recSave(); $('#eReplay').disabled=!REC||!REC.h.length; dailyEnd();
   $('#end').classList.remove('hidden'); $('#hud').classList.add('hidden');
   if(a.l>rw.before.l){ toast('Level '+a.l+' reached',rw.unl.length?rw.unl.map(x=>x[1]).join(', '):'+'+rw.shards+' shards','lvl'); SFX.heal(); buzz([30,40,30,40,80]); }
   updateNavDot();
 }
-
 /* ================= toasts ================= */
 function toast(title,sub,kind){ const box=$('#toasts'); const el=document.createElement('div'); el.className='toast '+(kind||''); el.innerHTML='<div><b></b><small></small></div>'; el.querySelector('b').textContent=title; el.querySelector('small').textContent=sub||''; box.appendChild(el); setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); },350); },2800); }
 
@@ -5390,7 +5494,7 @@ $('#howRange').textContent='Every weapon has an optimal range where its aim is b
 let LO=loadLO();
 function loadLO(){ try{ const s=JSON.parse(localStorage.getItem('stormfall_loadout')||'null'); if(s) return sanitize(s); }catch(e){} return sanitize({name:'NOMAD',cls:'ranger',weapon:'shotgun',armor:'light',utils:['frag','medkit']}); }
 function saveLO(){ try{ localStorage.setItem('stormfall_loadout',JSON.stringify(LO)); }catch(e){} }
-function toMenu(){ show('#hud',false); show('#end',false); G.over=true; G.turnRes=null; setupMenuScene(); go('menu'); }
+function toMenu(){ ffStop(); show('#hud',false); show('#end',false); show('#wend',false); G.over=true; G.turnRes=null; G.watch=null; G.paused=false; setupMenuScene(); go('menu'); }
 function refreshMenu(){
   LO=sanitize(LO);
   const li=lvlInfo(); $('#mLvlN').textContent=li.l; $('#mName').textContent=LO.name; $('#mXp').style.width=(li.cur/li.need*100)+'%'; $('#mXpT').textContent=li.cur+' / '+li.need+' XP';
@@ -5400,18 +5504,25 @@ function refreshMenu(){
   $('#modes').innerHTML=Object.values(MODES).map(m=>'<button role="radio" aria-checked="'+(PROF.mode===m.key)+'" class="mode'+(PROF.mode===m.key?' sel':'')+'" data-mode="'+m.key+'">'+m.name+'<small>'+m.short+'</small></button>').join('');
   const wb=wrBots(PROF.mode), ds=[...new Set(wb)]; $('#modeDesc').textContent=MODES[PROF.mode].desc;
   $('#bDeploy').innerHTML='Play<small>'+rosterTxt(rosterSlots(PROF.mode,['local'],wb),PROF.mode)+'</small>';
-  drawOpCard();
+  drawOpCard(); renderDailyBtn();
 }
 $('#modes').addEventListener('click',e=>{ const b=e.target.closest('[data-mode]'); if(!b) return; PROF.mode=b.dataset.mode; saveProf(); SFX.click(); buzz(6); refreshMenu(); });
 function drawOpCard(){ const c=$('#opc').getContext('2d'); c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,128,152);
   c.drawImage(pvBg('opc',128,152,g=>{ const gr=g.createRadialGradient(64,120,4,64,120,70); gr.addColorStop(0,'rgba(63,210,255,.35)'); gr.addColorStop(1,'rgba(63,210,255,0)'); g.fillStyle=gr; g.fillRect(0,0,128,152); }),0,0);
   const o=demoPose(Object.assign({x:0,y:0,cls:LO.cls,armor:LO.armor,weapon:LO.weapon,sec:LO.sec,color:visorCol(),face:1,time:G.time,ph:1.3,skin:PROF.equip.skin,visor:PROF.equip.visor,finish:PROF.equip.finish},gearLook(LO)),G.time,1.3);
   trailIdle(c,54,136,PROF.equip.trail,G.time,1.1); c.save(); c.translate(54,136); c.scale(2.5,2.5); drawSoldier(c,o); c.restore(); pvMuzzle(c,o,54,136,2.5); }
-async function startMatch(){
+async function startMatch(daily){
   if(NET.on){ if(!confirm('Leave the online room and play offline?')) return; netLeave(); }
   SFX.init(); applySettings(); LO=sanitize(LO); saveLO(); for(const m of META) show('#'+m,false); show('#nav',false); show('#lobby',false); show('#end',false); show('#hud',false); $('#feed').innerHTML=''; closeEmotes(); closePingTray(); G.pingMode=false;
-  // the region is picked (seeded) before the roulette; setupMatch then builds that exact match, and the roulette lands on it
-  const pre=pickOffline(); pre.slots=rosterSlots(PROF.mode,['local'],wrBots(PROF.mode)); setupMatch(LO,PROF.mode,null,pre); const mid=G.matchId;
+  // the region is picked (seeded) before the roulette; setupMatch then builds that exact match, and the roulette lands on it.
+  // Everything setupMatch reads (loadout, gear spec, AI level, roster) is captured in pre, so the replay recorder can rebuild it.
+  const dk=daily===true?dailyKey():null, pre=dk?dailyPre(dk):pickOffline(), mk=dk?pre.mode:PROF.mode;
+  if(!dk) pre.slots=rosterSlots(PROF.mode,['local'],wrBots(PROF.mode));
+  pre.rp=offSpec(); if(!pre.lv) pre.lv=level(); const lo=JSON.parse(JSON.stringify(LO));
+  setupMatch(lo,mk,null,pre); const mid=G.matchId;
+  G.tm=dk?{t:DAILY.t,b:0}:{t:TM_OFF.includes(PROF.settings.timer)?PROF.settings.timer:30,b:TM_B.includes(PROF.settings.clock)?PROF.settings.clock:0}; tmInit();
+  G.daily=dk?{key:dk}:null; if(dk) dailyMark(dk);
+  recStart('off',{seed:pre.seed,region:pre.region,mode:mk,slots:pre.slots,lo,rp:pre.rp,lv:pre.lv,tm:G.tm,daily:dk||undefined});
   await mapRoulette(G.region); if(G.matchId!==mid) return;
   show('#hud',true); updateHUD(); runMatch();
 }
@@ -5435,17 +5546,17 @@ function regionArt(rk){
   g.fillStyle=R.grade; g.fillRect(0,0,240,150); return RL.art[rk]=cv;
 }
 // thumbnail of the map that was actually generated (G.grid), drawn as a small iso diorama
-function mapThumb(){
-  const R=G.R, cv=document.createElement('canvas'); cv.width=240; cv.height=150; const g=cv.getContext('2d');
-  const sk=g.createLinearGradient(0,0,0,150); sk.addColorStop(0,R.sky[0]); sk.addColorStop(.6,R.sky[1]); sk.addColorStop(1,R.sky[2]); g.fillStyle=sk; g.fillRect(0,0,240,150);
-  const s=2.75, D=(x,y)=>[120+(x-y)*s,22+(x+y)*s*0.5];
+function mapThumb(k){ k=k||1; // k: scale (the daily result card draws it large)
+  const R=G.R, cv=document.createElement('canvas'); cv.width=240*k; cv.height=150*k; const g=cv.getContext('2d');
+  const sk=g.createLinearGradient(0,0,0,150*k); sk.addColorStop(0,R.sky[0]); sk.addColorStop(.6,R.sky[1]); sk.addColorStop(1,R.sky[2]); g.fillStyle=sk; g.fillRect(0,0,240*k,150*k);
+  const s=2.75*k, D=(x,y)=>[120*k+(x-y)*s,22*k+(x+y)*s*0.5];
   const kc={tree:[60,112,52],bush:[70,120,58],container:null,building:[96,82,128],car:null,tank:[200,198,190],crane:[236,184,40],flare:[220,90,60],mesa:[182,92,52],bunker:[150,160,172]};
   for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const i=idx(x,y), o=G.grid[i], el=G.elev[i]; let col=G.floorT[i]?R.floor:mix(R.g1,R.g2,hash(x,y,1)), h=el?2:0;
     if(o){ col=(o.col&&(o.kind==='container'||o.kind==='car'))?o.col:kc[o.kind]||(o.t===2?R.wall:R.low); h+=o.t===2?4:1.5; } else if(el) col=R.platTop;
-    const T=D(x,y),Rr=D(x+1,y),B=D(x+1,y+1),L=D(x,y+1);
+    const T=D(x,y),Rr=D(x+1,y),B=D(x+1,y+1),L=D(x,y+1); h*=k;
     if(h>0){ g.fillStyle=C(col,.55); g.beginPath(); g.moveTo(L[0],L[1]); g.lineTo(B[0],B[1]); g.lineTo(Rr[0],Rr[1]); g.lineTo(Rr[0],Rr[1]-h); g.lineTo(B[0],B[1]-h); g.lineTo(L[0],L[1]-h); g.fill(); }
     g.fillStyle=C(col,o&&o.t===2?1.15:1); g.beginPath(); g.moveTo(T[0],T[1]-h); g.lineTo(Rr[0],Rr[1]-h); g.lineTo(B[0],B[1]-h); g.lineTo(L[0],L[1]-h); g.fill(); }
-  g.fillStyle=R.grade; g.fillRect(0,0,240,150); return cv;
+  g.fillStyle=R.grade; g.fillRect(0,0,240*k,150*k); return cv;
 }
 function mapRoulette(rk){
   if(RL.fin) RL.fin(true);
@@ -5517,21 +5628,26 @@ function cleanSpec(sp,pid){ sp=sp&&typeof sp==='object'?sp:{}; const lo=sp.lo&&t
   r.lo.att=cleanAtt(lo.att,lv,[r.lo.weapon,r.lo.sec]); return r; }
 
 /* per-unit command queues: a remote unit's turn waits on its queue */
-function netNext(id){ const q=NET.q.get(id); if(q&&q.length) return Promise.resolve(q.shift()); return new Promise(r=>NET.w.set(id,r)); }
-function netPush(id,c){ const w=NET.w.get(id); if(w){ NET.w.delete(id); w(c); return; } if(!NET.q.has(id)) NET.q.set(id,[]); NET.q.get(id).push(c); }
-function netRelay(msg,except){ for(const [pid,c] of NET.conns) if(pid!==except){ try{ c.conn.send(msg); }catch(e){} } }
+function netNext(id){ const q=NET.q.get(id); if(q&&q.length) return Promise.resolve(q.shift());
+  if(G.watch&&G.watch.kind==='replay'){ watchEnd('end'); return new Promise(()=>{}); } // the recording ran out (the recorder left early)
+  return new Promise(r=>NET.w.set(id,r)); }
+function netPush(id,c){ recCmd(id,c); const w=NET.w.get(id); if(w){ NET.w.delete(id); w(c); return; } if(!NET.q.has(id)) NET.q.set(id,[]); NET.q.get(id).push(c); }
+function netRelay(msg,except){ if(msg.t==='cmd'&&NET.log&&msg.m===NET.m) NET.log.push([msg.u,msg.c]); for(const [pid,c] of NET.conns) if(pid!==except){ try{ c.conn.send(msg); }catch(e){} } }
 function netSendCmd(c){ if(NET.host) netRelay({t:'cmd',m:NET.m,u:G.player.id,c}); else if(NET.hostConn){ try{ NET.hostConn.send({t:'cmd',m:NET.m,c}); }catch(e){} } }
 function netSendEmote(k){ if(!NET.on||!G.player) return; if(NET.host) netRelay({t:'emo',m:NET.m,u:G.player.id,k}); else if(NET.hostConn){ try{ NET.hostConn.send({t:'emo',k}); }catch(e){} } }
 function showEmote(u,k){ const e=EMOTES.find(x=>x.k===k); if(!u||!e||!u.alive) return; bubble(u,e.t); feedLine(u.name+': '+e.t,mine(u)); }
 
 async function netTurn(u,mid){
   if(shouldShow(u)){ turnTag(u.name+' · '+CLASSES[u.cls].name,mine(u)?'you':'enemy'); focusOn(u.x,u.y); } else turnTag('Waiting for '+u.name,'enemy');
+  clkTurn(u,true);
   while(standing(u)&&u.ap>0&&!G.over&&G.matchId===mid){
     const c=await netNext(u.id); if(G.matchId!==mid) return;
     if(c&&c.k!=='ai'&&c.r!==G.round) continue; // stale command from an earlier turn
-    if(!c||typeof c!=='object'||c.k==='ai'){ u.net=null; u.human=false; feedLine(u.name+' left. AI takes over.',mine(u)); await aiTurn(u,mid); return; }
+    if(c&&typeof c.bk==='number') clkReport(u,c.bk); // chess clock: the acting client's own bank (display only)
+    if(!c||typeof c!=='object'||c.k==='ai'){ u.net=null; u.human=false; clkTurn(u,false); feedLine(u.name+' left. AI takes over.',mine(u)); await aiTurn(u,mid); return; }
     await execCmd(u,c);
   }
+  clkTurn(u,false);
 }
 
 function netCode(){ let c=''; for(let i=0;i<5;i++) c+=CODE_ABC[Math.floor(Math.random()*CODE_ABC.length)]; return c; }
@@ -5541,7 +5657,7 @@ async function netHost(){
   NET.on=true; NET.host=true; netStatus('Opening a room…');
   try{ await peerReady(); }catch(e){ netLeave(); netStatus(e.message); return; }
   const tryOpen=n=>{ const code=netCode(), peer=new Peer('stormfall-'+code.toLowerCase(),peerOpts()); NET.peer=peer;
-    peer.on('open',id=>{ if(NET.peer!==peer) return; NET.code=code; NET.me=id; NET.mode=MODES[PROF.mode]?PROF.mode:'solo'; NET.bots=(Array.isArray(PROF.wr[NET.mode])?PROF.wr[NET.mode]:defaultBots(NET.mode)).slice(); NET.players=[cleanSpec(mySpec(),id)]; netStatus(''); updateOnlineBtn(); });
+    peer.on('open',id=>{ if(NET.peer!==peer) return; NET.code=code; NET.me=id; NET.mode=MODES[PROF.mode]?PROF.mode:'solo'; NET.bots=(Array.isArray(PROF.wr[NET.mode])?PROF.wr[NET.mode]:defaultBots(NET.mode)).slice(); NET.players=[cleanSpec(mySpec(),id)]; NET.tm=tmClean(PROF.settings.ntm); netStatus(''); updateOnlineBtn(); });
     peer.on('connection',conn=>{ if(NET.peer!==peer) return; conn.on('data',d=>hostData(conn,d)); conn.on('close',()=>hostDrop(conn.peer)); conn.on('error',()=>hostDrop(conn.peer)); });
     peer.on('error',e=>{ if(NET.peer!==peer) return;
       if(e.type==='unavailable-id'&&n<4){ try{ peer.destroy(); }catch(_){} tryOpen(n+1); return; }
@@ -5554,11 +5670,21 @@ function hostData(conn,d){
   if(!d||typeof d!=='object') return; const pid=conn.peer, rec=NET.conns.get(pid); if(rec) rec.last=Date.now();
   if(d.t==='hello'){
     if(d.v!==PROTO){ try{ conn.send({t:'reject',why:'You and the host are on different versions of the game. Both reload the page.'}); }catch(_){} setTimeout(()=>conn.close(),600); return; }
+    // spectators: no unit, not in the roster; they get the running match (start cfg + command log so far) and then the live relay
+    if(d.spec||(rec&&rec.spec)){
+      if(!rec&&NET.specs.length>=8){ try{ conn.send({t:'reject',why:'That room has enough spectators.'}); }catch(_){} setTimeout(()=>conn.close(),600); return; }
+      const nm=cleanSpec(d.p,pid).name, i=NET.specs.findIndex(p=>p.pid===pid);
+      if(i>=0) NET.specs[i].name=nm; else NET.specs.push({pid,name:nm});
+      if(!rec){ NET.conns.set(pid,{conn,last:Date.now(),spec:true}); toast('Spectator joined',nm); netOfferWatch(conn); }
+      netLobby(); return; }
     if(!rec&&NET.players.length>=8){ try{ conn.send({t:'reject',why:'That room is full.'}); }catch(_){} setTimeout(()=>conn.close(),600); return; }
     if(!rec){ NET.conns.set(pid,{conn,last:Date.now()}); toast('Player joined',cleanSpec(d.p,pid).name); }
     const sp=cleanSpec(d.p,pid), i=NET.players.findIndex(p=>p.pid===pid); if(i>=0) NET.players[i]=sp; else NET.players.push(sp);
+    if(!rec) netOfferWatch(conn); // joined while a match runs: watch it until the next one
     netLobby(); return; }
   if(!rec) return;
+  if(d.t==='watchme'){ netOfferWatch(conn); return; } // a spectator (or waiting player) asks for the running match again
+  if(rec.spec||(G.watch&&G.watch.kind==='replay')) return; // spectators only answer pings; a replay on the host's screen takes no input
   if(d.t==='pong') return;
   if(d.t==='cmd'&&d.m===NET.m&&d.c&&typeof d.c==='object'){ const u=G.units.find(x=>x.net===pid); if(!u) return; netRelay({t:'cmd',m:NET.m,u:u.id,c:d.c},pid); netPush(u.id,d.c); return; }
   if(d.t==='emo'){ const u=G.units.find(x=>x.net===pid); if(!u) return; netRelay({t:'emo',m:NET.m,u:u.id,k:d.k},pid); showEmote(u,d.k); }
@@ -5567,45 +5693,55 @@ function hostData(conn,d){
 }
 function hostDrop(pid){
   if(!NET.host||!NET.conns.has(pid)) return; const rec=NET.conns.get(pid); NET.conns.delete(pid); try{ rec.conn.close(); }catch(_){}
+  if(rec.spec){ const sp=NET.specs.find(x=>x.pid===pid); NET.specs=NET.specs.filter(x=>x.pid!==pid); if(sp) toast('Spectator left',sp.name); netLobby(); return; }
   const p=NET.players.find(x=>x.pid===pid); NET.players=NET.players.filter(x=>x.pid!==pid);
-  const u=G.units.find(x=>x.net===pid); if(u){ netRelay({t:'cmd',m:NET.m,u:u.id,c:{k:'ai'}}); netPush(u.id,{k:'ai'}); }
+  const u=!(G.watch&&G.watch.kind==='replay')&&G.units.find(x=>x.net===pid); if(u){ netRelay({t:'cmd',m:NET.m,u:u.id,c:{k:'ai'}}); netPush(u.id,{k:'ai'}); }
   if(p) toast('Player left',p.name); netLobby();
 }
-function netLobby(){ netRelay({t:'lobby',mode:NET.mode,bots:normBots(NET.mode,NET.players.length,NET.bots),players:NET.players.map(p=>({pid:p.pid,name:p.name,cls:p.lo.cls,color:p.color}))}); renderOnline(); }
+function netLobby(){ netRelay({t:'lobby',mode:NET.mode,bots:normBots(NET.mode,NET.players.length,NET.bots),players:NET.players.map(p=>({pid:p.pid,name:p.name,cls:p.lo.cls,color:p.color})),specs:NET.specs.map(p=>p.name),tm:NET.tm,live:!!(NET.cfg&&!NET.done)}); renderOnline(); }
+// a running match for someone who is not in its roster: the start cfg and every command so far, in relay order
+function netOfferWatch(conn){ if(!NET.cfg||NET.done||!NET.log) return; try{ conn.send({t:'watch',cfg:NET.cfg,log:NET.log,r:NET.round|0}); }catch(_){} } // r: the host's round, the catch-up target
 function netStart(){
   if(!NET.host||!NET.code) return; NET.players[0]=cleanSpec(mySpec(),NET.me);
   const M=MODES[NET.mode]; if(NET.players.length>M.players){ netStatus(M.name+' holds '+M.players+' players. Pick another mode.'); return; }
   const lv=Math.round(NET.players.reduce((a,p)=>a+p.lv,0)/NET.players.length);
   // the roster: humans in lobby order + the host's bots with their difficulties (every client rebuilds it with rosterSlots)
-  const cfg={m:NET.m+1,seed:(Math.random()*4294967296)>>>0,mode:NET.mode,region:fpick(REGIONS.filter(r=>r!==G.lastRegion)),players:NET.players,bots:normBots(NET.mode,NET.players.length,NET.bots),aiLv:lv};
+  const cfg={m:NET.m+1,seed:(Math.random()*4294967296)>>>0,mode:NET.mode,region:fpick(REGIONS.filter(r=>r!==G.lastRegion)),players:NET.players,bots:normBots(NET.mode,NET.players.length,NET.bots),aiLv:lv,tm:tmClean(NET.tm)};
+  NET.cfg=JSON.parse(JSON.stringify(cfg)); NET.log=[]; NET.done=false; NET.round=0; netLobby(); // kept for spectators who join mid-match
   netRelay({t:'start',cfg}); startNetMatch(cfg);
 }
-function startNetMatch(cfg){
-  if(!cfg||!MODES[cfg.mode]||!Array.isArray(cfg.players)) return;
-  cfg.region=REG[cfg.region]?cfg.region:'city'; cfg.aiLv=clamp(cfg.aiLv|0,1,40);
-  cfg.players=cfg.players.slice(0,8).map(p=>cleanSpec(p,p&&p.pid)); if(!cfg.players.some(p=>p.pid===NET.me)) return; // joined after this match started
-  if(cfg.players.length>MODES[cfg.mode].players) return;
+// validated start cfg (shared by players, spectators and replays): identical result on every client
+function netCfgClean(cfg){
+  if(!cfg||typeof cfg!=='object'||!MODES[cfg.mode]||!Array.isArray(cfg.players)||!cfg.players.length) return null;
+  cfg.region=REG[cfg.region]?cfg.region:'city'; cfg.aiLv=clamp(cfg.aiLv|0,1,40); cfg.seed=cfg.seed>>>0; cfg.m=cfg.m|0;
+  cfg.players=cfg.players.slice(0,8).map(p=>cleanSpec(p,p&&p.pid));
+  if(cfg.players.length>MODES[cfg.mode].players) return null;
   // validated roster: known difficulty keys only, sized and team-shaped by normBots, identical on every client
   const bots=(Array.isArray(cfg.bots)?cfg.bots.slice(0,8):[]).map(d=>typeof d==='string'&&DIFFS[d]?d:'veteran');
-  cfg.slots=rosterSlots(cfg.mode,cfg.players,bots);
-  NET.m=cfg.m; NET.mode=cfg.mode; NET.q=new Map(); NET.w=new Map(); NET.status='';
+  cfg.slots=rosterSlots(cfg.mode,cfg.players,bots); cfg.tm=tmClean(cfg.tm);
+  return cfg; }
+function startNetMatch(cfg){
+  cfg=netCfgClean(cfg); if(!cfg) return;
+  if(!cfg.players.some(p=>p.pid===NET.me)){ startWatchNet(cfg,[]); return; } // a spectator, or joined after the roster was set: watch it
+  NET.m=cfg.m; NET.mode=cfg.mode; NET.q=new Map(); NET.w=new Map(); NET.status=''; ffStop();
   SFX.init(); applySettings(); for(const m of META) show('#'+m,false); show('#nav',false); show('#lobby',false); show('#end',false); show('#pause',false); show('#online',false); show('#hud',true); $('#feed').innerHTML=''; closeEmotes(); closePingTray(); G.pingMode=false;
   G.paused=false; if(draft){ draft=null; }
   setupMatch(null,cfg.mode,Object.assign({},cfg,{me:NET.me})); show('#hud',false);
+  G.tm=cfg.tm; tmInit(); recStart('on',cfg,NET.me);
   // every client lands its roulette on the host's region; commands that arrive meanwhile queue on the new units
   const mid=G.matchId; mapRoulette(G.region).then(()=>{ if(G.matchId!==mid) return; show('#hud',true); updateHUD(); runMatch(); });
 }
 
-async function netJoin(code){
+async function netJoin(code,spec){
   code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,''); if(code.length!==5){ netStatus('Room codes are 5 characters.'); return; }
   if(NET.peer) netLeave();
-  NET.on=true; NET.host=false; NET.code=code; netStatus('Connecting to room '+code+'…');
+  NET.on=true; NET.host=false; NET.code=code; NET.spec=!!spec; netStatus((spec?'Joining room ':'Connecting to room ')+code+(spec?' as a spectator…':'…'));
   try{ await peerReady(); }catch(e){ netLeave(); netStatus(e.message); return; }
   const peer=new Peer(peerOpts()); NET.peer=peer;
   peer.on('open',id=>{ if(NET.peer!==peer) return; NET.me=id;
     const conn=peer.connect('stormfall-'+code.toLowerCase(),{reliable:true}); NET.hostConn=conn; NET.hostLast=Date.now();
     const t=setTimeout(()=>{ if(NET.hostConn===conn&&!conn.open){ netLeave(); netStatus('Could not reach room '+code+'. The host may be behind a strict firewall.'); } },15000);
-    conn.on('open',()=>{ clearTimeout(t); NET.hostLast=Date.now(); try{ conn.send({t:'hello',v:PROTO,p:mySpec()}); }catch(_){} netStatus(''); updateOnlineBtn(); });
+    conn.on('open',()=>{ clearTimeout(t); NET.hostLast=Date.now(); try{ conn.send(netHello()); }catch(_){} netStatus(''); updateOnlineBtn(); });
     conn.on('data',d=>{ if(NET.hostConn===conn) clientData(d); });
     conn.on('close',()=>{ if(NET.hostConn===conn) clientLostHost('Lost connection to the host'); });
     conn.on('error',()=>{ if(NET.hostConn===conn) clientLostHost('Lost connection to the host'); }); });
@@ -5616,22 +5752,26 @@ async function netJoin(code){
 function clientData(d){
   if(!d||typeof d!=='object') return; NET.hostLast=Date.now();
   if(d.t==='ping'){ try{ NET.hostConn.send({t:'pong'}); }catch(_){} return; }
-  if(d.t==='lobby'){ NET.players=Array.isArray(d.players)?d.players:[]; NET.mode=MODES[d.mode]?d.mode:'solo'; NET.bots=Array.isArray(d.bots)?d.bots.slice(0,8).filter(k=>typeof k==='string'&&DIFFS[k]):[]; renderOnline(); return; }
+  if(d.t==='lobby'){ NET.players=Array.isArray(d.players)?d.players:[]; NET.mode=MODES[d.mode]?d.mode:'solo'; NET.bots=Array.isArray(d.bots)?d.bots.slice(0,8).filter(k=>typeof k==='string'&&DIFFS[k]):[];
+    NET.specs=Array.isArray(d.specs)?d.specs.slice(0,8).map(n=>({name:String(n).slice(0,12)})):[]; NET.tm=tmClean(d.tm); NET.live=!!d.live; renderOnline(); return; }
+  if(d.t==='watch'){ const cfg=netCfgClean(d.cfg); if(cfg&&!cfg.players.some(p=>p.pid===NET.me)) startWatchNet(cfg,Array.isArray(d.log)?d.log:[],true,d.r|0); return; }
   if(d.t==='reject'){ netLeave(); netStatus(String(d.why||'The host turned you away.')); return; }
   if(d.t==='bye'){ clientLostHost('The host closed the room'); return; }
   if(d.t==='start'){ startNetMatch(d.cfg); return; }
+  if(G.watch&&G.watch.kind==='replay') return; // a replay is on screen: the room's match traffic is not for it
   if(d.t==='cmd'&&d.m===NET.m&&d.c&&typeof d.c==='object'){ const u=G.units.find(x=>x.id===d.u&&x.net); if(u) netPush(u.id,d.c); return; }
   if(d.t==='emo'&&d.m===NET.m){ showEmote(G.units.find(x=>x.id===d.u&&x.human),d.k); }
   if(d.t==='tping'&&d.m===NET.m){ recvPing(G.units.find(x=>x.id===d.u&&x.human),d.k,d.x,d.y); }
 }
 function clientLostHost(why){
   if(!NET.on||NET.host) return; const live=G.scene==='game'&&!G.over;
+  if(live&&G.watch&&G.watch.kind==='spec'){ netLeave(); netStatus(why+'.'); watchEnd('host'); return; } // a spectator has nobody to follow
   for(const u of G.units) if(u.net) netPush(u.id,{k:'ai'});
   netLeave(); toast(why,live?'Finishing the match against AI.':''); netStatus(why+'.');
 }
 function netLeave(){
   if(NET.host) netRelay({t:'bye'});
-  const pr=NET.peer; NET.on=false; NET.host=false; NET.peer=null; NET.hostConn=null; NET.conns=new Map(); NET.players=[]; NET.code=''; NET.status='';
+  const pr=NET.peer; NET.on=false; NET.host=false; NET.peer=null; NET.hostConn=null; NET.conns=new Map(); NET.players=[]; NET.code=''; NET.status=''; NET.spec=false; NET.specs=[]; NET.cfg=null; NET.log=null; NET.done=true;
   if(pr) setTimeout(()=>{ try{ pr.destroy(); }catch(_){} },400);
   updateOnlineBtn(); renderOnline();
 }
@@ -5648,7 +5788,8 @@ setInterval(()=>{ if(document.hidden&&NET.on&&G.scene==='game'){ const now=perfo
 function inviteLink(){ return location.origin+location.pathname+'?join='+NET.code; }
 function updateOnlineBtn(){ const b=$('#bOnline'); if(b) b.innerHTML=NET.on&&NET.code?'Online room<small>'+esc(NET.code)+'</small>':'Play online<small>Host or join</small>'; }
 function inRoom(){ return NET.on&&!!NET.code&&(NET.host||!!(NET.hostConn&&NET.hostConn.open)); }
-function openOnline(){ if(NET.on&&!NET.host&&NET.hostConn&&NET.hostConn.open){ try{ NET.hostConn.send({t:'hello',v:PROTO,p:mySpec()}); }catch(_){} }
+function netHello(){ const h={t:'hello',v:PROTO,p:mySpec()}; if(NET.spec) h.spec=1; return h; }
+function openOnline(){ if(NET.on&&!NET.host&&NET.hostConn&&NET.hostConn.open){ try{ NET.hostConn.send(netHello()); }catch(_){} }
   if(inRoom()){ openLobby(true); return; } show('#online',true); renderOnline(); }
 function shareInvite(){ const link=inviteLink(), txt='Join my Stormfall room: '+NET.code;
   try{ if(navigator.share&&matchMedia('(pointer:coarse)').matches){ navigator.share({title:'Stormfall',text:txt,url:link}).catch(()=>{}); return; } }catch(_){}
@@ -5663,7 +5804,8 @@ function renderOnline(){
   if(!NET.on){
     body.innerHTML='<p class="lead">Play with friends. One player hosts and shares the room code; everyone else joins with it. The host adds bots to fill the room. Everyone brings their own loadout.</p>'+
       '<button class="btn primary" data-on="host">Host a room</button><div class="orsep"><span>or join with a code</span></div>'+
-      '<div class="joinrow"><input id="onCode" maxlength="5" placeholder="CODE" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Room code"><button class="btn" data-on="join">Join</button></div>';
+      '<div class="joinrow"><input id="onCode" maxlength="5" placeholder="CODE" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Room code"><button class="btn" data-on="join">Join</button><button class="btn ghost" data-on="watch" title="Join without an operative and watch the room\'s matches live">Watch</button></div>'+
+      '<p class="lead" style="margin:var(--s3) 0 0;font-size:12.5px">Watch joins as a spectator: no operative, full view of the map, live. You can join a match that is already running.</p>';
     return; }
   body.innerHTML='<div class="onwait"><i class="spin" aria-hidden="true"></i><span>'+(NET.host?'Opening a room…':'Connecting to room '+esc(NET.code)+'…')+'</span></div><button class="btn ghost" data-on="leave">Cancel</button>';
 }
@@ -5671,6 +5813,7 @@ $('#online').addEventListener('click',e=>{
   const b=e.target.closest('[data-on]'); if(!b) return; const a=b.dataset.on; SFX.init(); SFX.click();
   if(a==='host') netHost();
   else if(a==='join') netJoin($('#onCode').value);
+  else if(a==='watch') netJoin($('#onCode').value,true);
   else if(a==='leave'){ netLeave(); }
   else if(a==='start') netStart();
   else if(a==='invite') shareInvite();
@@ -5678,7 +5821,7 @@ $('#online').addEventListener('click',e=>{
 $('#online').addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.id==='onCode') netJoin(e.target.value); });
 $('#onClose').addEventListener('click',()=>show('#online',false));
 $('#bOnline').addEventListener('click',()=>{ SFX.init(); SFX.click(); openOnline(); });
-(function(){ try{ const q=new URLSearchParams(location.search), c=q.get('join'); if(!c) return; history.replaceState(null,'',location.pathname); setTimeout(()=>{ openOnline(); netJoin(c); },300); }catch(e){} })();
+(function(){ try{ const q=new URLSearchParams(location.search), c=q.get('join')||q.get('watch'); if(!c) return; const w=!q.get('join'); history.replaceState(null,'',location.pathname); setTimeout(()=>{ openOnline(); netJoin(c,w); },300); }catch(e){} })();
 window.addEventListener('pagehide',()=>{ if(NET.on) netLeave(); });
 $('#bDeploy').addEventListener('click',()=>{ SFX.init(); SFX.click(); buzz(6); openLobby(false); });
 $('#opcard').addEventListener('click',()=>{ SFX.click(); go('loadout'); });
@@ -5749,10 +5892,14 @@ function renderLobby(){
   dep.innerHTML='Deploy<small>'+(per>1?nT+' teams':n+' operatives')+'</small>';
   $('#wrLeave').classList.toggle('hidden',!LB.online);
   $('#wrStat').textContent=LB.online?NET.status||'':'';
+  renderLobbyTime(ed); renderLobbySpecs();
+  if(LB.online&&NET.spec) note.textContent='You are spectating: no operative. The match appears here when the host deploys.';
 }
 $('#lobby').addEventListener('click',e=>{
   const c=lbCtx(), per=MODES[c.mode].team, b0=c.bots.slice();
-  const t=e.target.closest('[data-lbmode],[data-bd],[data-brm],[data-trm],[data-badd],[data-ball],#wrFill,#wrMin,#wrDeploy,#wrBack,#wrLeave,[data-on]'); if(!t||t.disabled) return; SFX.init(); SFX.click(); buzz(6);
+  const t=e.target.closest('[data-lbmode],[data-bd],[data-brm],[data-trm],[data-badd],[data-ball],[data-wtt],[data-wtb],#wrFill,#wrMin,#wrDeploy,#wrBack,#wrLeave,#wrWatch,[data-on]'); if(!t||t.disabled) return; SFX.init(); SFX.click(); buzz(6);
+  if(t.id==='wrWatch'){ try{ NET.hostConn.send({t:'watchme'}); }catch(_){} return; }
+  if(t.dataset.wtt!=null||t.dataset.wtb!=null){ if(c.edit) lbSetTime(t.dataset.wtt!=null?'t':'b',+(t.dataset.wtt!=null?t.dataset.wtt:t.dataset.wtb)); return; }
   if(t.id==='wrBack'){ closeLobby(); return; }
   if(t.id==='wrLeave'){ netLeave(); return; }
   if(t.dataset.on==='invite'){ shareInvite(); return; }
@@ -6047,11 +6194,13 @@ $('#qClaimAll').addEventListener('click',()=>{ let n=0; for(const q of PROF.q.da
 function setRows(compact){
   const s=PROF.settings, tg=(k,label,sub)=>'<div class="setrow"><div>'+label+(sub?'<small>'+sub+'</small>':'')+'</div><button class="tog'+(s[k]?' on':'')+'" data-set="'+k+'" role="switch" aria-checked="'+!!s[k]+'" aria-label="'+label+'"></button></div>';
   let h=tg('sound','Sound')+tg('haptics','Haptics','Vibration on supported phones')+tg('shake','Screen shake');
-  if(!compact) h+=tg('oneTap','One-tap move','Skip the confirm tap when moving')+'<div class="setrow"><div>Turn timer<small>Applies to your next turn</small></div><div class="seg">'+[0,20,30,45].map(v=>'<button data-timer="'+v+'" class="'+(s.timer===v?'sel':'')+'">'+(v?v+'s':'Off')+'</button>').join('')+'</div></div>';
+  if(!compact) h+=tg('oneTap','One-tap move','Skip the confirm tap when moving')+'<div class="setrow"><div>Turn timer<small>'+(s.clock?'Off while the chess clock is on':'Offline matches. Online, the host sets it')+'</small></div><div class="seg">'+TM_OFF.map(v=>'<button data-timer="'+v+'" class="'+(s.timer===v?'sel':'')+'"'+(s.clock?' disabled':'')+'>'+(v?v+'s':'Off')+'</button>').join('')+'</div></div>'
+    +'<div class="setrow"><div>Chess clock<small>A time bank for the whole match, +'+TM_INC+'s per turn. Empty bank: '+TM_GRACE+'s turns</small></div><div class="seg">'+TM_B.map(v=>'<button data-clock="'+v+'" class="'+((s.clock||0)===v?'sel':'')+'">'+(v?v+' min':'Off')+'</button>').join('')+'</div></div>';
   return h;
 }
 function onSetClick(e,rerender){ const b=e.target.closest('[data-set]'); if(b){ const k=b.dataset.set; PROF.settings[k]=!PROF.settings[k]; saveProf(); applySettings(); SFX.click(); if(k==='haptics'&&PROF.settings.haptics) buzz(20); rerender(); return true; }
-  const t=e.target.closest('[data-timer]'); if(t){ PROF.settings.timer=+t.dataset.timer; saveProf(); SFX.click(); rerender(); return true; } return false; }
+  const t=e.target.closest('[data-timer]'); if(t){ PROF.settings.timer=+t.dataset.timer; saveProf(); SFX.click(); rerender(); return true; }
+  const k=e.target.closest('[data-clock]'); if(k){ PROF.settings.clock=+k.dataset.clock; saveProf(); SFX.click(); rerender(); return true; } return false; }
 function renderProfile(){
   const li=lvlInfo(); $('#pLvl').textContent=li.l; $('#pName').textContent=LO.name; $('#pXpT').textContent=li.cur+' / '+li.need+' XP to level '+(li.l+1); $('#pXp').style.width=(li.cur/li.need*100)+'%';
   const c=PROF.career; $('#pStats').innerHTML='<div><b>'+c.matches+'</b>matches</div><div><b>'+c.wins+'</b>wins</div><div><b>'+c.top3+'</b>top 3 finishes</div><div><b>'+c.kills+'</b>eliminations</div><div><b>'+c.dmg+'</b>damage dealt</div><div><b>'+(c.matches?(c.kills/c.matches).toFixed(1):'0.0')+'</b>eliminations per match</div>';
@@ -6063,7 +6212,7 @@ function renderProfile(){
   $('#pMast').innerHTML=mw.map(k=>{ const m=mastInfo(k), nx=m.max?[]:mastUnlocks(k,m.l+1);
     return '<div class="mprow"><b>'+m.l+'</b><div><div>'+esc((WEAPONS[k]||SECONDARIES[k]).name)+(mfinFor(k)?' · '+MFIN[mfinFor(k)].name:'')+'</div><span class="xpbar"><i style="width:'+(m.max?100:(m.cur/m.need*100).toFixed(1))+'%"></i></span><small>'+(m.max?'Mastered':m.cur+'/'+m.need+' XP · next: '+nx.join(', '))+'</small></div><canvas data-pm="'+k+'" width="192" height="80"></canvas></div>'; }).join('');
   document.querySelectorAll('#pMast canvas[data-pm]').forEach(cv2=>{ const k=cv2.dataset.pm; wpnOn(cv2,k,(mfinFor(k)||PROF.equip.finish)+((LO.att&&LO.att[k])?'+'+attIds(LO.att[k],k).join('.'):'')); });
-  $('#pSet').innerHTML=setRows(false);
+  $('#pSet').innerHTML=setRows(false); renderReps();
 }
 $('#pSet').addEventListener('click',e=>onSetClick(e,renderProfile));
 
@@ -6077,12 +6226,297 @@ $('#emoteTray').addEventListener('click',e=>{ const b=e.target.closest('[data-em
 // team pings: the 📍 button arms ping mode (next map tap opens the ping menu there); a long press on the map does the same
 $('#bPing').addEventListener('click',()=>{ SFX.init(); if(!teamMode()) return; closePingTray(); G.pingMode=!G.pingMode; if(G.pingMode) hint('Tap the map to ping'); SFX.click(); updatePingBtn(); });
 $('#pingTray').addEventListener('click',e=>{ const b=e.target.closest('[data-ping]'); if(!b||!pingAt) return; const at=pingAt; closePingTray(); placePing(b.dataset.ping,at[0],at[1]); });
-function fillSpec(){ if(!G.spec) return; const f=G.spec.follow, live=f&&f.alive; $('#spName').textContent=live?'Following '+f.name:'Spectating'; $('#spSub').textContent=teamsLeft()+(G.M.team>1?' teams':'')+' left, round '+G.round+(live?', '+CLASSES[f.cls].name+(f.downed?' (down)':' '+f.hp+'/'+f.maxHp+' HP'):', auto camera'); }
-function cycleSpec(dir){ if(!G.spec||G.over) return; const list=[null].concat(G.units.filter(u=>u.alive)); let i=list.indexOf(G.spec.follow); if(i<0) i=0; i=(i+dir+list.length)%list.length; G.spec.follow=list[i]; if(list[i]) G.cam.tz=defaultZ(); SFX.click(); fillSpec(); }
+// spectator panel: eliminated players, live spectators (G.watch.kind 'spec') and replays ('replay') share it.
+// Camera: auto (follows the action), free (drag/pinch; the sim never moves it) or following one operative (Prev/Next or tap one).
+function fillSpec(){ if(!G.spec) return; const f=G.spec.follow, live=f&&f.alive, W=G.watch;
+  $('#spName').textContent=G.spec.free?'Free camera':live?'Following '+f.name:W?(W.kind==='replay'?'Replay':'Spectating live'):'Spectating';
+  let sub=teamsLeft()+(G.M.team>1?' teams':'')+' left, round '+G.round+(live?', '+CLASSES[f.cls].name+(f.downed?' (down)':' '+f.hp+'/'+f.maxHp+' HP'):G.spec.free?', drag to look around':', auto camera');
+  if(W&&W.kind==='spec') sub=(FF.on?'Catching up to the live match… ':'')+sub;
+  if(W&&W.kind==='replay'){ sub=(FF.on?'Skipping ahead… ':'')+sub+(W.bad?' · out of sync from round '+W.bad:W.ok?' · verified to round '+W.ok:''); $('#spProg').style.width=(W.total?Math.min(100,G.round/W.total*100):0)+'%';
+    const pb=$('#spPlay'); pb.textContent=G.paused?'▶ Play':'❚❚ Pause'; pb.setAttribute('aria-label',G.paused?'Play replay':'Pause replay'); $('#spFinal').disabled=FF.on||G.round>=W.total-1; }
+  $('#spSub').textContent=sub; $('#spR3').classList.toggle('hidden',!(W&&W.kind==='replay')); $('#spec').classList.toggle('watch',!!W);
+  $('#spLeave').textContent=W?'Exit':'Results'; $('#spSpeed').textContent=(G.speed||1)+'×'; }
+function cycleSpec(dir){ if(!G.spec||G.over) return; const list=['auto','free'].concat(G.units.filter(u=>u.alive)); let i=list.indexOf(G.spec.free?'free':G.spec.follow||'auto'); if(i<0) i=0; i=(i+dir+list.length)%list.length;
+  const v=list[i]; G.spec.free=v==='free'; G.spec.follow=typeof v==='object'?v:null; if(G.spec.follow) G.cam.tz=defaultZ(); SFX.click(); fillSpec(); }
 $('#spPrev').addEventListener('click',()=>cycleSpec(-1));
 $('#spNext').addEventListener('click',()=>cycleSpec(1));
-$('#spSpeed').addEventListener('click',()=>{ G.speed=(G.speed||1)>=3?1:(G.speed||1)+1; $('#spSpeed').textContent=G.speed+'×'; SFX.click(); });
-$('#spLeave').addEventListener('click',()=>{ if(G.over||!G.playerDead) return; G.over=true; if(!G.place) G.place=teamsLeft(); G.result={win:false,place:G.place,of:nTeams(),winner:null}; G.matchId++; $('#spec').classList.add('hidden'); $('#banner').className=''; showEnd(); });
+$('#spSpeed').addEventListener('click',()=>{ const L=G.watch&&G.watch.kind==='replay'?[1,2,4,8]:[1,2,3], i=L.indexOf(G.speed||1); G.speed=L[(i+1)%L.length]; $('#spSpeed').textContent=G.speed+'×'; SFX.click(); });
+$('#spPlay').addEventListener('click',()=>{ if(!(G.watch&&G.watch.kind==='replay')||G.over) return; G.paused=!G.paused; SFX.click(); fillSpec(); });
+$('#spFinal').addEventListener('click',()=>{ const W=G.watch; if(!(W&&W.kind==='replay')||G.over) return; SFX.click(); G.paused=false; replayJumpFinal(); });
+$('#spLeave').addEventListener('click',()=>{ if(G.watch){ exitWatch(); return; } if(G.over||!G.playerDead) return; G.over=true; if(!G.place) G.place=teamsLeft(); G.result={win:false,place:G.place,of:nTeams(),winner:null}; G.matchId++; $('#spec').classList.add('hidden'); $('#banner').className=''; showEnd(); });
+
+/* ================= turn time: per-turn timer and chess clock =================
+   Lockstep-safe: only the acting client's own clock runs, and when it expires that client sends a normal {k:'end'} (timeUp).
+   Chess clock: every human has a bank (G.tm.b minutes) plus TM_INC seconds per completed turn; once a bank hits zero, each of
+   that player's turns gets TM_GRACE seconds and then auto-ends. The acting client attaches its remaining bank to every command
+   it sends (c.bk, seconds); everyone else only displays those reports, ticking down locally while they wait on that player.
+   No clock value is ever read by the simulation. Online the host picks the setting (NET.tm, sent in the start cfg). */
+const TM_T=[20,30,45,60,90], TM_OFF=[0,20,30,45,60,90], TM_B=[0,5,10], TM_INC=5, TM_GRACE=5;
+function tmClean(t){ t=t&&typeof t==='object'?t:{}; return {t:TM_T.includes(t.t)?t.t:45,b:TM_B.includes(t.b)?t.b:0}; }
+function tmInit(){ const b=(G.tm&&G.tm.b||0)*60; G.bank=b; G.bank0=0; G.clk={}; G.clkAct=null; if(b) for(const u of G.units) if(u.human) G.clk[u.id]={b}; }
+function tmTurnMax(){ const T=G.tm||{t:PROF.settings.timer||(NET.on?45:0),b:0}; if(T.b){ G.bank0=G.bank; return G.bank>0?G.bank:TM_GRACE; } return T.t||0; }
+function tmLeft(){ return G.bank0>0?Math.max(0,Math.round(G.turnLeft*10)/10):0; } // what the acting client reports with each command
+function tmTurnEnd(){ if(!(G.tm&&G.tm.b)||!G.player) return; if(G.bank0>0){ G.bank=Math.max(0,G.turnLeft); if(G.bank>0) G.bank+=TM_INC; } G.bank0=0; G.clk[G.player.id]={b:G.bank}; }
+function clkTurn(u,on){ if(!(G.tm&&G.tm.b)) return;
+  if(on){ G.clkAct={id:u.id,at:performance.now()}; return; }
+  if(G.clkAct&&G.clkAct.id===u.id) G.clkAct=null; const k=G.clk[u.id];
+  if(!u.human){ delete G.clk[u.id]; return; } if(k&&k.b>0) k.b+=TM_INC; } // the reported bank plus the increment, as on the acting client
+function clkReport(u,bk){ G.clk[u.id]={b:Math.max(0,+bk||0)}; if(G.clkAct&&G.clkAct.id===u.id) G.clkAct.at=performance.now(); }
+const fmtClock=s=>{ s=Math.max(0,Math.ceil(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+let clkSig='';
+function updateClocks(){ const el=$('#clocks'); if(!el) return; const on=G.scene==='game'&&!G.over&&!!(G.tm&&G.tm.b);
+  if(!on){ if(clkSig!==''){ clkSig=''; el.innerHTML=''; el.classList.add('hidden'); } return; }
+  const now=performance.now(), parts=[];
+  for(const u of G.units){ const k=G.clk[u.id]; if(!k||!u.alive) continue; let b=k.b, cur=false;
+    if(u===G.player&&!G.watch){ if(G.turnRes){ cur=true; if(G.bank0>0) b=G.turnLeft; } else b=G.bank; }
+    else if(G.clkAct&&G.clkAct.id===u.id){ cur=true; if(NET.w.has(u.id)&&!(G.watch&&G.watch.kind==='replay')) b=Math.max(0,b-(now-G.clkAct.at)/1000); }
+    parts.push('<span class="ck'+(cur?' cur':'')+(b<=0?' out':b<30?' low':'')+'">'+esc(u.name)+' <b>'+(b>0?fmtClock(b):'+'+TM_GRACE+'s')+'</b></span>'); }
+  const sig=parts.join(''); if(sig===clkSig) return; clkSig=sig; el.innerHTML=sig; el.classList.toggle('hidden',!sig); }
+// waiting room: turn time (host / offline edit; guests and spectators read it)
+function lbTime(){ return LB.online?NET.tm:{t:TM_OFF.includes(PROF.settings.timer)?PROF.settings.timer:30,b:TM_B.includes(PROF.settings.clock)?PROF.settings.clock:0}; }
+function lbSetTime(k,v){ if(LB.online){ if(!NET.host) return; const n=Object.assign({},NET.tm); n[k]=v; NET.tm=tmClean(n); PROF.settings.ntm=NET.tm; saveProf(); netLobby(); }
+  else { if(k==='t'&&TM_OFF.includes(v)) PROF.settings.timer=v; if(k==='b'&&TM_B.includes(v)) PROF.settings.clock=v; saveProf(); renderLobby(); } }
+function tmTxt(T){ return T.b?'Chess clock: '+T.b+' min bank, +'+TM_INC+'s per turn':T.t?T.t+' s per turn':'No turn timer'; }
+function renderLobbyTime(ed){ const el=$('#wrTime'); if(!el) return; const T=lbTime(), opts=LB.online?TM_T:TM_OFF;
+  if(!ed){ el.innerHTML='<div class="wt-row"><span class="lbl">Turn time</span><span class="wt-ro">'+tmTxt(T)+'</span></div>'; return; }
+  el.innerHTML='<div class="wt-row"><span class="lbl">Turn timer</span><div class="seg" role="radiogroup" aria-label="Turn timer">'+opts.map(v=>'<button role="radio" aria-checked="'+(T.t===v)+'" class="'+(T.t===v&&!T.b?'sel':'')+'" data-wtt="'+v+'"'+(T.b?' disabled':'')+'>'+(v?v+'s':'Off')+'</button>').join('')+'</div></div>'
+    +'<div class="wt-row"><span class="lbl">Chess clock</span><div class="seg" role="radiogroup" aria-label="Chess clock">'+TM_B.map(v=>'<button role="radio" aria-checked="'+(T.b===v)+'" class="'+(T.b===v?'sel':'')+'" data-wtb="'+v+'">'+(v?v+' min':'Off')+'</button>').join('')+'</div></div>'
+    +'<small>'+(T.b?'Each player gets a '+T.b+'-minute bank for the match, +'+TM_INC+'s per turn. When it runs out, every turn ends after '+TM_GRACE+'s.':'The timer runs only on your own turn; when it runs out your turn ends.')+'</small>'; }
+function renderLobbySpecs(){ const el=$('#wrSpecs'); if(!el) return; const on=LB.online&&(NET.specs.length||NET.spec&&NET.live);
+  el.classList.toggle('hidden',!on); if(!on) return;
+  el.innerHTML=(NET.specs.length?'<span>Watching: '+NET.specs.map(s=>esc(s.name)).join(', ')+'</span>':'<span>A match is running.</span>')
+    +(!NET.host&&NET.live?'<button class="btn sm" id="wrWatch">Watch the match in progress</button>':''); }
+
+/* ================= replays and live spectating =================
+   A match is a pure function of (start cfg + seed + every human command, in the order each unit consumed it): the AI and
+   everything else is simulated from the seeded RNG. The recorder (REC) keeps exactly that: the cfg setupMatch was built
+   from, the commands per unit (local ones at playCmd, remote ones as they land on a unit's queue in netPush, so new command
+   kinds from other features are captured automatically) and a state hash per round (simHash) to check reproduction.
+   Playback (replays) and spectating rebuild the match and run every human through the same per-unit queues netTurn uses.
+   Spectators joining mid-match get the start cfg and the host's command log, fast-forward (FF) to the present, then follow
+   the live relay. They see the whole map (no fog): a spectator has no team, and it makes the replay/spectator views the
+   same. Nothing here changes the simulation; FF only advances the same timers faster. */
+const REP_V=1, RP_KEY='stormfall_replays', RP_MAX=10, RP_BYTES=1800000;
+// build id: a hash of this script, so a replay recorded by another version of the game is flagged before it misleads
+const BUILD=(()=>{ try{ const t=(document.currentScript&&document.currentScript.textContent)||''; let h=0x811c9dc5; for(let i=0;i<t.length;i+=3) h=Math.imul(h^t.charCodeAt(i),16777619); return (h>>>0).toString(36); }catch(e){ return '?'; } })();
+let REC=null;
+// the local player's gear unlocks and cosmetics as a spec (the same shape as an online player's), so offline replays don't depend on the profile
+function offSpec(){ const sp=mySpec(); return {own:sp.own,color:sp.color,skin:sp.skin,visor:sp.visor,finish:sp.finish,trail:sp.trail,mfin:sp.mfin}; }
+function recStart(kind,cfg,me){ const c=JSON.parse(JSON.stringify(cfg)); if(kind!=='off'){ delete c.slots; delete c.me; } // online: netCfgClean rebuilds the slots
+  REC={v:REP_V,b:BUILD,p:PROTO,kind,cfg:c,me:me||null,cmds:{},h:[],t:Date.now(),mid:G.matchId,saved:false}; }
+function recCmd(id,c){ if(!REC||REC.mid!==G.matchId||!c||typeof c!=='object') return; let cc; try{ cc=JSON.parse(JSON.stringify(c)); }catch(e){ return; } (REC.cmds[id]||(REC.cmds[id]=[])).push(cc); }
+// per-round state hash: every unit's sim state, the terrain, crates, storm, drop and the seeded RNG's position
+function simHash(){ let h=0x811c9dc5; const add=v=>{ v=v|0; h=Math.imul(h^(v&255),16777619); h=Math.imul(h^((v>>>8)&255),16777619); h=Math.imul(h^((v>>>16)&255),16777619); h=Math.imul(h^(v>>>24),16777619); };
+  add(G.round); add(RNGA);
+  for(const u of G.units){ add(u.id); add(u.x); add(u.y); add(u.hp); add(u.shield); add(u.ammo); add(u.sAmmo); add(u.sUses); add(+!!u.alive); add(+!!u.downed); add(u.bleed); add(u.disorient);
+    add(+!!u.overwatch); add(+!!u.hunker); add(u.kills); add(u.team); add(Math.round(u.mob*100)); add(u.W&&u.W.clip); for(const q of u.utils) add(q.ch); for(const k in u.cd) add(u.cd[k]); }
+  for(let i=0;i<G.grid.length;i++){ const o=G.grid[i]; if(o){ add(i); add(o.t); add(o.hp==null?-1:o.hp); } }
+  for(const q of G.crates) add(q.x*97+q.y); const st=G.storm; add(Math.round(st.cx*100)); add(Math.round(st.cy*100)); add(Math.round(st.r*100)); add(st.stage);
+  if(G.drop) add(G.drop.x*97+G.drop.y); add(G.smoke.length);
+  return h>>>0; }
+function roundHash(){ const h=simHash(); G.hlog.push(h); if(NET.host&&!G.watch) NET.round=G.round; if(REC&&REC.mid===G.matchId) REC.h.push(h); if(G.watch&&G.watch.kind==='replay') replayCheck(h); }
+function recInfo(){ const r=G.result||{}, me=G.player; return {mode:G.M.key,region:G.region,place:r.place||0,of:r.of||nTeams(),win:!!r.win,winner:r.winner||null,
+  kills:G.stats?G.stats.kills:0,dmg:G.stats?G.stats.dmg:0,rounds:G.round,name:me?me.name:'',online:REC.kind!=='off',spec:REC.kind==='spec',daily:REC.cfg.daily||null}; }
+function recSave(){ if(!REC||REC.saved||!REC.h.length) return; REC.saved=true; REC.info=recInfo(); REC.id=REC.t.toString(36)+(REC.kind==='off'?'o':'n');
+  const list=rpLoad().filter(x=>x.id!==REC.id); list.unshift(REC); if(!rpStore(list)) REC.unsaved=true; }
+function rpLoad(){ try{ const a=JSON.parse(localStorage.getItem(RP_KEY)||'[]'); return Array.isArray(a)?a.filter(r=>r&&r.id&&r.cfg):[]; }catch(e){ return []; } }
+// keep at most RP_MAX replays and about RP_BYTES of JSON (a typical match is 5-40 KB); drop the oldest until it fits
+function rpStore(list){ list=list.slice(0,RP_MAX);
+  while(list.length){ const s=JSON.stringify(list); if(s.length<=RP_BYTES){ try{ localStorage.setItem(RP_KEY,s); return true; }catch(e){} } if(list.length===1) break; list.pop(); }
+  return false; }
+function rpGet(id){ if(REC&&REC.id===id) return REC; return rpLoad().find(r=>r.id===id)||null; }
+// imported data is untrusted: shape-check it (setupMatch / cleanSpec then validate the content), cap the sizes
+function rpValid(r){ if(!r||typeof r!=='object'||r.v!==REP_V||!['off','on','spec'].includes(r.kind)||!r.cfg||typeof r.cfg!=='object'||!r.cmds||typeof r.cmds!=='object') return null;
+  const cmds={}; let n=0; for(const k in r.cmds){ if(!/^\d{1,2}$/.test(k)||!Array.isArray(r.cmds[k])) return null; cmds[k]=r.cmds[k].filter(c=>c&&typeof c==='object').slice(0,4000); n+=cmds[k].length; } if(n>20000) return null;
+  const h=(Array.isArray(r.h)?r.h:[]).slice(0,400).map(x=>x>>>0);
+  return {v:REP_V,b:String(r.b||''),p:r.p|0,kind:r.kind,cfg:r.cfg,me:typeof r.me==='string'?r.me:null,cmds,h,t:+r.t||Date.now(),id:String(r.id||Date.now().toString(36)).slice(0,24).replace(/[^\w]/g,''),info:r.info&&typeof r.info==='object'?r.info:{},saved:true}; }
+
+/* fast-forward: advance the match as fast as the browser allows. One update() per MessageChannel task, so every promise
+   continuation of the sim runs between steps exactly as it would between frames; each step covers FF.mul times the time. */
+const FF={on:false,until:null,ch:null,mid:-1,sfx:false,mul:16};
+function ffStart(until){ if(!FF.ch){ FF.ch=new MessageChannel(); FF.ch.port1.onmessage=ffTick; }
+  if(!FF.on){ FF.sfx=SFX.on; SFX.on=false; FF.ch.port2.postMessage(0); } FF.on=true; FF.until=until; FF.mid=G.matchId; G.paused=false; fillSpec(); }
+function ffStop(){ if(!FF.on) return; FF.on=false; SFX.on=FF.sfx; if(G.scene==='game'&&G.spec) fillSpec(); }
+function ffTick(){ if(!FF.on) return; if(G.matchId!==FF.mid||G.scene!=='game'||G.over){ ffStop(); return; }
+  let done=true; try{ done=FF.until(); }catch(e){} if(done){ ffStop(); return; }
+  update(0.05); FF.ch.port2.postMessage(0); }
+
+// every human operative is driven from its command queue; the view is a spectator's
+function watchSetup(){ for(const u of G.units) if(u.human){ u.net=u.pid||('w'+u.id); u.isPlayer=false; }
+  if(!G.player) G.player=G.units.find(u=>u.human)||G.units[0];
+  G.playerDead=true; G.spec={follow:null,free:false}; G.speed=1; G.paused=false; computeVis(); }
+function watchScreens(){ SFX.init(); applySettings(); for(const m of META) show('#'+m,false); show('#nav',false); show('#lobby',false); show('#end',false); show('#pause',false); show('#online',false); show('#wend',false); show('#rpm',false); show('#daily',false);
+  $('#feed').innerHTML=''; closeEmotes(); closePingTray(); G.pingMode=false; G.paused=false; }
+// live spectator (also anyone in the room who is not in this match's roster). log: [[unitId, cmd], ...] in relay order.
+function startWatchNet(cfg,log,midMatch,hostRound){
+  ffStop(); NET.m=cfg.m; NET.mode=cfg.mode; NET.q=new Map(); NET.w=new Map(); NET.status=''; watchScreens(); show('#hud',false);
+  const pov=cfg.players[0].pid; setupMatch(null,cfg.mode,Object.assign({},cfg,{me:pov}));
+  G.tm=cfg.tm; tmInit(); recStart('spec',cfg,pov); G.watch={kind:'spec'}; watchSetup();
+  for(const e of log){ if(!Array.isArray(e)||!e[1]||typeof e[1]!=='object') continue; const u=G.units.find(x=>x.id===e[0]&&x.net); if(u) netPush(u.id,e[1]); }
+  const mid=G.matchId, go2=()=>{ if(G.matchId!==mid) return; show('#hud',true); updateHUD(); runMatch(); };
+  if(midMatch||log.length){ show('#roul',false); go2(); toast('Spectating '+(NET.players[0]?NET.players[0].name+'’s room':'live'),'Catching up to the live match…'); ffStart(()=>NET.w.size>0||hostRound>0&&G.round>=hostRound); }
+  else mapRoulette(G.region).then(go2);
+}
+// a live spectator who falls behind (their screen animates every action) catches up on its own
+setInterval(()=>{ if(!G.watch||G.watch.kind!=='spec'||FF.on||G.over||G.scene!=='game') return; let n=0; for(const q of NET.q.values()) n+=q.length; if(n>=4) ffStart(()=>NET.w.size>0); },1000);
+
+function playReplay(rep,o){ o=o||{}; if(!rep){ toast('Replay unavailable',''); return; }
+  if(G.scene==='game'&&!G.over&&!G.watch&&!G.playerDead){ toast('Finish your match first',''); return; }
+  ffStop(); watchScreens(); NET.q=new Map(); NET.w=new Map(); show('#roul',false);
+  try{ const c=JSON.parse(JSON.stringify(rep.cfg));
+    if(rep.kind==='off'){ if(!c.lo||!CLASSES[c.lo.cls]||!WEAPONS[c.lo.weapon]||!Array.isArray(c.slots)||!MODES[c.mode]) throw new Error('bad cfg');
+      setupMatch(c.lo,c.mode,null,{seed:c.seed>>>0,region:REG[c.region]?c.region:'city',slots:c.slots.slice(0,8),rp:c.rp&&typeof c.rp==='object'?Object.assign({},c.rp,{own:Array.isArray(c.rp.own)?c.rp.own:[]}):null,lv:clamp(c.lv|0,1,40)}); }
+    else { const cfg=netCfgClean(c); if(!cfg) throw new Error('bad cfg'); setupMatch(null,cfg.mode,Object.assign({},cfg,{me:rep.me||cfg.players[0].pid})); }
+    G.tm=rep.cfg.tm?{t:rep.cfg.tm.t|0,b:rep.cfg.tm.b|0}:{t:0,b:0}; tmInit();
+    G.watch={kind:'replay',rep,ok:0,bad:0,total:(rep.h||[]).length,other:!!(rep.b&&rep.b!==BUILD)}; watchSetup();
+    for(const id in rep.cmds) for(const cmd of rep.cmds[id]) netPush(+id,cmd);
+  }catch(e){ console.error(e); toMenu(); toast('That replay could not be loaded','It may be damaged or from another version.'); return; }
+  show('#hud',true); updateHUD(); runMatch();
+  if(G.watch.other) toast('Recorded on another version','It may not play out the same way.');
+  if(o.final) replayJumpFinal();
+}
+// skip to the start of the second-to-last recorded round
+function replayJumpFinal(){ const W=G.watch; if(!W||W.kind!=='replay') return; const to=Math.max(1,W.total-1); if(G.round>=to) return; ffStart(()=>G.round>=to); }
+function replayCheck(h){ const W=G.watch, i=G.hlog.length-1; if(i>=W.total) return;
+  if(W.rep.h[i]===h){ if(!W.bad) W.ok=i+1; } else if(!W.bad){ W.bad=G.round; toast('Replay out of sync','Round '+G.round+' differs from the recorded match.'); } }
+function exitWatch(){ const W=G.watch; ffStop(); G.matchId++; G.watch=null; show('#wend',false);
+  if(W&&W.kind==='spec'&&inRoom()){ toMenu(); openOnline(); return; } toMenu(); if(W&&W.kind==='replay') go('profile'); }
+function watchEnd(why){ const W=G.watch; if(!W||W.ended) return; W.ended=true; ffStop();
+  if(why!=='over'){ G.over=true; G.matchId++; } $('#spec').classList.add('hidden'); show('#hud',false);
+  const r=G.result, rp=W.kind==='replay';
+  $('#weK').textContent=rp?'Replay':'Spectating';
+  $('#weT').textContent=why==='host'?'Host left':r&&r.winner?r.winner+(G.M.team>1?' win':' wins'):why==='end'?'End of recording':'Match over';
+  $('#weS').textContent=why==='host'?'The room closed before the match ended.':why==='end'?'The recording stops here: the recording player left the match at round '+G.round+'.':G.R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase())+', '+G.M.name+', '+G.round+' rounds.';
+  let v='';
+  if(rp){ const n=Math.min(W.total,G.hlog.length); v=W.bad?'<div class="wever bad">Out of sync from round '+W.bad+': this replay did not reproduce the recorded match'+(W.other?' (it was recorded on another version of the game).':'.')+'</div>'
+      :'<div class="wever">Verified: all '+n+' recorded round'+(n===1?'':'s')+' match the live match state exactly.</div>'; }
+  $('#weV').innerHTML=v;
+  const B=[]; if(rp){ B.push('<button class="btn primary" data-we="again">Watch again</button>'); if(W.total>2) B.push('<button class="btn" data-we="final">Final turns</button>'); B.push('<button class="btn ghost" data-we="done">Done</button>'); }
+  else { if(inRoom()) B.push('<button class="btn primary" data-we="room">Back to room</button>'); B.push('<button class="btn ghost" data-we="menu">'+(inRoom()?'Leave room':'Menu')+'</button>'); }
+  $('#weB').innerHTML='<div class="rpmb">'+B.join('')+'</div>'; show('#wend',true); }
+$('#wend').addEventListener('click',e=>{ const b=e.target.closest('[data-we]'); if(!b) return; SFX.click(); const a=b.dataset.we, W=G.watch;
+  if(a==='again'||a==='final'){ const rep=W&&W.rep; show('#wend',false); playReplay(rep,{final:a==='final'}); return; }
+  if(a==='done'){ exitWatch(); return; }
+  if(a==='room'){ show('#wend',false); G.watch=null; toMenu(); openOnline(); return; }
+  if(a==='menu'){ show('#wend',false); if(NET.on) netLeave(); G.watch=null; toMenu(); } });
+
+/* replay files: "SFR1." + base64(deflate-raw(JSON)), or "SFR0." + base64(JSON) where CompressionStream is missing */
+function b64(u8){ let s=''; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); return btoa(s); }
+function unb64(t){ const s=atob(t); const u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; }
+async function rpEncode(rep){ const o=Object.assign({},rep); delete o.saved; delete o.mid; delete o.unsaved; let bytes=new TextEncoder().encode(JSON.stringify(o)), tag='SFR0';
+  if(window.CompressionStream){ try{ bytes=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer()); tag='SFR1'; }catch(e){} }
+  return tag+'.'+b64(bytes); }
+async function rpDecode(txt){ const t=String(txt||'').replace(/\s+/g,''), m=/^(SFR[01])\.([A-Za-z0-9+/=]+)$/.exec(t); if(!m) throw new Error('Not a Stormfall replay.');
+  let bytes=unb64(m[2]); if(bytes.length>3e6) throw new Error('That replay is too large.');
+  if(m[1]==='SFR1'){ if(!window.DecompressionStream) throw new Error('This browser cannot open compressed replays.'); bytes=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer()); }
+  const r=rpValid(JSON.parse(new TextDecoder().decode(bytes))); if(!r) throw new Error('That replay is damaged or from another version.'); return r; }
+function rpTitle(r){ const i=r.info||{}, M=MODES[i.mode||r.cfg.mode], R=REG[i.region||r.cfg.region];
+  return (M?M.name:'Match')+' · '+(R?R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase()):''); }
+function rpSub(r){ const i=r.info||{}; return new Date(r.t).toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · '+(i.spec?'Spectated':i.online?'Online':'Offline')+(i.daily?' · Daily':'')+' · '+(i.rounds||r.h.length)+' rounds'+(i.spec?'':' · '+(i.kills|0)+' elim'); }
+function renderReps(){ const el=$('#pReps'); if(!el) return; const L=rpLoad();
+  el.innerHTML=L.length?L.map(r=>{ const i=r.info||{}; return '<div class="rprow"><b class="'+(i.win?'w':'')+'">'+(i.spec?'👁':'#'+(i.place||'?'))+'</b><div class="rpi"><span>'+esc(rpTitle(r))+'</span><small>'+esc(rpSub(r))+'</small></div>'
+    +'<div class="rpb"><button class="btn sm" data-rpw="'+r.id+'">Watch</button><button class="btn sm ghost" data-rpf="'+r.id+'" title="Jump to the final turns">Final</button><button class="iconbtn" data-rpx="'+r.id+'" aria-label="Share or delete">⋯</button></div></div>'; }).join('')
+    :'<p class="clsdesc">Every match you finish is saved here so you can watch it again. Import a replay a friend shared with the button above.</p>'; }
+$('#pReps').addEventListener('click',e=>{ const b=e.target.closest('[data-rpw],[data-rpf],[data-rpx]'); if(!b) return; SFX.init(); SFX.click();
+  const id=b.dataset.rpw||b.dataset.rpf||b.dataset.rpx, r=rpGet(id); if(!r) return;
+  if(b.dataset.rpx){ openRpShare(r); return; } playReplay(r,{final:!!b.dataset.rpf}); });
+let rpmCur=null;
+async function openRpShare(r){ rpmCur=r; $('#rpmT').textContent='Share replay'; $('#rpmS').textContent=rpTitle(r)+', '+rpSub(r)+'. Anyone with Stormfall can import this text or file and watch the match.'; $('#rpmStat').textContent='';
+  const ta=$('#rpmTxt'); ta.readOnly=true; ta.value='Packing…'; show('#rpm',true);
+  $('#rpmB').innerHTML='<div class="rpmb"><button class="btn primary" data-rp="copy">Copy text</button><button class="btn" data-rp="file">Save file</button>'+(navigator.share?'<button class="btn" data-rp="share">Share</button>':'')+'<button class="btn ghost" data-rp="del">Delete</button></div>';
+  try{ ta.value=await rpEncode(r); $('#rpmStat').textContent=(ta.value.length/1024).toFixed(1)+' KB'; }catch(e){ ta.value=''; $('#rpmStat').textContent='Could not pack this replay.'; } }
+function openRpImport(){ rpmCur=null; $('#rpmT').textContent='Import replay'; $('#rpmS').textContent='Paste replay text (it starts with SFR) or open a replay file.'; $('#rpmStat').textContent='';
+  const ta=$('#rpmTxt'); ta.readOnly=false; ta.value=''; show('#rpm',true);
+  $('#rpmB').innerHTML='<div class="rpmb"><button class="btn primary" data-rp="imp">Import</button><button class="btn" data-rp="open">Open file</button></div>'; setTimeout(()=>ta.focus(),50); }
+function rpFileName(r){ return 'stormfall-replay-'+new Date(r.t).toISOString().slice(0,16).replace(/[:T]/g,'-')+'.txt'; }
+function saveBlob(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500); }
+async function rpImportText(txt){ const st=$('#rpmStat'); try{ const r=await rpDecode(txt); const L=rpLoad().filter(x=>x.id!==r.id); L.unshift(r); if(!rpStore(L)) throw new Error('Not enough storage on this device.');
+    show('#rpm',false); renderReps(); toast('Replay imported',rpTitle(r)); }catch(e){ st.textContent=e.message||'That is not a valid replay.'; } }
+$('#rpm').addEventListener('click',async e=>{ const b=e.target.closest('[data-rp]'); if(!b) return; SFX.click(); const a=b.dataset.rp, ta=$('#rpmTxt'), r=rpmCur;
+  if(a==='copy'){ try{ await navigator.clipboard.writeText(ta.value); $('#rpmStat').textContent='Copied. Paste it anywhere: a friend imports it from Profile.'; }catch(_){ ta.select(); $('#rpmStat').textContent='Select the text and copy it.'; } }
+  else if(a==='file'&&r) saveBlob(new Blob([ta.value],{type:'text/plain'}),rpFileName(r));
+  else if(a==='share'&&r){ const f=new File([ta.value],rpFileName(r),{type:'text/plain'}); try{ if(navigator.canShare&&navigator.canShare({files:[f]})) await navigator.share({files:[f],title:'Stormfall replay'}); else await navigator.share({title:'Stormfall replay',text:ta.value}); }catch(_){} }
+  else if(a==='del'&&r){ rpStore(rpLoad().filter(x=>x.id!==r.id)); if(REC&&REC.id===r.id) REC=null; show('#rpm',false); renderReps(); toast('Replay deleted',''); }
+  else if(a==='imp') rpImportText(ta.value);
+  else if(a==='open') $('#rpmFile').click(); });
+$('#rpmFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f) return; if(f.size>4e6){ $('#rpmStat').textContent='That file is too large.'; return; } f.text().then(t=>{ $('#rpmTxt').value=t; rpImportText(t); }); });
+$('#rpmClose').addEventListener('click',()=>show('#rpm',false));
+$('#rpImport').addEventListener('click',()=>{ SFX.init(); SFX.click(); openRpImport(); });
+$('#eReplay').addEventListener('click',()=>{ if(!REC||!REC.h.length) return; SFX.click(); show('#end',false); playReplay(REC,{final:true}); });
+
+/* ================= daily challenge =================
+   One seeded match per UTC day, the same for everyone: the seed comes from the date and fixes the map, region, spawns, the
+   bots and their loadouts (bots use a fixed level, not yours), all Elite, Solo, 45 s turns. You bring your own loadout.
+   One attempt per day (it counts once you deploy). Score = placement + eliminations + damage + rounds survived, stored on
+   this device with a personal best. No server, so the shareable result card is the leaderboard. */
+const DAILY={mode:'solo',diff:'elite',lv:18,t:45}, DY_KEY='stormfall_daily';
+function dailyKey(d){ d=d||new Date(); const p=n=>String(n).padStart(2,'0'); return d.getUTCFullYear()+'-'+p(d.getUTCMonth()+1)+'-'+p(d.getUTCDate()); }
+function dailySeed(k){ let h=0x811c9dc5; const s='stormfall-daily/'+k; for(let i=0;i<s.length;i++) h=Math.imul(h^s.charCodeAt(i),16777619); h^=h>>>15; h=Math.imul(h,0x2c1b3c6d); h^=h>>>12; return h>>>0; }
+function dailyRegion(k){ return REGIONS[(dailySeed(k)>>>7)%REGIONS.length]; }
+function dailyPre(k){ const seed=dailySeed(k); return {seed,region:dailyRegion(k),mode:DAILY.mode,slots:rosterSlots(DAILY.mode,['local'],new Array(MODES[DAILY.mode].players-1).fill(DAILY.diff)),lv:DAILY.lv,key:k}; }
+function dyLoad(){ try{ const d=JSON.parse(localStorage.getItem(DY_KEY)||'null'); if(d&&typeof d==='object'&&d.days&&typeof d.days==='object') return d; }catch(e){} return {days:{},best:null}; }
+function dySave(d){ const ks=Object.keys(d.days).sort().reverse(); for(const k of ks.slice(30)) delete d.days[k]; for(const k of ks.slice(1)) if(d.days[k]) delete d.days[k].thumb; try{ localStorage.setItem(DY_KEY,JSON.stringify(d)); }catch(e){} }
+function dailyMark(k){ const d=dyLoad(); if(!d.days[k]) d.days[k]={t:Date.now(),done:false,s:0}; dySave(d); }
+function dailyScore(r,s){ const of=Math.max(2,r.of||8), pl=clamp(r.place||of,1,of), P=Math.round((of-pl)/(of-1)*1000)+(r.win?500:0), K=s.kills*200, D=s.dmg*10, S=s.rounds*25; return {P,K,D,S,total:P+K+D+S}; }
+function dailyEnd(){ const box=$('#eDaily'), cb=$('#eCard'); if(!G.daily){ box.classList.add('hidden'); cb.classList.add('hidden'); return; }
+  const k=G.daily.key, d=dyLoad(), day=d.days[k]||{}; let sc=day.sc;
+  if(!day.done){ const r=G.result, s=G.stats; sc=dailyScore(r,s); let thumb=null; try{ thumb=mapThumb(1).toDataURL('image/png'); }catch(e){}
+    Object.assign(day,{done:true,sc,s:sc.total,p:r.place,of:r.of,win:!!r.win,k:s.kills,d:s.dmg,r:s.rounds,reg:G.region,cls:LO.cls,name:LO.name,thumb});
+    day.pb=!d.best||sc.total>d.best.s; if(day.pb) d.best={s:sc.total,key:k}; d.days[k]=day; dySave(d); }
+  box.classList.remove('hidden'); cb.classList.remove('hidden');
+  box.innerHTML='<div class="dyscore"><div class="big"><b>'+day.s.toLocaleString()+'</b><span>Daily score'+(day.pb?' · <b style="font:inherit;color:var(--amber)">new personal best</b>':'<br>best '+(d.best?d.best.s.toLocaleString():'—'))+'</span></div>'
+    +'<div class="ln"><span>Placement #'+day.p+' of '+day.of+(day.win?' + victory':'')+'</span><span>'+sc.P+'</span></div><div class="ln"><span>Eliminations ×'+day.k+'</span><span>'+sc.K+'</span></div><div class="ln"><span>Damage ('+day.d+')</span><span>'+sc.D+'</span></div><div class="ln"><span>Rounds survived ('+day.r+')</span><span>'+sc.S+'</span></div></div>'; }
+function fmtDay(k,long){ const p=k.split('-').map(Number); return new Date(Date.UTC(p[0],p[1]-1,p[2])).toLocaleDateString(undefined,long?{weekday:'short',month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}:{month:'short',day:'numeric',timeZone:'UTC'}); }
+function renderDailyBtn(){ const b=$('#bDaily'); if(!b) return; const k=dailyKey(), d=dyLoad(), day=d.days[k], R=REG[dailyRegion(k)];
+  $('#dyTitle').textContent='Daily challenge · '+fmtDay(k); $('#dySub').textContent=R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase())+' · Elite AI · Solo';
+  $('#dyStat').innerHTML=day&&day.done?day.s.toLocaleString()+'<small>today</small>':day?'—<small>abandoned</small>':'Play<small>once today</small>'; }
+// the result card: 1080x1350 PNG with the map, placement, stats and date
+function dailyCard(k){ const d=dyLoad(), day=d.days[k]; if(!day||!day.done) return Promise.resolve(null);
+  const W=1080,H=1350, cv=document.createElement('canvas'); cv.width=W; cv.height=H; const g=cv.getContext('2d'), R=REG[day.reg]||REG.city;
+  const img=new Image(), ready=new Promise(res=>{ img.onload=()=>res(true); img.onerror=()=>res(false); if(day.thumb) img.src=day.thumb; else res(false); });
+  return Promise.all([ready,document.fonts?document.fonts.ready.catch(()=>{}):null]).then(([ok])=>{
+    const bg=g.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#05080d'); bg.addColorStop(1,'#0b1520'); g.fillStyle=bg; g.fillRect(0,0,W,H);
+    g.save(); g.beginPath(); g.rect(60,250,W-120,600); g.clip();
+    if(ok){ g.imageSmoothingEnabled=true; g.drawImage(img,60,250,W-120,(W-120)*150/240); } else g.drawImage(regionArt(day.reg),60,250,W-120,600);
+    const sh=g.createLinearGradient(0,600,0,850); sh.addColorStop(0,'rgba(5,8,13,0)'); sh.addColorStop(1,'rgba(5,8,13,.92)'); g.fillStyle=sh; g.fillRect(60,250,W-120,600); g.restore();
+    g.strokeStyle='rgba(63,210,255,.5)'; g.lineWidth=3; g.strokeRect(60,250,W-120,600);
+    const T=(t,x,y,f,c,al)=>{ g.font=f; g.fillStyle=c; g.textAlign=al||'left'; g.fillText(t,x,y); };
+    T('STORMFALL',60,120,'600 104px Teko, sans-serif','#e6f0fa'); T('DAILY CHALLENGE',62,180,'700 34px "Chakra Petch", sans-serif','#ffb340');
+    T(fmtDay(k,true),W-60,120,'600 46px Teko, sans-serif','#b9c8d6','right'); T('ELITE AI · SOLO',W-60,180,'700 28px "Chakra Petch", sans-serif','#8299ad','right');
+    T(R.name.toUpperCase(),90,820,'600 72px Teko, sans-serif','#ffffff');
+    T(day.win?'VICTORY':'#'+day.p,60,1010,'600 190px Teko, sans-serif',day.win?'#3fd2ff':'#e6f0fa'); if(!day.win) T('OF '+day.of,60+g.measureText('#'+day.p).width+18,1010,'600 64px Teko, sans-serif','#8299ad');
+    T('SCORE',W-60,900,'700 30px "Chakra Petch", sans-serif','#8299ad','right'); T(day.s.toLocaleString(),W-60,1010,'600 150px Teko, sans-serif','#ffb340','right');
+    const st=[['ELIMINATIONS',day.k],['DAMAGE',day.d],['ROUNDS',day.r]], cw=(W-120-40)/3;
+    st.forEach((s,i)=>{ const x=60+i*(cw+20); g.fillStyle='rgba(13,21,31,.95)'; g.fillRect(x,1060,cw,150); g.strokeStyle='rgba(130,190,230,.25)'; g.lineWidth=2; g.strokeRect(x,1060,cw,150);
+      T(String(s[1]),x+24,1160,'600 92px Teko, sans-serif','#e6f0fa'); T(s[0],x+24,1196,'700 22px "Chakra Petch", sans-serif','#8299ad'); });
+    T((day.name||'')+(day.pb?' · NEW PERSONAL BEST':d.best?' · BEST '+d.best.s.toLocaleString():''),60,1290,'700 28px "Chakra Petch", sans-serif','#b9c8d6');
+    T('Same map and bots for everyone today. Beat it.',W-60,1290,'500 24px "Chakra Petch", sans-serif','#5b6f82','right');
+    return cv; }); }
+async function shareCard(cv,k){ const name='stormfall-daily-'+k+'.png', d=dyLoad(), day=d.days[k]||{}, text='Stormfall daily '+k+': '+(day.win?'Victory':'#'+day.p+' of '+day.of)+', score '+(day.s||0).toLocaleString()+'. Same map for everyone today.';
+  const blob=await new Promise(r=>cv.toBlob(r,'image/png')); if(!blob) return; const file=new File([blob],name,{type:'image/png'});
+  try{ if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:'Stormfall daily challenge',text}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
+  saveBlob(blob,name); toast('Card saved',name); }
+async function openDaily(cardOnly){ const k=dailyKey(), d=dyLoad(), day=d.days[k], R=REG[dailyRegion(k)], body=$('#dyBody'); SFX.init();
+  $('#dyT').textContent=cardOnly?'Daily result':'Daily challenge'; show('#daily',true);
+  if(day&&day.done){ body.innerHTML='<p class="lead" style="margin:0 0 var(--s2)">'+fmtDay(k,true)+' · score <b style="color:var(--amber)">'+day.s.toLocaleString()+'</b>'+(day.pb?' (personal best)':'')+'. Come back tomorrow for a new map.</p><div id="dyCardBox"><p class="clsdesc">Drawing your card…</p></div>'+dailyHist(d,k);
+    $('#dyB').innerHTML='<div class="rpmb"><button class="btn primary" data-dy="share">'+(navigator.share?'Share card':'Download card')+'</button><button class="btn ghost" data-dy="close">Close</button></div>';
+    const cv=await dailyCard(k); if(cv){ dyCardCv=cv; const im=new Image(); im.className='dcardv'; im.alt='Daily result card'; im.src=cv.toDataURL('image/png'); const bx=$('#dyCardBox'); if(bx){ bx.innerHTML=''; bx.appendChild(im); } } return; }
+  const hero=document.createElement('canvas'); hero.width=240; hero.height=150; hero.getContext('2d').drawImage(regionArt(dailyRegion(k)),0,0);
+  body.innerHTML='<div class="dyhero" id="dyHero"><span class="dyreg">'+esc(R.name)+'</span></div>'
+    +'<div class="dyrules"><div><b>Solo</b>8 operatives</div><div><b>Elite</b>all 7 bots</div><div><b>'+DAILY.t+'s</b>per turn</div></div>'
+    +'<p class="lead" style="margin:0 0 var(--s3)">Everyone gets the same map, spawns and bots today. You bring your loadout. '+(day?'You already deployed today; the attempt counted.':'<b>One attempt</b>: it counts as soon as you deploy.')+' Score: placement, eliminations ×200, damage ×10, rounds survived ×25.</p>'+dailyHist(d,k);
+  $('#dyHero').prepend(hero);
+  $('#dyB').innerHTML='<div class="rpmb">'+(day?'':'<button class="btn primary" data-dy="go">Deploy</button>')+'<button class="btn ghost" data-dy="close">Close</button></div>'; }
+let dyCardCv=null;
+function dailyHist(d,k){ const ks=Object.keys(d.days).filter(x=>d.days[x].done).sort().reverse().slice(0,7); if(!ks.length) return '';
+  return '<div class="sec dyhist" style="margin-top:var(--s4)"><h3>History <small>best '+(d.best?d.best.s.toLocaleString()+' on '+fmtDay(d.best.key):'—')+'</small></h3>'+ks.map(x=>{ const y=d.days[x]; return '<div class="hrow"><b class="'+(y.win?'w':'')+'">#'+y.p+'</b><div>'+fmtDay(x)+(x===k?' (today)':'')+'<br><small>'+y.k+' elim · '+y.d+' dmg · '+y.r+' rounds</small></div><b style="color:var(--amber)">'+y.s.toLocaleString()+'</b></div>'; }).join('')+'</div>'; }
+$('#bDaily').addEventListener('click',()=>{ SFX.click(); buzz(6); openDaily(false); });
+$('#daily').addEventListener('click',e=>{ const b=e.target.closest('[data-dy]'); if(!b) return; SFX.click(); const a=b.dataset.dy;
+  if(a==='close'){ show('#daily',false); return; }
+  if(a==='go'){ show('#daily',false); startMatch(true); return; }
+  if(a==='share'&&dyCardCv) shareCard(dyCardCv,dailyKey()); });
+$('#dyClose').addEventListener('click',()=>show('#daily',false));
+$('#eCard').addEventListener('click',async()=>{ if(!G.daily) return; SFX.click(); const cv=await dailyCard(G.daily.key); if(cv){ dyCardCv=cv; shareCard(cv,G.daily.key); } });
 
 /* ================= debug hooks (used for automated checks) ================= */
 window.__stormfall={G,setupMatch,runMatch,onAction,pFire,pMove,pThrow,enterTarget,actionList,sanitize,update,render,startMatch,PROF:()=>PROF,go,renderStore,renderQuests,renderProfile,grantRewards,claimQuest,sendEmote};
