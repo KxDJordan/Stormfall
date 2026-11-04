@@ -6235,7 +6235,7 @@ function aiDroneCmd(u,late){
   const d=u.dr; if(!d||!standing(u)||G.over) return null; const D=a=>({k:'drone',a});
   if(d.st==='dead') return !late&&d.rb<=0&&u.ap>0&&!u.shot&&!visibleEnemies(u).length?D('rebuild'):null;
   const threats=knownThreats(u);
-  if(d.st==='dock'){ if(late||u.ap<=0||d.ap<1||d.depR===G.round||(!threats.length&&G.round<2)) return null;
+  if(d.st==='dock'){ if(late||u.ap<=0||d.ap<1||d.depR===G.round||(!threats.length&&G.round<2)||(threats.length&&d.hp<=Math.ceil(d.maxHp/3))) return null; // a battered drone stays docked while enemies are about
     const p=aiDronePos(u,d,u.x,u.y,threats); return p?Object.assign(D('deploy'),{x:p[0],y:p[1]}):null; }
   if(!d.alive||d.ap<1) return null;
   if(d.hp<=Math.ceil(d.maxHp/3)&&threats.length) return D('recall'); // low HP: bring it home before it is shot down
@@ -6249,7 +6249,7 @@ function aiDroneCmd(u,late){
   if(ok('shield')){ const n=dArea(d,DRONE.areaR,m=>m.team===d.team).length; if(n&&threats.length) opts.push({c:D('shield'),s:n*10}); }
   if(ok('jam')){ let s=0; for(const v of dArea(d,DRONE.jamR,m=>isEnemy(d,m)&&canSee(d,m))) s+=14+(v.overwatch?8:0); for(const e of foeDrones(d)) if(Math.hypot(e.x-d.x,e.y-d.y)<=DRONE.jamR+0.01) s+=10; if(s) opts.push({c:D('jam'),s}); }
   if(ok('scan')&&!visibleEnemies(d).length) opts.push({c:D('scan'),s:threats.some(t=>Math.hypot(t.x-d.x,t.y-d.y)<=DRONE.scanR+2)?14:6});
-  if(ok('mark')) for(const t of dTargets(u,'mark')) if(!(t.mark&&t.mark.team===d.team&&t.mark.until>G.round)) opts.push({c:Object.assign(D('mark'),{t:t.id}),s:9+(G.units.some(m=>m.team===d.team&&standing(m)&&canSee(m,t))?3:0)});
+  if(ok('mark')) for(const t of dTargets(u,'mark')) if(!(t.mark&&t.mark.team===d.team&&t.mark.until>G.round)) opts.push({c:Object.assign(D('mark'),{t:t.id}),s:6+(G.units.some(m=>m.team===d.team&&standing(m)&&canSee(m,t))?3:0)}); // worth it only when a teammate can shoot it
   opts.sort((a,b)=>b.s-a.s);
   if(opts.length&&opts[0].s>=8) return opts[0].c;
   if(ok('move')){ const p=aiDronePos(u,d,d.x,d.y,threats); if(p) return Object.assign(D('move'),{x:p[0],y:p[1]}); }
