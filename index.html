@@ -1334,7 +1334,7 @@ for(const k in CLASSES) CLASSES[k].utils.push('sensor');
 const TERR={
   door:{name:'Door',hp:4},
   fuel:{name:'Fuel barrel',hp:2,boom:{r:1.6,dmg:[3,5]}},
-  tank:{name:'Fuel tank',hp:5,boom:{r:2.2,dmg:[4,6]}},
+  ftank:{name:'Fuel tank',hp:5,boom:{r:2.2,dmg:[4,6]}},
   crates:{name:'Crates',hp:4}, crate:{name:'Supply crate',hp:4}, barrels:{name:'Drums',hp:4}, planter:{name:'Planter',hp:4},
   barrier:{name:'Barrier',hp:5}, sandbag:{name:'Sandbags',hp:5}, icerock:{name:'Ice block',hp:4}, desk:{name:'Desk',hp:2},
   fence:{name:'Fence',hp:2}, car:{name:'Car',hp:6,next:'wreck'}, wreck:{name:'Wreck',hp:5}, window:{name:'Window',hp:2,next:'sill'},
@@ -1831,7 +1831,7 @@ function placeInteractives(g,elev,floorT,rk){
     const shut=RNG()<0.6; g[idx(x,y)]={t:shut?2:0,kind:'door',h:44,v:RNG(),pass:true,ax:ax?1:0,hp:TERR.door.hp}; }
   const scatter=(n,fn)=>{ let tries=0; while(n>0&&tries++<500*K){ if(fn(ri(2,MW-3),ri(2,MH-3))) n--; } };
   scatter(N(6),(x,y)=>{ if(!ringFree(x,y,1,1)||floorT[idx(x,y)]) return false; g[idx(x,y)]={t:1,kind:'fuel',h:0,v:RNG()}; return true; });
-  scatter(N(2),(x,y)=>{ if(!ringFree(x,y,1,1)||floorT[idx(x,y)]) return false; g[idx(x,y)]={t:2,kind:'tank',h:34,v:RNG()}; return true; });
+  scatter(N(2),(x,y)=>{ if(!ringFree(x,y,1,1)||floorT[idx(x,y)]) return false; g[idx(x,y)]={t:2,kind:'ftank',h:34,v:RNG()}; return true; });
   scatter(N(5),(x,y)=>{ const hz=RNG()<0.5, len=ri(2,3), w=hz?len:1, h=hz?1:len; if(!ringFree(x,y,w,h)) return false;
     for(let k=0;k<len;k++) g[idx(hz?x+k:x,hz?y:y+k)]={t:1,kind:'fence',h:0,v:RNG(),ax:hz?1:0,end:k===0?-1:k===len-1?1:0}; return true; });
   for(const o of g) if(o&&TERR[o.kind]&&o.hp==null) o.hp=TERR[o.kind].hp;
@@ -2632,7 +2632,7 @@ function drawObj(c,o,x,y,s,al){
     c.fillStyle=C([250,206,40],s); c.fillRect(p[0]-w,p[1]-hh*0.62,w*2,5); c.fillStyle=C([30,30,30],s); for(let q=0;q<4;q++) c.fillRect(p[0]-w+1+q*5,p[1]-hh*0.62,2,5);
     c.strokeStyle=C(b,.42*s); c.lineWidth=1; c.beginPath(); c.moveTo(p[0]-w,p[1]-6); c.lineTo(p[0]+w,p[1]-6); c.moveTo(p[0]-w,p[1]-hh+5); c.lineTo(p[0]+w,p[1]-hh+5); c.stroke();
     c.fillStyle=C(b,1.2*s); c.beginPath(); c.ellipse(p[0],p[1]-hh,w,4,0,0,Math.PI*2); c.fill(); c.fillStyle=C([60,60,60],s); c.beginPath(); c.ellipse(p[0]+3,p[1]-hh,2,1,0,0,Math.PI*2); c.fill();
-  } else if(k==='tank'){
+  } else if(k==='ftank'){
     const p=iso(x+.5,y+.5), b=G.region==='arctic'?[206,212,222]:G.region==='desert'?[222,208,184]:[188,194,206], r=17, hh=30, z=5;
     c.fillStyle=C([40,44,52],s); for(const lx of [-12,-4,4,12]) c.fillRect(p[0]+lx-1.5,p[1]-z-2,3,z+2);
     c.fillStyle=C(b,.8*s); c.fillRect(p[0]-r,p[1]-z-hh,r*2,hh); c.fillStyle=C(b,.58*s); c.fillRect(p[0]-r,p[1]-z-hh,9,hh); c.fillStyle=C(b,1.08*s); c.fillRect(p[0]+3,p[1]-z-hh,5,hh);
@@ -4202,9 +4202,6 @@ function drawWorld(c){
   if(G.ground){ const src=(G.groundHalf&&DPR*cam.z<G.gScale*0.6)?G.groundHalf:G.ground; c.drawImage(src,-GOX,-GOY,G.ground.width/G.gScale,G.ground.height/G.gScale); }
   G.zDraw=true;
   if(!RC.plats){ RC.plats=[]; for(let y=0;y<MH;y++) for(let x=0;x<MW;x++) if(G.elev[idx(x,y)]) RC.plats.push([x,y]); RC.plats.sort((a,b)=>(a[0]+a[1])-(b[0]+b[1])); }
-  for(const q of RC.plats){ const x=q[0],y=q[1], s=shadeAt(idx(x,y)), bx=iso(x,y+1)[0]-4, by=iso(x,y)[1]-EZ-4;
-    if(!onScreen(bx,by,TW+8,TH+EZ+8)) continue;
-    const e=sprite('p'+idx(x,y)+'_'+s,bx,by,TW+8,TH+EZ+8,g=>drawPlatform(g,x,y,s)); c.drawImage(e.cv,e.x,e.y,e.w,e.h); }
   const st=G.storm;
   if(st){ const key=st.cx+','+st.cy+','+st.r+','+RC.gen; if(key!==RC.stormKey){ RC.stormKey=key; const p=new Path2D(); let n=0;
       for(let y=0;y<MH;y++) for(let x=0;x<MW;x++) if(Math.hypot(x+.5-st.cx,y+.5-st.cy)>st.r){ tilePath(p,x,y); n++; } RC.stormP=n?p:null; }
@@ -4224,6 +4221,9 @@ function drawWorld(c){
   if(G.pending>=0) focus.push({x:G.pending%MW,y:(G.pending/MW)|0});
   updateFade(focus);
   for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const o=G.grid[idx(x,y)]; if(!o) continue; const b=objBox(o,x,y), z=bz(x,y); if(onScreen(b[0],b[1]-z,b[2],b[3])) ents.push({d:x+y,k:0,x,y,o,b,z}); }
+  // raised platforms are depth-sorted with everything else (drawn just before anything on the same tile), so crates,
+  // cover and units behind a platform are hidden by its top and side walls instead of painting over them
+  for(const q of RC.plats){ const x=q[0],y=q[1], bx=iso(x,y+1)[0]-4, by=iso(x,y)[1]-EZ-4; if(onScreen(bx,by,TW+8,TH+EZ+8)) ents.push({d:x+y-0.05,k:4,x,y,bx,by}); }
   for(const q of G.crates) ents.push({d:q.x+q.y+0.3,k:1,q});
   if(G.scene==='game') for(const q of G.sites) if(!q.done&&q.k!=='bounty') ents.push({d:q.x+q.y+0.25,k:3,q});
   for(const u of G.units){ if(G.scene==='game'&&!shouldShow(u)) continue; ents.push({d:u.rx+u.ry+0.5+(u.alive?0.01:0),k:2,u}); }
@@ -4234,6 +4234,7 @@ function drawWorld(c){
       c.globalAlpha=al; c.drawImage(spr.cv,spr.x,spr.y-e.z,spr.w,spr.h); c.globalAlpha=1;
       if(o.roof&&RC.reachM[i]) roofHL(c,e.x,e.y,i);
       if(o.kind==='bunker'||o.kind==='flare'){ c.save(); c.translate(0,-e.z); objLive(c,o,e.x,e.y,al*sh); c.restore(); } }
+    else if(e.k===4){ const x=e.x,y=e.y,i=idx(x,y),sh=shadeAt(i); const sp=sprite('p'+i+'_'+sh,e.bx,e.by,TW+8,TH+EZ+8,g=>drawPlatform(g,x,y,sh)); c.drawImage(sp.cv,sp.x,sp.y,sp.w,sp.h); platOverlay(c,x,y,i); }
     else if(e.k===1){ drawCrate(c,e.q,shadeAt(idx(e.q.x,e.q.y))<1?0.55:1); }
     else if(e.k===3){ drawSite(c,e.q,shadeAt(idx(e.q.x,e.q.y))<1?0.6:1); }
     else { const q=unitScreen(e.u); if(e.u.drop>0||onScreen(q[0]-60,q[1]-90,120,120)) drawUnit(c,e.u); }
@@ -4243,6 +4244,7 @@ function drawWorld(c){
   drawSmoke(c);
   drawIntel(c);
   if(st) drawStormRing(c,false);
+  if(moveActive()){ const FP=flankPreview(); if(FP&&FP.n){ c.lineJoin='round'; c.strokeStyle='rgba(30,12,0,.75)'; c.lineWidth=2.5; c.stroke(FP.path); c.fillStyle='rgba(255,179,71,'+(0.75+0.25*Math.sin(t*3))+')'; c.fill(FP.path); c.lineJoin='miter'; } } // flank markers
   drawCoverIcons(c);
   drawFlankIcons(c);
   drawBounty(c);
@@ -4251,6 +4253,14 @@ function drawWorld(c){
   drawBubbles(c);
   drawTeamPings(c);
   c.restore();
+}
+// ground overlays re-applied on top of a platform's sprite (fog shade is already baked into the sprite)
+function platOverlay(c,x,y,i){
+  const st=G.storm; if(st&&Math.hypot(x+.5-st.cx,y+.5-st.cy)>st.r){ c.beginPath(); tilePath(c,x,y); c.fillStyle=C(G.R.storm,1,.22+0.06*Math.sin(G.time*2)); c.fill(); }
+  if(moveActive()&&RC.reachM[i]) roofHL(c,x,y,i);
+  const p=G.player; if(G.scene==='game'&&p&&G.mode==='throw'&&G.throwUtil){ const U=UTILS[G.throwUtil.id];
+    if(Math.hypot(x-p.x,y-p.y)<=throwRange(p,U)&&(G.vis[i]||U.blind)){ c.beginPath(); tilePath(c,x,y); c.fillStyle='rgba(255,170,60,.08)'; c.fill(); }
+    if(G.throwTile>=0&&Math.hypot(x-G.throwTile%MW,y-((G.throwTile/MW)|0))<=U.radius+0.01){ c.beginPath(); tilePath(c,x,y); c.fillStyle='rgba(255,90,40,.25)'; c.fill(); } }
 }
 // move range on a rooftop tile, painted right after that structure's sprite (the shared reach area is drawn before the
 // objects, so the roof itself would cover it); same colours and borders as regionDraw
@@ -4431,7 +4441,7 @@ function drawBounty(c){
 }
 // the previewed move: dashed path, target tile with breathing brackets, and its label. Drawn under the objects like the
 // reach area, or (pendHigh) as an overlay after them when the path climbs onto a rooftop, so roofs cannot hide it.
-function pendHigh(){ return !!G.pendingPath&&G.pendingPath.some(q=>lvAt(q[0],q[1])>=2); }
+function pendHigh(){ return !!G.pendingPath&&G.pendingPath.some(q=>lvAt(q[0],q[1])>=1); }
 function drawPending(c){
   const t=G.time, pts=G.pendingPath.map(q=>tileC(q[0],q[1]));
       c.lineJoin='round'; c.lineCap='round'; c.strokeStyle='rgba(0,12,24,.45)'; c.lineWidth=5; c.beginPath(); pts.forEach((s,k)=>k?c.lineTo(s[0],s[1]):c.moveTo(s[0],s[1])); c.stroke();
@@ -4453,7 +4463,6 @@ function drawHighlights(c){
     const rk=objId(R)+':'+p.mob+':'+RC.gen;
     regionDraw(c,i=>R.dist[i]>0&&R.dist[i]<=p.mob+1e-6,'rgba(60,190,255,.12)','rgba(90,210,255,.75)','m'+rk);
     if(p.ap>=2) regionDraw(c,i=>isFinite(R.dist[i])&&R.dist[i]>p.mob+1e-6,'rgba(255,200,60,.08)','rgba(255,200,70,.55)','d'+rk);
-    const FP=flankPreview(); if(FP&&FP.n){ c.lineJoin='round'; c.strokeStyle='rgba(30,12,0,.75)'; c.lineWidth=2.5; c.stroke(FP.path); c.fillStyle='rgba(255,179,71,'+(0.75+0.25*Math.sin(t*3))+')'; c.fill(FP.path); c.lineJoin='miter'; } // flank markers
     if(G.pending>=0&&G.pendingPath&&!pendHigh()) drawPending(c);
   }
   if(G.mode==='throw'&&G.throwUtil){ const U=UTILS[G.throwUtil.id], rg=throwRange(p,U);
@@ -6754,7 +6763,7 @@ function mapThumb(k){ k=k||1; // k: scale (the daily result card draws it large)
   const R=G.R, cv=document.createElement('canvas'); cv.width=240*k; cv.height=150*k; const g=cv.getContext('2d');
   const sk=g.createLinearGradient(0,0,0,150*k); sk.addColorStop(0,R.sky[0]); sk.addColorStop(.6,R.sky[1]); sk.addColorStop(1,R.sky[2]); g.fillStyle=sk; g.fillRect(0,0,240*k,150*k);
   const s=2.75*k, D=(x,y)=>[120*k+(x-y)*s,22*k+(x+y)*s*0.5];
-  const kc={tree:[60,112,52],bush:[70,120,58],container:null,building:[96,82,128],car:null,tank:[200,198,190],crane:[236,184,40],flare:[220,90,60],mesa:[182,92,52],bunker:[150,160,172]};
+  const kc={tree:[60,112,52],bush:[70,120,58],container:null,building:[96,82,128],car:null,tank:[200,198,190],ftank:[214,218,226],crane:[236,184,40],flare:[220,90,60],mesa:[182,92,52],bunker:[150,160,172]};
   for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const i=idx(x,y), o=G.grid[i], el=G.elev[i]; let col=G.floorT[i]?R.floor:mix(R.g1,R.g2,hash(x,y,1)), h=el?2:0;
     if(o){ col=(o.col&&(o.kind==='container'||o.kind==='car'))?o.col:kc[o.kind]||(o.t===2?R.wall:R.low); h+=o.t===2?4:1.5; } else if(el) col=R.platTop;
     const T=D(x,y),Rr=D(x+1,y),B=D(x+1,y+1),L=D(x,y+1); h*=k;
@@ -6796,7 +6805,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=14, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=15, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 // matchmaking defaults to the free public PeerJS server; set window.STORMFALL_PEER={host,port,path,secure} before this script to use your own
 const peerOpts=()=>Object.assign({debug:0},window.STORMFALL_PEER||{});
 function peerReady(){
