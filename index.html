@@ -7784,6 +7784,7 @@ function aiScoreTile(u,x,y,threats,cost){
     if(d>lim) s-=(d-lim)*w; }
   if(C) s+=cmdScore(u,C,x,y,threats);
   if(G.gm) s+=gmTileScore(u,x,y,threats);
+  if(SQC) s+=sqTile(u,x,y,threats); // squad tactics (team modes)
   if(u.noGun||(G.inf&&G.inf.on)) s+=modeTile(u,x,y,threats); // melee-only units close in; Infection survivors bunch up and kite
   return s+RNG()*D.noise;
 }
@@ -7808,6 +7809,7 @@ function aiChooseMove(u,maxAp){
   { const Z=aiZone(), zs=[]; for(let i=0;i<MW*MH;i++) if(Math.hypot(i%MW+.5-Z.zx,((i/MW)|0)+.5-Z.zy)<=Z.safeR-0.4) zs.push(i);
     const L=leaderOf(u), gx=u._goal?Math.floor(u._goal[0]):-1, gy=u._goal?Math.floor(u._goal[1]):-1, g=inMap(gx,gy)?idx(gx,gy):-1;
     u._wf={zone:zs.length?walkField(zs):null, goal:g>=0?walkField([g]):null, lead:L?walkField([idx(L.x,L.y)]):null}; }
+  SQC=sqCtx(u,threats); // squad tactics: this unit's part of the team plan (read by aiScoreTile)
   const cur=aiScoreTile(u,u.x,u.y,threats,0); let best=null, bs=cur+(threats.length?3:1); // nobody to fight: any real progress toward the goal is worth the move
   for(let i=0;i<MW*MH;i++){ const d=R.dist[i]; if(!isFinite(d)||d===0) continue; const x=i%MW,y=(i/MW)|0;
     let s=aiScoreTile(u,x,y,threats,d); if(d>u.mob+1e-6) s-=threats.length?20:0; if(u.W.heavy&&threats.length) s-=6;
@@ -7849,6 +7851,7 @@ function aiBestAttack(u){
   if(G.hz) hzAiAtk(u,res,vis,canFire,avg); // hazards: toxic barrels, power boxes, gas
   // return fire: shooting at an enemy in full cover invites a reaction shot back
   for(const r of res) if(r.t&&(r.k==='shoot'||r.k==='deadeye'||r.k==='hail'||r.k==='rapid'||r.k==='rupt')) r.score-=rfPen(u,r.t);
+  sqAttack(u,res,vis); // squad tactics: focus fire, anchor suppression, coordinated flashbangs
   // lower difficulties overlook some ability and grenade options (seeded roll, identical on every client)
   const D=u.diff||DIFFS.veteran; let opts=res;
   if(D.abil<1||D.nade<1) opts=res.filter(r=>r.k==='shoot'||r.k==='sec'||RNG()<(r.k==='throw'?D.nade:D.abil));
@@ -7876,6 +7879,7 @@ async function aiExecute(u,a){
 async function aiRevive(u){
   // several teammates can be down (Trios / Quads): revive an adjacent one first, else go to the one that is cheapest to reach
   const dns=G.units.filter(m=>m!==u&&m.team===u.team&&m.alive&&m.downed); if(!dns.length) return false;
+  if(sqNoRevive(u)) return false; // squad tactics: the designated reviver goes, this one covers
   const adj=dns.find(dn=>Math.max(Math.abs(dn.x-u.x),Math.abs(dn.y-u.y))<=1); if(adj){ await doRevive(u,adj); return true; }
   const R=computeReach(u,u.mob*u.ap); let best=-1,bc=Infinity,dn=dns[0];
   for(const m of dns) for(const d of DIRS8){ const x=m.x+d[0],y=m.y+d[1]; if(!inMap(x,y)) continue; const i=idx(x,y); if(R.dist[i]<bc){ bc=R.dist[i]; best=i; dn=m; } }
@@ -7886,6 +7890,153 @@ async function aiRevive(u){
   if(standing(u)&&u.ap>0&&dn.alive&&dn.downed&&Math.max(Math.abs(dn.x-u.x),Math.abs(dn.y-u.y))<=1){ await doRevive(u,dn); }
   return true;
 }
+/* ================= AI squad tactics =================
+   Team play for AI squads (Duos, Trios, Quads, Siege, King of the Hill, Rumble: any mode with G.M.team>1). At the start of a
+   team's first AI turn in a round, sqPlan builds a shared plan from the team's intel only (updateIntel: what the team has
+   seen or heard, never hidden state): a focus target, an objective point and a role per AI unit (anchor: holds cover with
+   sight of the focus, overwatches or suppresses; flanker: works round to tiles that flank the focus; support: stays with the
+   anchor, scouts, smokes, revives). The plan is sim state (G.sq, hashed by sqHash when present), made and changed only inside
+   AI turns with the seeded RNG, so every client and replay computes the same one. Hooks: aiTurn0 (sqPre: plan, smoke,
+   scouting), aiRevive (sqNoRevive: the designated reviver goes, a teammate covers), aiChooseMove (sqCtx), aiScoreTile
+   (sqTile), aiBestAttack (sqAttack). A human-led squad still follows its leader's pings and orders (cmdScore and the leash);
+   tactics only shade choices within them. Strength per difficulty: the sq* knobs added to DIFFS below. */
+// sq: weight of squad scoring (focus fire, roles, bounding, retreats) · sqRoles: anchor / flanker roles · sqUtil: chance a
+// coordinated utility play (smoke, flash, scout drone) is taken when one is on the table
+Object.assign(DIFFS.recruit,{sq:0.25,sqRoles:0,sqUtil:0.15});
+Object.assign(DIFFS.veteran,{sq:0.65,sqRoles:1,sqUtil:0.6});
+Object.assign(DIFFS.elite,{sq:1,sqRoles:1,sqUtil:1});
+const SQ_ANCHOR=1, SQ_FLANK=2, SQ_SUP=3;
+let SQC=null; // scoring context of the AI unit whose move is being chosen (set by aiChooseMove, read by aiScoreTile)
+let SQ_OLD=null; // test flag: {team:true} for teams that play without squad tactics (head-to-head measurements)
+function sqOn(u){ return G.M.team>1&&!G.M.inf&&!u.human&&standing(u)&&!(SQ_OLD&&SQ_OLD[u.team]); }
+function sqDiff(u){ return u.diff||teamDiff(u.team); }
+function sqOrder(u){ return G.units.indexOf(u); }
+// the team's plan for this round (null when none was made)
+function sqGet(team){ const Q=G.sq; if(!Q||Q.mid!==G.matchId) return null; const P=Q.t[team]; return P&&P.r===G.round?P:null; }
+// every enemy the team knows of (seen or heard within its memory), at its last known position
+function sqIntel(team){ const m=updateIntel(team), D=teamDiff(team), out=[];
+  for(const [id,e] of m){ if(e.r<G.round-D.mem) continue; const t=G.units.find(z=>z.id===id); if(!t||!t.alive) continue;
+    out.push({id,t,x:e.x,y:e.y,fresh:e.seen&&e.r===G.round}); }
+  return out; }
+// enemy t (standing at tx,ty) has tile x,y in its sight, in line of sight, with no cover against it
+function sqOpen(t,tx,ty,x,y){ return Math.hypot(tx-x,ty-y)<=sightOf(t)+0.5&&hasLOS(tx,ty,x,y)&&!smokeBlocks(tx,ty,x,y)&&coverFrom(x,y,tx,ty)===0; }
+// focus target: close to the squad, in view of several of its guns, exposed (no cover against them) and, when the team can
+// see it this round, already hurt. A human leader's enemy ping pulls the focus to the threat nearest the mark.
+function sqFocus(team,mates,I){ const C=G.cmd&&G.cmd[team], hum=mates.some(m=>m.human), D=teamDiff(team); let best=null, bs=-1e9;
+  for(const e of I){ let md=1e9, sees=0, open=0;
+    for(const m of mates){ const d=Math.hypot(m.x-e.x,m.y-e.y); if(d<md) md=d; if(d<=sightOf(m)+1&&hasLOS(m.x,m.y,e.x,e.y)){ sees++; if(coverFrom(e.x,e.y,m.x,m.y)===0) open++; } }
+    if(md>D.range+4) continue; const t=e.t;
+    let s=30-md*1.5+sees*6+open*5+(e.fresh?6:0);
+    if(e.fresh){ s+=(1-(t.hp+t.shield)/Math.max(1,t.maxHp+t.shield))*20; if(t.downed) s+=8; if(t.overwatch) s-=3; }
+    if(C&&hum&&C.k==='enemy') s+=Math.max(0,25-Math.hypot(C.x-e.x,C.y-e.y)*3);
+    if(s>bs){ bs=s; best=e; } }
+  return best; }
+// roles: the anchor has (or nearly has) sight of the focus from cover and the longest gun; the flanker is the most mobile healthy unit
+function sqRoles(P,ai,F){ P.ro={}; if(!F||!ai.length) return; const fr=m=>(m.hp+m.shield)/Math.max(1,m.maxHp+m.shield);
+  if(ai.length===1&&G.units.some(m=>m.team===P.team&&m.human&&standing(m))){ P.ro[ai[0].id]=SQ_SUP; return; } // a lone AI partner backs up its human
+  const as=m=>(hasLOS(m.x,m.y,F.x,F.y)?10:0)+(coverFrom(m.x,m.y,F.x,F.y)>0?8:0)+(m.cls==='sharpshooter'?8:0)+(hasP(m,'g_supp')?6:m.cls==='grenadier'?3:0)+fr(m)*4-Math.hypot(m.x-F.x,m.y-F.y)*0.2;
+  const fs=m=>m.mob*1.5+(m.cls==='ranger'?6:0)+fr(m)*6-Math.abs(Math.hypot(m.x-F.x,m.y-F.y)-6)*0.5;
+  let a=null,b=-1e9; for(const m of ai){ const s=as(m); if(s>b){ b=s; a=m; } } P.ro[a.id]=SQ_ANCHOR;
+  let f=null; b=-1e9; for(const m of ai){ if(m===a||fr(m)<0.5) continue; const s=fs(m); if(s>b){ b=s; f=m; } } if(f) P.ro[f.id]=SQ_FLANK;
+  for(const m of ai) if(!P.ro[m.id]) P.ro[m.id]=SQ_SUP; }
+// who revives a downed teammate: the nearest AI unit that can still act (the others cover)
+function sqReviver(P,ai){ P.rv=-1; const dn=G.units.filter(m=>m.team===P.team&&m.alive&&m.downed); if(!dn.length) return; let bd=1e9;
+  for(const m of ai) for(const d of dn){ const k=Math.hypot(m.x-d.x,m.y-d.y); if(k<bd){ bd=k; P.rv=m.id; } } }
+function sqPlan(u){ const team=u.team; if(!G.sq||G.sq.mid!==G.matchId) G.sq={mid:G.matchId,t:{}};
+  let P=G.sq.t[team]; const mates=G.units.filter(m=>m.team===team&&standing(m)), ai=mates.filter(m=>!m.human), D=teamDiff(team);
+  if(P&&P.r===G.round){ // later in the round: replace a focus that is gone, re-pick the reviver when that changed
+    const ft=P.f>=0&&G.units.find(z=>z.id===P.f); if(!ft||!ft.alive){ const F=sqFocus(team,mates,sqIntel(team)); P.f=F?F.id:-1; P.fx=F?F.x:-1; P.fy=F?F.y:-1; }
+    const rv=P.rv>=0&&G.units.find(z=>z.id===P.rv); if(!rv||!standing(rv)||!G.units.some(m=>m.team===team&&m.alive&&m.downed)) sqReviver(P,ai);
+    return P; }
+  const I=sqIntel(team), F=sqFocus(team,mates,I), C=G.cmd&&G.cmd[team];
+  P=G.sq.t[team]={team,r:G.round,f:F?F.id:-1,fx:F?F.x:-1,fy:F?F.y:-1,ox:-1,oy:-1,ro:{},rv:-1,sc:-1,sm:0};
+  // objective: the human leader's marked point, the mode's objective, the focus, or the safe zone's centre
+  let o=C&&mates.some(m=>m.human)?[C.x,C.y]:G.gm&&G.gm.k!=='rumble'?gmGoal(u):null; if(!o&&F) o=[F.x,F.y];
+  if(!o){ const Z=aiZone(); o=[Math.floor(Z.zx),Math.floor(Z.zy)]; } P.ox=o[0]|0; P.oy=o[1]|0;
+  if(D.sqRoles) sqRoles(P,ai,F); sqReviver(P,ai);
+  return P; }
+function sqHash(add){ const Q=G.sq; if(!Q||Q.mid!==G.matchId) return;
+  for(const k of Object.keys(Q.t).sort((a,b)=>a-b)){ const P=Q.t[k]; add(+k); add(P.r); add(P.f); add(P.fx); add(P.fy); add(P.ox); add(P.oy); add(P.rv); add(P.sc); add(P.sm);
+    for(const id of Object.keys(P.ro).sort((a,b)=>a-b)) add(id*4+P.ro[id]); } }
+// aiTurn0 hook (before revives): make / refresh the plan, then coordinated utility: smoke a downed or exposed teammate, send
+// a scout drone to the focus's last known position. Returns true when it spent AP.
+async function sqPre(u,stale){ if(!sqOn(u)) return false; const P=sqPlan(u), D=sqDiff(u); if(u.ap<2||u.shot||!D.sqUtil) return false;
+  const I=sqIntel(u.team), oi=sqOrder(u), shot=visibleEnemies(u).length>0;
+  // smoke: one a round per team, on a downed teammate known enemies can see, or (with no shot of its own to take) on one that
+  // already moved and stands exposed
+  const si=u.utils.findIndex(q=>q.id==='smoke'&&q.ch>0);
+  if(si>=0&&!P.sm){ const rg=throwRange(u,UTILS.smoke); let tgt=null, ts=0;
+    for(const m of G.units){ if(m===u||m.team!==u.team||!m.alive) continue; const dd=Math.hypot(m.x-u.x,m.y-u.y); if(dd>rg||dd<UTILS.smoke.radius+0.6||!hasLOS(u.x,u.y,m.x,m.y)) continue;
+      if(G.smoke.some(c=>Math.hypot(c.x-m.x,c.y-m.y)<=c.r)) continue;
+      let n=0; for(const e of I) if(sqOpen(e.t,e.x,e.y,m.x,m.y)) n++; if(!n) continue;
+      const s=m.downed?20+n*4:!shot&&sqOrder(m)<oi&&(n>=2||m.hp<=m.maxHp*0.6)?10+n*4:0; if(s>ts){ ts=s; tgt=m; } }
+    if(tgt&&RNG()<D.sqUtil){ P.sm=1; if(shouldShow(u)) bubble(u,tgt.downed?'Smoking you, hang on!':'Smoke out!'); await execCmd(u,{k:'throw',i:si,x:tgt.x,y:tgt.y}); return true; } }
+  // scout drone: spot the focus for the team when nobody has eyes on it this round
+  const di=u.utils.findIndex(q=>q.id==='drone'&&q.ch>0);
+  if(di>=0&&P.sc<0&&P.f>=0&&G.round>=2&&!shot){ const e=I.find(q=>q.id===P.f), rg=throwRange(u,UTILS.drone);
+    if(e&&!e.fresh){ let dx=e.x-u.x, dy=e.y-u.y; const d=Math.hypot(dx,dy);
+      if(d<=rg+4&&d>3){ if(d>rg-0.5){ dx*=(rg-0.5)/d; dy*=(rg-0.5)/d; } const x=clamp(Math.round(u.x+dx),0,MW-1), y=clamp(Math.round(u.y+dy),0,MH-1);
+        if(!solidT(x,y)&&Math.hypot(x-u.x,y-u.y)<=rg+0.01&&RNG()<D.sqUtil){ P.sc=u.id; await execCmd(u,{k:'throw',i:di,x,y}); return true; } } } }
+  return false; }
+// aiRevive hook: a teammate that is not the designated reviver covers instead while that reviver still acts this round and is
+// close enough to get there, and known enemies are about; otherwise anyone revives as before
+function sqNoRevive(u){ if(!sqOn(u)) return false; const P=sqGet(u.team), D=sqDiff(u); if(!P||P.rv<0||P.rv===u.id||D.sq<0.5) return false;
+  const rv=G.units.find(z=>z.id===P.rv); if(!rv||!standing(rv)||sqOrder(rv)<sqOrder(u)) return false;
+  const dn=G.units.filter(m=>m.team===u.team&&m.alive&&m.downed); if(dn.some(d=>Math.max(Math.abs(d.x-u.x),Math.abs(d.y-u.y))<=1)||!dn.some(d=>Math.hypot(d.x-rv.x,d.y-rv.y)<=rv.mob*2-0.5)) return false;
+  return sqIntel(u.team).some(e=>dn.some(d=>Math.hypot(e.x-d.x,e.y-d.y)<=10)); }
+// aiChooseMove hook: what this unit's tile scoring needs from the plan, computed once per decision
+function sqCtx(u,threats){ if(!sqOn(u)) return null; const P=sqGet(u.team), D=sqDiff(u); let w=D.sq||0; if(!P||!w) return null;
+  const C=G.cmd&&G.cmd[u.team], L=leaderOf(u), led=!!(C&&L&&L.human); if(led) w*=0.5; // a human's order comes first
+  let role=P.ro[u.id]||0; if(led&&role===SQ_FLANK) role=0;
+  const F=P.f>=0?threats.find(t=>t.id===P.f)||null:null, oi=sqOrder(u), allies=G.units.filter(m=>m!==u&&m.team===u.team&&standing(m));
+  // bounding: a teammate that already moved this round stands in the open, so this one holds (cover, overwatch) instead (three or more standing: a pair needs both guns up)
+  const adv=threats.length>0&&allies.length>=2&&allies.some(m=>sqOrder(m)<oi&&threats.some(t=>sqOpen(t,t.x,t.y,m.x,m.y)));
+  // trading space: wounded, or (squads of three or more) clearly outnumbered here
+  const near=threats.filter(t=>Math.hypot(t.x-u.x,t.y-u.y)<=7).length, buds=allies.filter(m=>Math.hypot(m.x-u.x,m.y-u.y)<=6).length;
+  const hurt=u.hp<=u.maxHp*0.4, retreat=threats.length>0&&(hurt||allies.length>=2&&near>=buds+3);
+  // revive cover: a downed teammate someone else will reach; watch the known enemy nearest to it
+  let dn=null, dt=null; if(P.rv>=0&&P.rv!==u.id){ dn=G.units.find(m=>m.team===u.team&&m.alive&&m.downed)||null;
+    if(dn){ let bd=10; for(const t of threats){ const d=Math.hypot(t.x-dn.x,t.y-dn.y); if(d<bd){ bd=d; dt=t; } } } }
+  const held=!!F&&hasLOS(u.x,u.y,F.x,F.y)&&coverFrom(u.x,u.y,F.x,F.y)>0;
+  return {u,P,w,role,F,held,sq3:allies.length>=2,fd0:F?Math.hypot(F.x-u.x,F.y-u.y):0,fany:F?inCoverAny(F.x,F.y):false,adv,retreat,hurt,allies,dn,dt,owd:!!D.owAvoid,
+    anc:allies.find(m=>P.ro[m.id]===SQ_ANCHOR)||null, ow:threats.filter(t=>t.overwatch&&threats.fresh&&threats.fresh.has(t.id))}; }
+// aiScoreTile hook: squad terms for one candidate tile
+function sqTile(u,x,y,threats){ const Q=SQC; if(!Q||Q.u!==u) return 0; const w=Q.w, F=Q.F; let s=0;
+  if(!threats.length) return Q.P.f>=0&&!G.gm?-Math.hypot(Q.P.ox-x,Q.P.oy-y)*0.15*w:0; // close on the team's mark together
+  if(F){ const d=Math.hypot(F.x-x,F.y-y), los=d<=u.sight+sightBonus(u,G.lvl[idx(x,y)])+0.01&&hasLOS(x,y,F.x,F.y)&&!smokeBlocks(x,y,F.x,F.y);
+    const fl=los&&Q.fany&&flankState(u,F,x,y).flanked;
+    if(fl) s+=(Q.role===SQ_FLANK?18:6)*w;
+    if(Q.role===SQ_FLANK) s-=Math.abs(d-5)*0.5*w;
+    else if(Q.role===SQ_ANCHOR){ if(los&&coverFrom(x,y,F.x,F.y)>0) s+=10*w; if(Q.held&&Q.sq3) s-=Math.hypot(x-u.x,y-u.y)*0.8*w; } // hold a good spot once it has one
+    else if(Q.role===SQ_SUP){ if(Q.anc&&Q.sq3){ s-=Math.max(0,Math.hypot(x-Q.anc.x,y-Q.anc.y)-3)*1.2*w; if(d<Math.hypot(F.x-Q.anc.x,F.y-Q.anc.y)-1) s-=4*w; } if(los) s+=8*w; }
+    else if(los) s+=8*w;
+    // bounding: someone already advanced into the open, so this unit does not walk into the focus's view as well
+    if(Q.adv&&Q.role!==SQ_FLANK){ if(sqOpen(F,F.x,F.y,x,y)) s-=8*w; if(d<Q.fd0-1.5) s-=(Q.fd0-d)*1.2*w; } }
+  // known enemy overwatch lanes (Elite already avoids them in aiScoreTile; this adds a lighter version for the others)
+  if(!Q.owd) for(const t of Q.ow) if(sqOpen(t,t.x,t.y,x,y)) s-=9*w;
+  // fall back toward healthy teammates (and pickups) when hurt or outnumbered here, away from what is known
+  if(Q.retreat){ let ad=1e9; for(const m of Q.allies) if(m.hp>m.maxHp*0.4) ad=Math.min(ad,Math.hypot(m.x-x,m.y-y)); if(ad<1e9) s-=Math.max(0,ad-2)*2*w;
+    let td=1e9; for(const t of threats) td=Math.min(td,Math.hypot(t.x-x,t.y-y)); s+=Math.min(10,td)*0.8*w;
+    if(Q.hurt&&G.crates.some(q=>q.x===x&&q.y===y)) s+=10*w; }
+  // cover the revive: sight on the enemy nearest the downed teammate, from cover
+  if(Q.dt&&Math.hypot(x-Q.dn.x,y-Q.dn.y)<=6&&hasLOS(x,y,Q.dt.x,Q.dt.y)) s+=(coverFrom(x,y,Q.dt.x,Q.dt.y)>0?10:4)*w;
+  // spacing: one grenade should not catch two of us
+  let n=0; for(const m of Q.allies) if(Math.hypot(m.x-x,m.y-y)<1.7) n++; s-=Math.min(2,n)*3*w;
+  return s; }
+// aiBestAttack hook: focus fire, anchor suppression, grenades on enemies a teammate is engaging, flashbangs on clustered or
+// overwatching enemies. Only enemies this unit can see (vis) are considered, as before.
+function sqAttack(u,res,vis){ if(!sqOn(u)) return; const P=sqGet(u.team), D=sqDiff(u); if(!P) return; const w=D.sq||0, role=P.ro[u.id]||0;
+  for(const r of res){ const t=r.t; if(!t||!G.units.includes(t)||t.downed) continue; const fr=(t.hp+t.shield)/Math.max(1,t.maxHp+t.shield);
+    r.score+=w*(1-fr)*8; // trade into whoever the squad has already hurt (health bars are public once seen)
+    if(t.id===P.f){ const open=coverFrom(t.x,t.y,u.x,u.y)===0; r.score+=w*(10+(1-fr)*10+(open?5:0))*Math.min(1,(r.hit||0)/50); } // a long shot at the focus is not worth a good one elsewhere
+    if(r.k==='supp'&&role===SQ_ANCHOR&&(t.id===P.f||t.overwatch)) r.score+=8*w;
+    if(r.k==='throw'&&UTILS[r.util.id].dmg&&G.units.some(m=>m!==u&&m.team===u.team&&standing(m)&&canSee(m,t))) r.score+=6*w; }
+  if(!D.sqUtil||u.ap<2) return; const fi=u.utils.findIndex(q=>q.id==='flash'&&q.ch>0); if(fi<0) return; const util=u.utils[fi], U=UTILS.flash, rg=throwRange(u,U);
+  for(const c of vis){ if(c.downed||c.disorient>0||tdist(u,c)>rg) continue;
+    const inR=G.units.filter(v=>v.alive&&!v.downed&&inBlast(v,c.x,c.y,U.radius)); if(inR.some(v=>!isEnemy(u,v)||!vis.includes(v))) continue;
+    const n=inR.length, ow=inR.some(v=>v.overwatch), eng=G.units.some(m=>m!==u&&m.team===u.team&&standing(m)&&canSee(m,c)); if(n<2&&!ow) continue;
+    res.push({k:'throw',util,x:c.x,y:c.y,t:c,hit:100,score:D.sqUtil*(n*10+(ow?14:0)+(c.id===P.f?6:0)+(eng?6:0))}); } }
+/* ================= end AI squad tactics ================= */
 // the AI's turn, then whatever drone AP is left (zap, support, reposition or recall after the operative has acted)
 async function aiTurn(u,mid){ await aiTurn0(u,mid); if(standing(u)&&!G.over&&G.matchId===mid) await aiDrone(u,()=>!standing(u)||G.over||G.matchId!==mid,true); }
 async function aiTurn0(u,mid){
@@ -7894,6 +8045,7 @@ async function aiTurn0(u,mid){
   if(shouldShow(u)){ turnTag(u.name+' · '+CLASSES[u.cls].name,mine(u)?'you':'enemy'); focusOn(u.x,u.y); await wait(380); } else { turnTag('Hostile activity','enemy'); await wait(G.units.length>8?35:70); }
   if(stale()) return;
   if(u.cls==='medic'&&await aiKit(u,stale,false)){ if(stale()||u.ap<=0) return; } // Revive Beam before walking over
+  if(await sqPre(u,stale)){ if(stale()||u.ap<=0) return; } // squad tactics: team plan, coordinated smoke and scouting
   if(G.M.team>1&&await aiRevive(u)){ if(stale()||u.ap<=0) return; }
   // empty primary: reload first, unless a sidearm shot is available (it costs 1 AP and still leaves a move)
   if(u.ammo===0&&!u.noGun&&u.ap>0&&!(u.S&&u.S.type==='pistol'&&u.sAmmo>0&&visibleEnemies(u).length)) await doReload(u);
@@ -9423,7 +9575,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=28, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=29, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
@@ -10741,6 +10893,7 @@ function simHash(){ let h=0x811c9dc5; const add=v=>{ v=v|0; h=Math.imul(h^(v&255
   for(const u of G.units) add(u.mark?u.mark.team*1000+u.mark.until:-1);
   kitHash(add); // class ability objects (only while any exist)
   if(G.gm) gmHash(add); // objective modes only (classic hashes unchanged)
+  if(G.sq) sqHash(add); // AI squad plans (only once an AI squad has made one: other hashes unchanged)
   if(G.M.inf||G.M.night||mutBits()) modeHash(add); // Infection / Blackout / mutator state (only when active: other hashes unchanged)
   hzHash(add); // hazards and status effects (only when present: other hashes unchanged)
   return h>>>0; }
