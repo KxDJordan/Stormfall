@@ -385,6 +385,8 @@ body.sheet-open .nav{display:none}
 .topt b{font-size:13.5px;font-weight:600;line-height:1.2}
 .topt small{white-space:nowrap;align-self:flex-start;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 5px;border-radius:2px}
 .topt small.act{background:var(--amber-bg);color:var(--amber)}
+/* the perk badge shares the class name of the action-bar buttons (.act): undo their size and layout here */
+.topt small.act,html[data-ts] .topt small.act{display:inline-block;width:auto;min-width:0;height:auto;min-height:0;padding:1px 5px;border:0;gap:0;flex:none}
 .topt small.pas{background:rgba(93,255,154,.1);color:var(--ok)}
 .topt.sel{border-color:var(--signal);background:linear-gradient(180deg,rgba(63,210,255,.14),rgba(63,210,255,.03))}
 .tier.lockt .topt{opacity:.5}
@@ -1112,6 +1114,12 @@ html[data-cb] #tHit[data-band="hi"]::after{content:"\25B2"} html[data-cb] #tHit[
 html[data-cb] #torder .tk.ally::after{content:"";position:absolute;right:1px;top:1px;width:5px;height:5px;border-radius:50%;background:currentColor}
 html[data-cb] #torder .tk.foe:not(.unk)::after{content:"";position:absolute;right:0;top:0;border:4px solid transparent;border-top-color:currentColor;border-right-color:currentColor}
 html.pa-rm .toast,html.pa-rm .toast.lvl,html.pa-rm .toast.lvl::after,html.pa-rm .tmr.warn b,html.pa-rm .fe,html.pa-rm #torder .tk.down::after,html.pa-rm #torder .tk.ff::before,html.pa-rm .spin{animation:none!important}
+/* ---------- loadout: Engineer / Medic / Recon class abilities (info rows, not pickers) ---------- */
+.slot.kab{grid-template-columns:minmax(0,1fr);cursor:default}
+.slot.kab .sl-m{white-space:normal}
+.slot.kab .sl-v{display:flex;align-items:center;gap:8px}
+.kabi{width:20px;height:20px;flex:none;fill:none;stroke:var(--signal);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kabp{margin:6px 2px 0;font-size:12.5px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -1480,6 +1488,9 @@ html.pa-rm .toast,html.pa-rm .toast.lvl,html.pa-rm .toast.lvl::after,html.pa-rm 
       <li>Mutators: in the waiting room the host (or you, offline) can switch on Low gravity, Explosive everything, One-shot, Double storm speed, Melee only and Perma-smoke for any mode. Guests see them in the room, they show as chips under the minimap in the match, and replays keep them.</li>
       <li>Team pings: in Duos, Trios and Quads, tap 📍 then the map, or press and hold on the map, to ping (Enemy here, Move here, Watch this area, Loot here, Danger) or give a command (Hold, Regroup, Push, Fall back, Revive me). Only your team sees them; they fade after 2 rounds. An AI partner or squadmates follow them (online, orders given on your own turn).</li>
       <li>Specialist drone: it rides docked just above the Specialist (no vision, can’t be hit) until you tap <em>Deploy</em> (free, once a turn) and pick a tile. Deployed, it is its own unit with its own drone AP each turn (2; 3 with the Extended battery): fly it, zap, mark, or use its model action. Combat Protocol, Aid Protocol, Capacitor Discharge, Chain Lightning, Guardian, Haywire, Overclock, Drone Shield and Restoration all need it deployed. It sees for your team, can be shot, blown up, zapped and caught by overwatch, takes 1 storm damage a round outside the zone, and never counts as an operative (turn order, victory, objectives). Tap <em>Drone</em> to control it, <em>Operative</em> to switch back, <em>Recall</em> to dock it. Destroyed: <em>Rebuild</em> (1 AP) after 2 of your turns. Chassis: Sparrow (scout, Scan), Striker (Burst, harder zaps), Mender (Heal Pulse), Bulwark (Shield Projector, 6 HP), Jammer (Jam). Drone mastery unlocks upgrades; drone skins are in the Store.</li>
+      <li>Engineer: <em>Deploy Turret</em> (1 AP, cooldown 4) puts a sentry on an empty ground tile up to 3 tiles away: 5 HP, 3 shots, 3 rounds, sight 7. It takes one reaction shot at every enemy that moves in its sight (−15 aim like overwatch); it can be shot, blown up, zapped and jammed, and it goes down with its Engineer. <em>Build Cover</em> (1 AP, cooldown 2) raises half cover (6 HP) or full cover (4 HP) on a tile next to you. <em>Repair</em> (1 AP, cooldown 2) gives you or an ally within 3 tiles +3 shield, or a friendly turret or drone 3 HP.</li>
+      <li>Medic: <em>Heal Field</em> (1 AP, cooldown 4) marks a 1.5-tile area up to 5 tiles away; allies who start their turn in it heal 1 HP, through the end of next round. <em>Revive Beam</em> (1 AP, cooldown 3) revives a downed ally up to 3 tiles away in line of sight. <em>Adrenaline</em> (1 AP, cooldown 5): you or an ally starts its next turn with 3 AP. Passive: a Medic’s revives cost 1 AP instead of the whole turn and bring the ally back with 4 HP, and the Medic regenerates 1 HP a turn (useful in Solo too).</li>
+      <li>Recon: sees 2 tiles farther. <em>Wall Scan</em> (free, cooldown 4) reveals everything within 6 tiles, through walls, for the whole team until the end of next round. <em>Trip Mine</em> (1 AP, cooldown 2, two out at once) hides a mine up to 3 tiles away that only your team can see: the first enemy to step on it takes 3–4 damage, stops where it is and starts its next turn with 1 AP less. <em>Mark Target</em> (free, cooldown 2): your team gets +15 aim against an enemy you can see until the end of next round. In Blackout a turret sees only as far as night sight, while scans light up their area like a Scout Drone.</li>
       <li>Weapon mastery: hits, damage and takedowns with a primary or sidearm level that weapon (1–10). Mastery unlocks its attachments (optic, barrel, magazine, underbarrel: picked per weapon in Loadout) and mastery finishes, up to the animated Stormcell.</li>
       <li>The waiting room after Play sets up the match: add or remove bots (any size from a 1v1 up to the mode’s limit) and give each bot its own difficulty, Recruit, Veteran or Elite, or set them all at once. Difficulty changes aim, gear, memory, hearing and how cleverly they flank; an AI partner keeps gear matched to your team. Smaller matches start with a smaller storm and fewer crates, and pay less for placement.</li>
       <li>Ten regions: Neo-Kowloon, Frostfall Station, Ember Wastes, Verdant Ruins, Ironhaven Docks, Blackwell Refinery, Sandsea Bazaar, Hollow Quarry, Mirefen Marsh and Cinder Lab. The map roulette after Deploy picks one you did not just play.</li>
@@ -1572,6 +1583,16 @@ const CLASSES={
   specialist:{name:'Specialist',tag:'Drone support',aim:72,hp:8,mob:6,sight:0,weapons:['rifle','smg','carbine','volt'],armors:['light','medium','stalker'],utils:['frag','smoke','flash','medkit'],ability:'zap',
     desc:'Flies a combat drone. Deploy it (free, once a turn) and it acts on its own drone AP: Combat Protocol zaps an enemy it sees for 3 armor-piercing damage, and every model has its own support action. Medkits carry an extra charge and heal 4.'}
 };
+// Engineer, Medic and Recon (abilities and their rules: see "class abilities: Engineer, Medic, Recon"). ability: the class
+// ability (ABIL), kit: its other class abilities (ABIL keys too); both are base kit from level 1, each with its own cooldown
+Object.assign(CLASSES,{
+  engineer:{name:'Engineer',tag:'Fortification',aim:70,hp:8,mob:5,sight:0,weapons:['smg','shotgun','slug','carbine'],armors:['medium','light','stalker'],utils:['frag','smoke','flash','medkit'],ability:'turret',kit:['wall','repair'],
+    desc:'Builds the fight. Deploy Turret drops a sentry that takes reaction shots at enemies moving in its sight, Build Cover raises a wall next to you, and Repair restores an ally’s shield or a turret’s or drone’s HP.'},
+  medic:{name:'Medic',tag:'Combat support',aim:70,hp:7,mob:6,sight:0,weapons:['carbine','smg','rifle'],armors:['light','medium','stalker'],utils:['medkit','smoke','flash','frag'],ability:'field',kit:['beam','adren'],
+    desc:'Keeps everyone standing. Heal Field mends allies in it every turn for 2 rounds, Revive Beam picks up a downed ally from 3 tiles, Adrenaline gives an ally +1 AP next turn. Revives cost 1 AP, and you regenerate 1 HP a turn.'},
+  recon:{name:'Recon',tag:'Intel and traps',aim:74,hp:7,mob:6,sight:2,weapons:['dmr','wsmg','carbine','rifle'],armors:['light','ghillie','stalker'],utils:['smoke','flash','frag','medkit','drone'],ability:'wscan',kit:['mine','tmark'],
+    desc:'Sees 2 tiles farther. Wall Scan reveals enemies through walls around you, Trip Mines are hidden from everyone but your team, and Mark Target gives your whole team +15 aim against an enemy.'}
+});
 /* Weapon accuracy by range: rt=[[upToTile,aimMod],...] in ascending tiles; past the last entry the modifier keeps
    dropping by `fall` per tile. range(d) is built from rt, and the loadout text, optimal band and bars are all derived
    from range(), so they cannot drift from what hitInfo uses. */
@@ -1590,6 +1611,8 @@ const WEAPONS={
 };
 function rangeFn(rt,fall){ return d=>{ for(const s of rt) if(d<=s[0]) return s[1]; const l=rt[rt.length-1]; return l[1]-(fall||0)*(d-l[0]); }; }
 for(const k in WEAPONS){ WEAPONS[k].id=k; WEAPONS[k].range=rangeFn(WEAPONS[k].rt,WEAPONS[k].fall); }
+// Recon's suppressed SMG (an integrally suppressed Wasp: silent, so no noise, intel ripple or Blackout muzzle flash)
+WEAPONS.wsmg={name:'Hush SMG',short:'Hush SMG',dmg:[2,4],clip:5,crit:15,critDmg:2,aim:5,mob:1,fx:'burst',silent:true,noAtt:['barrel'],rt:[[4,10],[7,0]],fall:7,desc:'Integrally suppressed: quiet, light and accurate up close.',id:'wsmg'}; WEAPONS.wsmg.range=rangeFn(WEAPONS.wsmg.rt,WEAPONS.wsmg.fall);
 const ARMORS={
   light:{name:'Spider Suit',short:'Light',look:'light',hp:1,mob:1,def:10,armor:0,note:'Quick and hard to pin down.'},
   medium:{name:'Predator Armor',short:'Medium',look:'medium',hp:3,mob:0,def:0,armor:0,note:'Plain, dependable plating.'},
@@ -1673,6 +1696,18 @@ const ABIL={
   hail:{name:'Hail of Bullets',short:'Hail',cd:4,desc:'Guaranteed hit, uses 2 ammo. Ends turn.'},
   zap:{name:'Combat Protocol',short:'Protocol',cd:3,desc:'Drone action (deploy the drone first): zap an enemy the drone sees for 3 armor-piercing damage, never misses. Costs 1 drone AP, not yours.'}
 };
+// Engineer, Medic and Recon class abilities (cooldowns before perks; rules in "class abilities: Engineer, Medic, Recon")
+Object.assign(ABIL,{
+  turret:{name:'Deploy Turret',short:'Turret',cd:4,desc:'Place a sentry turret up to 3 tiles away (5 HP, 3 shots, 3 rounds). It takes a reaction shot at each enemy that moves in its sight. 1 AP, keeps your turn going.'},
+  wall:{name:'Build Cover',short:'Cover',cd:2,desc:'Raise a wall on an adjacent tile: half cover (6 HP) or full cover (4 HP). 1 AP, keeps your turn going.'},
+  repair:{name:'Repair',short:'Repair',cd:2,desc:'You or an ally within 3 tiles gets +3 shield, or a friendly turret or drone gets 3 HP back. 1 AP, keeps your turn going.'},
+  field:{name:'Heal Field',short:'Field',cd:4,desc:'A 1.5-tile healing field up to 5 tiles away: allies starting their turn in it heal 1 HP, through the end of next round. 1 AP, keeps your turn going.'},
+  beam:{name:'Revive Beam',short:'Beam',cd:3,desc:'Revive a downed ally up to 3 tiles away in line of sight. 1 AP, keeps your turn going.'},
+  adren:{name:'Adrenaline',short:'Adrenaline',cd:5,desc:'You or an ally within 5 tiles starts its next turn with +1 AP. 1 AP, keeps your turn going.'},
+  wscan:{name:'Wall Scan',short:'Scan',cd:4,desc:'Reveal everything within 6 tiles of you, through walls, for your team until the end of next round. Free action.'},
+  mine:{name:'Trip Mine',short:'Mine',cd:2,desc:'Hide a mine up to 3 tiles away (2 at once). Only your team sees it. An enemy stepping on it takes 3–4 damage, stops, and loses 1 AP next turn. 1 AP, keeps your turn going.'},
+  tmark:{name:'Mark Target',short:'Mark',cd:2,desc:'Mark an enemy you can see: your whole team gets +15 aim against it until the end of next round. Free action.'}
+});
 /* Secondary weapons (one per operative, next to the primary).
    type melee: strikes an adjacent enemy; dash>0 lets it dash up to that many tiles of movement to reach one (ends the turn).
    type thrown: melee up close, or thrown at an enemy up to `range` tiles away, `uses` throws per match, own range curve.
@@ -1698,6 +1733,9 @@ CLASSES.ranger.secs=['knife','pistol','tknife','machete','machpistol','katana'];
 CLASSES.sharpshooter.secs=['pistol','knife','silencer','tknife','magnum','katana'];
 CLASSES.grenadier.secs=['pistol','knife','machete','hatchet','magnum','axe'];
 CLASSES.specialist.secs=['pistol','knife','silencer','baton','hatchet','machpistol'];
+CLASSES.engineer.secs=['pistol','knife','machpistol','hatchet','baton','axe'];
+CLASSES.medic.secs=['pistol','knife','silencer','machpistol','baton','magnum'];
+CLASSES.recon.secs=['silencer','knife','pistol','tknife','machete','katana'];
 /* ================= weapon attachments =================
    One mod per slot, all modest. Primaries take every slot (minus w.noAtt); pistol sidearms take optic, barrel and magazine.
    An attachment unlocks at weapon mastery level `m` (pistols: `pm`; no pm = not for pistols). Effect fields:
@@ -1824,6 +1862,42 @@ const CPERKS={
     [{id:'p_chain',name:'Chain Lightning',desc:'Combat Protocol (drone deployed) arcs to the nearest other enemy the drone sees within 4 tiles of the target.'},
      {id:'p_stim',name:'Combat Stims',act:'stim',desc:'Active: +1 AP this turn (free action). Cooldown 5.'}]]
 };
+// Engineer (e_), Medic (m_) and Recon (n_) perk trees: same shape (5 tiers of 2, actives named in ACTS)
+Object.assign(CPERKS,{
+  engineer:[
+    [{id:'e_plate',name:'Reinforced Turret',desc:'Your turrets have +3 HP and block 1 damage from every hit.'},
+     {id:'e_fab',name:'Rapid Fabrication',desc:'Build Cover cooldown −1, and your walls have +2 HP.'}],
+    [{id:'e_optics',name:'Turret Optics',desc:'Your turrets get +10 aim and +2 sight.'},
+     {id:'e_patch',name:'Patch Kit',desc:'Repair restores 2 more (+5 shield, or 5 HP to a turret or drone).'}],
+    [{id:'e_shock',name:'Shock Rounds',desc:'Turret hits disorient the target (−20 aim) and break its overwatch.'},
+     {id:'e_salvo',name:'Turret Salvo',act:'esalvo',desc:'Active: every turret of yours fires at the nearest enemy it can see. 1 AP, keeps your turn going. Cooldown 3.'}],
+    [{id:'e_sentry',name:'Long Watch',desc:'Your turrets last a round longer and carry 2 more shots.'},
+     {id:'e_fort',name:'Fortify',desc:'Your walls have +3 HP, and building one gives you +1 shield.'}],
+    [{id:'e_twin',name:'Twin Turrets',desc:'Keep two turrets deployed at once. Deploy Turret cooldown −1.'},
+     {id:'e_emp',name:'EMP Burst',act:'emp',desc:'Active: enemies within 2.5 tiles of you are disoriented (−20 aim) and lose overwatch; enemy drones and turrets there are jammed for a turn. 1 AP. Cooldown 5.'}]],
+  medic:[
+    [{id:'m_triage',name:'Triage',desc:'Your regeneration heals 2 instead of 1 while you are below half HP.'},
+     {id:'m_reach',name:'Long Beam',desc:'Revive Beam reaches 4 tiles, and allies you revive get +2 shield.'}],
+    [{id:'m_field',name:'Lasting Field',desc:'Heal Field lasts a round longer and covers 2 tiles around its centre.'},
+     {id:'m_serum',name:'Bulwark Serum',desc:'Adrenaline also gives the target +2 shield.'}],
+    [{id:'m_adr',name:'Adrenal Surge',desc:'Adrenaline cooldown −2.'},
+     {id:'m_purge',name:'Purge',act:'purge',desc:'Active: you or an ally in sight within 5 tiles is cured (disorientation, snares and marks end) and heals 2 HP. 1 AP, keeps your turn going. Cooldown 3.'}],
+    [{id:'m_over',name:'Overheal',desc:'Healing past full HP from your field, regeneration and actives becomes shield (up to 2).'},
+     {id:'m_dose',name:'Booster',desc:'Heal Field heals 2 per turn and its cooldown is 1 shorter.'}],
+    [{id:'m_last',name:'Last Stand',desc:'Once per match, a hit that would take you out leaves you at 1 HP instead.'},
+     {id:'m_cheal',name:'Chain Heal',act:'cheal',desc:'Active: you and every ally within 3 tiles heal 2 HP. 1 AP, keeps your turn going. Cooldown 5.'}]],
+  recon:[
+    [{id:'n_wide',name:'Wide Scan',desc:'Wall Scan reaches 2 tiles farther.'},
+     {id:'n_hunter',name:'Hunter',desc:'+10 more aim against enemies you marked yourself.'}],
+    [{id:'n_clay',name:'Claymore',desc:'Your Trip Mines deal +2 damage.'},
+     {id:'n_trap',name:'Trap Layer',desc:'Trip Mine cooldown −1, and you can keep 3 mines out.'}],
+    [{id:'n_paint',name:'Paint',desc:'Mark Target also reveals everything within 2 tiles of the target for your team until the end of next round.'},
+     {id:'n_called',name:'Called Shot',act:'called',desc:'Active: a primary shot at a marked enemy with +20 aim and +1 damage. Follows the shooting AP rules. Cooldown 3.'}],
+    [{id:'n_long',name:'Long Sight',desc:'+1 sight, and +5 aim at 7 tiles or more.'},
+     {id:'n_pulse',name:'Pulse Scan',desc:'Wall Scan cooldown −2.'}],
+    [{id:'n_exec',name:'Takedown',desc:'Enemies marked by your team take +1 damage from every hit your team lands.'},
+     {id:'n_sat',name:'Satellite Uplink',act:'uplink',desc:'Active: reveal everything within 12 tiles of you, through walls, for your team until the end of next round. 1 AP. Cooldown 6.'}]]
+});
 const CP={}; for(const c in CPERKS) CPERKS[c].forEach((tier,i)=>tier.forEach((p,j)=>{ p.cls=c; p.tier=i; p.opt=j; CP[p.id]=p; }));
 // active abilities granted by class perks; tgt picks the targeting UI (enemy, ally, sec = secondary targets, self = no target)
 const ACTS={
@@ -1837,6 +1911,15 @@ const ACTS={
   cap:{perk:'p_cap',name:'Capacitor Discharge',short:'Discharge',cd:5,tgt:'enemy'},
   stim:{perk:'p_stim',name:'Combat Stims',short:'Stims',cd:5,tgt:'self'}
 };
+// Engineer / Medic / Recon perk actives (kit: their rules run in kitActive, through doActive)
+Object.assign(ACTS,{
+  esalvo:{perk:'e_salvo',name:'Turret Salvo',short:'Salvo',cd:3,tgt:'self',kit:1},
+  emp:{perk:'e_emp',name:'EMP Burst',short:'EMP',cd:5,tgt:'self',kit:1},
+  purge:{perk:'m_purge',name:'Purge',short:'Purge',cd:3,tgt:'ally',kit:1},
+  cheal:{perk:'m_cheal',name:'Chain Heal',short:'Chain Heal',cd:5,tgt:'self',kit:1},
+  called:{perk:'n_called',name:'Called Shot',short:'Called',cd:3,tgt:'enemy',kit:1},
+  uplink:{perk:'n_sat',name:'Satellite Uplink',short:'Uplink',cd:6,tgt:'self',kit:1}
+});
 const cap1=t=>t.charAt(0).toUpperCase()+t.slice(1);
 for(const k in ACTS) ACTS[k].desc=cap1(CP[ACTS[k].perk].desc.replace(/^Active: /,''));
 const hasP=(u,id)=>!!(u&&u.cp&&u.cp[id]);
@@ -2718,6 +2801,7 @@ function makeUnit(lo,isPlayer,name,color,prof,team){
     if(prof){ const D=lo.drone&&typeof lo.drone==='object'?lo.drone:{}; m=DMODELS[D.m]&&(UNLOCK_LVL['d_'+D.m]==null||has('d_'+D.m))?D.m:'sparrow'; ups=(Array.isArray(D.up)?D.up:[]).filter((k,i,a)=>DUPS[k]&&a.indexOf(k)===i).slice(0,DRONE.slots); }
     else { const ok=DM_KEYS.filter(k=>UNLOCK_LVL['d_'+k]==null||lvlOwn('d_'+k,lv)); m=aiCos(name,ok,11); ups=lv>=14?['plate','battery']:lv>=8?['plate']:[]; }
     u.dr=droneNew(u,m,ups,eq?(cosHas('drone',eq.drone)?eq.drone:'default'):aiCos(name,AI_DSKINS,12)); }
+  kitUnit(u);
   return u;
 }
 // per-weapon mastery counters for this match (local player's own actions only; never read by the sim)
@@ -2727,7 +2811,7 @@ function mstat(k){ G.mstat=G.mstat||{}; return G.mstat[k]||(G.mstat[k]={hits:0,d
    util / obj), so a takedown knows what caused it; reaction shots (overwatch, return fire) count as primary. */
 function cstatNew(){ return {k_prim:0,k_sec:0,k_abil:0,k_util:0,k_obj:0,rfHits:0,crits:0,breach:0,doors:0,tiles:0,cover:0,booms:0,abil:0,utils:0,dmgTaken:0}; }
 function cst(u,k,n){ if(u&&u.isPlayer&&G.cstat) G.cstat[k]=(G.cstat[k]||0)+(n==null?1:n); }
-function cmdCtx(c){ const k=c&&c.k; return k==='fire'?(c.kind==='shoot'?'prim':'abil'):k==='sec'?'sec':k==='act'||k==='drone'?'abil':k==='throw'||k==='util'?'util':k==='obj'?'obj':null; }
+function cmdCtx(c){ const k=c&&c.k; return k==='fire'?(c.kind==='shoot'?'prim':'abil'):k==='sec'?'sec':k==='act'||k==='drone'||k==='kit'?'abil':k==='throw'||k==='util'?'util':k==='obj'?'obj':null; }
 function placeUnit(u,x,y){ u.x=u.rx=x; u.y=u.ry=y; u.rz=ez(x,y); }
 function throwRange(u,U){ return U.range+(U.dev?0:(u.cls==='grenadier'?2:0)+(hasP(u,'g_launch')?3:0)+(G.mut.lowg?MUT_LOWG_THROW:0)); }
 function faceTo(u,x,y){ const a=iso(u.x,u.y),b=iso(x,y); if(Math.abs(b[0]-a[0])>1) u.face=b[0]>a[0]?1:-1; }
@@ -3592,6 +3676,7 @@ function drawObj(c,o,x,y,s,al){
     if(o.scorch){ c.fillStyle='rgba(16,12,10,.55)'; c.beginPath(); c.ellipse(p[0],p[1],24,11,0,0,Math.PI*2); c.fill(); }
     for(let q=0;q<6;q++){ const u2=0.18+hash(x,y,300+q)*0.64, v2=0.18+hash(x,y,310+q)*0.64, w2=0.06+hash(x,y,320+q)*0.08, h2=2+hash(x,y,330+q)*4;
       prism(c,x+u2-w2,y+v2-w2,x+u2+w2,y+v2+w2,h2,0,C(base,1.15*s),C(base,.55*s),C(base,.8*s)); }
+  } else if(KITK[k]){ kitObjDraw(c,o,x,y,s,al);
   }
   if(o.roof) roofDeco(c,x,y,o.h,s);
   // gunfire damage on destructible objects: cracks that grow as HP drops
@@ -4114,6 +4199,7 @@ function drawSoldier(c,o){
   const pk=grn?[-tw-3.6,-TH+1.4,4.8,9.6]:AR.exo?[-tw-3,-TH+.6,4.4,10]:cls==='specialist'?[-tw-3.2,-TH+1.6,4.4,8.4]:[-tw-2.6,-TH+2,3.6,7.6];
   c.fillStyle=cd; rr(c,pk[0],pk[1],pk[2],pk[3],1.2); c.fill(); if(hd2){ c.fillStyle='rgba(255,255,255,.12)'; c.fillRect(pk[0]+.5,pk[1]+.4,pk[2]-1,.8); }
   if(cls==='specialist'){ c.strokeStyle='#2a2f38'; c.lineWidth=.7; c.beginPath(); c.moveTo(pk[0]+1,pk[1]); c.lineTo(pk[0]-.6,pk[1]-8); c.stroke(); const bl=.5+.5*Math.sin(t*5+ph); softDot(c,vc,pk[0]-.6,pk[1]-8,2.6,.5+.5*bl); c.fillStyle=vis; c.fillRect(pk[0]+.8,pk[1]+3,2.4,1); }
+  if(KITVIS[cls]) KITVIS[cls].pack(c,pk,t,ph,vis,vc,B); // Engineer / Medic / Recon gear
   if(grn){ c.fillStyle='#2a2d33'; c.beginPath(); c.arc(pk[0]+2.4,pk[1]+7.2,2.4,0,Math.PI*2); c.fill(); c.fillStyle=C(B.a); c.beginPath(); c.arc(pk[0]+2.4,pk[1]+7.2,1,0,Math.PI*2); c.fill(); }
   if(AR.exo){ c.fillStyle='#2a2f38'; c.fillRect(pk[0]+1,pk[1]+2,1.6,5); softDot(c,vc,pk[0]+1.8,pk[1]+4.5,3,.55+.25*Math.sin(t*3+ph)); }
   if(cls==='ranger'){ c.strokeStyle='#22252b'; c.lineWidth=2.2; c.beginPath(); c.moveTo(-tw-.6,0); c.lineTo(-tw+4.2,-TH-4.5); c.stroke(); if(!(A&&A.k==='melee'&&A.s==='blade')){ c.strokeStyle='#cfd8e2'; c.lineWidth=.9; c.beginPath(); c.moveTo(-tw+4,-TH-4.2); c.lineTo(-tw+5.4,-TH-7.4); c.stroke(); c.strokeStyle=C(hexc(FINISHES[o.finish]?FINISHES[o.finish].c:'#1b1e24')); c.lineWidth=1.6; c.beginPath(); c.moveTo(-tw+5.4,-TH-7.4); c.lineTo(-tw+6.2,-TH-9.6); c.stroke(); } }
@@ -4322,6 +4408,7 @@ function drawHead(c,AR,cls,B,cm,ca,vis,vc,visX,t,ph,hd,L,rim,o,gcol){
   else if(cls==='grenadier'){ c.fillStyle='#2a2d33'; c.beginPath(); c.arc(-2,1,2.3,0,Math.PI*2); c.fill(); c.fillStyle=C(B.a,.8); c.beginPath(); c.arc(-2,1,1.1,0,Math.PI*2); c.fill(); }
   else if(cls==='specialist'){ c.strokeStyle='#22252b'; c.lineWidth=.6; c.beginPath(); c.moveTo(-1.4,2.2); c.quadraticCurveTo(1.4,4.6,3.6,3.6); c.stroke(); c.fillStyle=vis; c.fillRect(3.4,3.2,.9,.9); }
   else if(cls==='ranger'){ const w=Math.sin(t*3+ph)*.8; c.strokeStyle=C(B.a,.75); c.lineWidth=1.3; c.beginPath(); c.moveTo(-3.6,3.4); c.quadraticCurveTo(-7,4+w,-9.4,2.6+w*1.6); c.stroke(); }
+  else if(KITVIS[cls]) KITVIS[cls].head(c,t,ph,vis,vc,B);
   // visor glow, helmet rim light
   if(gl){ const ga=c.globalAlpha; c.globalCompositeOperation='lighter'; c.globalAlpha=ga*gl[3]; c.drawImage(softTex(vc),gl[0]-gl[2],gl[1]-gl[2],gl[2]*2,gl[2]*2); c.globalAlpha=ga; c.globalCompositeOperation='source-over'; }
   if(hd){ c.strokeStyle=C(rim,1,.45); c.lineWidth=.6; c.beginPath(); if(L<0) c.arc(.5,0,5.1,Math.PI*.95,Math.PI*1.45); else c.arc(.5,0,5.1,Math.PI*1.55,Math.PI*2.05); c.stroke(); }
@@ -5291,6 +5378,7 @@ function drawWorld(c){
   drawRideGround(c); // drop ship shadows and rotor wash (intro)
   if(st) drawStormRing(c,true);
   if(G.gm&&G.scene==='game') gmDraw(c);
+  kitDraw(c); // heal fields, own trip mines, mark reticles
   if(G.drop&&!G.drop.landed){ const d=G.drop, p=iso(d.x+.5,d.y+.5), z=ez(d.x,d.y), pu=.5+.5*Math.sin(t*5);
     c.save(); c.translate(0,-z); c.strokeStyle='rgba(255,80,60,'+(0.5+0.4*pu)+')'; c.lineWidth=2.5; for(let r=0;r<2;r++){ const rr2=18+r*14+pu*6; c.beginPath(); c.ellipse(p[0],p[1],rr2,rr2*0.5,0,0,Math.PI*2); c.stroke(); }
     c.globalCompositeOperation='lighter'; const g=c.createLinearGradient(p[0],p[1]-260,p[0],p[1]); g.addColorStop(0,'rgba(255,60,40,0)'); g.addColorStop(1,'rgba(255,80,60,.5)'); c.fillStyle=g; c.fillRect(p[0]-2,p[1]-260,4,260); c.globalCompositeOperation='source-over';
@@ -5319,7 +5407,7 @@ function drawWorld(c){
       const sp=sprite('p'+i+'_'+sh+(tp?'t':''),e.bx,e.by,TW+8,tp?TH+8:TH+EZ+8,g=>drawPlatform(g,x,y,sh)); c.drawImage(sp.cv,sp.x,sp.y,sp.w,sp.h); platOverlay(c,x,y,i); }
     else if(e.k===1){ drawCrate(c,e.q,shadeAt(idx(e.q.x,e.q.y))<1?0.55:1); }
     else if(e.k===3){ drawSite(c,e.q,shadeAt(idx(e.q.x,e.q.y))<1?0.6:1); }
-    else if(e.k===5){ const q=unitScreen(e.u); if(onScreen(q[0]-40,q[1]-40,80,110)) drawDroneUnit(c,e.u); }
+    else if(e.k===5){ const q=unitScreen(e.u); if(onScreen(q[0]-40,q[1]-40,80,110)) (e.u.tur?drawTurret:drawDroneUnit)(c,e.u); }
     else if(e.k===6){ drawDroneWreck(c,e.u); }
     else { const q=unitScreen(e.u); if(e.u.drop>0||onScreen(q[0]-60,q[1]-90,120,120)){ if(e.u.alive&&!e.u.drop&&G.surf[idx(clamp(Math.round(e.u.rx),0,MW-1),clamp(Math.round(e.u.ry),0,MH-1))]===1) wadeRings(c,q,t); drawUnit(c,e.u); } }
   }
@@ -5868,6 +5956,7 @@ function hitInfo(a,t,o){
   if(hasP(a,'s_mark')&&!t.downed&&t.hp*2<t.maxHp){ aim+=25; mods.push(['executioner',25]); }
   if(t.holo&&t.holo.team===a.team&&G.round<=t.holo.until){ aim+=15; mods.push(['holo-targeted',15]); }
   if(t.mark&&t.mark.team===a.team&&G.round<=t.mark.until){ aim+=DRONE.markAim; mods.push(['drone mark',DRONE.markAim]); }
+  aim+=kitAim(a,t,d,mods); // Mark Target, Hunter, Long Sight (class abilities)
   // weather: rain spoils long shots
   const wx=wxNow(); if(wx.longAim&&d>=wx.longD-0.01){ aim+=wx.longAim; mods.push(['rain at range',wx.longAim]); }
   const fs=flankState(a,t,ax,ay); if(fs.flanked){ aim+=FLANK.aim; mods.push(['flanked',FLANK.aim]); }
@@ -5894,11 +5983,12 @@ function feedLine(text,you){
 function mine(u){ return !!(u&&G.player&&u.team===G.player.team); }
 function applyDamage(t,d,src,o){
   o=o||{}; if(!t.alive||t.infDown) return; if(src&&G.mut.one) d=Math.max(d,t.hp+t.shield+t.armor+1); // One-shot mutator: any hit is lethal (storm damage has no source)
-  if(t.drone){ droneHurt(t,d,src,o); return; } // a deployed Specialist drone: its own HP, never downed, no kill credit
+  if(t.drone){ if(t.tur) turHurt(t,d,src,o); else droneHurt(t,d,src,o); return; } // a deployed Specialist drone: its own HP, never downed, no kill credit
   // weapon mastery (local player only, like G.stats): damage and takedowns (downs and eliminations) with that weapon
   const ms=o.wid&&src&&src.isPlayer&&isEnemy(src,t)&&mastTracked(o.wid)?mstat(o.wid):null;
   if(t.downed){ if(o.anim) floatText(t,'FINISHED',[255,77,94],20); if(ms) ms.kills++; kill(t,src,o.anim,o.how); return; }
   if(t.rupt&&src&&src!==t) d+=t.rupt; // Rupture (Grenadier perk): +1 damage from every hit
+  d+=kitDmg(t,src); // Takedown (Recon perk): marked enemies take +1
   let dmg=o.pierce?d:Math.max(1,d-t.armor); const total=dmg; let abs=0;
   if(t.shield>0){ abs=Math.min(t.shield,dmg); t.shield-=abs; dmg-=abs; }
   t.hp-=dmg; t.flash=0.3; cst(t,'dmgTaken',dmg);
@@ -5907,6 +5997,7 @@ function applyDamage(t,d,src,o){
   if(t.isPlayer) buzz(o.crit?[30,30,50]:35);
   if(o.anim){ hitFx(t,abs); floatText(t,(o.graze?'GRAZE ':o.crit?'CRIT ':'')+'−'+total,o.graze?[190,215,255]:o.crit?[255,180,60]:[255,255,255],o.crit?24:o.graze?18:20); SFX.hit(); if(o.crit) G.cam.shake=Math.max(G.cam.shake,6); }
   if(t.tutGuard&&t.hp<1) t.hp=1;
+  kitLast(t,o); // Last Stand (Medic perk)
   if(t.hp<=0){ t.hp=0; if(G.M.inf&&infCatch(t,src,o)) return; if(G.M.team>1&&!G.M.resp&&G.units.some(m=>m!==t&&m.team===t.team&&standing(m))) down(t,src,o.anim,o.how); else if(G.M.team===1&&t.sw>0) swDown(t,src,o.anim); else kill(t,src,o.anim,o.how); }
 }
 function down(t,src,anim,how){
@@ -5934,6 +6025,7 @@ function kill(t,src,anim,how){
   t.vDeathS=src&&src!==t?(iso(t.x,t.y)[0]>=iso(src.x,src.y)[0]?1:-1):-t.face; // visual: which way the body falls
   t.alive=false; t.downed=false; t.swDown=false; t.deadT=0.001; t.overwatch=false; t.hunker=false;
   if(t.dr&&t.dr.st!=='dead'){ if(t.dr.alive) droneWreck(t.dr,null,!!anim||shouldShow(t.dr),true); t.dr.st='dead'; t.dr.alive=false; t.dr.rb=99; } // the Specialist is out: its drone goes down with it
+  kitOwnerOut(t); // an Engineer's turrets go down with it
   bountyKill(t,src);
   if(src&&src!==t&&isEnemy(src,t)){ src.kills++; src.tk=(src.tk||0)+1; if(src.isPlayer){ G.stats.kills++; cst(src,'k_'+(G.cctx||'prim')); floatText(src,'+'+killValue(src)+' CR',[255,179,64],17); buzz(25); } else if(Math.random()<0.3&&shouldShow(src)) bubble(src,fpick(TAUNTS)); }
   feedLine(src&&src!==t?(src.name+' eliminated '+t.name+(how?' ('+how+')':'')):(t.name+(how==='bled out'?' bled out':how==='explosion'?' was caught in a blast':how==='team wiped'?' was eliminated with their team':' was lost to the storm')),mine(t)||mine(src));
@@ -6018,6 +6110,7 @@ async function moveUnit(u,path){
     sensorCheck(u);
     scanCheck(u);
     await triggerOverwatch(u);
+    if(await kitStep(u)) return; // trip mines (stop the move) and turret reactions
   }
 }
 async function triggerOverwatch(m){
@@ -6076,6 +6169,7 @@ async function doZap(u,t,o){
 }
 async function doSlash(u,t,path){
   if(path&&path.length>1){ u.vDash=1; await moveUnit(u,path); } u.vDash=0;
+  if(u.kRoot&&!canMelee(u.x,u.y,t.x,t.y)) return; // a trip mine stopped the dash
   if(!standing(u)||!t.alive||G.over) return;
   const anim=shouldShow(u)||shouldShow(t); faceTo(u,t.x,t.y);
   if(anim){ vAnim(u,'melee',.62,{rel:.22,s:'blade'}); focusMid(u,t); await wait(220); const p=chest(t); addFx({type:'slash',x:p[0],y:p[1],rot:u.face>0?0.3:-0.3,col:mine(u)?[120,230,255]:[255,120,100],life:.45,s:'blade'}); SFX.slash(); for(let i=0;i<10;i++) part({x:p[0],y:p[1],vx:frand(-160,160),vy:frand(-120,60),life:frand(.2,.4),size:1.6,col:[255,255,255],type:'spark',grav:200}); await wait(140); }
@@ -6163,6 +6257,7 @@ function afterAttack(u,tk0,prim){
 /* ---------- class perk actives ({k:'act',a,t?}) ---------- */
 async function doActive(u,c){
   const k=c.a, A=ACTS[k]; if(!A||!hasP(u,A.perk)||(u.cd[k]||0)>0||u.ap<=0) return;
+  if(A.kit){ await kitActive(u,c,A); return; } // Engineer / Medic / Recon perk actives
   const t=c.t!=null?G.units.find(x=>x.id===c.t):null, tk0=u.tk||0, an=()=>shouldShow(u);
   const foe=!!(t&&t.alive&&isEnemy(u,t)&&canSee(u,t));
   if(k==='rapid'){ if(!foe||u.ammo<2||u.W.heavy) return; u.ap=0; u.cd[k]=A.cd;
@@ -6233,7 +6328,8 @@ async function deployDevice(u,util,tx,ty,anim){
     if(mine(u)) floatText(tileDummy(tx,ty),util.id==='drone'?'AREA REVEALED':'SENSOR ONLINE',[127,232,255],16); await wait(500); }
 }
 async function doRevive(u,t){
-  u.ap=0; faceTo(u,t.x,t.y); t.downed=false; t.hp=3; t.bleed=0; t.dnBy=null;
+  u.ap=kitRevAp(u); faceTo(u,t.x,t.y); t.downed=false; t.hp=3; t.bleed=0; t.dnBy=null;
+  kitRevived(u,t); // Medic: revives cost 1 AP and bring the ally back with 4 HP
   if(u.isPlayer) G.stats.revives++;
   feedLine(u.name+' revived '+t.name,mine(u));
   if(shouldShow(u)||shouldShow(t)){ focusMid(u,t); vAnim(u,'revive',.85); floatText(t,'REVIVED',[93,255,154],24); healFx(t); const p=chest(t); addFx({type:'ring',x:p[0],y:p[1]+19,r:50,col:[93,255,154],life:.6}); SFX.heal(); await wait(850); }
@@ -6845,6 +6941,7 @@ async function runMatch(){
     await objectivePhase(); if(G.over||G.matchId!==mid) break;
     if(G.gm){ await gmRoundStart(); if(G.over||G.matchId!==mid) break; } // objective modes: respawns, hill moves, round banners
     if(G.M.inf||G.M.night){ await modePhase(); if(G.over||G.matchId!==mid) break; } // the outbreak / its timer; flares burning out
+    kitRound(); // class abilities: turrets expire, heal fields fade
     for(const u of G.units){ if(G.over||G.matchId!==mid||(G.gm&&G.gm.halt)) break; if(!u.alive) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); const b=!G.over&&bountyOn(); if(b&&b.t===u.id) bountyPing(b); }
     G.turnU=null;
     if(G.gm){ await gmRoundEnd(); if(G.over||G.matchId!==mid) break; } // objective modes: scoring, Siege round changes, the end
@@ -7176,6 +7273,7 @@ async function unitTurn(u,mid){
   for(const k in u.cd) if(u.cd[k]>0) u.cd[k]--;
   await droneTurnStart(u); if(!standing(u)||G.over||G.matchId!==mid) return;
   await turnStartPerks(u);
+  await kitTurnStart(u); if(!standing(u)||G.over||G.matchId!==mid) return; // Adrenaline, snares, heal fields, Medic regeneration
   if(outsideStorm(u.x,u.y)){ const d=stormDmg(G.storm.stage)||1; if(d>0){ const show=shouldShow(u); if(show){ focusOn(u.x,u.y); await wait(300); floatText(u,'STORM',G.R.storm,18); }
       applyDamage(u,d,null,{pierce:true,anim:show}); if(show) await wait(700); if(!standing(u)||G.over||G.matchId!==mid) return; } }
   if(u.isPlayer&&!G.autoPlayer) await playerTurn(u); else if(u.net) await netTurn(u,mid); else await aiTurn(u,mid);
@@ -7229,6 +7327,7 @@ function enterTarget(kind,pre){
   else if(kind==='sec'||kind==='hands'){ const s=secTargets(u,kind==='hands',true); G.secMap=new Map(s.map(q=>[q.t,q])); list=s.map(q=>q.t); }
   else if(kind.startsWith('d_')) list=dTargets(u,kind.slice(2)); // drone actions: targets from the drone's own position and sight
   else if(kind==='shoot') list=visibleEnemies(u).concat(foeDrones(u)); // enemy drones can be shot
+  else if(KIT[kind]) list=kitTargets(u,kind); // class abilities: allies, downed allies, turrets, drones or enemies
   else list=visibleEnemies(u);
   if(!list.length){ hint('No targets in sight'); return; }
   const score=t=>kind==='d_aid'?(t.hp+t.shield)/t.maxHp*-100:kind.startsWith('d_')?-t.hp-(t.drone?20:0):kind==='aid'?(t.hp+t.shield)/t.maxHp*-100:kind==='sec'||kind==='hands'?secInfo(u,t,G.secMap.get(t).mode).any:kind==='slash'||kind==='zap'||kind==='hail'||kind==='cap'||kind==='rupt'||kind==='supp'?-t.hp:hitInfo(u,t,{deadeye:kind==='deadeye',aimMod:kind==='rapid'?-15:0}).any;
@@ -7287,6 +7386,7 @@ async function execCmd0(u,c){
   else if(c.k==='ow'){ u.overwatch=true; u.ap=0; if(shouldShow(u)) floatText(u,'OVERWATCH',mine(u)?[127,232,255]:[255,140,120],20); }
   else if(c.k==='hunker'){ u.hunker=true; u.ap=0; if(hasP(u,'g_bulw')) u.shield+=2; if(shouldShow(u)) floatText(u,'HUNKER DOWN'+(hasP(u,'g_bulw')?' +2 SHIELD':''),[159,215,255],20); }
   else if(c.k==='reload') await doReload(u);
+  else if(c.k==='kit'){ await kitCmd(u,c); }              // Engineer / Medic / Recon class abilities: {k:'kit',a,t?,x?,y?,v?}
   else if(c.k==='ping') applyPing(u,c.p,c.x,c.y);           // team order for an AI teammate: {k:'ping',p,x,y} (no AP)
   else u.ap=0;
 }
@@ -7297,11 +7397,13 @@ async function pFire(){
   if(k.startsWith('d_')) c={k:'drone',a:k.slice(2),t:t.id};
   else if(k==='sec'||k==='hands'){ const s=G.secMap&&G.secMap.get(t); c={k:'sec',t:t.id}; if(s&&s.path&&s.path.length>1) c.path=s.path; if(k==='hands') c.free=1; }
   else if(ACTS[k]) c={k:'act',a:k,t:t.id};
+  else if(KIT[k]) c={k:'kit',a:k,t:t.id};
   await playCmd(c);
 }
 async function pThrow(){
   if(!inputOpen()||G.throwTile<0) return; if(TUT.on&&!tutAllow('throw')) return; const u=G.player, util=G.throwUtil; const tx=G.throwTile%MW, ty=(G.throwTile/MW)|0;
   G.busy=true; G.mode='idle'; updateHUD();
+  if(util.kit){ await playCmd(Object.assign({k:'kit',a:util.kit,x:tx,y:ty},util.kit==='wall'?{v:G.kitV?1:0}:{})); return; } // class ability placements
   await playCmd({k:'throw',i:u.utils.indexOf(util),x:tx,y:ty});
 }
 async function pMove(){
@@ -7322,6 +7424,7 @@ function onAction(id){
   if(id.startsWith('d_')){ const a=id.slice(2), A=DACTS[a], w=dWhy(u,a); if(!A) return; if(w){ hint(w); return; }
     if(A.tgt){ if(G.dmode!=='ctl'){ G.dmode='ctl'; refreshReach(); } enterTarget(id); return; }
     G.busy=true; G.mode='idle'; playCmd({k:'drone',a}); return; }
+  if(KIT[id]&&!KIT[id].act){ kitAction(u,id); return; } // Engineer / Medic / Recon abilities
   if(id==='door'){ const dr=adjDoor(u); if(dr){ G.busy=true; G.mode='idle'; playCmd({k:'door',x:dr.x,y:dr.y}); } return; }
   if(u.shot&&id!=='end'){ hint('After shooting you can only move'); return; }
   if(id==='breach'){ const dr=adjDoor(u); if(dr&&dr.o.t===2){ G.busy=true; G.mode='idle'; playCmd({k:'breach',x:dr.x,y:dr.y}); } return; }
@@ -7386,6 +7489,7 @@ function actionList(){
       else if(k==='cap'&&!vis.some(t=>tdist(u,t)<=12)) no('No enemy in sight'); else if(k==='whirl'&&!vis.some(t=>canMelee(u.x,u.y,t.x,t.y))) no('No enemy adjacent');
       else if(k==='hands'&&!secTargets(u,true).length) no('No target for your '+(S?S.short.toLowerCase():'secondary')); }
     A.push({id:k,label:X.short,sub:c2?c2+' turn'+(c2>1?'s':''):'Ready',icon:'a_'+k,off,why:w,abil:true}); }
+  kitActs(u,A,vis,ap); // the kit's other abilities next to the class ability
   // terrain: doors next to you, and destructible objects / explosives in sight
   const dr=adjDoor(u); if(dr){ const shut=dr.o.t===2, blk=!shut&&doorBlocked(dr.x,dr.y), used=u.doorR===G.round;
     A.push({id:'door',label:shut?'Open door':'Close door',sub:'Free',icon:'door',off:!ap||used||blk,why:used?'One door action per turn':blk?'Something is in the doorway':'',free:true});
@@ -7590,6 +7694,7 @@ async function aiTurn0(u,mid){
   // an unseen unit's turn is a short pause (shorter with 12-16 operatives: the turn-order strip marks it fast-forwarded)
   if(shouldShow(u)){ turnTag(u.name+' · '+CLASSES[u.cls].name,mine(u)?'you':'enemy'); focusOn(u.x,u.y); await wait(380); } else { turnTag('Hostile activity','enemy'); await wait(G.units.length>8?35:70); }
   if(stale()) return;
+  if(u.cls==='medic'&&await aiKit(u,stale,false)){ if(stale()||u.ap<=0) return; } // Revive Beam before walking over
   if(G.M.team>1&&await aiRevive(u)){ if(stale()||u.ap<=0) return; }
   // empty primary: reload first, unless a sidearm shot is available (it costs 1 AP and still leaves a move)
   if(u.ammo===0&&!u.noGun&&u.ap>0&&!(u.S&&u.S.type==='pistol'&&u.sAmmo>0&&visibleEnemies(u).length)) await doReload(u);
@@ -7598,6 +7703,7 @@ async function aiTurn0(u,mid){
   if(stale()) return;
   await aiDrone(u,stale,false); if(stale()) return; // the drone goes first: deploy, zap, support (its own drone AP)
   await aiPerkPre(u,stale); if(stale()||u.ap<=0) return;
+  await aiKit(u,stale,false); if(stale()||u.ap<=0) return; // Engineer / Medic / Recon abilities before moving
   await aiUtilPre(u); if(stale()||u.ap<=0) return;
   if(G.gm){ await gmAiPre(u); if(stale()||u.ap<=0) return; } // Siege: breaching charges and barricades
   // standing on an objective at turn start: work it first (1 AP), then fight or reposition with the other
@@ -7611,6 +7717,7 @@ async function aiTurn0(u,mid){
     if(u.shot){ const mv=aiChooseMove(u,1); u.ap=0; if(mv&&mv.cost<=u.mob+1e-6){ await moveUnit(u,mv.path); u.moved=true; } break; }
     atk=aiBestAttack(u);
     if(await aiSite(u,atk)){ continue; }
+    if((!atk||atk.score<30||atk.k==='shoot')&&await aiKit(u,stale,true)) continue; // and again once in position
     if(atk&&atk.score>=8){ await aiExecute(u,atk); continue; }
     if(u.ammo===0&&!u.noGun){ await doReload(u); continue; }
     const vis=visibleEnemies(u);
@@ -7840,7 +7947,7 @@ function updateHUD(){
   $('#uAp').innerHTML='<i class="'+(u.ap>=1?'on':'')+'"></i><i class="'+(u.ap>=2?'on':'')+'"></i>'+(u.ap>=3?'<i class="on"></i>':'');
   $('#uAmmo').textContent='Ammo '+u.ammo+'/'+u.W.clip+(u.S&&u.S.clip?' · '+u.S.short+' '+u.sAmmo+'/'+u.S.clip:u.S&&u.S.uses?' · '+u.S.short+' ×'+u.sUses:'');
   const sw=$('#uSw'); sw.classList.toggle('hidden',!(u.sw>0)); sw.title=SW_TXT;
-  const sts=[]; if(u.swDown) sts.push('Second Wind: back up next turn'); else if(u.downed) sts.push('Downed: '+u.bleed+' turn'+(u.bleed===1?'':'s')+' to bleed out'); if(u.overwatch) sts.push('Overwatch'); if(u.hunker) sts.push('Hunkered'); if(u.disorient>0) sts.push('Disoriented'); if(hi(u.x,u.y)) sts.push('High ground'); if(inSmoke(u.x,u.y)) sts.push('In smoke'); if(outsideStorm(u.x,u.y)) sts.push('In storm'); $('#uSt').textContent=sts.join(' · ');
+  const sts=[]; if(u.swDown) sts.push('Second Wind: back up next turn'); else if(u.downed) sts.push('Downed: '+u.bleed+' turn'+(u.bleed===1?'':'s')+' to bleed out'); if(u.overwatch) sts.push('Overwatch'); if(u.hunker) sts.push('Hunkered'); if(u.disorient>0) sts.push('Disoriented'); if(hi(u.x,u.y)) sts.push('High ground'); if(inSmoke(u.x,u.y)) sts.push('In smoke'); if(outsideStorm(u.x,u.y)) sts.push('In storm'); kitSts(u,sts); $('#uSt').textContent=sts.join(' · ');
   // drone row: model, HP pips, drone AP (deployed) or its state; the panel turns teal while you control the drone
   const dp=$('#uDr'), dc=G.dmode==='ctl'&&dCanAct(u); up.classList.toggle('dctl',dc);
   if(u.dr){ const d=u.dr; let h='<span class="dl">'+ICON.drone+DMODELS[d.model].name+'</span>';
@@ -7865,8 +7972,8 @@ function updateHUD(){
 function weaponMkU(u){ return u.mk||1; }
 // target panel for drone actions (from the drone's position)
 function fillDroneTarget(u,t,a){ const d=u.dr, A=DACTS[a]; if(!d) return;
-  $('#tName').textContent=t===u?'You':t.drone?t.name+' drone':t.name;
-  $('#tSub').textContent=(t.drone?DMODELS[t.model].name+' drone':CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(d,t).toFixed(1)+' tiles from the drone';
+  $('#tName').textContent=t===u?'You':t.drone?t.name+(t.tur?' turret':' drone'):t.name;
+  $('#tSub').textContent=(t.tur?'Sentry turret':t.drone?DMODELS[t.model].name+' drone':CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(d,t).toFixed(1)+' tiles from the drone';
   let hit='100%', lbl=A.name, row=''; const zd=3+(hasP(u,'p_over')?1:0)+(DMODELS[d.model].zap||0);
   if(a==='zap') row='<span>Damage '+zd+(hasP(u,'p_chain')?' (+ chain)':'')+'</span><span>Armor-piercing</span>'+(hasP(u,'p_hay')?'<span>Haywire</span>':'');
   else if(a==='burst'){ hit=burstHit(d,t)+'%'; lbl='Burst · chance to hit'; row='<span>Damage '+DRONE.burst+'</span><span>Armor-piercing</span>'; }
@@ -7875,12 +7982,13 @@ function fillDroneTarget(u,t,a){ const d=u.dr, A=DACTS[a]; if(!d) return;
   else if(a==='cap') row='<span>Damage 3, +2 to enemies within 2 tiles</span>';
   $('#tHit').textContent=hit; $('#tHitL').textContent=lbl; $('#tRow').innerHTML=row+'<span>1 drone AP ('+d.ap+' left)</span>';
   $('#tMods').textContent=A.d+(a==='zap'?' Cooldown '+abilCd(u,'zap')+'.':A.cd?' Cooldown '+A.cd+'.':'');
-  $('#tChips').innerHTML=G.targets.length>1?G.targets.map((q,i)=>'<button class="tchip'+(i===G.tIdx?' sel':'')+'" data-ti="'+i+'">'+(q===u?'You':q.drone?q.name+' drone':q.name)+(a==='burst'?' '+burstHit(d,q)+'%':'')+'</button>').join(''):'';
+  $('#tChips').innerHTML=G.targets.length>1?G.targets.map((q,i)=>'<button class="tchip'+(i===G.tIdx?' sel':'')+'" data-ti="'+i+'">'+(q===u?'You':q.drone?q.name+(q.tur?' turret':' drone'):q.name)+(a==='burst'?' '+burstHit(d,q)+'%':'')+'</button>').join(''):'';
   const fb=$('#tFire'); fb.textContent=A.short; fb.classList.remove('off'); }
 function fillTargetPanel(){
   const u=G.player, t=G.targets[G.tIdx], k=G.tKind; if(!t) return;
   if(k.startsWith('d_')){ fillDroneTarget(u,t,k.slice(2)); return; }
-  $('#tName').textContent=t.drone?t.name+' drone':t.name; $('#tSub').textContent=(t.drone?DMODELS[t.model].name+' drone':CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(u,t).toFixed(1)+' tiles'+(hi(t.x,t.y)?' · high ground':'');
+  if(KIT[k]){ kitFillTarget(u,t,k); return; }
+  $('#tName').textContent=t.drone?t.name+(t.tur?' turret':' drone'):t.name; $('#tSub').textContent=(t.tur?'Sentry turret':t.drone?DMODELS[t.model].name+' drone':CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(u,t).toFixed(1)+' tiles'+(hi(t.x,t.y)?' · high ground':'');
   let hit,crit,dmg,cov,mods=[],gr=0,full=0,lbl=null,note=null,aimTxt='Aim '+u.aim+' ',fl=false;
   const rb=hasP(u,'r_reaper')?2:0, zd=3+(hasP(u,'p_over')?1:0);
   if(k==='zap'){ hit=100; crit=0; dmg=String(zd)+(hasP(u,'p_chain')?' (+ chain)':''); cov=-1; }
@@ -7902,12 +8010,13 @@ function fillTargetPanel(){
   if((k==='shoot'||k==='deadeye'||k==='rapid'||k==='rupt'||k==='hail')&&rfReady(t,u)) note=(note?note+' ':'')+'In full cover: '+t.name+' will return fire.';
   $('#tMods').textContent=(mods.length?(aimTxt+mods.map(m=>(m[1]>0?'+':'')+m[1]+' '+m[0]).join(', ')+'.'+(gr?' Grazes deal half damage.':'')):(ABIL[k]?ABIL[k].desc:ACTS[k]?ACTS[k].desc:''))+(note?' '+note:'');
   const chipHit=q=>k==='shoot'||k==='deadeye'||k==='rapid'?hitInfo(u,q,{deadeye:k==='deadeye',aimMod:k==='rapid'?-15:0}).any+'%':(k==='sec'||k==='hands')&&G.secMap&&G.secMap.get(q)?secInfo(u,q,G.secMap.get(q).mode).any+'%':'';
-  $('#tChips').innerHTML=G.targets.length>1?G.targets.map((q,i)=>'<button class="tchip'+(i===G.tIdx?' sel':'')+'" data-ti="'+i+'">'+(q===u?'You':q.drone?q.name+' drone':q.name)+' '+chipHit(q)+'</button>').join(''):'';
+  $('#tChips').innerHTML=G.targets.length>1?G.targets.map((q,i)=>'<button class="tchip'+(i===G.tIdx?' sel':'')+'" data-ti="'+i+'">'+(q===u?'You':q.drone?q.name+(q.tur?' turret':' drone'):q.name)+' '+chipHit(q)+'</button>').join(''):'';
   const q0=(k==='sec'||k==='hands')&&G.secMap&&G.secMap.get(t);
   const fb=$('#tFire'); fb.textContent=k==='shoot'?'Fire':k==='slash'?'Strike':k==='zap'?'Zap':q0?(q0.mode==='throw'?'Throw':q0.mode==='pistol'?'Fire':'Strike'):ABIL[k]?ABIL[k].short:ACTS[k]?ACTS[k].short:'Go'; fb.classList.remove('off');
 }
 function fillThrowPanel(){
   const u=G.player, util=G.throwUtil, U=UTILS[util.id];
+  if(U.kit){ kitFillThrow(u,util,U); return; } // class ability placements
   $('#tName').textContent=U.name; $('#tSub').textContent=U.desc+' Range '+throwRange(u,U)+'.';
   if(U.dev||U.flare){ // never count units in the area: that would leak what fog hides
     $('#tSub').textContent=U.info+'. Range '+throwRange(u,U)+' tiles.';
@@ -7982,7 +8091,7 @@ function onTap(sx,sy){
   else if(G.mode==='move'&&hu&&isEnemy(u,hu)&&!G.dmode){ if(u.ap>0&&!u.shot&&u.ammo>0&&!(u.W.heavy&&u.ap<2)&&canSee(u,hu)){ enterTarget('shoot',hu); SFX.click(); return; } }
   const tt=screenToTile(sx,sy), tx=tt[0], ty=tt[1];
   if(G.mode==='obj'){ const i=(G.objT||[]).findIndex(q=>q[0]===tx&&q[1]===ty); if(i>=0){ if(i===G.oIdx){ pObj(); return; } G.oIdx=i; SFX.click(); updateHUD(); } return; }
-  if(G.mode==='throw'){ if(!inMap(tx,ty)) return; const U=UTILS[G.throwUtil.id]; if(Math.hypot(tx-u.x,ty-u.y)<=throwRange(u,U)&&(G.vis[idx(tx,ty)]||U.blind)&&!(U.dev&&solidT(tx,ty))&&!(U.cover&&!gmCoverOk(tx,ty))){ const i=idx(tx,ty); if(G.throwTile===i){ pThrow(); return; } G.throwTile=i; SFX.click(); updateHUD(); } else hint('Out of range'); return; }
+  if(G.mode==='throw'){ if(!inMap(tx,ty)) return; const U=UTILS[G.throwUtil.id]; if(Math.hypot(tx-u.x,ty-u.y)<=throwRange(u,U)&&(G.vis[idx(tx,ty)]||U.blind)&&!(U.dev&&solidT(tx,ty))&&!(U.cover&&!gmCoverOk(tx,ty))&&!(U.kitOk&&!U.kitOk(u,tx,ty))){ const i=idx(tx,ty); if(G.throwTile===i){ pThrow(); return; } G.throwTile=i; SFX.click(); updateHUD(); } else hint('Out of range'); return; }
   if(G.mode==='move'){ if(!inMap(tx,ty)||!G.reach){ return; } const i=idx(tx,ty), d=G.reach.dist[i];
     if(isFinite(d)&&d>0){ if(G.pending===i){ pMove(); return; } G.pending=i; G.pendingPath=buildPath(G.reach,i); SFX.click(); buzz(8);
       if(PROF.settings.oneTap){ pMove(); return; } hint('Tap again to move'); updateHUD(); }
@@ -8317,6 +8426,7 @@ const UNLOCKS={2:['u_shieldcell','w_carbine'],3:['mk2_rifle','mk2_shotgun','mk2_
 CP_LVL.forEach((l,i)=>UNLOCKS[l].push('ct'+(i+1)));
 UNLOCKS[3].push('u_drone'); UNLOCKS[5].push('u_sensor'); // fog-of-war tools
 UNLOCKS[5].push('d_striker'); UNLOCKS[8].push('d_medic'); UNLOCKS[12].push('d_bulwark'); (UNLOCKS[16]=UNLOCKS[16]||[]).push('d_jammer'); // Specialist drone models (Sparrow is the starter)
+UNLOCKS[4].push('mk2_wsmg'); UNLOCKS[9].push('mk3_wsmg'); // Recon's Hush SMG Mk upgrades
 for(const cat in COS) for(const k in COS[cat]){ const l=COS[cat][k].lvl; if(l) (UNLOCKS[l]=UNLOCKS[l]||[]).push('cos:'+cat+':'+k); } // free cosmetics on the level track
 const UNLOCK_LVL={}; for(const l in UNLOCKS) for(const id of UNLOCKS[l]) UNLOCK_LVL[id]=+l;
 function unlockName(id){
@@ -8622,6 +8732,7 @@ function gmRevive(u){
   Object.assign(u,{alive:true,downed:false,swDown:false,hp:u.maxHp,shield:u.sh0|0,ammo:u.W.clip,sAmmo:u.S.clip||0,sUses:u.S.uses||0,cd:{},bleed:0,disorient:0,overwatch:false,hunker:false,
     moved:false,shot:false,ap:0,dnBy:null,deadT:0,mark:null,rupt:0,flash:0,drop:0,inRide:false,dOff:null,vKfx:null,vKfxDn:false,roam:null,_goal:null,rsp:null});
   u.utils=(u.ut0||u.utils).map(q=>({id:q.id,ch:q.ch}));
+  kitUnitReset(u);
   const d=u.dr; if(d) Object.assign(d,{st:'dock',alive:false,hp:d.maxHp,shield:0,ap:0,rb:0,jam:0,wx:null,mark:null,depR:-1});
 }
 // where an operative comes back in: open ground far from standing enemies (and out of their sight), near its team, off the hill
@@ -8735,6 +8846,7 @@ function siegePlace(){ const S=G.gm, c=S.core.x, H=SIEGE.H, side=ri(0,3), dir=[[
 function siegeReset(){ const S=G.gm;
   G.grid=S.grid0.map(o=>o?Object.assign({},o):null); G.crates=S.crates0.map(q=>Object.assign({},q));
   G.smoke=G.smoke.filter(q=>q.perm); G.drop=null; G.reveals=[]; G.sensors=[]; G.noise=[]; G.intel={}; G.prints=[]; G.scans=[]; G.decals=[]; G.lkp=new Map(); G.cues=[]; G.place=0; G.cmd={};
+  kitReset(); // turrets, mines and fields of the last Siege round
   siegePlace(); losClear(); G.seen.fill(0); buildGround(); G.groundDirty=false;
   for(const u of G.units){ u.drop=1; dropLand(u,0.7); }
   computeVis(); }
@@ -9054,7 +9166,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=24, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=25, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
@@ -9699,6 +9811,7 @@ function renderLoadout(){
     if(draft.cls==='specialist'){ const D=draft.drone||{m:'sparrow',up:[]}, M=DMODELS[D.m]||DMODELS.sparrow, st=dmStats(D.m,D.up), mi=dMastInfo(), sk=DSKINS[PROF.equip.drone]||DSKINS.default, nU=Object.keys(DUPS).filter(k=>mi.l>=DUPS[k].m).length;
       h+='<div class="grp"><h3>Drone <small>mastery '+mi.l+'</small></h3>'+slotRow('drone','Drone · '+M.tag,M.name,st.hp+' HP · move '+st.mob+' · sight '+st.sight+' · '+st.ap+' drone AP · '+DACTS[M.act].name,'<span class="tg">'+esc(sk.name)+'</span>','',dpvHtml(D.m,'sm'))
         +slotRow('dup','Drone upgrades · '+D.up.length+' of '+DRONE.slots,D.up.length?D.up.map(k=>DUPS[k].name).join(' + '):'<span class="none">None</span>',nU+' of '+Object.keys(DUPS).length+' unlocked by drone mastery')+'</div>'; }
+    if(Cl.kit) h+=kitLoGroup(draft.cls); // Engineer / Medic / Recon: the class abilities
   } else if(loTabK==='mods'){
     const grp=(k,label)=>{ const m=mastInfo(k), cur=(draft.att&&draft.att[k])||{}, ml=m.l, F=PROF.mfin&&PROF.mfin[k];
       return '<div class="grp"><h3>'+label+' <small>'+esc(wName(k))+'</small></h3><div class="mstbox">'+mastHtml(k)+'</div>'+attSlots(k).map(s=>{ const id=cur[s], A=id&&ATTACH[id], open=attIdsFor(k,s).filter(x=>attNeed(k,x)<=ml).length, all=attIdsFor(k,s).length;
@@ -10360,6 +10473,7 @@ function simHash(){ let h=0x811c9dc5; const add=v=>{ v=v|0; h=Math.imul(h^(v&255
   // Specialist drones (state added with deployable drones) and drone marks
   for(const d of (G.drones||[])){ add(d.id); add(d.st==='out'?1:d.st==='dead'?2:0); add(d.x); add(d.y); add(d.hp); add(d.maxHp); add(d.shield); add(d.ap); add(d.jam|0); add(d.rb|0); add(d.depR|0); }
   for(const u of G.units) add(u.mark?u.mark.team*1000+u.mark.until:-1);
+  kitHash(add); // class ability objects (only while any exist)
   if(G.gm) gmHash(add); // objective modes only (classic hashes unchanged)
   if(G.M.inf||G.M.night||mutBits()) modeHash(add); // Infection / Blackout / mutator state (only when active: other hashes unchanged)
   return h>>>0; }
@@ -11313,6 +11427,434 @@ const PA_onSetClick=onSetClick; onSetClick=function(e,rerender){ const b=e.targe
 window.__pa={perf,a11y,fxBudget,tcol,tcolA,PA,PA_LV,paApply};
 /* ================= end performance & accessibility ================= */
 
+/* ================= class abilities: Engineer, Medic, Recon =================
+   The three support classes' kits (CLASSES[c].ability + CLASSES[c].kit, all ABIL keys) and their perk actives (ACTS with
+   kit:1). Every ability is a command {k:'kit',a,t?,x?,y?,v?} (perk actives {k:'act',a,t?} through doActive -> kitActive)
+   run by execCmd and re-validated here from the board (kitWhy plus each action's own checks), so a stale or forged
+   command does nothing. Sim state, all of it created by commands and hashed by kitHash only while it exists:
+   - turrets: entities in G.drones ({drone:true,tur:true}): shootable, blocking, blown up and seeing for their team like a
+     deployed drone, never in G.units. They do not act on their own: kitStep (moveUnit) gives each a reaction shot at an
+     enemy that moves in its sight (once per enemy per round, `shots` in all), until the end of round `until`;
+   - walls: plain grid objects (kind 'ewall' full cover / 'ebar' half cover) that break like any cover;
+   - G.kit.mines: hidden, only their own team (and spectators / replays) ever draws them; G.kit.fields: public;
+   - unit fields: kAdr (Adrenaline: +AP at its next turn), kSlow (snared by a trip mine: -1 AP next turn), rmark (Mark
+     Target {team,until,uid}), kLast (Last Stand used), kRoot (transient: a mine stopped this move).
+   Only the seeded RNG; visibility only decides whether to animate. AI picks use its team's intel (knownThreats, its own
+   sight, its own team's objects), never hidden state. aiKitCmd only decides (no state change), so test bots reuse it. */
+const KITN={tur:{range:3,hp:5,def:10,aim:65,sight:7,shots:3,rounds:3},wall:{full:4,half:6},repair:3,field:{range:5,r:1.5,heal:1},beam:3,adren:5,scan:6,
+  mine:{range:3,dmg:[3,4],max:2},mark:15,regen:1,revHp:4};
+const TUR_W={id:'turret',name:'Sentry turret',short:'Turret',dmg:[2,3],clip:99,crit:5,critDmg:1,aim:0,fx:'burst',rt:[[4,10],[7,0]],fall:8,am:null}; TUR_W.range=rangeFn(TUR_W.rt,TUR_W.fall);
+// targeting per ability: tile (throw / deploy panel), ally, downed, enemy or self (no target); ap: AP cost (0 = free action)
+const KIT={turret:{ap:1,tgt:'tile'},wall:{ap:1,tgt:'tile'},repair:{ap:1,tgt:'ally'},field:{ap:1,tgt:'tile'},beam:{ap:1,tgt:'downed'},adren:{ap:1,tgt:'ally'},
+  wscan:{ap:0,tgt:'self'},mine:{ap:1,tgt:'tile'},tmark:{ap:0,tgt:'enemy'},
+  purge:{act:1,tgt:'ally'},called:{act:1,tgt:'enemy'}};
+// the placement abilities use the throw / deploy targeting panel through these pseudo-utilities (never in a kit or the shop)
+Object.assign(UTILS,{
+  k_turret:{name:'Deploy Turret',short:'Turret',charges:1,range:KITN.tur.range,radius:0,dev:true,kit:'turret',hitL:'shots',info:'A sentry turret on an empty ground tile you can see. It reacts to every enemy that moves in its sight (7 tiles)'},
+  k_wall:{name:'Build Cover',short:'Cover',charges:1,range:1.5,radius:0,dev:true,kit:'wall',hitL:'wall HP',info:'A wall on an empty ground tile next to you'},
+  k_field:{name:'Heal Field',short:'Field',charges:1,range:KITN.field.range,radius:KITN.field.r,dev:true,kit:'field',hitL:'tile radius',info:'Allies who start their turn in it heal, through the end of next round'},
+  k_mine:{name:'Trip Mine',short:'Mine',charges:1,range:KITN.mine.range,radius:0,dev:true,kit:'mine',hitL:'damage',info:'Hidden from everyone but your team. The first enemy to step on it takes the blast, stops and loses 1 AP next turn'}
+});
+for(const k of ['k_turret','k_wall','k_field','k_mine']) UTILS[k].kitOk=(u,x,y)=>kitTileOk(u,UTILS[k].kit,x,y);
+TERR.ewall={name:'Deployable wall',hp:KITN.wall.full}; TERR.ebar={name:'Deployable barricade',hp:KITN.wall.half};
+const KITK={ewall:1,ebar:1};
+function kitS(){ if(!G.kit||G.kit.mid!==G.matchId) G.kit={mid:G.matchId,mines:[],fields:[],n:0}; return G.kit; }
+// read-only view (UI, AI, tile checks): never creates the state, so kitOn() stays the same on every client
+const kitL=()=>kitOn()?G.kit:{mines:[],fields:[]};
+const kitOn=()=>!!(G.kit&&G.kit.mid===G.matchId);
+const kitHas=(u,a)=>!!(u&&CLASSES[u.cls]&&(CLASSES[u.cls].ability===a||(CLASSES[u.cls].kit||[]).includes(a)));
+const kName=(q,u)=>q===u?'You':q.tur?q.name+' turret':q.drone?q.name+' drone':q.name;
+function kitCd(u,a){ const b=ABIL[a].cd;
+  return Math.max(1,b-(a==='turret'&&hasP(u,'e_twin')?1:0)-(a==='wall'&&hasP(u,'e_fab')?1:0)-(a==='adren'&&hasP(u,'m_adr')?2:0)-(a==='field'&&hasP(u,'m_dose')?1:0)
+    -(a==='mine'&&hasP(u,'n_trap')?1:0)-(a==='wscan'&&hasP(u,'n_pulse')?2:0)); }
+function kitTurStats(u){ return {hp:KITN.tur.hp+(hasP(u,'e_plate')?3:0),armor:hasP(u,'e_plate')?1:0,aim:KITN.tur.aim+(hasP(u,'e_optics')?10:0),sight:KITN.tur.sight+(hasP(u,'e_optics')?2:0),
+  shots:KITN.tur.shots+(hasP(u,'e_sentry')?2:0),rounds:KITN.tur.rounds+(hasP(u,'e_sentry')?1:0)}; }
+const myTurrets=u=>G.drones.filter(d=>d.tur&&d.alive&&d.oid===u.id);
+const kitScanR=u=>KITN.scan+(hasP(u,'n_wide')?2:0);
+const kitBeamR=u=>KITN.beam+(hasP(u,'m_reach')?1:0);
+const kitMineMax=u=>KITN.mine.max+(hasP(u,'n_trap')?1:0);
+const kitFieldR=u=>KITN.field.r+(hasP(u,'m_field')?0.5:0);
+const kitWallHp=(u,full)=>(full?KITN.wall.full:KITN.wall.half)+(hasP(u,'e_fab')?2:0)+(hasP(u,'e_fort')?3:0);
+// why a class ability cannot be used right now ('' = ready); shared by the action bar, the AI and kitCmd
+function kitWhy(u,a){ const K=KIT[a]; if(!K||K.act||!kitHas(u,a)) return 'Not your class'; if(!standing(u)) return 'Down';
+  if(u.inf) return 'Infected: claws only'; if(u.ap<=0) return 'No AP left'; if(K.ap&&u.shot) return 'After shooting you can only move';
+  const cd=u.cd[a]||0; if(cd>0) return 'Ready in '+cd+' turn'+(cd>1?'s':'');
+  if(a==='turret'&&(u.noGun||G.mut.melee)) return 'No turrets in melee only';
+  return ''; }
+// a placement tile for ability a (sim rules: identical on every client; the UI adds "a tile you can see")
+function kitTileOk(u,a,x,y){ if(!Number.isInteger(x)||!Number.isInteger(y)||!inMap(x,y)||(x===u.x&&y===u.y)) return false; const d=Math.hypot(x-u.x,y-u.y);
+  if(a==='wall') return Math.max(Math.abs(x-u.x),Math.abs(y-u.y))===1&&gmCoverOk(x,y)&&canMelee(u.x,u.y,x,y);
+  if(a==='turret') return d<=KITN.tur.range+0.01&&gmCoverOk(x,y)&&hasLOS(u.x,u.y,x,y);
+  if(a==='mine') return d<=KITN.mine.range+0.01&&gmCoverOk(x,y)&&hasLOS(u.x,u.y,x,y)&&!kitL().mines.some(m=>m.team===u.team&&m.x===x&&m.y===y);
+  if(a==='field') return d<=KITN.field.range+0.01&&!solidT(x,y)&&hasLOS(u.x,u.y,x,y);
+  return false; }
+// who an ability can target (sim rules)
+function kitTargets(u,a){
+  if(a==='repair') return G.units.filter(m=>standing(m)&&m.team===u.team&&!m.inf&&tdist(u,m)<=KITN.repair+0.01&&(m===u||canSee(u,m)))
+    .concat(G.drones.filter(d=>d.alive&&d.team===u.team&&d.hp<d.maxHp&&tdist(u,d)<=KITN.repair+0.01&&(canSee(u,d)||tdist(u,d)<=1.5)));
+  if(a==='adren'||a==='purge') return G.units.filter(m=>standing(m)&&m.team===u.team&&!m.inf&&tdist(u,m)<=(a==='adren'?KITN.adren:5)+0.01&&(m===u||canSee(u,m)));
+  if(a==='beam') return G.units.filter(m=>m.alive&&m.downed&&!m.infDown&&!m.swDown&&m.team===u.team&&m!==u&&tdist(u,m)<=kitBeamR(u)+0.01&&hasLOS(u.x,u.y,m.x,m.y));
+  if(a==='tmark') return visibleEnemies(u).filter(t=>!t.downed);
+  if(a==='called') return visibleEnemies(u).filter(t=>!t.downed&&t.rmark&&t.rmark.team===u.team&&G.round<=t.rmark.until);
+  return []; }
+// any legal tile for a placement ability (the action bar greys the button out otherwise)
+function kitAnyTile(u,a){ const R=a==='wall'?1:Math.ceil(UTILS['k_'+a].range); for(let y=u.y-R;y<=u.y+R;y++) for(let x=u.x-R;x<=u.x+R;x++) if(kitTileOk(u,a,x,y)) return true; return false; }
+function kitNoTgt(u,a){ const K=KIT[a]; if(!K) return '';
+  if(K.tgt==='tile') return kitAnyTile(u,a)?'':a==='wall'?'No empty tile next to you':'No empty tile in range';
+  if(K.tgt==='self') return '';
+  if(!kitTargets(u,a).length) return a==='beam'?'No downed ally within '+kitBeamR(u)+' tiles':a==='tmark'?'No enemy in sight':a==='called'?'No marked enemy in sight':'No ally in range';
+  if(a==='called'&&(u.ammo<1||u.noGun||(u.W.heavy&&u.ap<2))) return u.ammo<1?'Out of ammo':'Needs 2 AP';
+  return ''; }
+// healing from a class ability: Overheal turns the excess into shield (up to 2)
+function kitHeal(m,amt,src,lbl){ if(!standing(m)||m.inf) return 0; const h=Math.min(amt,m.maxHp-m.hp); m.hp+=h; let sh=0;
+  if(src&&hasP(src,'m_over')&&amt>h) sh=Math.min(amt-h,Math.max(0,2-m.shield)); m.shield+=sh; cst(src,'healed',h);
+  if((h||sh)&&shouldShow(m)){ floatText(m,(h?'+'+h+' HP':'')+(sh?(h?' ':'')+'+'+sh+' SHIELD':'')+(lbl?' '+lbl:''),[93,255,154],17); healFx(m); }
+  return h+sh; }
+
+/* ---------- commands ---------- */
+async function kitCmd(u,c){
+  const a=c&&c.a; if(typeof a!=='string'||!KIT[a]||KIT[a].act||kitWhy(u,a)) return;
+  const K=kitS(), an=()=>shouldShow(u), t=c.t!=null?findAny(c.t):null, cd=()=>{ u.cd[a]=kitCd(u,a); };
+  if(KIT[a].tgt==='tile'&&!kitTileOk(u,a,c.x,c.y)) return;
+  if(a==='turret'){ u.ap-=1; cd(); const lim=hasP(u,'e_twin')?2:1, cur=myTurrets(u); while(cur.length>=lim) turWreck(cur.shift(),null,false,true);
+    const S=kitTurStats(u); K.n++; const x=c.x, y=c.y;
+    const d={drone:true,tur:true,id:3000+K.n,oid:u.id,team:u.team,name:u.name,maxHp:S.hp,hp:S.hp,armor:S.armor,shield:0,def:KITN.tur.def,sight:S.sight,mob:0,maxAp:0,
+      ap:0,st:'out',alive:true,downed:false,x,y,rx:x,ry:y,rz:ez(x,y)+12,drop:0,face:u.face,flash:0,walk:0,cp:{},jam:0,rb:0,depR:-1,mark:null,holo:null,ph:(K.n*1.7)%6,
+      color:u.color,col:u.col,aim:S.aim,W:TUR_W,shots:S.shots,until:G.round+S.rounds-1,seen:{},disorient:0};
+    faceTo(u,x,y); d.face=u.face; G.drones.push(d); if(G.player&&d.team===G.player.team) computeVis();
+    feedLine(u.name+' deployed a turret',mine(u)); cst(u,'turrets');
+    if(an()||tileShown(x,y)){ focusMid(u,d); vAnim(u,'throw',.6,{rel:.3,col:'#7fe8ff'}); floatText(u,'DEPLOY TURRET',[127,232,255],17); await wait(320); const p=tileC(x,y); addFx({type:'ring',x:p[0],y:p[1],r:30,col:[127,232,255],life:.5}); SFX.land(); SFX.tone(700,1200,.18,.05,'square',.1); d.vFlash=1; await wait(420); }
+    return; }
+  if(a==='wall'){ const full=c.v===1; u.ap-=1; cd(); const x=c.x, y=c.y, hp=kitWallHp(u,full);
+    G.grid[idx(x,y)]=full?{t:2,kind:'ewall',h:30,v:hash(x,y,93),hp,team:u.team}:{t:1,kind:'ebar',h:0,v:hash(x,y,94),hp,team:u.team}; terrChanged(true,x,y,0); cst(u,'walls');
+    if(hasP(u,'e_fort')) u.shield+=1;
+    if(an()||tileShown(x,y)){ faceTo(u,x,y); vAnim(u,'reload',.6); floatText(tileDummy(x,y),full?'FULL COVER':'HALF COVER',[200,220,160],16); terrBits(x,y,[150,170,190],10); SFX.land(); if(hasP(u,'e_fort')) floatText(u,'+1 SHIELD',[111,208,255],15); await wait(450); }
+    return; }
+  if(a==='repair'){ if(!t||!kitTargets(u,'repair').includes(t)) return; u.ap-=1; cd(); const amt=KITN.repair+(hasP(u,'e_patch')?2:0); let txt;
+    if(t.drone){ const h=Math.min(amt,t.maxHp-t.hp); t.hp+=h; txt='+'+h+' HP'; cst(u,'repair',h); } else { t.shield+=amt; txt='+'+amt+' SHIELD'; cst(u,'repair',amt); }
+    if(an()||shouldShow(t)){ if(t!==u) focusMid(u,t); vAnim(u,'cast',.7); floatText(u,'REPAIR',[127,232,255],16); await wait(260); if(t!==u) addFx({type:'beam',a:chest(u),b:chest(t),col:[127,232,255],life:.35}); floatText(t,txt,[111,208,255],18); if(t.drone) healFx(t,[127,232,255]); else shieldFx(t,true); SFX.heal(); await wait(450); }
+    return; }
+  if(a==='field'){ u.ap-=1; cd(); const f={id:++K.n,team:u.team,oid:u.id,x:c.x,y:c.y,r:kitFieldR(u),heal:KITN.field.heal+(hasP(u,'m_dose')?1:0),until:G.round+1+(hasP(u,'m_field')?1:0),over:hasP(u,'m_over')?1:0};
+    K.fields.push(f); feedLine(u.name+' set up a heal field',mine(u));
+    if(an()||tileShown(c.x,c.y)){ focusOn(c.x,c.y); vAnim(u,'throw',.6,{rel:.3,col:'#5dff9a'}); floatText(u,'HEAL FIELD',[93,255,154],17); await wait(300); const p=tileC(c.x,c.y); addFx({type:'ring',x:p[0],y:p[1],r:f.r*TW*0.72,col:[93,255,154],life:.7}); SFX.heal(); await wait(450); }
+    return; }
+  if(a==='beam'){ if(!t||!kitTargets(u,'beam').includes(t)) return; cd();
+    if(an()||shouldShow(t)){ focusMid(u,t); vAnim(u,'cast',.8); floatText(u,'REVIVE BEAM',[93,255,154],17); await wait(260); addFx({type:'beam',a:chest(u),b:chest(t),col:[93,255,154],life:.6}); await wait(200); }
+    cst(u,'beamRev'); await doRevive(u,t); return; }
+  if(a==='adren'){ if(!t||!kitTargets(u,'adren').includes(t)) return; u.ap-=1; cd(); t.kAdr=1; if(hasP(u,'m_serum')) t.shield+=2; cst(u,'adren');
+    if(an()||shouldShow(t)){ if(t!==u) focusMid(u,t); vAnim(u,'stim',.5); floatText(t,'ADRENALINE +1 AP NEXT TURN',[93,255,154],16); if(hasP(u,'m_serum')) shieldFx(t,true); stimFx(t); SFX.heal(); await wait(500); }
+    if(t!==u) feedLine(u.name+' gave '+t.name+' an adrenaline shot',mine(u)); return; }
+  if(a==='wscan'){ cd(); const r=kitScanR(u); G.reveals=(G.reveals||[]).filter(q=>q.until>=G.round); G.reveals.push({team:u.team,x:u.x,y:u.y,r,until:G.round+1,uid:u.id,ws:1}); computeVis();
+    if(u.isPlayer) cst(u,'scanned',G.units.filter(e=>standing(e)&&isEnemy(u,e)&&Math.hypot(e.x-u.x,e.y-u.y)<=r+0.01).length);
+    if(an()){ const p=tileC(u.x,u.y); vAnim(u,'cast',.7); floatText(u,'WALL SCAN',[127,232,255],17); addFx({type:'ring',x:p[0],y:p[1],r:r*TW*0.7,col:[127,232,255],life:.9}); addFx({type:'ring',x:p[0],y:p[1],r:r*TW*0.45,col:[127,232,255],life:.6}); SFX.tone(600,1500,.3,.06,'sine'); await wait(500); }
+    return; }
+  if(a==='mine'){ u.ap-=1; cd(); const own=K.mines.filter(m=>m.oid===u.id); while(own.length>=kitMineMax(u)){ const o=own.shift(); K.mines.splice(K.mines.indexOf(o),1); }
+    K.mines.push({id:++K.n,team:u.team,oid:u.id,x:c.x,y:c.y,b:hasP(u,'n_clay')?2:0});
+    if(mine(u)||G.fullVis){ faceTo(u,c.x,c.y); vAnim(u,'throw',.5,{rel:.3,col:'#ffb340'}); floatText(u,'TRIP MINE',[255,179,64],16); await wait(400); }
+    return; }
+  if(a==='tmark'){ if(!t||!kitTargets(u,'tmark').includes(t)) return; cd(); t.rmark={team:u.team,until:G.round+1,uid:u.id}; cst(u,'marks');
+    if(hasP(u,'n_paint')){ G.reveals=(G.reveals||[]).filter(q=>q.until>=G.round); G.reveals.push({team:u.team,x:t.x,y:t.y,r:2,until:G.round+1,uid:u.id,ws:1}); computeVis(); }
+    if(an()||shouldShow(t)){ focusMid(u,t); floatText(u,'MARK TARGET',[255,214,90],16); await wait(240); addFx({type:'beam',a:chest(u),b:chest(t),col:[255,90,90],life:.35}); floatText(t,'MARKED +'+KITN.mark+' AIM',[255,214,90],16); SFX.tone(1600,1900,.15,.05,'square'); await wait(420); }
+    return; }
+}
+// class perk actives of the three kits ({k:'act',a,t?}): doActive has already checked the perk, the cooldown and AP
+async function kitActive(u,c,A){ const k=c.a, t=c.t!=null?findAny(c.t):null, an=()=>shouldShow(u); if(u.inf) return;
+  if(k==='esalvo'){ if(u.shot) return; const L=myTurrets(u).filter(d=>!(d.jam>0)&&visibleEnemies(d).some(e=>!e.downed)); if(!L.length) return; u.ap-=1; u.cd[k]=A.cd;
+    if(an()) { floatText(u,'TURRET SALVO',[127,232,255],17); await wait(250); }
+    for(const d of L){ if(G.over||!d.alive) continue; const e=visibleEnemies(d).filter(v=>!v.downed).sort((p,q)=>tdist(d,p)-tdist(d,q)||p.id-q.id)[0]; if(e) await turShot(d,e,false); } return; }
+  if(k==='emp'){ if(u.shot) return; u.ap-=1; u.cd[k]=A.cd; const R=2.5, anim=an();
+    if(anim){ const p=tileC(u.x,u.y); vAnim(u,'cast',.7); floatText(u,'EMP BURST',[255,179,64],18); addFx({type:'ring',x:p[0],y:p[1],r:R*TW*0.75,col:[255,179,64],life:.6}); addFx({type:'arcs',x:p[0],y:p[1]-20,r:34,col:[255,210,140],life:.45}); SFX.noise(.4,'bandpass',1800,.3); await wait(300); }
+    for(const v of G.units){ if(!standing(v)||!isEnemy(u,v)||Math.hypot(v.x-u.x,v.y-u.y)>R+0.01) continue; v.disorient=Math.max(v.disorient,1); v.overwatch=false; if(anim||shouldShow(v)) floatText(v,'EMP',[255,179,64],16); }
+    for(const d of G.drones){ if(!d.alive||!isEnemy(u,d)||Math.hypot(d.x-u.x,d.y-u.y)>R+0.01) continue; d.jam=1; if(anim||shouldShow(d)) floatText(d,'JAMMED',[255,179,64],15); }
+    if(anim) await wait(450); return; }
+  if(k==='purge'){ if(u.shot||!t||!kitTargets(u,'purge').includes(t)) return; u.ap-=1; u.cd[k]=A.cd; t.disorient=0; t.kSlow=0; if(t.rmark&&t.rmark.team!==t.team) t.rmark=null;
+    if(an()||shouldShow(t)){ if(t!==u) focusMid(u,t); vAnim(u,'cast',.6); floatText(t,'PURGED',[93,255,154],17); await wait(250); }
+    kitHeal(t,2,u); if(an()) await wait(400); return; }
+  if(k==='cheal'){ if(u.shot) return; u.ap-=1; u.cd[k]=A.cd; const L=G.units.filter(m=>standing(m)&&m.team===u.team&&!m.inf&&Math.hypot(m.x-u.x,m.y-u.y)<=3.01);
+    if(an()){ const p=tileC(u.x,u.y); vAnim(u,'cast',.7); floatText(u,'CHAIN HEAL',[93,255,154],18); addFx({type:'ring',x:p[0],y:p[1],r:3*TW*0.72,col:[93,255,154],life:.7}); SFX.heal(); await wait(300); }
+    for(const m of L){ if(m!==u&&(an()||shouldShow(m))) addFx({type:'beam',a:chest(u),b:chest(m),col:[93,255,154],life:.4}); kitHeal(m,2,u); }
+    if(an()) await wait(450); return; }
+  if(k==='called'){ if(u.shot||!t||!kitTargets(u,'called').includes(t)||u.ammo<1||u.noGun||(u.W.heavy&&u.ap<2)) return; const tk0=u.tk||0; apShot(u); u.cd[k]=A.cd;
+    await fireShot(u,t,{aimMod:20,aimLbl:'called shot',bonus:1,label:'CALLED SHOT'}); afterAttack(u,tk0,true); return; }
+  if(k==='uplink'){ if(u.shot) return; u.ap-=1; u.cd[k]=A.cd; G.reveals=(G.reveals||[]).filter(q=>q.until>=G.round); G.reveals.push({team:u.team,x:u.x,y:u.y,r:12,until:G.round+1,uid:u.id,ws:1}); computeVis();
+    if(an()){ const p=tileC(u.x,u.y); vAnim(u,'cast',.8); floatText(u,'SATELLITE UPLINK',[127,232,255],17); addFx({type:'ring',x:p[0],y:p[1],r:12*TW*0.7,col:[127,232,255],life:1}); SFX.tone(500,1700,.4,.06,'sine'); await wait(550); }
+    return; }
+}
+
+/* ---------- turrets, mines, fields (sim) ---------- */
+// a turret's reaction (or Salvo) shot: hitInfo from the turret's tile and stats, damage credited to its Engineer
+async function turShot(d,m,react){ const o=droneOwner(d); if(!d.alive||!m.alive) return;
+  const info=hitInfo(d,m,{reaction:react!==false}), r=RNG()*100, res=r<info.full?'hit':r<info.full+info.graze?'graze':'miss', crit=res==='hit'&&RNG()*100<info.crit;
+  if(react!==false) d.shots--; faceTo(d,m.x,m.y);
+  const anim=shouldShow(d)||shouldShow(m);
+  if(anim){ focusMid(d,m); floatText(d,react===false?'SALVO':'TURRET',mine(d)?[127,232,255]:[255,140,120],15); await wait(240); const a0=[unitScreen(d)[0]+d.face*9,unitScreen(d)[1]-8], b0=chest(m), col=mine(d)?[110,225,255]:[255,110,90];
+    for(let i=0;i<3;i++) later(i*70,()=>{ d.vFlash=1; addFx({type:'tracer',a:a0,b:[b0[0]+(res!=='miss'?0:frand(-14,14)),b0[1]+(res!=='miss'?0:frand(-8,8))],col,w:1.4,life:.14}); }); SFX.shot('burst'); await wait(260); }
+  if(res!=='miss'){ let dmg=rollDmg(TUR_W.dmg); if(crit) dmg+=TUR_W.critDmg; if(res==='graze') dmg=Math.max(1,Math.ceil(dmg/2));
+    applyDamage(m,dmg,o,{crit,graze:res==='graze',anim,how:'turret'}); cst(o,'turDmg',dmg);
+    if(o&&hasP(o,'e_shock')&&standing(m)){ m.disorient=Math.max(m.disorient,1); m.overwatch=false; if(anim) floatText(m,'SHOCKED',[255,179,64],15); } }
+  else if(anim) floatText(m,'MISSED',[200,210,220],18);
+  if(anim) await wait(m.alive?420:800); }
+// damage to a turret (applyDamage routes here): armor and shield, no downs, no kill credit
+function turHurt(d,dmg,src,o){ o=o||{}; if(!d.alive) return; let v=o.pierce?dmg:Math.max(1,dmg-d.armor); const tot=v; let abs=0;
+  if(d.shield>0){ abs=Math.min(d.shield,v); d.shield-=abs; v-=abs; } d.hp-=v; d.flash=.3;
+  if(o.anim){ if(abs>0) shieldFx(d,false); floatText(d,(o.graze?'GRAZE ':o.crit?'CRIT ':'')+'−'+tot,o.graze?[190,215,255]:[255,255,255],17); SFX.hit(); }
+  if(d.hp<=0) turWreck(d,src,!!o.anim||shouldShow(d)); }
+function turWreck(d,src,anim,quiet){ if(!d.alive&&d.st==='dead') return; d.hp=0; d.alive=false; d.st='dead'; d.shots=0; d.wx=null;
+  if(src&&src.isPlayer&&isEnemy(src,d)) cst(src,'droneKills');
+  if(!quiet) feedLine(src&&isEnemy(src,d)?src.name+' destroyed '+d.name+'’s turret':d.name+'’s turret went down',mine(d)||mine(src));
+  if(anim){ const p=unitScreen(d); addFx({type:'flash',x:p[0],y:p[1],r:50,col:[255,210,150],life:.22}); addFx({type:'ring',x:p[0],y:p[1]+10,r:30,col:[255,170,90],life:.35});
+    for(let i=0;i<14;i++) part({x:p[0],y:p[1],vx:frand(-110,110),vy:frand(-100,30),life:frand(.3,.6),size:1.6,col:[255,220,150],type:'spark',grav:260}); floatText(d,'TURRET DESTROYED',[255,120,90],16); SFX.boom(); }
+  if(G.player&&d.team===G.player.team&&G.scene==='game') computeVis(); }
+async function mineBoom(mn,m){ const o=G.units.find(z=>z.id===mn.oid)||null, anim=shouldShow(m)||tileShown(mn.x,mn.y);
+  if(anim){ focusOn(m.x,m.y); explode(mn.x,mn.y,1,false); floatText(m,'TRIP MINE',[255,179,64],18); G.cam.shake=Math.max(G.cam.shake,6); await wait(260); }
+  else if(G.player&&!G.fullVis) ping(mn.x,mn.y,[255,120,40]);
+  feedLine((o&&o!==m?o.name+'’s trip mine caught ':'A trip mine caught ')+m.name,mine(m)||mine(o)); cst(o,'mines');
+  if(G.noise) G.noise.push({id:m.id,team:mn.team,x:m.x,y:m.y,r:G.round,blast:true});
+  applyDamage(m,rollDmg(KITN.mine.dmg)+(mn.b|0),o,{anim,how:'trip mine'});
+  if(standing(m)){ m.kSlow=1; if(anim) floatText(m,'SNARED',[255,179,64],16); }
+  if(anim) await wait(m.alive?450:850); }
+// every step of a moving operative (moveUnit, after overwatch): trip mines, then turret reactions. true: the move stops here
+async function kitStep(m){ if(!kitOn()||!m.alive) return false; const K=G.kit;
+  if(K.mines.length&&standing(m)&&!m.drone){ const i=K.mines.findIndex(q=>q.x===m.x&&q.y===m.y&&q.team!==m.team); if(i>=0){ m.kRoot=1; await mineBoom(K.mines.splice(i,1)[0],m); return true; } }
+  for(const d of G.drones){ if(!standing(m)||G.over) break; if(!d.tur||!d.alive||d.team===m.team||d.shots<=0||d.jam>0||G.round>d.until) continue;
+    if(d.seen[m.id]===G.round||!canSee(d,m)) continue; d.seen[m.id]=G.round; await turShot(d,m,true); }
+  return !standing(m); }
+// start of a unit's turn (after the class perks): Adrenaline, trip-mine snare, heal fields, Medic regeneration, own turrets
+async function kitTurnStart(u){ if(!kitOn()&&u.cls!=='medic'&&!u.kAdr&&!u.kSlow) return; u.kRoot=0; let show=false; const sh=shouldShow(u);
+  if(u.inf){ for(const d of myTurrets(u)) turWreck(d,null,shouldShow(d),true); u.kAdr=0; u.kSlow=0; return; }
+  if(u.kAdr){ u.ap+=u.kAdr; u.kAdr=0; if(sh){ floatText(u,'ADRENALINE +1 AP',[93,255,154],17); show=true; } }
+  if(u.kSlow){ u.ap=Math.max(1,u.ap-1); u.kSlow=0; if(sh){ floatText(u,'SNARED −1 AP',[255,179,64],16); show=true; } }
+  if(kitOn()){ let best=null; for(const f of G.kit.fields) if(f.team===u.team&&G.round<=f.until&&Math.hypot(u.x-f.x,u.y-f.y)<=f.r+0.01&&(!best||f.heal>best.heal)) best=f;
+    if(best){ const o=G.units.find(z=>z.id===best.oid); if(kitHeal(u,best.heal,o&&o.team===u.team?o:null,'FIELD')) show=sh||show; }
+    for(const d of myTurrets(u)) d.jam=0; }
+  if(u.cls==='medic'&&u.hp<u.maxHp){ const amt=hasP(u,'m_triage')&&u.hp*2<u.maxHp?2:KITN.regen; if(kitHeal(u,amt,u,'REGEN')) show=sh||show; }
+  if(show) await wait(420); }
+// round start (after the mode phase): turrets past their last round or without their Engineer go, objects follow their
+// owner's side (Infection), fields and marks expire. No RNG; the order is fixed (array order).
+function kitRound(){ if(!kitOn()) return; const K=G.kit; let vis=false;
+  for(const d of G.drones){ if(!d.tur||!d.alive) continue; const o=droneOwner(d);
+    if(G.round>d.until||!o||!o.alive||o.inf||o.team!==d.team){ turWreck(d,null,false,true); if(shouldShow(d)) floatText(d,'TURRET OFFLINE',[200,210,220],15); vis=true; } }
+  const n=G.drones.length; G.drones=G.drones.filter(d=>!d.tur||d.alive); if(G.drones.length!==n) vis=true;
+  for(const q of K.mines.concat(K.fields)){ const o=G.units.find(z=>z.id===q.oid); if(o&&o.alive) q.team=o.team; }
+  K.fields=K.fields.filter(f=>f.until>=G.round);
+  for(const u of G.units) if(u.rmark&&u.rmark.until<G.round) u.rmark=null;
+  if(vis&&G.player) computeVis(); }
+// the Engineer is out: its turrets go down with it
+function kitOwnerOut(t){ if(!kitOn()) return; for(const d of G.drones) if(d.tur&&d.alive&&d.oid===t.id) turWreck(d,null,shouldShow(d),true); }
+// a fresh life (respawn modes) / a new Siege round
+function kitUnitReset(u){ u.kAdr=0; u.kSlow=0; u.kRoot=0; u.rmark=null; }
+function kitReset(){ if(!kitOn()) return; for(const d of G.drones) if(d.tur&&d.alive) turWreck(d,null,false,true); G.drones=G.drones.filter(d=>!d.tur); G.kit.mines=[]; G.kit.fields=[]; for(const u of G.units) kitUnitReset(u); }
+// hooks: unit built (makeUnit), revive (doRevive), aim (hitInfo), damage (applyDamage), Last Stand
+function kitUnit(u){ if(u.cls==='recon'&&u.cp.n_long) u.sight+=1; }
+function kitRevAp(u){ return u.cls==='medic'&&!u.inf?Math.max(0,u.ap-1):0; } // Medic: a revive costs 1 AP and keeps the turn going
+function kitRevived(u,t){ if(u.cls!=='medic'||u.inf) return; t.hp=KITN.revHp; if(hasP(u,'m_reach')) t.shield+=2; }
+function kitAim(a,t,d,mods){ let s=0;
+  if(t.rmark&&t.rmark.team===a.team&&G.round<=t.rmark.until){ const m=KITN.mark+(hasP(a,'n_hunter')&&t.rmark.uid===a.id?10:0); s+=m; mods.push(['marked',m]); }
+  if(hasP(a,'n_long')&&d>=6.99){ s+=5; mods.push(['long sight',5]); }
+  return s; }
+function kitDmg(t,src){ return t.rmark&&src&&src!==t&&t.rmark.team===src.team&&G.round<=t.rmark.until&&G.units.some(m=>m.team===src.team&&hasP(m,'n_exec'))?1:0; }
+function kitLast(t,o){ if(!(t.hp<=0)||t.kLast||!hasP(t,'m_last')||t.inf) return; t.kLast=1; t.hp=1; if(o&&o.anim||shouldShow(t)) floatText(t,'LAST STAND',[255,214,90],20); feedLine(t.name+' refused to go down',mine(t)); }
+function kitHash(add){ if(!kitOn()) return; const K=G.kit;
+  if(K.n){ add(K.n); for(const m of K.mines){ add(m.id); add(m.x*97+m.y); add(m.team); } for(const f of K.fields){ add(f.id); add(f.x*97+f.y); add(f.until); add(f.team); } }
+  for(const d of G.drones) if(d.tur){ add(d.shots); add(d.until); }
+  for(const u of G.units){ if(u.rmark) add(u.id*7+u.rmark.team*1000+u.rmark.until); if(u.kAdr) add(u.id*11+1); if(u.kSlow) add(u.id*13+2); if(u.kLast) add(u.id*17+3); } }
+
+/* ---------- AI (team knowledge only; returns a command, changes nothing) ---------- */
+function aiKitCmd(u,loop){
+  if(!standing(u)||u.inf||u.ap<=0||!CLASSES[u.cls]||!CLASSES[u.cls].kit) return null;
+  const ok=a=>!kitWhy(u,a), vis=visibleEnemies(u), th=knownThreats(u), D=u.diff||DIFFS.veteran, A=k=>hasP(u,ACTS[k].perk)&&!(u.cd[k]>0)&&!u.shot;
+  if(u.cls==='medic'){
+    if(ok('beam')){ const L=kitTargets(u,'beam'); if(L.length) return {k:'kit',a:'beam',t:L[0].id}; }
+    if(A('purge')){ const t=kitTargets(u,'purge').find(m=>m.disorient>0||m.kSlow||(m.rmark&&m.rmark.team!==m.team&&G.round<=m.rmark.until)); if(t) return {k:'act',a:'purge',t:t.id}; }
+    if(A('cheal')){ let miss=0; for(const m of G.units) if(standing(m)&&m.team===u.team&&tdist(u,m)<=3.01) miss+=Math.min(2,m.maxHp-m.hp); if(miss>=3) return {k:'act',a:'cheal'}; }
+    if(ok('field')){ const R=kitFieldR(u), mates=G.units.filter(m=>standing(m)&&m.team===u.team&&!m.inf); let best=null,bs=th.length?2:3;
+      for(const c of mates){ if(c.hp>=c.maxHp) continue; const x=c.x,y=c.y; if(!kitTileOk(u,'field',x,y)&&!(x===u.x&&y===u.y)) continue; if(kitL().fields.some(f=>f.team===u.team&&f.until>=G.round+1&&Math.hypot(f.x-x,f.y-y)<1.5)) continue;
+        let s=0; for(const m of mates) if(Math.hypot(m.x-x,m.y-y)<=R+0.01) s+=Math.min(3,m.maxHp-m.hp); if(s>bs){ bs=s; best=[x,y]; } }
+      if(best&&best[0]===u.x&&best[1]===u.y){ let alt=null; for(const d of DIRS8){ const x=u.x+d[0],y=u.y+d[1]; if(kitTileOk(u,'field',x,y)){ alt=[x,y]; break; } } best=alt; } // the field covers its neighbours too
+      if(best) return {k:'kit',a:'field',x:best[0],y:best[1]}; }
+    if(!loop&&ok('adren')&&(th.length||vis.length)){ const L=kitTargets(u,'adren').filter(m=>!m.kAdr); let best=null,bs=-1e9;
+      for(const m of L){ let s=m===u?(G.M.team>1?2:6):8+(m.human?3:0); let md=99; for(const t of th) md=Math.min(md,Math.hypot(t.x-m.x,t.y-m.y)); s-=md*0.3; if(s>bs){ bs=s; best=m; } }
+      if(best&&RNG()<D.abil) return {k:'kit',a:'adren',t:best.id}; }
+    return null; }
+  if(u.cls==='engineer'){
+    if(A('esalvo')&&myTurrets(u).some(d=>!(d.jam>0)&&visibleEnemies(d).some(e=>!e.downed))) return {k:'act',a:'esalvo'};
+    if(loop&&A('emp')&&vis.filter(v=>!v.downed&&tdist(u,v)<=2.51).length) return {k:'act',a:'emp'};
+    if(ok('turret')&&th.length&&myTurrets(u).length<(hasP(u,'e_twin')?2:1)){ const S=kitTurStats(u), R=KITN.tur.range; let best=null,bs=7;
+      for(let y=u.y-R;y<=u.y+R;y++) for(let x=u.x-R;x<=u.x+R;x++){ if(!kitTileOk(u,'turret',x,y)) continue; let s=0;
+        for(const t of th){ const d=Math.hypot(t.x-x,t.y-y); if(d<=S.sight+2&&d>=2&&hasLOS(x,y,t.x,t.y)) s+=10-Math.abs(d-5)-(coverFrom(x,y,t.x,t.y)?0:2); }
+        s+=hash(x,y,G.round)*0.5; if(s>bs){ bs=s; best=[x,y]; } }
+      if(best) return {k:'kit',a:'turret',x:best[0],y:best[1]}; }
+    if(ok('repair')&&(th.length||vis.length)){ let best=null,bs=2;
+      for(const m of kitTargets(u,'repair')){ const s=m.drone?(m.maxHp-m.hp)*2:(m.shield<=0?3:0)+(m.maxHp-m.hp)*0.8+(m===u?0:1); if(s>bs){ bs=s; best=m; } }
+      if(best) return {k:'kit',a:'repair',t:best.id}; }
+    if(loop&&ok('wall')&&th.length){ let T=null,bd=1e9; for(const t of th){ const d=Math.hypot(t.x-u.x,t.y-u.y); if(d<bd){ bd=d; T=t; } }
+      if(T&&bd<=12&&coverFrom(u.x,u.y,T.x,T.y)===0){ const sx=Math.sign(T.x-u.x), sy=Math.sign(T.y-u.y), adx=Math.abs(T.x-u.x), ady=Math.abs(T.y-u.y), C=[];
+        if(sx&&adx>=ady*0.5) C.push([u.x+sx,u.y]); if(sy&&ady>=adx*0.5) C.push([u.x,u.y+sy]);
+        for(const q of C) if(kitTileOk(u,'wall',q[0],q[1])) return {k:'kit',a:'wall',x:q[0],y:q[1],v:th.length>=2||u.hp*2<u.maxHp?1:0}; } }
+    return null; }
+  if(u.cls==='recon'){
+    if(ok('tmark')){ const L=kitTargets(u,'tmark').filter(t=>!(t.rmark&&t.rmark.team===u.team&&G.round<t.rmark.until)).sort((a,b)=>(a.hp+a.shield)-(b.hp+b.shield)||a.id-b.id); if(L.length) return {k:'kit',a:'tmark',t:L[0].id}; }
+    if(loop&&A('called')&&u.ammo>0&&!u.noGun&&!(u.W.heavy&&u.ap<2)){ let best=null,bs=45; for(const t of kitTargets(u,'called')){ const h=hitInfo(u,t,{aimMod:20}).any; if(h>bs){ bs=h; best=t; } } if(best) return {k:'act',a:'called',t:best.id}; }
+    if(!vis.length&&G.round>=2){
+      if(A('uplink')&&(th.some(t=>!(th.fresh&&th.fresh.has(t.id)))||RNG()<0.4)) return {k:'act',a:'uplink'};
+      if(ok('wscan')&&(th.some(t=>!(th.fresh&&th.fresh.has(t.id))&&Math.hypot(t.x-u.x,t.y-u.y)<=kitScanR(u)+3)||RNG()<0.35)) return {k:'kit',a:'wscan'}; }
+    if(ok('mine')&&th.length&&(!loop||!vis.length)){ let T=null,bd=1e9; for(const t of th){ const d=Math.hypot(t.x-u.x,t.y-u.y); if(d<bd){ bd=d; T=t; } }
+      if(T&&bd<=14){ let best=null,bs=-1e9; const R=KITN.mine.range;
+        for(let y=u.y-R;y<=u.y+R;y++) for(let x=u.x-R;x<=u.x+R;x++){ if(!kitTileOk(u,'mine',x,y)) continue; const dt=Math.hypot(T.x-x,T.y-y), du=Math.hypot(x-u.x,y-u.y); if(du<1.5) continue;
+          let s=-dt+hash(x,y,u.id+G.round)*1.2; let nb=0; for(const dd of DIRS4){ const o=cell(x+dd[0],y+dd[1]); if(o&&!o.pass&&!o.flat) nb++; } s+=nb*0.8; // lanes between obstacles
+          if(s>bs){ bs=s; best=[x,y]; } }
+        if(best&&RNG()<D.abil) return {k:'kit',a:'mine',x:best[0],y:best[1]}; } }
+    return null; }
+  return null; }
+// the AI's turn: a few kit actions before it moves (loop false) and again after (loop true)
+async function aiKit(u,stale,loop){ let n=0; for(;n<3;n++){ if(stale()||u.ap<=0) break; const c=aiKitCmd(u,loop); if(!c) break; const ap=u.ap, cd=JSON.stringify(u.cd); await execCmd(u,c); if(u.ap===ap&&JSON.stringify(u.cd)===cd) break; } return n>0; }
+
+/* ---------- player input and HUD ---------- */
+function kitAction(u,id){ const K=KIT[id]; let w=kitWhy(u,id)||kitNoTgt(u,id); if(w){ hint(w); return; }
+  if(K.tgt==='self'){ G.busy=true; G.mode='idle'; playCmd({k:'kit',a:id}); return; }
+  if(K.tgt==='tile'){ enterThrow({id:'k_'+id,kit:id,ch:1}); return; }
+  enterTarget(id); }
+// action bar: the two kit buttons after the class ability; reasons on the class ability and the kit perk actives
+function kitActs(u,A,vis,ap){ if(!CLASSES[u.cls].kit) return;
+  const btn=(id,sub)=>{ const K=KIT[id], c2=u.cd[id]||0, w=kitWhy(u,id)||kitNoTgt(u,id); return {id,label:ABIL[id].short,sub:c2?c2+' turn'+(c2>1?'s':''):sub||(K.ap?'1 AP':'Free'),icon:id,off:!!w,why:w,abil:true,free:!K.ap}; };
+  const ab=CLASSES[u.cls].ability, i=A.findIndex(a=>a.id===ab); if(i>=0) A[i]=btn(ab,KIT[ab].ap?(ab==='turret'&&myTurrets(u).length?myTurrets(u)[0].shots+' shots left':'1 AP'):'Free');
+  let at=i>=0?i+1:A.length; for(const id of CLASSES[u.cls].kit) A.splice(at++,0,btn(id));
+  for(const a of A){ const X=ACTS[a.id]; if(!X||!X.kit||a.off) continue; let w='';
+    if(X.tgt!=='self'&&!kitTargets(u,a.id).length) w=a.id==='called'?'No marked enemy in sight':'No ally in range';
+    else if(a.id==='called'&&(u.ammo<1||u.noGun)) w='Out of ammo';
+    else if(a.id==='esalvo'&&!myTurrets(u).some(d=>!(d.jam>0)&&visibleEnemies(d).some(e=>!e.downed))) w=myTurrets(u).length?'No enemy your turret can see':'No turret deployed';
+    else if(u.inf) w='Infected: claws only';
+    if(w){ a.off=true; a.why=w; } } }
+function kitSts(u,sts){ if(u.kAdr) sts.push('Adrenaline: +1 AP next turn'); if(u.kSlow) sts.push('Snared: −1 AP next turn');
+  if(u.rmark&&u.rmark.team!==u.team&&G.round<=u.rmark.until) sts.push('Marked');
+  const T=G.drones?myTurrets(u):[]; if(T.length) sts.push('Turret'+(T.length>1?'s':'')+': '+T.map(d=>d.hp+' HP · '+d.shots+' shots').join(', '));
+  if(u.cls==='recon'&&kitOn()){ const n=G.kit.mines.filter(m=>m.oid===u.id).length; if(n) sts.push(n+' mine'+(n>1?'s':'')+' out'); } }
+// target panel for the kit's targeted abilities (repair, beam, adrenaline, mark, purge, called shot)
+function kitFillTarget(u,t,k){ const X=ABIL[k]||ACTS[k];
+  $('#tName').textContent=kName(t,u); $('#tSub').textContent=(t.tur?'Sentry turret':t.drone?DMODELS[t.model].name+' drone':CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(u,t).toFixed(1)+' tiles';
+  let hit='', lbl='', row='', note=X.desc||'';
+  if(k==='repair'){ const amt=KITN.repair+(hasP(u,'e_patch')?2:0); hit='+'+amt; lbl=t.drone?'HP':'shield'; row='<span>1 AP, keeps your turn going</span>'; }
+  else if(k==='beam'){ hit=String(u.cls==='medic'?KITN.revHp:3); lbl='HP on revive'; row='<span>1 AP, keeps your turn going</span>'+(hasP(u,'m_reach')?'<span>+2 shield</span>':''); }
+  else if(k==='adren'){ hit='+1'; lbl='AP next turn'; row=hasP(u,'m_serum')?'<span>+2 shield now</span>':''; }
+  else if(k==='purge'){ hit='+2'; lbl='HP, cured'; }
+  else if(k==='tmark'){ hit='+'+KITN.mark; lbl='team aim against it'; row='<span>Until the end of next round</span><span>Free action</span>'; }
+  else if(k==='called'){ const h=hitInfo(u,t,{aimMod:20,aimLbl:'called shot'}); hit=h.any+'%'; lbl='Called Shot · chance to hit'; row='<span>Damage '+(u.W.dmg[0]+1)+'–'+(u.W.dmg[1]+1)+'</span><span>Crit '+h.crit+'%</span>'; note='Aim '+u.aim+' '+h.mods.map(m=>(m[1]>0?'+':'')+m[1]+' '+m[0]).join(', ')+'.'; }
+  $('#tHit').textContent=hit; $('#tHitL').textContent=lbl; $('#tRow').innerHTML=row; $('#tMods').textContent=note;
+  $('#tChips').innerHTML=G.targets.length>1?G.targets.map((q,i)=>'<button class="tchip'+(i===G.tIdx?' sel':'')+'" data-ti="'+i+'">'+kName(q,u)+'</button>').join(''):'';
+  const fb=$('#tFire'); fb.textContent=X.short||'Go'; fb.classList.remove('off'); }
+// the throw / deploy panel for placements (turret, cover with a half / full choice, field, mine)
+G.kitV=1;
+function kitFillThrow(u,util,U){ const a=U.kit;
+  $('#tName').textContent=U.name; $('#tSub').textContent=U.info+'. Range '+(a==='wall'?'1 tile':U.range+' tiles')+'.';
+  const S=a==='turret'?kitTurStats(u):null;
+  $('#tHit').textContent=a==='turret'?String(S.shots):a==='wall'?String(kitWallHp(u,G.kitV===1)):a==='field'?String(kitFieldR(u)):a==='mine'?(KITN.mine.dmg[0]+(hasP(u,'n_clay')?2:0))+'–'+(KITN.mine.dmg[1]+(hasP(u,'n_clay')?2:0)):'';
+  $('#tHitL').textContent=U.hitL;
+  const row=a==='turret'?'<span>'+S.hp+' HP</span><span>Sight '+S.sight+'</span><span>'+S.rounds+' rounds</span>':a==='field'?'<span>+'+(KITN.field.heal+(hasP(u,'m_dose')?1:0))+' HP a turn</span>':a==='mine'?'<span>'+kitL().mines.filter(m=>m.oid===u.id).length+'/'+kitMineMax(u)+' out</span>':'';
+  $('#tRow').innerHTML=row+(G.throwTile<0?'<span>Tap a tile in range</span>':'<span>Tap Place, or the tile again, to confirm</span>');
+  $('#tMods').textContent='Costs 1 AP and keeps your turn going.'+(a==='turret'&&myTurrets(u).length>=(hasP(u,'e_twin')?2:1)?' Your oldest turret is recalled.':'')+(a==='mine'&&kitL().mines.filter(m=>m.oid===u.id).length>=kitMineMax(u)?' Your oldest mine is removed.':'');
+  $('#tChips').innerHTML=a==='wall'?[[0,'Half cover'],[1,'Full cover']].map(q=>'<button class="tchip'+(G.kitV===q[0]?' sel':'')+'" data-kv="'+q[0]+'">'+q[1]+'</button>').join(''):'';
+  const fb=$('#tFire'); fb.textContent='Place'; fb.classList.toggle('off',G.throwTile<0); }
+// loadout (Kit tab): the class abilities, cooldowns after the picked perks, and the class passive
+function kitLoGroup(cls){ const Cl=CLASSES[cls], tr=draft&&draft.tree&&draft.tree[cls]||[0,0,0,0,0], cp={}; for(const id of cpList(cls,tr,own)) cp[id]=true; const pu={cp};
+  const pas=cls==='medic'?'Passive: revives cost 1 AP and bring the ally back with '+KITN.revHp+' HP; regenerate '+KITN.regen+' HP a turn.':cls==='recon'?'Passive: +2 sight. Trip Mines and their markers are invisible to other teams.':'Passive: turrets and walls are yours to repair; turrets go down with you.';
+  return '<div class="grp"><h3>Class abilities</h3>'+[Cl.ability].concat(Cl.kit).map(a=>'<div class="slot kab"><span class="sl-t"><span class="sl-k">'+(a===Cl.ability?'Class ability':'Ability')+' · cooldown '+kitCd(pu,a)+(KIT[a].ap?' · 1 AP':' · free')+'</span><span class="sl-v">'+ICON[a].replace('<svg','<svg class="kabi"')+ABIL[a].name+'</span><span class="sl-m">'+ABIL[a].desc+'</span></span></div>').join('')
+    +'<p class="kabp">'+pas+'</p></div>'; }
+$('#tChips').addEventListener('click',e=>{ const b=e.target.closest('[data-kv]'); if(!b||!inputOpen()) return; G.kitV=+b.dataset.kv===1?1:0; SFX.click(); updateHUD(); });
+
+/* ---------- rendering (visual only: reads sim state, never writes it) ---------- */
+// ground layer: heal fields (public), trip mines (own team, spectators and replays only), mark reticles
+function kitDraw(c){ if(!kitOn()||G.scene!=='game') return; const t=G.time, me=G.player?G.player.team:-1;
+  for(const f of G.kit.fields){ if(G.round>f.until||!(G.fullVis||f.team===me||tileShown(f.x,f.y))) continue; const p=tileC(f.x,f.y), r=f.r*TW*0.72, pu=.5+.5*Math.sin(t*3+f.id);
+    c.fillStyle='rgba(93,255,154,'+(0.08+0.05*pu)+')'; isoE(c,p[0],p[1],r); c.fill(); c.strokeStyle='rgba(93,255,154,'+(0.45+0.3*pu)+')'; c.lineWidth=1.6; c.setLineDash([6,5]); c.lineDashOffset=-t*10; isoE(c,p[0],p[1],r); c.stroke(); c.setLineDash([]);
+    c.fillStyle='rgba(150,255,190,.75)'; c.fillRect(p[0]-1.5,p[1]-7,3,9); c.fillRect(p[0]-4.5,p[1]-4,9,3);
+    if(Math.random()<0.15) part({x:p[0]+frand(-r*.7,r*.7),y:p[1]+frand(-r*.3,r*.3),vx:0,vy:0,vz:frand(15,35),life:frand(.6,1.1),size:1.6,col:[93,255,154],type:'ember',grav:-10}); }
+  for(const m of G.kit.mines){ if(!(G.fullVis||m.team===me)) continue; const p=tileC(m.x,m.y), bl=(Math.sin(t*5+m.id)>0.6);
+    c.fillStyle='rgba(20,22,26,.9)'; isoE(c,p[0],p[1],7); c.fill(); c.strokeStyle=m.team===me?'rgba(255,179,64,.85)':'rgba(255,110,90,.85)'; c.lineWidth=1.2; isoE(c,p[0],p[1],7); c.stroke();
+    c.strokeStyle='rgba(255,179,64,.35)'; c.setLineDash([2,3]); isoE(c,p[0],p[1],12); c.stroke(); c.setLineDash([]); if(bl) softDot(c,[255,90,60],p[0],p[1]-2,4,.9); }
+  if(me>=0) for(const u of G.units){ if(!standing(u)||!u.rmark||u.rmark.team!==me||G.round>u.rmark.until||!shouldShow(u)) continue; const q=unitScreen(u), y=q[1]-50, s=6+Math.sin(t*4)*1;
+    c.strokeStyle='rgba(255,214,90,.9)'; c.lineWidth=1.4; c.beginPath(); c.arc(q[0],y,s,0,Math.PI*2); c.moveTo(q[0]-s-3,y); c.lineTo(q[0]-s+2,y); c.moveTo(q[0]+s-2,y); c.lineTo(q[0]+s+3,y); c.moveTo(q[0],y-s-3); c.lineTo(q[0],y-s+2); c.stroke(); } }
+function drawTurret(c,d){ const t=G.time, p=unitScreen(d), gx=p[0], gy=iso(d.rx+.5,d.ry+.5)[1]-ez(d.x,d.y), own=G.player&&d.team===G.player.team, f=d.face||1, col=own?[127,232,255]:d.col;
+  c.fillStyle='rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(gx,gy,12,5,0,0,6.3); c.fill();
+  c.strokeStyle=own?'rgba(93,255,154,.55)':C(d.col,1,.55); c.lineWidth=1.2; c.beginPath(); c.ellipse(gx,gy,13,6,0,0,6.3); c.stroke();
+  if(G.mode==='target'&&G.targets[G.tIdx]===d){ c.strokeStyle='rgba(255,77,94,.95)'; c.lineWidth=2; const r=17+Math.sin(t*6)*2; c.beginPath(); c.ellipse(gx,gy,r,r*.48,0,0,6.3); c.stroke(); }
+  c.strokeStyle='#23272e'; c.lineWidth=2; c.beginPath(); c.moveTo(gx,gy-9); c.lineTo(gx-8,gy+1); c.moveTo(gx,gy-9); c.lineTo(gx+8,gy+1); c.moveTo(gx,gy-9); c.lineTo(gx+1,gy+4); c.stroke();
+  c.fillStyle='#3a4250'; rr(c,gx-6,gy-19,12,9,2); c.fill(); c.fillStyle='#525d6e'; c.fillRect(gx-6,gy-19,12,2.5);
+  c.fillStyle='#1d2128'; c.fillRect(f>0?gx+4:gx-15,gy-16.5,11,3); c.fillStyle='#8a94a4'; c.fillRect(f>0?gx+13:gx-16,gy-17,2.5,4);
+  softDot(c,col,gx-f*2,gy-15,3.4,.75+.25*Math.sin(t*4+d.ph)); if(d.vFlash){ softDot(c,[255,230,170],f>0?gx+17:gx-17,gy-15,6,d.vFlash); d.vFlash=Math.max(0,d.vFlash-0.15); }
+  if(d.flash>0){ c.fillStyle='rgba(255,255,255,'+(d.flash*2)+')'; rr(c,gx-6,gy-19,12,9,2); c.fill(); }
+  if(G.scene!=='game') return;
+  for(let i=0;i<d.maxHp;i++){ c.fillStyle=i<d.hp?(own?'#5dff9a':'#ff6a6a'):'rgba(255,255,255,.18)'; c.fillRect(gx-d.maxHp*2+i*4,gy-26,3,2.4); }
+  if(own){ c.font='700 9px "Chakra Petch",sans-serif'; c.textAlign='center'; c.fillStyle='rgba(200,240,255,.85)'; c.fillText(d.shots+'×',gx,gy-29); } }
+// walls built by an Engineer: a ribbed composite panel (full) or a low braced barricade with hazard stripes (half)
+function kitObjDraw(c,o,x,y,s,al){
+  if(o.kind==='ewall'){ const P=drawBox(c,x,y,0.1,0.18,30,C([120,132,150],s),C([66,74,88],s),C([92,102,120],s));
+    c.strokeStyle=C([40,46,56],s); c.lineWidth=1; for(const z of [10,20]){ edgeLine(c,P.L,P.B,z); edgeLine(c,P.B,P.R,z); }
+    c.globalCompositeOperation='lighter'; c.fillStyle=C([255,179,64],s,.7*al); faceQuad(c,P.L,P.B,0.1,0.9,26,28); c.fill(); faceQuad(c,P.B,P.R,0.1,0.9,26,28); c.fill(); c.globalCompositeOperation='source-over'; }
+  else { const P=drawBox(c,x,y,0.08,0.14,13,C([150,156,166],s),C([82,88,98],s),C([112,118,130],s));
+    for(let q=0;q<5;q++){ c.fillStyle=q%2?C([30,30,30],s):C([240,180,40],s); faceQuad(c,P.L,P.B,q*.2,q*.2+.2,8,11); c.fill(); faceQuad(c,P.B,P.R,q*.2,q*.2+.2,8,11); c.fill(); } } }
+// class gear on the soldier rig: pack (back layer) and headgear
+const KITVIS={
+  engineer:{pack:(c,pk,t,ph,vis,vc)=>{ c.fillStyle='#3a3f48'; c.fillRect(pk[0]-1.2,pk[1]+1,pk[2]+1.4,3.2); c.fillStyle='#f0b030'; c.fillRect(pk[0]-1.2,pk[1]+2.4,pk[2]+1.4,.7);
+      c.strokeStyle='#2a2f38'; c.lineWidth=.9; c.beginPath(); c.moveTo(pk[0]+.6,pk[1]); c.lineTo(pk[0]-1.4,pk[1]-4.6); c.lineTo(pk[0]+1.6,pk[1]-6.4); c.stroke(); softDot(c,[255,190,80],pk[0]+1.6,pk[1]-6.4,2,.6+.3*Math.sin(t*3+ph)); },
+    head:(c,t,ph,vis)=>{ c.fillStyle='#2a2f38'; c.fillRect(-1.6,-5.6,5.4,1.3); c.fillStyle='rgba(255,190,80,.85)'; c.fillRect(3,-5.4,1.6,.9); }},
+  medic:{pack:(c,pk,t,ph)=>{ c.fillStyle='#d8dde4'; c.fillRect(pk[0]+.3,pk[1]+1.2,pk[2]-.6,4); c.fillStyle='#ff4d5e'; c.fillRect(pk[0]+pk[2]/2-.5,pk[1]+1.6,1,3.2); c.fillRect(pk[0]+pk[2]/2-1.6,pk[1]+2.7,3.2,1);
+      c.strokeStyle='#5dff9a'; c.lineWidth=.6; c.beginPath(); c.moveTo(pk[0]+pk[2],pk[1]+6); c.quadraticCurveTo(pk[0]+pk[2]+2.6,pk[1]+8,pk[0]+pk[2]+1,pk[1]+10.4); c.stroke(); },
+    head:(c,t,ph)=>{ c.fillStyle='#e8ecf0'; c.fillRect(-3.4,-4.6,2.6,2.6); c.fillStyle='#ff4d5e'; c.fillRect(-2.5,-4.3,.8,2); c.fillRect(-3.1,-3.7,2,.8); }},
+  recon:{pack:(c,pk,t,ph,vis,vc)=>{ c.strokeStyle='#22252b'; c.lineWidth=.6; c.beginPath(); c.moveTo(pk[0]+.8,pk[1]); c.lineTo(pk[0]-.4,pk[1]-11); c.moveTo(pk[0]+2,pk[1]); c.lineTo(pk[0]+1.6,pk[1]-6); c.stroke();
+      softDot(c,vc,pk[0]-.4,pk[1]-11,1.8,.4+.4*Math.max(0,Math.sin(t*2.4+ph))); },
+    head:(c,t,ph,vis)=>{ c.fillStyle='#1c1f25'; c.fillRect(2.6,-5,3,1.8); c.fillStyle=vis; c.fillRect(5.2,-4.8,1.1,1.3); c.fillStyle='#1c1f25'; c.fillRect(1,-6.2,1.2,1.4); }}
+};
+Object.assign(BODY,{engineer:{m:[88,84,62],d:[50,48,34],a:[214,170,72]},medic:{m:[84,88,96],d:[46,50,56],a:[222,226,232]},recon:{m:[52,66,62],d:[28,38,36],a:[120,150,138]}});
+Object.assign(GUNLEN,{wsmg:13});
+// the Hush SMG sprite: the Wasp (already scaled and boxed at load) with an integral suppressor, boxed the same way
+{ const S=WPN.smg, D=WPN.wsmg={hold:'rifle',fg:S.fg,tip:[14.6,S.tip[1]],parts:S.parts.concat([['R',10,-1.8,4.4,2.8,'k'],['r',10.6,-1.1,3.2,.5,'m']])}; let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; const ext=(x,y)=>{ x0=Math.min(x0,x); y0=Math.min(y0,y); x1=Math.max(x1,x); y1=Math.max(y1,y); };
+  for(const p of D.parts){ if(p[0]==='r'||p[0]==='R'){ ext(p[1],p[2]); ext(p[1]+p[3],p[2]+p[4]); } else if(p[0]==='c'){ ext(p[1]-p[3],p[2]-p[3]); ext(p[1]+p[3],p[2]+p[3]); } else { const o=p[0]==='l'?3:2; for(let i=o;i<p.length;i+=2) ext(p[i],p[i+1]); } }
+  D.box=[x0-1.2,y0-1.2,x1-x0+2.4,y1-y0+2.4]; D.len=x1; }
+// icons: class abilities, kit perk actives, turn-order / HUD class marks
+Object.assign(ICON,{
+  turret:'<svg viewBox="0 0 24 24"><path d="M7 9h9v5H7zM16 11h6M11 14v3M7 21l4-4 4 4M11 17v4"/><circle cx="9.5" cy="11.5" r="1"/></svg>',
+  wall:'<svg viewBox="0 0 24 24"><path d="M3 20h18M4 20V8h16v12M4 12h16M4 16h16M9 8v4M15 8v4M12 12v4M7 16v4M17 16v4M12 4v4M9 6l3-2 3 2"/></svg>',
+  repair:'<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0 5 5L21 13l-8 8-8-8 8-8 1.7 1.3zM4 20l5-5"/></svg>',
+  field:'<svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="9" ry="4"/><path d="M12 6v8M8 10h8"/></svg>',
+  beam:'<svg viewBox="0 0 24 24"><circle cx="5" cy="17" r="2.5"/><path d="M7.5 15.5L17 7M15 5h4v4"/><path d="M14 16h6M17 13v6"/></svg>',
+  adren:'<svg viewBox="0 0 24 24"><path d="M15 3l6 6M18 6l-9 9-3-3 9-9M9 15l-5 5M13 13l-3-3"/><path d="M19 15v6M16 18h6"/></svg>',
+  wscan:'<svg viewBox="0 0 24 24"><path d="M3 21L12 4l9 17"/><path d="M7 14h10M5 17.5h14"/><circle cx="12" cy="10" r="1.5"/><path d="M10 3h4"/></svg>',
+  mine:'<svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="8" ry="3.5"/><path d="M4 16v-2c0-2 3.6-3.5 8-3.5s8 1.5 8 3.5v2M12 10.5V7M9 5l3 2 3-2"/></svg>',
+  tmark:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/><path d="M9 12l2 2 4-4"/></svg>',
+  a_esalvo:'<svg viewBox="0 0 24 24"><path d="M5 9h8v5H5zM13 10h4M13 13h4M19 9l3 2-3 2M9 14v4M5 21l4-3 4 3"/></svg>',
+  a_emp:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3a9 9 0 0 1 9 9M3 12a9 9 0 0 1 9-9M21 12a9 9 0 0 1-9 9M12 21a9 9 0 0 1-9-9M13 6l-2 3h3l-2 3"/></svg>',
+  a_purge:'<svg viewBox="0 0 24 24"><path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/><path d="M12 11v6M9 14h6"/></svg>',
+  a_cheal:'<svg viewBox="0 0 24 24"><circle cx="6" cy="16" r="3"/><circle cx="18" cy="16" r="3"/><circle cx="12" cy="6" r="3"/><path d="M8 14l2.5-5.5M16 14l-2.5-5.5M9 16h6"/></svg>',
+  a_called:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5M17 5l2-2"/></svg>',
+  a_uplink:'<svg viewBox="0 0 24 24"><path d="M5 19a10 10 0 0 1 0-14M19 5a10 10 0 0 1 0 14M8 16a6 6 0 0 1 0-8M16 8a6 6 0 0 1 0 8"/><circle cx="12" cy="12" r="2"/><path d="M12 14v8"/></svg>'
+});
+Object.assign(CLS_ICON,{engineer:'turret',medic:'field',recon:'wscan'});
+// class challenges, their titles and banners, and daily quests for the three classes
+Object.assign(TITLES,{t_tinker:{name:'Tinkerer',r:'r'},t_bulwark:{name:'Bulwark',r:'r'},t_sentry:{name:'Sentry',r:'e'},t_angel:{name:'Guardian angel',r:'r'},t_pulse:{name:'Pulse',r:'r'},
+  t_ghost:{name:'Ghost signal',r:'r'},t_trapper:{name:'Trapper',r:'r'},t_spotter:{name:'Spotter',r:'e'},
+  t_p_engineer:{name:'Engineer prime',r:'l'},t_p_medic:{name:'Medic prime',r:'l'},t_p_recon:{name:'Recon prime',r:'l'}});
+Object.assign(BANNERS,{bn_rivet:{name:'Rivet',st:'stripe',c1:'#f0b030',c2:'#181208',r:'r'},bn_redcross:{name:'Red cross',st:'split',c1:'#ff4d5e',c2:'#1c0c10',r:'r'},bn_triage:{name:'Triage',st:'glow',c1:'#5dff9a',c2:'#0a1a10',r:'e'},
+  bn_sonar:{name:'Sonar',st:'scan',c1:'#7fe8ff',c2:'#06141c',r:'r'},bn_tripwire:{name:'Tripwire',st:'dots',c1:'#ffb340',c2:'#1a1206',r:'r'},
+  bn_p_engineer:{name:'Engineer prime',st:'grid',c1:'#f0b030',c2:'#1a1406',r:'l',anim:1},bn_p_medic:{name:'Medic prime',st:'glow',c1:'#5dff9a',c2:'#06180e',r:'l',anim:1},bn_p_recon:{name:'Recon prime',st:'scan',c1:'#9fd8c8',c2:'#081612',r:'l',anim:1}});
+CHAL.push(
+  {id:'e_tur',cls:'engineer',t:'Deal 150 damage with turrets',g:150,s:'turDmg',rw:{title:'t_sentry',cr:400}},
+  {id:'e_wall',cls:'engineer',t:'Build 30 walls',g:30,s:'walls',rw:{title:'t_bulwark',cr:300}},
+  {id:'e_rep',cls:'engineer',t:'Repair 60 shield or HP',g:60,s:'repair',rw:{banner:'bn_rivet',cr:300}},
+  {id:'e_abil',cls:'engineer',t:'Use class abilities 40 times',g:40,s:'abil',rw:{title:'t_tinker',cr:300}},
+  {id:'e_top3',cls:'engineer',t:'Finish in the top 3 five times',g:5,s:'top3',rw:{cr:400}},
+  {id:'m_rev',cls:'medic',t:'Revive 10 teammates',g:10,s:'revives',rw:{title:'t_angel',cr:400}},
+  {id:'m_heal',cls:'medic',t:'Heal 150 HP with class abilities',g:150,s:'healed',rw:{banner:'bn_triage',cr:300}},
+  {id:'m_adr',cls:'medic',t:'Give 15 adrenaline shots',g:15,s:'adren',rw:{title:'t_pulse',cr:300}},
+  {id:'m_beam',cls:'medic',t:'Revive 5 teammates with the Revive Beam',g:5,s:'beamRev',rw:{banner:'bn_redcross',cr:300}},
+  {id:'m_duo',cls:'medic',t:'Win 2 team matches',g:2,f:m=>m.win&&m.mode!=='solo'&&m.mode!=='quick'&&m.mode!=='blackout'&&m.mode!=='infection'?1:0,rw:{cr:500}},
+  {id:'c_scan',cls:'recon',t:'Reveal 30 enemies with Wall Scan',g:30,s:'scanned',rw:{banner:'bn_sonar',cr:300}},
+  {id:'c_mine',cls:'recon',t:'Catch 10 enemies with trip mines',g:10,s:'mines',rw:{title:'t_trapper',cr:300}},
+  {id:'c_mark',cls:'recon',t:'Mark 25 enemies',g:25,s:'marks',rw:{title:'t_spotter',cr:400}},
+  {id:'c_crit',cls:'recon',t:'Land 20 critical hits',g:20,s:'crits',rw:{title:'t_ghost',cr:300}},
+  {id:'c_dmg',cls:'recon',t:'Deal 500 damage',g:500,s:'dmg',rw:{banner:'bn_tripwire',cr:300}});
+Object.assign(CHAL_PRIME,{engineer:{title:'t_p_engineer',banner:'bn_p_engineer'},medic:{title:'t_p_medic',banner:'bn_p_medic'},recon:{title:'t_p_recon',banner:'bn_p_recon'}});
+QD.push({id:'d_eng',t:'Play a match as an Engineer',s:'cls_engineer',g:1},{id:'d_medic',t:'Play a match as a Medic',s:'cls_medic',g:1},{id:'d_recon',t:'Play a match as a Recon',s:'cls_recon',g:1});
+/* ================= end of class abilities ================= */
 /* ================= debug hooks (used for automated checks) ================= */
 window.__stormfall={G,setupMatch,runMatch,onAction,pFire,pMove,pThrow,enterTarget,actionList,sanitize,update,render,startMatch,PROF:()=>PROF,go,renderStore,renderQuests,renderProfile,grantRewards,claimQuest,sendEmote};
 
