@@ -27,7 +27,7 @@ It's live in two places:
 | Rumble | up to 4 teams of 2    | 24×24 | no storm, team deathmatch with respawns after 2 rounds, first to 12 eliminations (or the most after round 24) |
 | Infection | up to 8, survivors vs Infected | 40×40 | one (two with 7+) turns in round 1; the Infected regenerate and get back up, anyone they take down rises as Infected; survivors hold out to round 15 |
 | Blackout | up to 8, free for all | 40×40 | night: 3.5-tile sight, flares, drones and muzzle flashes reveal from normal range |
-| Survival | co-op, 1–4 (humans or AI teammates) vs zombie waves | 32×32 | no storm; zombies hunt by sound; 10 waves with 2-round breathers; horde difficulty Recruit / Veteran / Elite; not in Ranked |
+| Survival | co-op, 1–4 (humans or AI teammates) vs zombie waves | 32×32 | no storm; zombies hunt by sound; loud noise calls extra hordes from the map edge; 10 steeply growing waves with 2-round breathers; horde difficulty Recruit / Veteran / Elite; not in Ranked |
 
 In the team modes a downed operative bleeds out in 2 turns unless an adjacent teammate revives them; a team is out
 when nobody on it is standing. Empty seats are filled by bots, and team pings / commands steer AI teammates. The map
@@ -68,7 +68,16 @@ Toxic barrels and power boxes are always on the map, for luring the horde into g
 Each operative starts with a barricade and a Noise Maker. A breather after each wave brings crates, +4 HP, a barricade
 charge and eliminated squadmates back. Clear wave 10 to extract. The horde acts as one NPC turn after the squad's turns.
 It is simulated zombie by zombie with the seeded RNG, so it stays lockstep online and in replays, and it is animated in
-batches. At most 22 zombies (+3 per squad member) are on the map at once.
+batches. Waves grow roughly with the square of the wave number. The on-map cap is 22 zombies, +3 per squad member and +3
+per wave, up to 58.
+
+**Noise hordes.** Loud sounds fill a noise meter shown under the minimap: an explosion adds 6, an unsuppressed shot 2 and
+a Noise Maker 2, and the meter halves every round. When it reaches 8 (+3 per squad member), right after the turn that
+filled it, an extra horde (separate from the wave count) comes in from a seeded random map edge, headed for the loudest
+sound. A banner, a red edge flash with an arrow and a minimap edge mark show where it comes from, and a 3-round rest
+follows. Zombies the cap holds back come in at the next round starts. A turn that makes 4+ noise during a wave also pulls
+that wave's next zombies in at once. New zombies appear right after the noisy turn but first act in that round's horde
+phase, so they never move in the middle of the squad's turn order.
 
 **Mutators** (waiting room, host or offline) stack on any mode: Low gravity (+1 mobility, grenades +3 tiles, drop off any
 ledge), Explosive everything (destroyed objects explode like oil drums), One-shot, Double storm speed, Melee only and
