@@ -60,9 +60,13 @@ size. The daily challenge draws from all fifteen from 2026-11-06 (earlier days k
 only 4–6 tiles and track sound. Every sound has a hearing radius, shown in the match as a ring: unsuppressed gunshots 14
 tiles, explosions 20, suppressed shots 3, melee 2, a normal move 2, a sprint (2-AP move) 5, doors 6, and a thrown Noise
 Maker 16 (it keeps beeping for 2 rounds). Rain shortens all of them. A zombie heads for the loudest, freshest sound it
-heard and shows a yellow "?". One that sees you chases and shows a red "!", and it growls so others follow. Types:
+heard and shows a yellow "?". One that sees you locks on (red "!"): it tracks you for 3/5/8 rounds out of sight
+(Recruit/Veteran/Elite), and its growl (12 tiles) locks the pack onto you too. Locked-on zombies take full moves, spread
+round you instead of queueing, go round choke points, and feed on a downed squadmate first (each bite takes a turn off
+its bleed-out). During a wave a zombie with no lead homes in on the nearest squad member within a couple of rounds;
+quiet play stops the lock-on and the pack calls, and Noise Makers still pull zombies away. Types:
 Walker (the bulk), Runner (fast, fragile), Brute (smashes doors and cover in its way), Screamer (calls every zombie
-within 15 tiles to what it found), Bloater (bursts into a poison cloud through the hazards gas system) and an
+on the map to what it found), Bloater (bursts into a poison cloud through the hazards gas system) and an
 Abomination boss every 5th wave. A closed door holds the others back for a couple of rounds while they bang it open.
 Toxic barrels and power boxes are always on the map, for luring the horde into gas and live current.
 Each operative starts with a barricade and a Noise Maker. A breather after each wave brings crates, +4 HP, a barricade
@@ -71,13 +75,15 @@ It is simulated zombie by zombie with the seeded RNG, so it stays lockstep onlin
 batches. Waves grow roughly with the square of the wave number. The on-map cap is 22 zombies, +3 per squad member and +3
 per wave, up to 58.
 
-**Noise hordes.** Loud sounds fill a noise meter shown under the minimap: an explosion adds 6, an unsuppressed shot 2 and
-a Noise Maker 2, and the meter halves every round. When it reaches 8 (+3 per squad member), right after the turn that
-filled it, an extra horde (separate from the wave count) comes in from a seeded random map edge, headed for the loudest
-sound. A banner, a red edge flash with an arrow and a minimap edge mark show where it comes from, and a 3-round rest
-follows. Zombies the cap holds back come in at the next round starts. A turn that makes 4+ noise during a wave also pulls
-that wave's next zombies in at once. New zombies appear right after the noisy turn but first act in that round's horde
-phase, so they never move in the middle of the squad's turn order.
+**Noise hordes.** Loud sounds fill a noise meter shown under the minimap. An explosion adds 8. A sniper rifle, railgun,
+AM-50 or heavy-weapon shot adds 5, another unsuppressed shot 3, a sidearm shot 2 and a Noise Maker 3. The meter does not
+drop after a round with loud noise; otherwise it ticks down about 15% (at least 2) at the round start, and the HUD shows
+the tick. When it reaches 18 (+4 per squad member), right after the turn that filled it, an extra horde (separate from
+the wave count) comes in from a seeded random map edge, headed for the loudest sound. Two loud turns in a row usually do
+it. A banner, a red edge flash with an arrow and a minimap edge mark show where the horde comes from. A 3-round rest
+follows, and the meter drains to a quarter. Zombies the cap holds back come in at the next round starts. A turn that
+makes 4+ noise during a wave also pulls that wave's next zombies in at once. New zombies appear right after the noisy
+turn but first act in that round's horde phase, so they never move in the middle of the squad's turn order.
 
 **Mutators** (waiting room, host or offline) stack on any mode: Low gravity (+1 mobility, grenades +3 tiles, drop off any
 ledge), Explosive everything (destroyed objects explode like oil drums), One-shot, Double storm speed, Melee only and
