@@ -257,6 +257,8 @@ body.sheet-open .nav{display:none}
 #mchips .mch.zs{color:#9dff3a;border-color:rgba(157,255,58,.45)}
 #mchips .mch.zl{color:#ffb070;border-color:rgba(255,150,60,.5)}
 #mchips .mch.zq{color:#7fe8ff;border-color:rgba(127,232,255,.45)}
+#mchips .mch.zn{color:#ffd65a;border-color:rgba(255,214,90,.45)} #mchips .mch.zn.hot{color:#ff6b78;border-color:rgba(255,77,94,.7)}
+#mchips .zbar{display:inline-block;width:52px;height:7px;margin-left:5px;vertical-align:middle;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden} #mchips .zbar b{display:block;height:100%;background:currentColor}
 .wr-specs{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;padding:8px 12px;border:1px dashed var(--line2);border-radius:var(--r2);color:var(--text2);font-size:13px}
 .wr-specs .btn{margin-left:auto}
 /* ---------- waiting room ---------- */
@@ -1536,7 +1538,7 @@ html.pa-rm .toast,html.pa-rm .toast.lvl,html.pa-rm .toast.lvl::after,html.pa-rm 
       <li>Siege: two teams of four, best of three rounds, sides swap after each. Defenders start inside a walled compound in the middle of the map (a door and a window in each wall, sandbags, crates) around the data core; attackers start outside under a smoke screen that clears after two rounds. Attackers win a round by holding the core (the cyan ring) with no defender in it at the end of a round, or by taking out every defender; defenders win by holding out for 10 rounds or wiping the attackers. Attackers carry 2 Breaching Charges (blow walls, doors and cover in a 1.5-tile blast clean away, 2–3 damage) and a Scout Drone; defenders trade their damaging grenades for 2 extra smoke grenades and 2 Barricades (drop a sandbag wall, half cover, on an empty ground tile within 2 tiles, not on the core). No storm, downs and revives as in Duos.</li>
       <li>Rumble: teams of two in a 24×24 arena, no storm. Eliminations score for the killer’s team; first to 12 wins (or the most after round 24). Respawns as in King of the Hill.</li>
       <li>Infection: everyone drops alone; at the start of round 1 one operative (two with 7 or more) turns Infected. Survivors become one team with shared sight; the Infected have claws only (dash up to 5 tiles), +2 mobility, +6 HP, regenerate 2 HP a turn and sense survivors within 10 tiles. The Infected never die: taken down, one regenerates for a turn (it can’t be hurt meanwhile) and gets back up at full HP. A survivor the Infected take out goes down “turning” and rises as Infected on its next turn. Survivors win if any of them is standing after round 15; the Infected win when nobody is left to turn.</li>
-      <li>Survival: co-op against waves of zombies, alone or with up to 3 more players or AI teammates (32×32 map, no storm). Zombies see only 4–6 tiles and hunt by sound: every sound shows as a ring as far as it carries. Unsuppressed gunshots carry 14 tiles, explosions 20, suppressed shots 3, melee 2, a normal move 2, a sprint (a 2-AP move) 5, doors 6 (rain shortens all of it). A zombie heads for the loudest, freshest sound it heard (yellow “?”); one that sees you chases (red “!”) and growls, pulling the others along. Walkers are the bulk; Runners are fast and fragile; closed doors hold zombies back for a couple of rounds while they bang them open, Brutes smash through doors and cover in one blow; Screamers call everything in 15 tiles to what they found; Bloaters burst into poison gas (shoot them from range, or near the horde); every 5th wave brings an Abomination. Everyone carries a Noise Maker (a beeping decoy, louder than gunfire, for 3 rounds) and a barricade. After each wave a 2-round breather brings crates, +4 HP, a barricade and fallen squadmates back. Survive 10 waves to extract; the horde difficulty is set in the waiting room.</li>
+      <li>Survival: co-op against waves of zombies, alone or with up to 3 more players or AI teammates (32×32 map, no storm). Zombies see only 4–6 tiles and hunt by sound: every sound shows as a ring as far as it carries. Unsuppressed gunshots carry 14 tiles, explosions 20, suppressed shots 3, melee 2, a normal move 2, a sprint (a 2-AP move) 5, doors 6 (rain shortens all of it). A zombie heads for the loudest, freshest sound it heard (yellow “?”); one that sees you chases (red “!”) and growls, pulling the others along. Walkers are the bulk; Runners are fast and fragile; closed doors hold zombies back for a couple of rounds while they bang them open, Brutes smash through doors and cover in one blow; Screamers call everything in 15 tiles to what they found; Bloaters burst into poison gas (shoot them from range, or near the horde); every 5th wave brings an Abomination. Everyone carries a Noise Maker (a beeping decoy, louder than gunfire, for 3 rounds) and a barricade. After each wave a 2-round breather brings crates, +4 HP, a barricade and fallen squadmates back. Loud noise also fills the noise meter under the minimap (explosions most, then unsuppressed fire and Noise Makers; it halves every round): a full meter sends an extra horde in from a random map edge right after the noisy turn, headed for the noise (a banner, a red edge flash and an arrow tell you where; then a 3-round rest). A noisy turn during a wave also pulls that wave's next zombies in early. Waves grow steeply (about wave² zombies), and more of them fit on the map as the waves go on. Survive 10 waves to extract; the horde difficulty is set in the waiting room.</li>
       <li>Blackout: Solo at night. You see only 3.5 tiles (+1 on high ground). Anyone standing in light (a flare, near a deployed Specialist drone, in a Scout Drone’s area) or who fired an unsuppressed shot since their last turn can be seen from normal sight range. Everyone carries a flare (throw it into the dark: it lights 3 tiles until the end of next round) and crates often hold another. Every shot flashes on every minimap. Suppressed weapons and blades stay dark.</li>
       <li>Mutators: in the waiting room the host (or you, offline) can switch on Low gravity, Explosive everything, One-shot, Double storm speed, Melee only and Perma-smoke for any mode. Guests see them in the room, they show as chips under the minimap in the match, and replays keep them.</li>
       <li>Team pings: in Duos, Trios and Quads, tap 📍 then the map, or press and hold on the map, to ping (Enemy here, Move here, Watch this area, Loot here, Danger) or give a command (Heal me, Hold, Regroup, Push, Fall back, Revive me). Heal me calls your Medic or Engineer over to heal you (Heal Field) or restore your shield (Repair); it lights up when your HP is low, and AI teammates send it themselves when they’re hurt. Only your team sees them; they fade after 2 rounds. An AI partner or squadmates follow them (online, orders given on your own turn).</li>
@@ -7588,7 +7590,7 @@ function modeHud(){ const el=$('#mchips'); if(!el) return; const ch=[];
   if(G.zs) zsChips(ch);
   for(const k of MUT_KEYS) if(G.mut[k]) ch.push(['mu',MUTS[k].short]);
   const sig=ch.map(x=>x.join(':')).join('|'); if(sig===mchSig) return; mchSig=sig;
-  el.innerHTML=ch.map(x=>'<span class="mch '+x[0]+'">'+esc(x[1])+'</span>').join('');
+  el.innerHTML=ch.map(x=>'<span class="mch '+x[0]+'">'+(x[2]||esc(x[1]))+'</span>').join(''); // x[2]: trusted HTML (Survival's noise meter)
   const ck=$('#clocks'); if(ck) ck.style.transform=ch.length?'translateY('+(ch.length*22+4)+'px)':''; }
 function lbMut(){ return mutClean(LB.online?NET.mut:PROF.settings.mut); }
 function lbToggleMut(k){ if(!MUTS[k]) return; const m=lbMut(), n=m.includes(k)?m.filter(x=>x!==k):m.concat(k);
@@ -7630,7 +7632,7 @@ async function runMatch(){
     if(G.zs){ await zsRound(); if(G.over||G.matchId!==mid) break; } // Survival: breathers, waves and spawns
     kitRound(); // class abilities: turrets expire, heal fields fade
     if(hzDue()){ await hzPhase(); if(G.over||G.matchId!==mid) break; } // hazards: fire spreads, gas drifts, current fades
-    for(const u of G.units){ if(G.over||G.matchId!==mid||(G.gm&&G.gm.halt)) break; if(!u.alive||u.zb) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); const b=!G.over&&bountyOn(); if(b&&b.t===u.id) bountyPing(b); }
+    for(const u of G.units){ if(G.over||G.matchId!==mid||(G.gm&&G.gm.halt)) break; if(!u.alive||u.zb) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); if(G.zs&&!G.over&&G.matchId===mid) await zsAfterTurn(u); const b=!G.over&&bountyOn(); if(b&&b.t===u.id) bountyPing(b); }
     G.turnU=null;
     if(G.zs){ await zsPhase(); if(G.over||G.matchId!==mid) break; } // Survival: the horde acts after the squad
     if(G.gm){ await gmRoundEnd(); if(G.over||G.matchId!==mid) break; } // objective modes: scoring, Siege round changes, the end
@@ -10220,7 +10222,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=34, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=35, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
@@ -13961,6 +13963,9 @@ rbBoot();
      - a zombie that hears a sound compares its loudness minus distance with its current lead (which fades ZS.decay a
        round) and heads for the louder / fresher one; a zombie that sees a squad member chases it; with nothing to go on
        it shambles (half a tile slower) around where it is, drifting toward the squad more and more as the wave drags on.
+   Noise hordes (zsAfterTurn, see "noise hordes and noise-called reinforcements"): loud sounds fill a decaying noise meter;
+   right after a noisy squad turn a full meter sends an extra horde from a random edge, and a noisy turn pulls the wave's
+   next zombies in early. Wave sizes grow with the square of the wave; the on-map cap grows with the wave (zsCap).
    Zombie types (ZT): Walker, Runner, Brute (smashes doors and cover in its way; the others bang closed doors open), Screamer, Bloater (bursts into a gas cloud
    through the hazards gas system) and an Abomination boss every 5th wave. Waves (zsCompose) grow with the wave number,
    the squad size and the horde difficulty (cfg.zd / pre.zd: ZD); short breathers (ZS.rest rounds) between them bring
@@ -13968,7 +13973,7 @@ rbBoot();
    Lockstep: every roll uses the seeded RNG in a fixed order; G.zs is sim state hashed by zsHash (only in Survival, so
    other modes' hashes are unchanged); G.zsv is visual-only (sound rings, your kills by type). */
 const ZS_T=9; // the horde's team id (squads are team 0)
-const ZS={rest:2,waves:10,cap:22,capPer:3,decay:3,wander:5,smell:16,disperse:28,stepT:0.085,smash:6,bang:2,
+const ZS={rest:2,waves:10,cap:22,capPer:3,capWave:3,capMax:58,W:{blast:6,shot:2,lure:2},thr:8,thrPer:3,hordeCd:3,reinf:4,decay:3,wander:5,smell:16,disperse:28,stepT:0.085,smash:6,bang:2,
   shot:14,blast:20,quiet:3,melee:2,step:2,sprint:5,door:6,lure:16,lureEcho:12,lureRounds:2,growl:7,scream:15,smashS:8,burst:8,
   L:{shot:8,blast:10,quiet:5,melee:4,step:3,sprint:5,door:6,lure:13,growl:9,scream:11,smashS:6,burst:7},cr:3,xp:6};
 const ZT={
@@ -14015,14 +14020,15 @@ function zsSetup(net,pre){
   for(let i=0;i<MW*MH;i++){ const x=i%MW, y=(i/MW)|0; if(x>1&&y>1&&x<MW-2&&y<MH-2) continue; if(G.grid[i]||G.lvl[i]||G.surf[i]===1||!isFinite(F[i])) continue; sp.push(i); }
   G.noise=zsNoiseArr();
   G.zsv={fx:[],my:{}}; // visual only: sound rings, your takedowns by type
-  return {d:ZD[zd]?zd:'veteran',wave:0,cleared:0,state:'rest',next:2,w0:1,q:[],tot:0,snd:[],lures:[],sp,kills:0,won:false,resp:false,thr:-1,n}; }
+  return {d:ZD[zd]?zd:'veteran',wave:0,cleared:0,state:'rest',next:2,w0:1,q:[],tot:0,snd:[],lures:[],sp,kills:0,won:false,resp:false,thr:-1,n,nm:0,nt:0,nl:0,src:null,hcd:0,hq:[],hordes:0}; }
 // G.noise in Survival: the same array, but every push (gunfire, blasts) is also heard by the horde
 function zsNoiseArr(){ const a=[]; a.push=function(){ for(const n of arguments) zsNoiseIn(n); return Array.prototype.push.apply(this,arguments); }; return a; }
 function zsNoiseIn(n){ const S=G.zs; if(!S||!n) return; const src=n.id>=0?G.units.find(u=>u.id===n.id)||G.drones.find(d=>d.id===n.id):null; if(src&&src.zb) return;
   if(!n.blast&&S.thr>=0&&n.id===S.thr){ S.thr=-1; return; } // a thrown grenade is heard where it lands, not where it was thrown from
   zsSnd(n.x,n.y,n.blast?'blast':'shot',src); }
 // a sound: (x,y) where it is heard from, R its radius in tiles, (tx,ty) where it sends the zombies that hear it
-function zsSnd(x,y,k,src,R,tx,ty){ const S=G.zs; if(!S||G.over) return; R=Math.round((R||ZS[k])*wxHear()*10)/10;
+function zsSnd(x,y,k,src,R,tx,ty,echo){ const S=G.zs; if(!S||G.over) return; R=Math.round((R||ZS[k])*wxHear()*10)/10;
+  const w=echo?0:ZS.W[k]||0; if(w){ S.nm+=w; S.nt+=w; if(!S.src||w>=S.src.w||S.src.r!==G.round) S.src={x,y,w,r:G.round}; } // the noise meter and its loudest source
   S.snd.push({x,y,k,R,L:ZS.L[k]||6,tx:tx==null?x:tx,ty:ty==null?y:ty,s:src&&src.id!=null?src.id:-1}); if(S.snd.length>160) S.snd.shift();
   zsRing(x,y,R,k,0); }
 function zsRing(x,y,R,k,delay){ const V=G.zsv; if(!V||G.scene!=='game') return; V.fx.push({x,y,R,k,t:G.time+(delay||0)}); if(V.fx.length>48) V.fx.shift(); }
@@ -14030,6 +14036,8 @@ function zsRing(x,y,R,k,delay){ const V=G.zsv; if(!V||G.scene!=='game') return; 
 /* ---------- round start: breathers, waves, spawns ---------- */
 async function zsRound(){ const S=G.zs, mid=G.matchId; if(!S) return;
   G.units=G.units.filter(u=>!(u.zb&&!u.alive&&u.zdR<G.round)); // corpses from earlier rounds
+  S.nm=Math.floor(S.nm/2); S.nl=S.nt; // the noise meter halves every round
+  if(S.hq.length) await zsHordeIn();
   if(S.resp){ S.resp=false; await zsRespawn(); if(G.over||G.matchId!==mid) return; }
   if(S.state==='rest'&&G.round===1){ banner('Survival','The first wave hits next round. Zombies hunt by sound: unsuppressed shots carry '+ZS.shot+' tiles, explosions '+ZS.blast+'.','warn',3400); }
   if(S.state==='rest'&&G.round>=S.next){ S.wave++; S.state='wave'; S.w0=G.round; S.q=zsCompose(S.wave); S.tot=S.q.length;
@@ -14040,13 +14048,14 @@ async function zsRound(){ const S=G.zs, mid=G.matchId; if(!S) return;
   // a wave that drags on: from ZS.smell rounds the horde smells the squad; after ZS.disperse rounds what is left (and still
   // to come) disperses so a squad the horde cannot reach (rooftops, a choked ladder) never stalls the run
   if(S.state==='wave'&&G.round-S.w0>=ZS.smell){ const sq=zsSquad().filter(standing);
-    if(G.round-S.w0>=ZS.disperse){ S.q=[]; for(const z of G.units) if(z.zb&&z.alive){ z.alive=false; z.deadT=1; z.zdR=G.round; z.zdT=G.time; } feedLine('The rest of wave '+S.wave+' scattered',true); zsCheckWave(); }
+    if(G.round-S.w0>=ZS.disperse){ S.q=[]; for(const z of G.units) if(z.zb&&z.alive&&!z.zhd){ z.alive=false; z.deadT=1; z.zdR=G.round; z.zdT=G.time; } feedLine('The rest of wave '+S.wave+' scattered',true); zsCheckWave(); }
     else if(sq.length) for(const z of G.units){ if(!z.zb||!standing(z)||z.zm===2) continue; let b=sq[0], bd=1e9; for(const p of sq){ const d=Math.hypot(p.x-z.x,p.y-z.y); if(d<bd){ bd=d; b=p; } } z.zt={x:b.x,y:b.y,p:6,r:G.round}; z.zm=1; } }
-  for(const L of S.lures) if(G.round<=L.until){ zsSnd(L.x,L.y,'lure',null,ZS.lureEcho); if(tileShown(L.x,L.y)) floatText(tileDummy(L.x,L.y),'BEEP',[200,140,255],14); }
+  for(const L of S.lures) if(G.round<=L.until){ zsSnd(L.x,L.y,'lure',null,ZS.lureEcho,null,null,true); if(tileShown(L.x,L.y)) floatText(tileDummy(L.x,L.y),'BEEP',[200,140,255],14); }
   S.lures=S.lures.filter(L=>L.until>G.round);
   updateTop(); updateTurnOrder(); }
+// wave size: linear early, then quadratic (solo Veteran: 3 5 6 9 12 15 19 24 29 35; squads and difficulty scale it)
 // wave composition (seeded order): a boss every 5th wave, then Screamers, Bloaters, Brutes, Runners and Walkers
-function zsCompose(w){ const S=G.zs, D=ZD[S.d], n=Math.max(3,Math.round((2+1.5*w)*(0.55+0.45*S.n)*D.n)), q=[];
+function zsCompose(w){ const S=G.zs, D=ZD[S.d], n=Math.max(3,Math.round((2+1.4*w+0.3*Math.max(0,w-2)**2)*(0.55+0.45*S.n)*D.n)), q=[];
   let left=n; const add=(k,c)=>{ c=Math.min(c,left); for(let i=0;i<c;i++) q.push(k); left-=c; };
   if(w%5===0) add('boss',1);
   if(w>=3) add('screamer',1+Math.floor((w-3)/5));
@@ -14057,15 +14066,16 @@ function zsCompose(w){ const S=G.zs, D=ZD[S.d], n=Math.max(3,Math.round((2+1.5*w
   const boss=q.filter(k=>k==='boss'), rest=shuffle(q.filter(k=>k!=='boss'));
   return boss.concat(rest); }
 // spawn the next batch at one or two edge points out of the squad's sight
-async function zsSpawn(){ const S=G.zs, sq=zsSquad().filter(standing), alive=G.units.filter(u=>u.zb&&u.alive).length;
-  const cap=ZS.cap+ZS.capPer*S.n, k=Math.min(S.q.length,cap-alive,Math.max(3,Math.ceil(S.tot/3))); if(k<=0) return;
+function zsCap(){ const S=G.zs; return Math.min(ZS.capMax,ZS.cap+ZS.capPer*S.n+ZS.capWave*S.wave); } // grows with the wave (performance budget: ZS.capMax)
+async function zsSpawn(kk,lead){ const S=G.zs, sq=zsSquad().filter(standing), alive=G.units.filter(u=>u.zb&&u.alive).length;
+  const cap=zsCap(), k=Math.min(S.q.length,cap-alive,kk||Math.max(3,Math.ceil(S.tot/3))); if(k<=0) return;
   const far=S.sp.filter(i=>{ const x=i%MW, y=(i/MW)|0; return !sq.some(p=>{ const d=Math.hypot(p.x-x,p.y-y); return d<9||(d<=sightOf(p)&&hasLOS(p.x,p.y,x,y)); }); });
   const pool=far.length?far:S.sp; if(!pool.length) return;
   const groups=k>=6?2:1, made=[]; let shown=false;
   for(let g=0;g<groups;g++){ const c=pick(pool), cx=c%MW, cy=(c/MW)|0, m=g<groups-1?Math.ceil(k/groups):k-made.length;
     const cand=[]; for(let y=Math.max(0,cy-4);y<=Math.min(MH-1,cy+4);y++) for(let x=Math.max(0,cx-4);x<=Math.min(MW-1,cx+4);x++){ const i=idx(x,y); if(G.grid[i]||G.lvl[i]||G.surf[i]===1||unitAt(x,y)||droneOn(x,y)) continue; cand.push(i); }
     cand.sort((a,b)=>Math.hypot(a%MW-cx,((a/MW)|0)-cy)-Math.hypot(b%MW-cx,((b/MW)|0)-cy)||a-b);
-    for(let j=0;j<m&&j<cand.length&&S.q.length;j++){ const i=cand[j]; if(unitAt(i%MW,(i/MW)|0)) continue; const z=zbMake(S.q.shift(),i%MW,(i/MW)|0); made.push(z); if(shouldShow(z)) shown=true; } }
+    for(let j=0;j<m&&j<cand.length&&S.q.length;j++){ const i=cand[j]; if(unitAt(i%MW,(i/MW)|0)) continue; const z=zbMake(S.q.shift(),i%MW,(i/MW)|0); if(lead){ z.zt={x:lead.x,y:lead.y,p:8,r:G.round}; z.zm=1; } made.push(z); if(shouldShow(z)) shown=true; } }
   if(!made.length) return;
   G.units.push(...made);
   for(const z of made){ z.zR=G.time; if(G.player&&!G.fullVis&&!shouldShow(z)) continue; const p=tileC(z.x,z.y); for(let i=0;i<6;i++) part({x:p[0]+frand(-10,10),y:p[1],z:2,vx:frand(-40,40),vy:frand(-20,20),vz:frand(30,80),life:frand(.4,.8),size:frand(2,3),col:[70,60,50],type:'debris',grav:300}); }
@@ -14086,7 +14096,7 @@ async function zsRespawn(){ const sq=zsSquad(), up=sq.filter(standing), due=sq.f
   if(me){ const p=G.player; G.playerDead=false; G.spec=null; G.speed=1; $('#spSpeed').textContent='1×'; $('#spec').classList.add('hidden'); focusOn(p.x,p.y,defaultZ()); banner('Back in the fight','Your squad held on. You rejoin with half health.','win',1800); buzz(25); }
   computeVis(); updateHUD(); await wait(me?900:500); }
 // a wave is cleared when its queue is empty and no zombie is left: breather (or the win after the last wave)
-function zsCheckWave(){ const S=G.zs; if(!S||G.over||S.state!=='wave'||S.q.length||G.units.some(u=>u.zb&&u.alive)) return;
+function zsCheckWave(){ const S=G.zs; if(!S||G.over||S.state!=='wave'||S.q.length||G.units.some(u=>u.zb&&u.alive&&!u.zhd)) return;
   S.cleared=S.wave; S.state='rest'; S.next=G.round+1+ZS.rest;
   if(S.wave>=ZS.waves){ S.won=true; feedLine('Final wave cleared',true); endMatch(true); return; }
   const sq=zsSquad().filter(standing);
@@ -14100,6 +14110,63 @@ function zsCheckWave(){ const S=G.zs; if(!S||G.over||S.state!=='wave'||S.q.lengt
   feedLine('Wave '+S.wave+' cleared',true);
   banner('Wave '+S.wave+' cleared','Breather: loot, revive and rebuild. Wave '+(S.wave+1)+' in '+(S.next-G.round)+' rounds.','win',2400); SFX.heal(); buzz([20,30,20]);
   updateTop(); }
+
+/* ---------- noise hordes and noise-called reinforcements ----------
+   Loud sounds fill S.nm (ZS.W: explosions 6, unsuppressed fire 2, a thrown Noise Maker 2; it halves at every round start).
+   Right after each squad member's turn (runMatch -> zsAfterTurn, a fixed point in sim order on every client):
+     - a turn that made ZS.reinf or more noise during a wave pulls a batch of that wave's zombies in early, led to the noise;
+     - a full meter (zsThr: ZS.thr + ZS.thrPer per squad member) outside the horde cooldown sends a horde, separate from the
+       wave count, in along one seeded random map edge, led to the loudest sound. What the on-map cap cannot take waits in S.hq
+       and comes in at the next round starts. New zombies first act in the round's horde phase (after every squad turn), so a
+       horde never gets a free move in the middle of someone else's turn order. */
+function zsThr(){ return ZS.thr+ZS.thrPer*G.zs.n; }
+const ZS_EDGE=['north-east','south-east','south-west','north-west']; // grid edges y=0, x=MW-1, y=MH-1, x=0 as seen on screen
+function zsSide(i){ const x=i%MW, y=(i/MW)|0; return y<=1?0:x>=MW-2?1:y>=MH-2?2:x<=1?3:-1; }
+async function zsAfterTurn(u){ const S=G.zs; if(!S||G.over||u.zb) return; const d=S.nt-S.nl; S.nl=S.nt;
+  if(d>=ZS.reinf&&S.state==='wave'&&S.q.length&&S.src){ const n0=G.units.length; await zsSpawn(Math.max(2,Math.ceil(S.tot/6)),S.src); if(G.units.length>n0) feedLine('The noise pulled more of wave '+S.wave+' in',true); }
+  if(!G.over&&S.nm>=zsThr()&&G.round>=S.hcd&&S.src) await zsHorde(); }
+function zsHordeSize(){ const S=G.zs; return Math.max(4,Math.round((3+1.2*S.wave+0.12*S.wave*S.wave)*(0.55+0.45*S.n)*ZD[S.d].n)); }
+async function zsHorde(){ const S=G.zs, lead={x:S.src.x,y:S.src.y}, w=Math.max(1,S.wave), n=zsHordeSize(), types=[];
+  for(let i=0;i<n;i++) types.push(i%4===3?'runner':w>=4&&i%9===8?'brute':'walker');
+  S.nm=0; S.src=null; S.hcd=G.round+ZS.hordeCd; S.hordes++;
+  const sq=zsSquad().filter(standing), far=i=>!sq.some(p=>Math.hypot(p.x-i%MW,p.y-((i/MW)|0))<7);
+  let side=ri(0,3), pool=[];
+  for(let k=0;k<4&&!pool.length;k++,side=(side+1)%4) pool=S.sp.filter(i=>zsSide(i)===side&&far(i));
+  side=(side+3)%4; if(!pool.length){ pool=S.sp.slice(); side=-1; } if(!pool.length) return;
+  const c=pick(pool), cx=c%MW, cy=(c/MW)|0; pool.sort((a,b)=>Math.hypot(a%MW-cx,((a/MW)|0)-cy)-Math.hypot(b%MW-cx,((b/MW)|0)-cy)||a-b);
+  const room=Math.max(0,zsCap()-G.units.filter(u=>u.zb&&u.alive).length), made=zsPlace(types.splice(0,room),pool,lead);
+  for(const k of types) S.hq.push(k); S.hlead=lead;
+  const nm=side>=0?ZS_EDGE[side]:'the edges';
+  banner('Horde incoming from the '+nm+'!',n+' zombies heard the noise'+(S.hq.length?' ('+S.hq.length+' more on the way)':'')+'.','lose',2400);
+  feedLine('Horde: '+n+' zombies from the '+nm,true); SFX.tone(90,45,1.1,.16,'sawtooth'); SFX.noise(.9,'lowpass',260,.45); buzz([50,40,50,40,90]); G.cam.shake=Math.max(G.cam.shake,6);
+  if(G.zsv) G.zsv.edge={s:side,t:G.time,cx,cy};
+  updateTop(); await zsShowSpawn(made,900); }
+// zombies on the listed tiles (nearest first), led to `lead`, flagged as a noise horde
+function zsPlace(types,tiles,lead){ const made=[];
+  for(const i of tiles){ if(!types.length) break; const x=i%MW, y=(i/MW)|0; if(unitAt(x,y)||droneOn(x,y)||G.grid[i]||G.lvl[i]||G.surf[i]===1) continue;
+    const z=zbMake(types.shift(),x,y); z.zhd=1; z.zt={x:lead.x,y:lead.y,p:10,r:G.round}; z.zm=1; made.push(z); }
+  G.units.push(...made); return made; }
+async function zsShowSpawn(made,ms){ let shown=false;
+  for(const z of made){ z.zR=G.time; if(shouldShow(z)) shown=true; if(G.player&&!G.fullVis&&!shouldShow(z)) continue; const p=tileC(z.x,z.y); for(let i=0;i<5;i++) part({x:p[0]+frand(-10,10),y:p[1],z:2,vx:frand(-40,40),vy:frand(-20,20),vz:frand(30,80),life:frand(.4,.8),size:frand(2,3),col:[70,60,50],type:'debris',grav:300}); }
+  if(G.player&&!G.fullVis){ const seen=new Set(); for(const z of made){ const key=Math.round(z.x/4)+','+Math.round(z.y/4); if(seen.has(key)) continue; seen.add(key); ping(z.x,z.y,[255,77,94]); } }
+  if(made.length) await wait(shown?ms:Math.min(ms,500)); }
+// round start: horde zombies the cap held back come in at the edge points out of sight, still led to the noise
+async function zsHordeIn(){ const S=G.zs, room=zsCap()-G.units.filter(u=>u.zb&&u.alive).length; if(room<=0) return;
+  const sq=zsSquad().filter(standing), pool=S.sp.filter(i=>!sq.some(p=>Math.hypot(p.x-i%MW,p.y-((i/MW)|0))<9)); if(!pool.length) return;
+  const c=pick(pool), cx=c%MW, cy=(c/MW)|0; pool.sort((a,b)=>Math.hypot(a%MW-cx,((a/MW)|0)-cy)-Math.hypot(b%MW-cx,((b/MW)|0)-cy)||a-b);
+  await zsShowSpawn(zsPlace(S.hq.splice(0,room),pool,S.hlead||{x:cx,y:cy}),450); }
+// the telegraph: the map edge the horde comes from flashes red on screen (with an arrow when it is off screen) and on the minimap
+function zsEdgeFx(c){ const V=G.zsv, E=V&&V.edge; if(!E||G.scene!=='game') return; const k=(G.time-E.t)/4; if(k<0||k>1){ if(k>1) V.edge=null; return; }
+  const a=(1-k)*(0.6+0.4*Math.sin(G.time*10)), s=E.s, pts=s===0?[[0,0],[MW,0]]:s===1?[[MW,0],[MW,MH]]:s===2?[[MW,MH],[0,MH]]:s===3?[[0,MH],[0,0]]:null;
+  c.save(); c.setTransform(1,0,0,1,0,0);
+  if(pts){ const sc=w=>{ const q=iso(w[0],w[1]); return [(q[0]-G.cam.x)*G.cam.z+VW/2,(q[1]-G.cam.y)*G.cam.z+VH/2]; }, A=sc(pts[0]), B=sc(pts[1]);
+    c.strokeStyle='rgba(255,60,70,'+(0.85*a)+')'; c.lineWidth=7; c.lineCap='round'; c.beginPath(); c.moveTo(A[0],A[1]); c.lineTo(B[0],B[1]); c.stroke();
+    const M=sc([(pts[0][0]+pts[1][0])/2,(pts[0][1]+pts[1][1])/2]), cx=VW/2, cy=VH/2, dx=M[0]-cx, dy=M[1]-cy, L=Math.hypot(dx,dy)||1, an=Math.atan2(dy,dx);
+    const edge=Math.min(dx?((dx>0?VW-30:30)-cx)/dx:1e9,dy?((dy>0?VH-200:110)-cy)/dy:1e9), r=Math.min(1,edge), ax=cx+dx*r, ay=cy+dy*r;
+    const gr=c.createRadialGradient(ax,ay,0,ax,ay,170); gr.addColorStop(0,'rgba(255,40,50,'+(0.35*a)+')'); gr.addColorStop(1,'rgba(255,40,50,0)'); c.fillStyle=gr; c.fillRect(ax-170,ay-170,340,340);
+    c.translate(ax,ay); c.rotate(an); c.fillStyle='rgba(255,77,94,'+a+')'; c.strokeStyle='rgba(0,0,0,'+(0.7*a)+')'; c.lineWidth=2; c.beginPath(); c.moveTo(28,0); c.lineTo(-14,-22); c.lineTo(-5,0); c.lineTo(-14,22); c.closePath(); c.stroke(); c.fill(); c.rotate(-an);
+    c.font='800 16px "Chakra Petch",sans-serif'; c.textAlign='center'; c.lineWidth=4; c.strokeText('HORDE',-Math.cos(an)*44,-Math.sin(an)*36+6); c.fillText('HORDE',-Math.cos(an)*44,-Math.sin(an)*36+6); }
+  c.restore(); }
 
 /* ---------- the horde's turn ---------- */
 async function zsPhase(){ const S=G.zs, mid=G.matchId; if(!S||G.over) return;
@@ -14239,9 +14306,9 @@ function zsDie(t,src,anim,how){ const S=G.zs, T=ZT[t.zb];
   if(T.gas){ hzGas(t.x,t.y,T.gas,src&&!src.zb?src:null,3); if(tileShown(t.x,t.y)){ hzPuff(t.x,t.y,T.gas); floatText(tileDummy(t.x,t.y),'TOXIC CLOUD',[160,255,100],16); } zsSnd(t.x,t.y,'burst',t); }
   if(RNG()<T.loot&&!G.crates.some(q=>q.x===t.x&&q.y===t.y)) G.crates.push({x:t.x,y:t.y,ph:RNG()*6,drop:!!T.boss});
   updateTop(); zsCheckWave(); }
-function zsHash(add){ const S=G.zs; add(S.wave); add(S.cleared); add(S.state==='wave'?1:0); add(S.next); add(S.q.length); add(S.kills); add(S.snd.length); add(+!!S.resp);
+function zsHash(add){ const S=G.zs; add(S.wave); add(S.cleared); add(S.state==='wave'?1:0); add(S.next); add(S.q.length); add(S.kills); add(S.snd.length); add(+!!S.resp); add(S.nm); add(S.nt); add(S.hcd); add(S.hq.length); add(S.hordes); add(S.src?S.src.x*97+S.src.y:-1);
   for(const L of S.lures){ add(L.x*97+L.y); add(L.until); }
-  for(const u of G.units) if(u.zb){ add(ZT_KEYS.indexOf(u.zb)); add(u.maxHp); add(u.zm|0); add(u.zt?u.zt.x*97+u.zt.y:-1); add(u.zt?Math.round(u.zt.p*10):0); add(u.zcd|0); } }
+  for(const u of G.units) if(u.zb){ add(ZT_KEYS.indexOf(u.zb)); add(u.maxHp); add(u.zm|0); add(u.zt?u.zt.x*97+u.zt.y:-1); add(u.zt?Math.round(u.zt.p*10):0); add(u.zcd|0); add(u.zhd|0); } }
 
 /* ---------- the end, rewards and the results screen ---------- */
 function zsEnd(){ const S=G.zs, win=!!S.won; if(G.over) return; G.over=true; G.turnRes=null;
@@ -14272,12 +14339,14 @@ function zsTile(u,x,y,threats){ let s=0, n=0;
   for(const m of G.units) if(m!==u&&!m.zb&&standing(m)&&m.team===u.team&&Math.hypot(m.x-x,m.y-y)<=4.5) n++;
   return s+Math.min(3,n)*4; }
 function zsTop(){ const S=G.zs, chip=$('#hStormChip'), st=$('#hStorm'); chip.classList.add('gm'); $('#hAlive').parentNode.classList.add('hidden');
-  const zn=G.units.filter(u=>u.zb&&u.alive).length+S.q.length, nar=innerWidth<=440;
+  const zn=G.units.filter(u=>u.zb&&u.alive&&!u.zhd).length+S.q.length, nar=innerWidth<=440; // the wave's own zombies (noise hordes show on the noise chip)
   chip.classList.toggle('hot',S.state==='wave');
   st.textContent=S.state==='wave'?'Wave '+S.wave+' · '+zn+' left':S.wave?(nar?'W':'Wave ')+(S.wave+1)+' in '+Math.max(1,S.next-G.round):'Wave 1 next';
   chip.title=S.state==='wave'?'Wave '+S.wave+' of '+ZS.waves+': '+zn+' zombies left (on the map and still coming)':'Breather: the next wave arrives at the start of round '+S.next; }
 function zsChips(ch){ const S=G.zs, p=G.player; ch.push(['zs',DIFFS[S.d].name+' · '+S.cleared+'/'+ZS.waves+' waves']);
-  if(p&&standing(p)&&!G.watch){ const q=p.W&&p.W.silent; ch.push([q?'zq':'zl','Shots: '+(q?'quiet '+Math.round(ZS.quiet*wxHear()):'LOUD '+Math.round(ZS.shot*wxHear()))]); } }
+  if(p&&standing(p)&&!G.watch){ const q=p.W&&p.W.silent; ch.push([q?'zq':'zl','Shots: '+(q?'quiet '+Math.round(ZS.quiet*wxHear()):'LOUD '+Math.round(ZS.shot*wxHear()))]); }
+  { const t=zsThr(), f=Math.min(1,S.nm/t), cd=G.round<S.hcd, pc=Math.round(f*100), hn=G.units.filter(u=>u.zhd&&u.alive).length+S.hq.length, lb=(hn?'Horde '+hn+' · ':'')+(cd?'Rest '+(S.hcd-G.round):'Noise');
+    ch.push(['zn'+(f>=0.75&&!cd?' hot':''),lb+' '+pc+'%',esc(lb)+'<i class="zbar" role="meter" aria-label="Noise toward a horde" aria-valuenow="'+pc+'" aria-valuemin="0" aria-valuemax="100"><b style="width:'+pc+'%"></b></i>']); } }
 // sound rings (how far each sound carried) and what the visible zombies are going to investigate
 function zsDrawFx(c){ const V=G.zsv; if(!V||G.scene!=='game') return; const t=G.time;
   V.fx=V.fx.filter(f=>t-f.t<2.6);
@@ -14336,7 +14405,7 @@ function zsThumb(g,D0,D){ const sq=D0.u.slice(0,3), cx=sq.reduce((a,q)=>a+q[0],0
     g.font='800 22px "Chakra Petch",sans-serif'; g.textAlign='center'; g.fillStyle=z[3]?'#ff4d5e':'#ffd65a'; g.strokeStyle='rgba(0,0,0,.7)'; g.lineWidth=4; g.strokeText(z[3]?'!':'?',p[0],p[1]-82*ZT[z[2]].sc); g.fillText(z[3]?'!':'?',p[0],p[1]-82*ZT[z[2]].sc); } }
 GM_THUMB.survival={reg:'city',sd:41,r:4.5,calm:1,zs:[[1.2,1.6,'walker'],[8.6,1.3,'runner'],[1.0,8.2,'brute',1],[8.8,8.4,'walker'],[5.1,0.6,'screamer'],[9.2,4.9,'bloater']],u:[[4.4,4.7,'#3fd2ff'],[5.4,4.2,'#3fd2ff'],[5.0,5.6,'#3fd2ff']]};
 function zsCard(){ const M=MODES.survival, b=PROF.settings.zbest||{}, best=Math.max(0,...DKEYS.map(k=>b[k]|0));
-  return {k:'survival',name:M.name,tag:'Co-op · zombies',pc:'1–4 players',ds:M.desc,li:['They hunt by sound: suppressors and melee keep you hidden','Walkers, Runners, Brutes, Screamers, Bloaters, a boss every 5th wave',best?'Your best: '+best+' wave'+(best>1?'s':'')+' survived':'Survive '+ZS.waves+' waves to extract']}; }
+  return {k:'survival',name:M.name,tag:'Co-op · zombies',pc:'1–4 players',ds:M.desc,li:['They hunt by sound: explosions call whole hordes in from the edge','Walkers, Runners, Brutes, Screamers, Bloaters, a boss every 5th wave',best?'Your best: '+best+' wave'+(best>1?'s':'')+' survived':'Survive '+ZS.waves+' waves to extract']}; }
 // waiting room: the horde difficulty (host / offline edit; guests read it)
 function zsLobbyRow(ed){ const el=$('#wrTime'); if(!el) return; const d=zsDiffKey();
   const h=ed?'<div class="wt-row"><span class="lbl">Horde</span><div class="seg" role="radiogroup" aria-label="Horde difficulty">'+DKEYS.map(k=>'<button role="radio" aria-checked="'+(k===d)+'" class="'+(k===d?'sel':'')+'" data-zd="'+k+'">'+DIFFS[k].name+'</button>').join('')+'</div></div><small>'+(d==='recruit'?'Smaller, weaker waves that hear less.':d==='elite'?'Bigger, tougher waves with sharp hearing and faster Runners.':'The standard horde.')+' Up to 4 players or AI teammates; '+ZS.waves+' waves to extract.</small>'
@@ -14354,6 +14423,7 @@ $('#lobby').addEventListener('click',e=>{ const b=e.target.closest('[data-zd]');
 { const f=endMatch; endMatch=function(win){ if(!G.zs||G.scene!=='game') return f(win); if(G.over) return; if(!G.zs.won&&zsSquad().some(inPlay)) return; zsEnd(); }; }
 { const f=showEnd; showEnd=function(){ f(); if(G.zs&&G.scene==='game') zsEndScreen(); }; }
 { const f=drawIntel; drawIntel=function(c){ f(c); if(G.zs) zsDrawFx(c); }; }
+{ const f=drawCueArrows; drawCueArrows=function(c){ f(c); if(G.zs) zsEdgeFx(c); }; }
 // AI squad members with a zombie in claw reach step away first (1 AP; aiScoreTile keeps them out of reach), then fight
 { const f=aiTurn0; aiTurn0=async function(u,mid){ if(G.zs&&!u.zb&&standing(u)&&u.ap>=2&&!u.moved&&G.units.some(z=>z.zb&&standing(z)&&canMelee(z.x,z.y,u.x,u.y))){
     const mv=aiChooseMove(u,1); if(mv&&mv.cost<=u.mob+1e-6&&mv.path.length>1){ const e=mv.path[mv.path.length-1]; if(!G.units.some(z=>z.zb&&standing(z)&&canMelee(z.x,z.y,e[0],e[1]))){ u.ap-=1; await moveUnit(u,mv.path); u.moved=true; if(!standing(u)||G.over||G.matchId!==mid) return; } } }
@@ -14377,6 +14447,7 @@ function zsDiffKey0(){ const d=PROF.settings.zd; return ZD[d]?d:'veteran'; }
   S.lures.push({x:tx,y:ty,until:G.round+ZS.lureRounds,team:u.team}); zsSnd(tx,ty,'lure',u);
   if(anim){ const p=tileC(tx,ty); addFx({type:'ring',x:p[0],y:p[1],r:2*TW,col:[200,140,255],life:.7}); SFX.tone(1200,1200,.08,.06,'square'); SFX.tone(1200,1200,.08,.06,'square',.2); if(mine(u)) floatText(tileDummy(tx,ty),'LURE ACTIVE',[200,140,255],16); await wait(450); } }; }
 { const f=drawMinimap; drawMinimap=function(){ f(); if(!G.zs||G.scene!=='game') return; const m=$('#minimap'), c=m.getContext('2d'), s=m.width/MW;
+  { const E=G.zsv&&G.zsv.edge, k=E?(G.time-E.t)/4:2; if(E&&k>=0&&k<=1&&E.s>=0){ const W=m.width, b=3; c.fillStyle='rgba(255,60,70,'+((1-k)*(0.55+0.45*Math.sin(G.time*10)))+')'; if(E.s===0) c.fillRect(0,0,W,b); else if(E.s===1) c.fillRect(W-b,0,b,W); else if(E.s===2) c.fillRect(0,W-b,W,b); else c.fillRect(0,0,b,W); } }
   for(const L of G.zs.lures){ c.strokeStyle='rgba(200,140,255,.85)'; c.lineWidth=1.5; c.beginPath(); c.arc((L.x+.5)*s,(L.y+.5)*s,s*(1.2+.5*Math.sin(G.time*6)),0,Math.PI*2); c.stroke(); }
   const V=G.zsv; if(V) for(const q of V.fx){ const k=(G.time-q.t)/2.4; if(k<0||k>1||q.R<4||q.k==='growl') continue; const col=ZSND_COL[q.k]||[255,255,255]; c.strokeStyle=C(col,1,.7*(1-k)); c.lineWidth=1.2; c.beginPath(); c.arc((q.x+.5)*s,(q.y+.5)*s,q.R*s*Math.min(1,k*2.5),0,Math.PI*2); c.stroke(); } }; }
 /* ================= end Survival ================= */
