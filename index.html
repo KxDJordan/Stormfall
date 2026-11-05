@@ -1517,7 +1517,7 @@ html.pa-rm .toast,html.pa-rm .toast.lvl,html.pa-rm .toast.lvl::after,html.pa-rm 
       <li>Every operative carries a secondary. Knives, axes and blades strike an adjacent enemy (the machete and Monoblade dash a few tiles to reach one); throwing weapons can also be thrown a few tiles, a limited number of times per match; pistols have their own magazine and range. Secondary attacks follow the shooting rules: before moving they cost 1 AP and leave a move, after moving (or after a dash) they end your turn.</li>
       <li>At levels 3, 6, 9, 12 and 15 your class unlocks a perk tier. Pick one of two class perks per tier in Loadout and change them between matches; some are new actions with cooldowns. The separate Perk slot works with any class.</li>
       <li>Starter gear is ready at level 1; new weapons, armor, Mk upgrades and perks unlock as you level (see Loadout and Progress).</li>
-      <li>The storm shrinks every other round. Once the safe zone is small it stops shrinking and starts moving: the next zone is marked with a white ring (and on the minimap) two rounds ahead, then the storm slides there. Storm damage keeps rising, so keep moving with it. Supply drops are announced a round early; the pod holds the best loot in the match.</li>
+      <li>The storm shrinks every other round. Once the safe zone is small it stops shrinking and starts moving: the next zone is marked with a white ring (and on the minimap) two rounds ahead, then the storm slides there. When the storm closes or moves, anyone it catches gets one turn to get out before it starts hurting; anyone who was already outside keeps taking damage. Storm damage keeps rising, so keep moving with it. Supply drops are announced a round early; the pod holds the best loot in the match.</li>
       <li>The strip under the top bar shows the turn order for this round, then the round break with any storm or supply event. You are highlighted, teammates are green, and enemies you cannot see show as “?”.</li>
       <li>Duos: teams of two; with an odd number of humans the last one drops with an AI partner. A downed operative bleeds out in 2 turns unless an adjacent teammate revives them.</li>
       <li>Trios and Quads: squads of three (up to 12 operatives on a 48×48 map) or four (up to 16 on a 56×56 map), four squads at most. Empty seats in your squad are AI squadmates. Downs and revives work as in Duos: a squad is out when nobody on it is left standing (anyone still down is eliminated with it). The storm starts wider and shrinks faster (Quads adds an early stage in round 3), there are more crates, supply drops (five in Quads) and four objectives. Unseen enemy turns play fast; the turn-order strip marks one with an amber arrow.</li>
@@ -2985,6 +2985,9 @@ function smokeBlocks(ax,ay,tx,ty){ return G.smoke.length>0&&Math.hypot(tx-ax,ty-
 function smokeOnLine(ax,ay,tx,ty){ if(!G.smoke.length) return false; const dx=tx-ax, dy=ty-ay, L2=dx*dx+dy*dy;
   for(const s of G.smoke){ const k=L2?clamp(((s.x-ax)*dx+(s.y-ay)*dy)/L2,0,1):0; if(Math.hypot(ax+dx*k-s.x,ay+dy*k-s.y)<=s.r+0.01) return true; } return false; }
 function outsideStorm(x,y){ const s=G.storm; return Math.hypot(x+.5-s.cx,y+.5-s.cy)>s.r; }
+// storm damage at a turn start: in the round the storm closes or moves, only tiles that were already outside the previous
+// circle are hit; anyone the change caught gets that round to get out and takes damage from the next round on
+function stormHits(x,y){ if(!outsideStorm(x,y)) return false; const P=G.storm.prev; return !(P&&P.round===G.round&&Math.hypot(x+.5-P.x,y+.5-P.y)<=P.r); }
 // storm schedule (sim): stage i -> {round, r, move}; endless relocation stages follow the listed ones
 function stormStage(i){ const S=G.SC, n=S.rounds.length, mR=S.minR||0;
   if(i>=n&&S.moveFrom==null) return null;
@@ -7063,7 +7066,7 @@ async function droneTurnStart(u){ const d=u.dr; if(!d) return;
   if(d.regen&&d.hp<d.maxHp){ d.hp=Math.min(d.maxHp,d.hp+d.regen); if(d.alive&&shouldShow(d)) floatText(d,'+'+d.regen+' REPAIR',[93,255,154],15); }
   if(d.st!=='out') return;
   if(grounded&&shouldShow(d)) floatText(d,'GROUNDED',[255,179,64],16);
-  if(outsideStorm(d.x,d.y)){ const show=shouldShow(d); if(show){ floatText(d,'STORM',G.R.storm,15); await wait(250); } droneHurt(d,DRONE.storm,null,{pierce:true,anim:show}); if(show) await wait(400); } }
+  if(stormHits(d.x,d.y)){ const show=shouldShow(d); if(show){ floatText(d,'STORM',G.R.storm,15); await wait(250); } droneHurt(d,DRONE.storm,null,{pierce:true,anim:show}); if(show) await wait(400); } }
 const D_MODEL_ACTS=['scan','burst','heal','shield','jam'];
 function burstHit(d,t){ const cov=coverFrom(t.x,t.y,d.x,d.y); return clamp(Math.round(80-(t.def||0)-(cov===2?40:cov===1?20:0)-(t.slip?15:0)-(smokeOnLine(d.x,d.y,t.x,t.y)?UTILS.smoke.smokeDef:0)),5,95); }
 function burstRange(d){ return DRONE.burstRange+(d.range||0); }
@@ -7886,7 +7889,7 @@ function drawRidePreview(c,key,t,ph,W,H,so){ W=W||320; H=H||192; const K=RIDES[k
 async function stormPhase(){
   const st=G.storm, i=stormIdxAt(G.round);
   if(i>=0){ const S=stormStage(i), f={r:st.r,x:st.cx,y:st.cy}, to={r:S.r,x:st.ncx,y:st.ncy}, moved=Math.hypot(to.x-f.x,to.y-f.y)>0.05;
-    st.stage=i+1;
+    st.stage=i+1; st.prev={x:f.x,y:f.y,r:f.r,round:G.round}; // stormHits: one round of grace for anyone the change catches
     // announce the following stage now: its radius and, once the circle is small, a new seeded centre
     const N=stormStage(i+1); st.nextR=N?N.r:S.r;
     if(N&&N.move){ const c=pickStormCenter(to.x,to.y,S.r,N.r); st.ncx=c[0]; st.ncy=c[1]; } else { st.ncx=to.x; st.ncy=to.y; }
@@ -7934,7 +7937,7 @@ async function unitTurn(u,mid){
   await droneTurnStart(u); if(!standing(u)||G.over||G.matchId!==mid) return;
   await turnStartPerks(u);
   await kitTurnStart(u); if(!standing(u)||G.over||G.matchId!==mid) return; // Adrenaline, snares, heal fields, Medic regeneration
-  if(outsideStorm(u.x,u.y)){ const d=stormDmg(G.storm.stage)||1; if(d>0){ const show=shouldShow(u); if(show){ focusOn(u.x,u.y); await wait(300); floatText(u,'STORM',G.R.storm,18); }
+  if(stormHits(u.x,u.y)){ const d=stormDmg(G.storm.stage)||1; if(d>0){ const show=shouldShow(u); if(show){ focusOn(u.x,u.y); await wait(300); floatText(u,'STORM',G.R.storm,18); }
       applyDamage(u,d,null,{pierce:true,anim:show}); if(show) await wait(700); if(!standing(u)||G.over||G.matchId!==mid) return; } }
   if(u.st&&await stTick(u,mid)) return; // status effects tick (hazards and status effects)
   if(u.isPlayer&&!G.autoPlayer) await playerTurn(u); else if(u.net) await netTurn(u,mid); else await aiTurn(u,mid);
@@ -8809,7 +8812,7 @@ function updateTop(){
   const ns=nextStorm(), nxt=ns&&ns.round, mvs=ns&&(ns.move||stormMoving()); const st=$('#hStorm'), chip=$('#hStormChip');
   const out=!G.watch&&G.player&&standing(G.player)&&outsideStorm(G.player.x,G.player.y);
   const nar=innerWidth<=440; // phones: shorter wording so the chip keeps its text next to the buttons
-  st.textContent=out?'In the storm!':G.drop&&!G.drop.landed?'Drop inbound':nxt?(nxt-G.round===1?(mvs?(nar?'Moves next':'Storm moves next round'):(nar?'Storm next':'Storm next round')):(mvs?(nar?'Moves in ':'Storm moves in '):'Storm in ')+(nxt-G.round)+(nar?'':' rounds')):(nar?'Max storm':'Storm at max');
+  st.textContent=out?(stormHits(G.player.x,G.player.y)?'In the storm!':nar?'Storm next turn':'Storm hits next turn'):G.drop&&!G.drop.landed?'Drop inbound':nxt?(nxt-G.round===1?(mvs?(nar?'Moves next':'Storm moves next round'):(nar?'Storm next':'Storm next round')):(mvs?(nar?'Moves in ':'Storm moves in '):'Storm in ')+(nxt-G.round)+(nar?'':' rounds')):(nar?'Max storm':'Storm at max');
   st.parentNode.title=nxt?(mvs?'The storm moves':'The storm closes')+' at the start of round '+nxt:'The storm is at its smallest';
   chip.classList.toggle('hot',!!out);
   if(G.gm) gmTop(); else if(chip.classList.contains('gm')){ chip.classList.remove('gm'); chip.removeAttribute('title'); $('#hAlive').parentNode.classList.remove('hidden'); }
@@ -10147,7 +10150,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=31, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=32, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
