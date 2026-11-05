@@ -10097,6 +10097,25 @@ $('#howRange').textContent='Every weapon has an optimal range where its aim is b
 let LO=loadLO();
 function loadLO(){ try{ const s=JSON.parse(localStorage.getItem('stormfall_loadout')||'null'); if(s) return sanitize(s); }catch(e){} return sanitize({name:'NOMAD',cls:'ranger',weapon:'shotgun',armor:'light',utils:['frag','medkit']}); }
 function saveLO(){ try{ localStorage.setItem('stormfall_loadout',JSON.stringify(LO)); }catch(e){} try{ cloudDirty(); }catch(e){} }
+/* keep the screen awake while a match (or an online room) is up: Screen Wake Lock where available (it is dropped whenever the
+   page is hidden, so it is re-taken on return); older iOS without it: a tiny muted looping video of a canvas stream, started
+   on the first touch, which also stops the screen dimming. Released in menus so the phone can sleep normally. */
+const WAKE={lock:null,busy:false,vid:null,want:false};
+function wakeWanted(){ return document.visibilityState==='visible'&&(G.scene==='game'||!!(typeof NET!=='undefined'&&NET.on)); }
+async function wakeSync(){ const want=wakeWanted(); WAKE.want=want;
+  if('wakeLock' in navigator){
+    if(want&&!WAKE.lock&&!WAKE.busy){ WAKE.busy=true; try{ WAKE.lock=await navigator.wakeLock.request('screen'); WAKE.lock.addEventListener('release',()=>{ WAKE.lock=null; }); }catch(e){} WAKE.busy=false; }
+    else if(!want&&WAKE.lock){ const l=WAKE.lock; WAKE.lock=null; try{ await l.release(); }catch(e){} }
+    return; }
+  const v=WAKE.vid; if(!v) return; if(want&&v.paused) v.play().catch(()=>{}); else if(!want&&!v.paused) v.pause(); }
+function wakeVideo(){ if('wakeLock' in navigator||WAKE.vid) return; try{
+    const cv2=document.createElement('canvas'); cv2.width=cv2.height=2; const g=cv2.getContext('2d'); g.fillRect(0,0,2,2);
+    if(!cv2.captureStream) return; const v=document.createElement('video'); v.muted=true; v.loop=true; v.setAttribute('playsinline',''); v.setAttribute('muted','');
+    v.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0'; v.srcObject=cv2.captureStream(1); document.body.appendChild(v); WAKE.vid=v;
+    setInterval(()=>{ g.fillStyle=g.fillStyle==='#000000'?'#010101':'#000000'; g.fillRect(0,0,2,2); },1000); }catch(e){} }
+document.addEventListener('visibilitychange',wakeSync);
+document.addEventListener('pointerdown',()=>{ wakeVideo(); wakeSync(); },{passive:true}); // a user gesture: allowed to start the fallback video
+setInterval(wakeSync,2000);
 function toMenu(){ ffStop(); if(TUT.on) tutStop(); show('#tutEnd',false); show('#hud',false); show('#end',false); show('#wend',false); G.over=true; G.turnRes=null; G.watch=null; G.paused=false; setupMenuScene(); go('menu'); }
 function refreshMenu(){
   LO=sanitize(LO);
