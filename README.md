@@ -27,6 +27,7 @@ It's live in two places:
 | Rumble | up to 4 teams of 2    | 24×24 | no storm, team deathmatch with respawns after 2 rounds, first to 12 eliminations (or the most after round 24) |
 | Infection | up to 8, survivors vs Infected | 40×40 | one (two with 7+) turns in round 1; the Infected regenerate and get back up, anyone they take down rises as Infected; survivors hold out to round 15 |
 | Blackout | up to 8, free for all | 40×40 | night: 3.5-tile sight, flares, drones and muzzle flashes reveal from normal range |
+| Survival | co-op, 1–4 (humans or AI teammates) vs zombie waves | 32×32 | no storm; zombies hunt by sound; 10 waves with 2-round breathers; horde difficulty Recruit / Veteran / Elite; not in Ranked |
 
 In the team modes a downed operative bleeds out in 2 turns unless an adjacent teammate revives them; a team is out
 when nobody on it is standing. Empty seats are filled by bots, and team pings / commands steer AI teammates. The map
@@ -54,6 +55,20 @@ size. The daily challenge draws from all fifteen from 2026-11-06 (earlier days k
 | Saltglass Airfield | open salt flats and a runway: long sightlines, sparse hard cover (revetments, sandbag pits, jets), hangars, a two-story control tower |
 | Drowned Quarter | flooded streets (+1 move per tile waded), dry pavements, a deep canal crossed by footbridges, a rooftop high road over the tenements, junction boxes that electrify the water |
 | Frostvent Caldera | a frozen lake, hot springs and geysers that erupt every 3 rounds: a steam cloud that blocks sight through the next round, 2 damage to anyone on the vent |
+
+**Survival** is co-op PvE: one squad holds out against waves of zombies that come in from the map edges. Zombies see
+only 4–6 tiles and track sound. Every sound has a hearing radius, shown in the match as a ring: unsuppressed gunshots 14
+tiles, explosions 20, suppressed shots 3, melee 2, a normal move 2, a sprint (2-AP move) 5, doors 6, and a thrown Noise
+Maker 16 (it keeps beeping for 2 rounds). Rain shortens all of them. A zombie heads for the loudest, freshest sound it
+heard and shows a yellow "?". One that sees you chases and shows a red "!", and it growls so others follow. Types:
+Walker (the bulk), Runner (fast, fragile), Brute (smashes doors and cover in its way), Screamer (calls every zombie
+within 15 tiles to what it found), Bloater (bursts into a poison cloud through the hazards gas system) and an
+Abomination boss every 5th wave. A closed door holds the others back for a couple of rounds while they bang it open.
+Toxic barrels and power boxes are always on the map, for luring the horde into gas and live current.
+Each operative starts with a barricade and a Noise Maker. A breather after each wave brings crates, +4 HP, a barricade
+charge and eliminated squadmates back. Clear wave 10 to extract. The horde acts as one NPC turn after the squad's turns.
+It is simulated zombie by zombie with the seeded RNG, so it stays lockstep online and in replays, and it is animated in
+batches. At most 22 zombies (+3 per squad member) are on the map at once.
 
 **Mutators** (waiting room, host or offline) stack on any mode: Low gravity (+1 mobility, grenades +3 tiles, drop off any
 ledge), Explosive everything (destroyed objects explode like oil drums), One-shot, Double storm speed, Melee only and
@@ -98,7 +113,7 @@ Without a connection (or without the backend) the game works exactly as before a
 
 ## Online play
 
-1. One player taps **Play with friends**, picks a mode card (Solo, Duos, Trios, Quads, Quick, Infection or Blackout) and taps **Create lobby**, then shares
+1. One player taps **Play with friends**, picks a mode card (Solo, Duos, Trios, Quads, Quick, Infection, Blackout or Survival) and taps **Create lobby**, then shares
    the 5-letter room code (or the **Invite** link).
 2. Friends open the game, tap **Play with friends**, and enter the code under **Join** (or **Watch** to spectate).
    An invite link joins automatically.
