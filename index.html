@@ -8999,6 +8999,7 @@ function drawMinimap(){
   for(const q of G.cues){ const k=(G.time-q.t)/4; if(k<0||k>1) continue; const col=CUE_COL[q.kind]||CUE_COL.shot; c.strokeStyle=C(col,1,1-k); c.lineWidth=2; c.beginPath(); c.arc((q.x+.5)*s,(q.y+.5)*s,s*(1+k*3),0,Math.PI*2); c.stroke(); }
   for(const L of lkpMarks()){ c.strokeStyle=C(L.e.col,1,L.a); c.lineWidth=1.5; c.setLineDash([2,2]); c.beginPath(); c.arc((L.m.x+.5)*s,(L.m.y+.5)*s,s*0.8,0,Math.PI*2); c.stroke(); c.setLineDash([]); c.fillStyle=C([255,255,255],1,L.a); c.font='700 '+Math.round(s*1.6)+'px sans-serif'; c.textAlign='center'; c.fillText('?',(L.m.x+.5)*s,(L.m.y+.5)*s+s*0.55); }
   for(const q of (G.tpings||[])){ if(!pingAlive(q)) continue; const P=PINGS[q.k], v=G.units.find(z=>z.id===q.by), px=((P.tile?q.x:v.x)+.5)*s, py=((P.tile?q.y:v.y)+.5)*s, r=s*1.3+Math.sin(G.time*5)*s*.25;
+    if(P.area){ c.strokeStyle=C(P.col,1,.85); c.fillStyle=C(P.col,1,.14); c.lineWidth=1; c.beginPath(); c.arc(px,py,P.area*s,0,Math.PI*2); c.fill(); c.stroke(); }
     c.fillStyle=C(P.col); c.strokeStyle='#fff'; c.lineWidth=1; c.beginPath(); c.moveTo(px,py-r); c.lineTo(px+r,py); c.lineTo(px,py+r); c.lineTo(px-r,py); c.closePath(); c.fill(); c.stroke(); }
   for(const d of G.drones){ if(!d.alive||!shouldShow(d)) continue; const px=(d.x+.5)*s, py=(d.y+.5)*s, r=s*.55; c.fillStyle=mine(d)?'#7fe8ff':d.color; c.beginPath(); c.moveTo(px,py-r); c.lineTo(px+r,py); c.lineTo(px,py+r); c.lineTo(px-r,py); c.closePath(); c.fill(); } // deployed drones: small diamonds
   for(const u of G.units){ if(!u.alive||!shouldShow(u)) continue; c.fillStyle=u.isPlayer?tcol('self'):mine(u)?tcol('ally'):u.color; c.beginPath(); c.arc((u.x+.5)*s,(u.y+.5)*s,u.isPlayer?Math.max(s*0.75,W/MAP0*0.62):Math.max(s*0.55,W/MAP0*0.45),0,Math.PI*2); c.fill(); if(u.downed){ c.strokeStyle='#ff4d5e'; c.lineWidth=1.5; c.stroke(); } }
@@ -9062,7 +9063,7 @@ function sendEmote(k){
 const PINGS={
   enemy:{t:'Enemy here',col:[255,77,94],tile:1,ai:1,ack:'I see it.'},
   move:{t:'Move here',col:[63,210,255],tile:1,ai:1,ack:'Moving.'},
-  watch:{t:'Watch this area',col:[255,214,90],tile:1,ai:1,ack:'Eyes on it.'},
+  watch:{t:'Watch this area',col:[255,214,90],tile:1,ai:1,ack:'Eyes on it.',area:3}, // area: radius (tiles) of the ring drawn round the spot
   loot:{t:'Loot here',col:[255,179,64],tile:1,ai:1,ack:'Grabbing it.'},
   danger:{t:'Danger',col:[255,120,40],tile:1,ai:1,ack:'Copy, steering clear.'},
   hold:{t:'Hold',col:[159,215,255],ai:1,ack:'Holding here.'},
@@ -9158,6 +9159,10 @@ function drawTeamPings(c){
   if(!G.tpings||!G.tpings.length) return; G.tpings=G.tpings.filter(pingAlive); c.textAlign='center';
   for(const q of G.tpings){ const P=PINGS[q.k], age=G.time-q.t0, last=G.round>=q.r+PING_LIFE, a=Math.min(1,age*4)*(last?.55:1), pop=1+.35*Math.max(0,1-age*3);
     let gx,gy; if(!P.tile){ const v=G.units.find(z=>z.id===q.by); const p=unitScreen(v); gx=p[0]; gy=p[1]-60; } else { const p=iso(q.x+.5,q.y+.5); gx=p[0]; gy=p[1]-ez(q.x,q.y); }
+    if(P.area){ const R=P.area*Math.min(1,age*3), rx=R*TW/Math.SQRT2, ry=R*TH/Math.SQRT2; // area ring in the pin's colour
+      c.fillStyle=C(P.col,1,.14*a); c.beginPath(); c.ellipse(gx,gy,rx,ry,0,0,Math.PI*2); c.fill();
+      c.strokeStyle='rgba(10,14,20,'+(.55*a)+')'; c.lineWidth=4.5; c.stroke(); // dark under-stroke: readable on snow and sand
+      c.strokeStyle=C(P.col,1,.95*a); c.lineWidth=2.5; c.setLineDash([9,6]); c.lineDashOffset=-G.time*10; c.stroke(); c.setLineDash([]); }
     if(P.tile){ const pr=(age*1.2)%1; c.strokeStyle=C(P.col,1,.8*a*(1-pr)); c.lineWidth=2; c.beginPath(); c.ellipse(gx,gy,8+pr*16,(8+pr*16)*.5,0,0,Math.PI*2); c.stroke();
       c.strokeStyle=C(P.col,1,.5*a); c.lineWidth=1.5; c.beginPath(); c.moveTo(gx,gy); c.lineTo(gx,gy-34); c.stroke(); gy-=46; }
     const bob=Math.sin(G.time*3+q.by)*2, r=11*pop, y=gy+bob;
