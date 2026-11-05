@@ -13430,6 +13430,9 @@ let hzNoAmmo=0;
     if(G.mut&&G.mut.haz){ const ml=clamp(Math.floor(lv/2)+1,1,MAST_MAX);
       for(const k of ks){ if(!out[k]) continue; const o=Object.keys(ATTACH).filter(id=>ATTACH[id].slot==='ammo'&&attNeed(k,id)!=null&&attNeed(k,id)<=ml); if(o.length&&RNG()<0.7) out[k].ammo=pick(o); } }
     return out; }; }
+// the saved loadout was read (LO=loadLO()) before the ammo slot and the ammo mods existed, so sanitize dropped them: read it
+// again now that they do, or equipped bullet mods are lost every time the app opens
+LO=loadLO();
 /* ---------- Gas Grenade (level 6 unlock; AI loadouts never draw it outside Hazard Zone, so classic rosters are unchanged) ---------- */
 UTILS.gas={name:'Gas Grenade',short:'Gas',charges:1,range:8,radius:1.6,gas:true,rounds:3,shop:true,noAI:true,
   desc:'A toxic cloud (1.6-tile radius) for 3 rounds that poisons anyone inside (1 damage a turn, no healing) and drifts with the wind. Fire or a blast ignites it into an explosion. Range 8 tiles (Grenadier +2).'};
