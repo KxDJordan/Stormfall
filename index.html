@@ -3023,6 +3023,7 @@ function setupMatch(lo,mk,net,pre){
   G.sites=[]; G.scans=[]; G.prints=[]; G.siteN=0;
   G.gm=null; if(G.M.gm) gmSetup(); // objective modes (King of the Hill, Siege, Rumble): their RNG calls come after everything above
   modeSetup(); // Infection / Blackout / mutators: after everything above, so the classic seeded order is unchanged
+  hzSetup(); // hazards and status effects: wind, and Hazard Zone props (seeded calls after every classic one)
   computeVis(); buildGround(); G.bg=null; initWeather();
 }
 
@@ -4822,6 +4823,7 @@ function drawUnit(c,u){
   if(u.inf&&u.alive&&u.drop<=0) infAura(c,u,p,t); // Infected: sickly glow and spores (visual)
   c.save(); if(!u.alive) c.globalAlpha=Math.max(.38,.92-Math.max(0,(u.vDead||0)-1.1)*.4); else if(u.drop>0) c.globalAlpha=1-u.drop*0.3;
   const KB=!u.alive&&u.vKfx&&KFX[u.vKfx]; if(KB) kfxBody(c,KB,p[0],p[1],u.vDead||0,soldierOf(u,p[0],p[1]),u.vKfxDn); else drawSoldier(c,soldierOf(u,p[0],p[1]));
+  if(u.st&&G.scene==='game') stDrawFx(c,u,p,t); // status effects on the body
   c.restore();
   if(u.alive&&!down&&G.scene==='game'&&u.drop<=0){
     // overwatch laser sight, active shield shimmer, rupture cracks
@@ -4842,6 +4844,7 @@ function drawUnit(c,u){
   if(u.overwatch){ c.strokeStyle='#7fe8ff'; c.lineWidth=1.4; c.beginPath(); c.ellipse(ix,y0+2,5,3,0,0,Math.PI*2); c.stroke(); c.fillStyle='#7fe8ff'; c.beginPath(); c.arc(ix,y0+2,1.5,0,Math.PI*2); c.fill(); ix+=12; }
   if(u.hunker){ c.fillStyle='#9fd7ff'; c.beginPath(); c.moveTo(ix,y0-3); c.lineTo(ix+4,y0-1); c.lineTo(ix+4,y0+3); c.lineTo(ix,y0+7); c.lineTo(ix-4,y0+3); c.lineTo(ix-4,y0-1); c.closePath(); c.fill(); ix+=12; }
   if(u.disorient>0){ c.font='700 11px "Chakra Petch",sans-serif'; c.fillStyle='#ffb340'; c.fillText('?',ix,y0+6); }
+  if(u.st) stIcons(c,u,ix+(u.disorient>0?10:0),y0+1); // status icons
 }
 // pose inputs for drawSoldier from a unit's visual fields
 function soldierOf(u,x,y,ghost){
@@ -5553,6 +5556,7 @@ function drawWorld(c){
     c.fillStyle=G.M.night?'rgba(2,5,16,.86)':'rgba(4,6,14,.42)'; c.fill(RC.fogA); c.fillStyle=G.M.night?'rgba(1,3,10,.93)':'rgba(4,6,14,.58)'; c.fill(RC.fogB); }
   if(G.M.night&&G.scene==='game') boDraw(c); // Blackout: night tint, light pools (cached paths and two glow sprites)
   if(G.scene==='game') drawPrints(c);
+  if(G.scene==='game'&&G.hz) hzDrawGround(c); // hazards: fire glow, gas haze, live current
   drawHighlights(c);
   drawRideGround(c); // drop ship shadows and rotor wash (intro)
   if(st) drawStormRing(c,true);
@@ -5593,6 +5597,7 @@ function drawWorld(c){
   if(moveActive()&&G.pending>=0&&pendHigh()) drawPending(c);
   G.zDraw=false;
   drawSmoke(c);
+  if(G.scene==='game'&&G.hz) hzDrawTop(c); // hazards: flames and gas clouds
   drawIntel(c);
   if(st) drawStormRing(c,false);
   if(moveActive()&&!G.dmode){ const FP=flankPreview(); if(FP&&FP.n){ c.lineJoin='round'; c.strokeStyle='rgba(30,12,0,.75)'; c.lineWidth=2.5; c.stroke(FP.path); c.fillStyle='rgba(255,179,71,'+(0.75+0.25*Math.sin(t*3))+')'; c.fill(FP.path); c.lineJoin='miter'; } } // flank markers
@@ -6124,6 +6129,7 @@ function hitInfo(a,t,o){
   const ha=hi(ax,ay), ht=hi(t.x,t.y);
   if(ha>ht){ const hg=hasP(a,'s_eagle')?25:15; aim+=hg; mods.push(['high ground',hg]); } else if(ha<ht){ aim-=10; mods.push(['shooting uphill',-10]); }
   if(a.disorient>0){ aim-=20; mods.push(['disoriented',-20]); }
+  if(a.st) aim+=stAim(a,mods); // status effects (Chilled, Frozen, Shocked)
   if(o.reaction&&!(hasP(a,'r_guard')&&d<=5.01)){ aim-=15; mods.push(['reaction shot',-15]); }
   if(o.deadeye){ const p=hasP(a,'s_dead')?5:15; aim-=p; mods.push(['deadeye',-p]); }
   if(o.aimMod){ aim+=o.aimMod; mods.push([o.aimLbl||'ability',o.aimMod]); }
@@ -6208,7 +6214,7 @@ function kill(t,src,anim,how){
   kitOwnerOut(t); // an Engineer's turrets go down with it
   bountyKill(t,src);
   if(src&&src!==t&&isEnemy(src,t)){ src.kills++; src.tk=(src.tk||0)+1; if(src.isPlayer){ G.stats.kills++; cst(src,'k_'+(G.cctx||'prim')); floatText(src,'+'+killValue(src)+' CR',[255,179,64],17); buzz(25); } else if(Math.random()<0.3&&shouldShow(src)) bubble(src,fpick(TAUNTS)); }
-  feedLine(src&&src!==t?(src.name+' eliminated '+t.name+(how?' ('+how+')':'')):(t.name+(how==='bled out'?' bled out':how==='explosion'?' was caught in a blast':how==='team wiped'?' was eliminated with their team':' was lost to the storm')),mine(t)||mine(src));
+  feedLine(src&&src!==t?(src.name+' eliminated '+t.name+(how?' ('+how+')':'')):(t.name+(how==='bled out'?' bled out':how==='explosion'?' was caught in a blast':how==='team wiped'?' was eliminated with their team':(HZHOW[how]||' was lost to the storm'))),mine(t)||mine(src));
   const p=chest(t);
   // the killer's kill effect (visual only; bleed-outs, storm and blasts with no killer get the standard one)
   if(anim){ const kk=src&&src!==t&&isEnemy(src,t)&&KFX[src.kfx]?src.kfx:'default', K=KFX[kk];
@@ -6242,9 +6248,11 @@ async function fireShot(a,t,o){
   if(!W.silent){ makeNoise(a); if(G.M.night) boFlash(a); } // Blackout: the muzzle flash gives the shooter away
   if(hit){ let d=rollDmg(W.dmg)+(o.bonus||0)+(prim&&hasP(a,'r_point')&&info.d<=3.01?1:0); if(crit) d+=W.critDmg+(prim&&hasP(a,'s_vital')?1:0); if(o.deadeye) d=Math.ceil(d*1.5); if(res==='graze') d=Math.max(1,Math.ceil(d/2));
     if(prim&&!o.reaction&&hasP(a,'g_holo')) t.holo={team:a.team,until:G.round+1};
+    if(W.amk) d=amDmg(W,t,d); // ammo mods: armor-piercing, hollow-point, shock against drones
     applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how||(prim?prwTag(W.id):undefined),pierce:!!W.pierce||(prim&&hasP(a,'g_shred')),wid:W.id});
     if(W.flash&&standing(t)&&!t.drone){ t.disorient=Math.max(t.disorient,1); t.overwatch=false; if(anim) floatText(t,'DAZZLED',[255,240,170],16); } } // Thunderclap flash shells
   else if(anim) floatText(t,'MISSED',[200,210,220],20);
+  if(hit&&W.amk) await amHit(a,t,W,res,crit); // ammo mods: status effects
   // a miss at a target behind destructible cover hits the cover instead (thrown blades excepted)
   if(!hit&&info.cov>0&&!info.over&&W.fx!=='throw') await shotCover(a,t,W,anim);
   if(anim) await wait(t.alive?650:1000);
@@ -6253,7 +6261,7 @@ async function fireShot(a,t,o){
 }
 const FXDUR={burst:330,pellet:140,beam:160,single:140,heavy:440,throw:420};
 function shotFX(a,t,hit,kind){
-  const m=muzzle(a), tp=chest(t), wid=a.anim&&a.anim.sec?a.sid:a.wid; const col=(!(a.anim&&a.anim.sec)&&wTracer(wid))||(mine(a)?[110,225,255]:[255,110,90]); // prestige / special tracer colours
+  const m=muzzle(a), tp=chest(t), wid=a.anim&&a.anim.sec?a.sid:a.wid, AM=amFx(a); const col=AM?AM.col:(!(a.anim&&a.anim.sec)&&wTracer(wid))||(mine(a)?[110,225,255]:[255,110,90]); // ammo mod, then prestige / special tracer colours
   // misses end on the cover that stopped them, or kick up the ground past the target
   let end=tp, mat='flesh';
   if(!hit){ const ct=coverTile(t,a);
@@ -6272,6 +6280,7 @@ function shotFX(a,t,hit,kind){
     else if(kind==='beam'&&(wid==='volt'||(WEAPONS[wid]&&WEAPONS[wid].arcfx))){ addFx({type:'bolt',a:m,b:end,col,life:.32}); addFx({type:'bolt',a:m,b:end,col:[200,250,255],life:.22,thin:1}); addFx({type:'arcs',x:end[0],y:end[1],r:22,col:[150,240,255],life:.3}); }
     else if(kind==='beam'){ addFx({type:'beam',a:m,b:end,col,life:.5}); G.cam.shake=Math.max(G.cam.shake,5); }
     else { const e=[end[0]+frand(-5,5),end[1]+frand(-4,4)]; addFx({type:'tracer',a:m,b:e,col,w:kind==='heavy'?2.6:1.8,life:.17}); }
+    if(AM){ amMuzzle(AM,m,ang); amTrail(AM,m,end,kind); later(60,()=>{ amImpact(AM,end,hit,mat); if(hit) amPunch(AM,m,end); }); } // ammo mod visuals
     later(55,()=>impact(end,hit,col,mat));
   });
 }
@@ -6289,6 +6298,7 @@ async function moveUnit(u,path){
     if(u.team===(G.player&&G.player.team)) computeVis();
     pickup(u);
     sensorCheck(u);
+    if(u.st||hzOn()) hzStep(u); // hazards underfoot
     scanCheck(u);
     await triggerOverwatch(u);
     if(await kitStep(u)) return; // trip mines (stop the move) and turret reactions
@@ -6331,7 +6341,7 @@ function pickup(u){
 function freeReload(u){ return !u.frl&&!!(u.W.freeRl||(u.S&&u.S.W&&u.S.W.freeRl)); }
 async function doReload(u){ const free=freeReload(u); if(free) u.frl=true; else u.ap-=1; u.ammo=u.W.clip; // Speed Loader: first reload of the match is free
   if(free&&shouldShow(u)) floatText(u,'SPEED RELOAD',[127,232,255],16); if(u.S&&u.S.clip) u.sAmmo=u.S.clip; if(shouldShow(u)){ vAnim(u,'reload',.5); const p=unitScreen(u); part({x:p[0]+u.face*5,y:p[1],z:20,vx:u.face*frand(5,25),vy:frand(-5,5),vz:frand(10,40),life:1,size:2,col:[34,36,42],type:'casing',grav:400}); floatText(u,'RELOADED',[200,220,240],18); SFX.click(); await wait(500);} }
-async function doMedkit(u,util){ util.ch--; u.ap-=1; const amt=u.cls==='specialist'?UTILS.medkit.healSpec:UTILS.medkit.heal; const h=Math.min(amt,u.maxHp-u.hp); u.hp+=h; const sh=hasP(u,'p_medic')?2:0; u.shield+=sh;
+async function doMedkit(u,util){ util.ch--; u.ap-=1; const amt=u.cls==='specialist'?UTILS.medkit.healSpec:UTILS.medkit.heal; const h=stMed(u,Math.min(amt,u.maxHp-u.hp)); u.hp+=h; const sh=hasP(u,'p_medic')?2:0; u.shield+=sh;
   if(shouldShow(u)){ focusOn(u.x,u.y); vAnim(u,'heal',.65); floatText(u,'+'+h+' HP'+(sh?' +'+sh+' SHIELD':''),[93,255,154],22); healFx(u); if(sh) shieldFx(u,true); SFX.heal(); await wait(650); } }
 // effects origin: the deployed drone's body (visual fallback: the docked spot above the operative's head)
 function droneAt(u){ const d=u&&u.dr; if(d&&d.alive) return unitScreen(d); const p=unitScreen(u); return [p[0],p[1]-64]; }
@@ -6497,6 +6507,7 @@ async function doThrow(u,util,tx,ty){
     for(const v of hitU){ if(v.downed) continue; v.disorient=2; v.overwatch=false; if(anim||shouldShow(v)) floatText(v,'DISORIENTED',[255,179,64],18); }
     for(const v of hitD){ v.jam=1; if(anim||shouldShow(v)) floatText(v,'GROUNDED',[255,179,64],16); }
   }
+  await hzThrown(u,util.id,tx,ty,anim); // hazards: gas grenade, arc current, blasts igniting gas
   if(anim) await wait(800);
 }
 // Scout Drone / Motion Sensor: sim state per team (G.reveals, G.sensors), read by computeVis, updateIntel and moveUnit
@@ -6511,6 +6522,7 @@ async function deployDevice(u,util,tx,ty,anim){
 async function doRevive(u,t){
   u.ap=kitRevAp(u); faceTo(u,t.x,t.y); t.downed=false; t.hp=3; t.bleed=0; t.dnBy=null;
   kitRevived(u,t); // Medic: revives cost 1 AP and bring the ally back with 4 HP
+  if(t.st) clearStatus(t); // revive clears status effects
   if(u.isPlayer) G.stats.revives++;
   feedLine(u.name+' revived '+t.name,mine(u));
   if(shouldShow(u)||shouldShow(t)){ focusMid(u,t); vAnim(u,'revive',.85); floatText(t,'REVIVED',[93,255,154],24); healFx(t); const p=chest(t); addFx({type:'ring',x:p[0],y:p[1]+19,r:50,col:[93,255,154],life:.6}); SFX.heal(); await wait(850); }
@@ -6692,6 +6704,7 @@ async function detonate(x,y,src){
   for(const v of G.drones){ if(!v.alive||!inBlast(v,x,y,B.r)) continue; applyDamage(v,rollDmg(B.dmg),src,{anim:anim||shouldShow(v),how:'explosion'}); }
   if(anim) await wait(450);
   await terrBlast(x,y,B.r,src);
+  await hzBoom(x,y,o.kind,src,B); // hazards: toxic gas, live current, fire
 }
 // a blast (grenade or explosive): every object within r drops one stage; explosives in range chain; sensors are destroyed
 async function terrBlast(cx,cy,r,src){
@@ -6919,7 +6932,7 @@ async function modeTurnStart(u){
   if(u.mfl){ u.mfl=0; if(G.player&&u.team!==G.player.team) computeVis(); }
   if(!G.M.inf||!u.alive) return false;
   if(u.downed&&u.infDown){ if(--u.infRise>0){ if(shouldShow(u)){ focusOn(u.x,u.y); floatText(u,'REGENERATING',[157,255,58],18); await wait(500); } return true; } await infRise(u); return false; }
-  if(u.inf&&standing(u)&&u.hp<u.maxHp){ const h=Math.min(INF.regen,u.maxHp-u.hp); u.hp+=h; if(shouldShow(u)){ floatText(u,'+'+h+' REGEN',[157,255,58],17); await wait(320); } }
+  if(u.inf&&standing(u)&&u.hp<u.maxHp&&!hasStatus(u,'poison')){ const h=Math.min(INF.regen,u.maxHp-u.hp); u.hp+=h; if(shouldShow(u)){ floatText(u,'+'+h+' REGEN',[157,255,58],17); await wait(320); } }
   return false; }
 function modeHash(add){ add(mutBits());
   if(G.M.inf){ add(G.inf&&G.inf.on?1:0); for(const u of G.units){ add(+!!u.inf); add(+!!u.infDown); add(u.infRise|0); add(u.maxHp); } }
@@ -7123,6 +7136,7 @@ async function runMatch(){
     if(G.gm){ await gmRoundStart(); if(G.over||G.matchId!==mid) break; } // objective modes: respawns, hill moves, round banners
     if(G.M.inf||G.M.night){ await modePhase(); if(G.over||G.matchId!==mid) break; } // the outbreak / its timer; flares burning out
     kitRound(); // class abilities: turrets expire, heal fields fade
+    if(hzDue()){ await hzPhase(); if(G.over||G.matchId!==mid) break; } // hazards: fire spreads, gas drifts, current fades
     for(const u of G.units){ if(G.over||G.matchId!==mid||(G.gm&&G.gm.halt)) break; if(!u.alive) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); const b=!G.over&&bountyOn(); if(b&&b.t===u.id) bountyPing(b); }
     G.turnU=null;
     if(G.gm){ await gmRoundEnd(); if(G.over||G.matchId!==mid) break; } // objective modes: scoring, Siege round changes, the end
@@ -7457,8 +7471,10 @@ async function unitTurn(u,mid){
   await kitTurnStart(u); if(!standing(u)||G.over||G.matchId!==mid) return; // Adrenaline, snares, heal fields, Medic regeneration
   if(outsideStorm(u.x,u.y)){ const d=stormDmg(G.storm.stage)||1; if(d>0){ const show=shouldShow(u); if(show){ focusOn(u.x,u.y); await wait(300); floatText(u,'STORM',G.R.storm,18); }
       applyDamage(u,d,null,{pierce:true,anim:show}); if(show) await wait(700); if(!standing(u)||G.over||G.matchId!==mid) return; } }
+  if(u.st&&await stTick(u,mid)) return; // status effects tick (hazards and status effects)
   if(u.isPlayer&&!G.autoPlayer) await playerTurn(u); else if(u.net) await netTurn(u,mid); else await aiTurn(u,mid);
   if(u.disorient>0) u.disorient--;
+  if(u.st||u.stMob) stEnd(u); // status effects count down
 }
 
 // start-of-turn class perks: Juggernaut, Drone Shield, Restoration
@@ -7760,6 +7776,7 @@ function aiScoreTile(u,x,y,threats,cost){
   if(threats.length&&u._site) s-=Math.hypot(u._site[0]-x,u._site[1]-y)*0.9; // keep working toward a contested site while fighting
   if(G.smoke.length){ let n=0; for(const t of threats) if(smokeOnLine(t.x,t.y,x,y)) n++; if(n) s+=6*Math.min(2,n); } // smoke between me and them
   if(threats.length) for(const d of DIRS8){ const o=cell(x+d[0],y+d[1]); if(o&&TERR[o.kind]&&TERR[o.kind].boom){ s-=8; break; } } // don't hide behind a fuel barrel
+  if(hzOn()) s+=hzTile(u,x,y); // hazards: fire, gas, live current
   // stay near the team leader; a human leader's orders (G.cmd[team], from pings / quick chat) tighten or loosen the leash
   const C=!u.human&&G.cmd&&G.cmd[u.team];
   const L=leaderOf(u); if(L){ const d=aiWalk(F.lead,x,y,Math.hypot(L.x-x,L.y-y)); let lim=4.5, w=4;
@@ -7829,6 +7846,7 @@ function aiBestAttack(u){
   if(canFire&&!u.shot) for(const q of objTargets(u)){ if(!q.boom) continue; const B=q.boom, near=G.units.filter(v=>v.alive&&inBlast(v,q.x,q.y,B.r));
     if(near.some(v=>!isEnemy(u,v))) continue; const foes=near.filter(v=>vis.includes(v)&&!v.downed); if(!foes.length) continue;
     const ag=(B.dmg[0]+B.dmg[1])/2, p=Math.min(1,avg/Math.max(1,q.o.hp)); res.push({k:'obj',x:q.x,y:q.y,t:foes[0],hit:100,score:foes.length*ag*10*p*(foes.length>1?1:0.6)}); }
+  if(G.hz) hzAiAtk(u,res,vis,canFire,avg); // hazards: toxic barrels, power boxes, gas
   // return fire: shooting at an enemy in full cover invites a reaction shot back
   for(const r of res) if(r.t&&(r.k==='shoot'||r.k==='deadeye'||r.k==='hail'||r.k==='rapid'||r.k==='rupt')) r.score-=rfPen(u,r.t);
   // lower difficulties overlook some ability and grenade options (seeded roll, identical on every client)
@@ -7879,6 +7897,7 @@ async function aiTurn0(u,mid){
   if(G.M.team>1&&await aiRevive(u)){ if(stale()||u.ap<=0) return; }
   // empty primary: reload first, unless a sidearm shot is available (it costs 1 AP and still leaves a move)
   if(u.ammo===0&&!u.noGun&&u.ap>0&&!(u.S&&u.S.type==='pistol'&&u.sAmmo>0&&visibleEnemies(u).length)) await doReload(u);
+  if(u.st&&u.ap>0) await hzAiPre(u); // hazards: treat bleeding / burning
   const med=u.utils.find(x=>x.id==='medkit'&&x.ch>0);
   if(med&&u.hp<=u.maxHp*0.5&&u.ap>0&&!outsideStorm(u.x,u.y)) await doMedkit(u,med);
   if(stale()) return;
@@ -8129,6 +8148,7 @@ function updateHUD(){
   $('#uAmmo').textContent='Ammo '+u.ammo+'/'+u.W.clip+(u.S&&u.S.clip?' · '+u.S.short+' '+u.sAmmo+'/'+u.S.clip:u.S&&u.S.uses?' · '+u.S.short+' ×'+u.sUses:'');
   const sw=$('#uSw'); sw.classList.toggle('hidden',!(u.sw>0)); sw.title=SW_TXT;
   const sts=[]; if(u.swDown) sts.push('Second Wind: back up next turn'); else if(u.downed) sts.push('Downed: '+u.bleed+' turn'+(u.bleed===1?'':'s')+' to bleed out'); if(u.overwatch) sts.push('Overwatch'); if(u.hunker) sts.push('Hunkered'); if(u.disorient>0) sts.push('Disoriented'); if(hi(u.x,u.y)) sts.push('High ground'); if(inSmoke(u.x,u.y)) sts.push('In smoke'); if(outsideStorm(u.x,u.y)) sts.push('In storm'); kitSts(u,sts); $('#uSt').textContent=sts.join(' · ');
+  if(u.st) stHud(u); // status effects
   // drone row: model, HP pips, drone AP (deployed) or its state; the panel turns teal while you control the drone
   const dp=$('#uDr'), dc=G.dmode==='ctl'&&dCanAct(u); up.classList.toggle('dctl',dc);
   if(u.dr){ const d=u.dr; let h='<span class="dl">'+ICON.drone+DMODELS[d.model].name+'</span>';
@@ -8968,6 +8988,7 @@ function gmRevive(u){
     moved:false,shot:false,ap:0,dnBy:null,deadT:0,mark:null,rupt:0,flash:0,drop:0,inRide:false,dOff:null,vKfx:null,vKfxDn:false,roam:null,_goal:null,rsp:null});
   u.utils=(u.ut0||u.utils).map(q=>({id:q.id,ch:q.ch}));
   kitUnitReset(u);
+  u.st=null; // status effects
   const d=u.dr; if(d) Object.assign(d,{st:'dock',alive:false,hp:d.maxHp,shield:0,ap:0,rb:0,jam:0,wx:null,mark:null,depR:-1});
 }
 // where an operative comes back in: open ground far from standing enemies (and out of their sight), near its team, off the hill
@@ -9082,6 +9103,7 @@ function siegeReset(){ const S=G.gm;
   G.grid=S.grid0.map(o=>o?Object.assign({},o):null); G.crates=S.crates0.map(q=>Object.assign({},q));
   G.smoke=G.smoke.filter(q=>q.perm); G.drop=null; G.reveals=[]; G.sensors=[]; G.noise=[]; G.intel={}; G.prints=[]; G.scans=[]; G.decals=[]; G.lkp=new Map(); G.cues=[]; G.place=0; G.cmd={};
   kitReset(); // turrets, mines and fields of the last Siege round
+  hzReset(); // hazards
   siegePlace(); losClear(); G.seen.fill(0); buildGround(); G.groundDirty=false;
   for(const u of G.units){ u.drop=1; dropLand(u,0.7); }
   computeVis(); }
@@ -9401,7 +9423,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=27, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=28, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
@@ -10720,6 +10742,7 @@ function simHash(){ let h=0x811c9dc5; const add=v=>{ v=v|0; h=Math.imul(h^(v&255
   kitHash(add); // class ability objects (only while any exist)
   if(G.gm) gmHash(add); // objective modes only (classic hashes unchanged)
   if(G.M.inf||G.M.night||mutBits()) modeHash(add); // Infection / Blackout / mutator state (only when active: other hashes unchanged)
+  hzHash(add); // hazards and status effects (only when present: other hashes unchanged)
   return h>>>0; }
 function roundHash(){ const h=simHash(); G.hlog.push(h); if(NET.host&&!G.watch) NET.round=G.round; if(REC&&REC.mid===G.matchId) REC.h.push(h); if(G.watch&&G.watch.kind==='replay') replayCheck(h); }
 function recInfo(){ const r=G.result||{}, me=G.player; return {mode:G.M.key,region:G.region,place:r.place||0,of:r.of||nTeams(),win:!!r.win,winner:r.winner||null,
@@ -12604,6 +12627,480 @@ document.addEventListener('click',e=>{ if(e.target.closest('#wrRoom [data-btinv]
 .btl .btn{margin-top:6px}
 .btsay{margin-top:0}.btsay input{margin-top:0}
 `; document.head.appendChild(st); }
+/* ================= hazards and status effects =================
+   STATUS EFFECTS (generic; any system may use them):
+     STATUS[key]                 rules data: name, turns, dmg ([lo,hi] per tick, ignores armor), aim, mob, ap (AP lost), col
+     addStatus(u,key,turns,src)  apply or refresh a status (turns: omit for the default; src: the unit credited with its
+                                 damage and kills, or null). Returns true when it took. Interactions live here: a second
+                                 Chilled makes Frozen, cold puts out Burning, water stops Burning, Shocked breaks overwatch
+                                 and hunker; a drone hit by Shocked / Frozen is grounded instead.
+     hasStatus(u,key) · clearStatus(u,keys?)   (keys: an array, default every status)
+     u.st = {key:{t,s,f}}  t: turns left (bleed: until healed), s: source unit id (-1: nobody), f: applied during the
+                           unit's own turn (that turn does not count). u.st is null when empty. Operatives only:
+                           a Specialist drone's d.st is its deploy state ('dock' / 'out' / 'dead'), never a status map.
+   Statuses tick at the start of the unit's turn (stTick: damage, AP loss, mobility) and count down at its end (stEnd).
+   Aim modifiers apply to the unit's shots while the status lasts (stAim, from hitInfo).
+   HAZARDS (G.hz, per match; tile index keys): fire {t,s}, gas {t,s}, elec {u,s} (electrified shallow water until round u),
+   scorch (burnt ground), still (snow stillness). hzPhase runs at round start: current fades, fire spreads (seeded) through
+   grass, leaves and wooden cover, burns cover away to scorched debris and sets off explosives and gas; gas drifts with the
+   wind; units standing in a hazard are hurt. hzStep runs when a unit enters a tile. Rain douses fire and lets current
+   run farther; Sandstorm / Ashfall winds push gas and fire; snow chills units that hold still (Hazard Zone only).
+   Sources: ammo mods (ATTACH slot 'ammo'), Gas Grenades, explosions, arc grenades, and with the Hazard Zone mutator
+   (G.mut.haz) toxic barrels and power boxes on the map (placed after everything else: the classic map is unchanged).
+   Lockstep: gameplay rolls use the seeded RNG only, iteration is deterministic (integer-keyed objects iterate in
+   ascending order), and hzHash adds state only when something is present, so classic hashes are unchanged. Visuals
+   (fire, gas, current, unit effects, icons, ammo tracers, loadout previews) use frand / Math.random only. */
+const STATUS={
+  burn:{name:'Burning',verb:'is on fire',turns:2,dmg:[1,2],how:'burning',col:[255,132,44],desc:'1–2 damage at the start of each turn for 2 turns, ignoring armor. Sets grass underfoot alight. Water or a medkit puts it out; rain shortens it.'},
+  poison:{name:'Poisoned',verb:'is poisoned',turns:3,dmg:[1,1],how:'poison',noHeal:true,col:[132,236,84],desc:'1 damage per turn for 3 turns, ignoring armor. Blocks medkit healing and regeneration.'},
+  chill:{name:'Chilled',verb:'is chilled',turns:1,aim:-10,mob:-1,col:[150,214,255],desc:'−1 mobility and −10 aim through your next turn. Chilled again while chilled: Frozen.'},
+  freeze:{name:'Frozen',verb:'is frozen solid',turns:1,ap:1,aim:-10,col:[206,242,255],desc:'Lose 1 AP on your next turn (and −10 aim).'},
+  shock:{name:'Shocked',verb:'is shocked',turns:1,aim:-15,col:[255,236,110],desc:'Breaks overwatch and hunker; −15 aim through your next turn.'},
+  bleed:{name:'Bleeding',verb:'is bleeding',turns:99,dmg:[1,1],how:'bleeding',col:[236,44,60],desc:'1 damage per turn, ignoring armor, until healed: a medkit, a revive, or hunkering down stops it.'}
+};
+const ST_KEYS=Object.keys(STATUS);
+// kill feed wording for deaths with no enemy to credit (applyDamage how)
+const HZHOW={burning:' burned to death',fire:' burned to death',poison:' succumbed to poison',bleeding:' bled out',electrocuted:' was electrocuted','gas explosion':' was caught in a gas explosion'};
+/* hazard rules. flam: chance per round that fire spreads onto that object kind (wooden or leafy cover); grass: open ground
+   that burns in that region; explosives catch at 0.5 and go up. boomFire: explosions of these kinds start fires. */
+const HZ={fireT:2,objT:3,gasT:3,toxR:2.2,elecL:4,elecRain:8,diag:0.6,windUp:2.4,windDown:0.3,
+  flam:{bush:.45,reeds:.45,crates:.35,crate:.35,pallet:.4,desk:.35,fence:.3,stall:.35,cart:.3,rugs:.4,nets:.4,skiff:.3,log:.25,door:.2,planter:.15,tree:.18,palm:.22,mangrove:.18},
+  grass:{jungle:.14,marsh:.12},boomFire:{fuel:1,ftank:1,barrels:1,tnt:1},
+  props:{city:[3,3],arctic:[2,1],desert:[2,1],jungle:[3,1],docks:[3,4],refinery:[5,2],bazaar:[2,2],quarry:[3,2],marsh:[3,4],lavalab:[4,3]}};
+// Hazard Zone props (TERR rules; their blasts are small: the gas cloud / the current is the point)
+Object.assign(TERR,{toxbar:{name:'Toxic barrel',hp:2,boom:{r:1.2,dmg:[1,2]}},pbox:{name:'Power box',hp:4,boom:{r:1.2,dmg:[1,2]}}});
+// the mutator (MUT_KEYS is the ordered key list: appended, so the other mutators keep their bits)
+MUTS.haz={name:'Hazard Zone',short:'Hazards',desc:'Toxic barrels and power boxes on the map, AI carries special ammo, and snow chills anyone who holds still for 2 rounds.'};
+MUT_KEYS.push('haz');
+WX.rain.desc+=' Puts out fires and lets electrified water spread farther.'; WX.sand.desc+=' Wind pushes gas and fire.'; WX.ash.desc+=' Wind pushes gas and fire.';
+/* ---------- ammo mods: attachment slot 'ammo' (weapon mastery unlocks, like every attachment) ---------- */
+const AMMO={
+  inc:{name:'Incendiary',col:[255,122,40],hot:[255,214,120],st:'burn',p:[45,20]},
+  cryo:{name:'Cryo',col:[140,220,255],hot:[236,250,255],st:'chill',p:[60,30]},
+  tox:{name:'Toxic',col:[130,240,80],hot:[220,255,170],st:'poison',p:[60,30]},
+  shk:{name:'Shock',col:[255,232,96],hot:[255,255,220],st:'shock',p:[50,25],drone:2},
+  ap:{name:'Armor-piercing',col:[255,255,255],hot:[255,255,255]},
+  hp:{name:'Hollow-point',col:[255,170,110],hot:[255,230,200],st:'bleed',p:[30,0]}
+};
+Object.assign(ATTACH,{
+  r_inc:{slot:'ammo',name:'Incendiary Rounds',amk:'inc',dmx:-1,m:3,pm:3,desc:'45% to set the target Burning on a hit (20% on a graze) and ignite the grass it stands on. −1 max damage.'},
+  r_cryo:{slot:'ammo',name:'Cryo Rounds',amk:'cryo',m:4,pm:4,desc:'60% to Chill on a hit (30% on a graze): −1 mobility, −10 aim. A second Chill freezes (−1 AP). Puts out Burning.'},
+  r_tox:{slot:'ammo',name:'Toxic Rounds',amk:'tox',m:5,pm:5,desc:'60% to Poison on a hit (30% on a graze): 1 damage a turn for 3 turns, no medkit healing.'},
+  r_shk:{slot:'ammo',name:'Shock Rounds',amk:'shk',m:6,pm:6,desc:'50% to Shock on a hit (25% on a graze): breaks overwatch and hunker, −15 aim. +2 damage against drones and grounds them. Electrifies the water a target stands in.'},
+  r_ap:{slot:'ammo',name:'Armor-Piercing Rounds',amk:'ap',crit:-5,m:8,pm:8,desc:'Ignores 1 armor. −5% crit.'},
+  r_hp:{slot:'ammo',name:'Expanding Rounds',amk:'hp',m:9,pm:9,desc:'+1 damage against unarmored targets, −1 against armor. Crits (and 30% of hits on unarmored targets) cause Bleeding.'}
+});
+for(const k in ATTACH) ATTACH[k].id=k;
+ATT_SLOT_NAME.ammo='Ammo';
+WEAPONS.volt.noAtt.push('ammo'); // arc bolts fire no rounds
+// attSlots: every primary and pistol also takes an 'ammo' slot (hzNoAmmo > 0: hidden, so aiAtt's seeded picks are unchanged)
+let hzNoAmmo=0;
+{ const f=attSlots; attSlots=function(k){ const r=f(k), W=WEAPONS[k]||SECONDARIES[k]; if(!hzNoAmmo&&(WEAPONS[k]||isPistol(k))&&!((W&&W.noAtt)||[]).includes('ammo')) r.push('ammo'); return r; }; }
+// applyAtt: an ammo mod sets w.amk (read by fireShot / shotFX) and its damage change
+{ const f=applyAtt; applyAtt=function(w,ids){ f(w,ids); w.amk=null; for(const id of (ids||[])){ const A=ATTACH[id]; if(!A||!A.amk) continue; w.amk=A.amk; if(A.dmx) w.dmg=[w.dmg[0],Math.max(w.dmg[0],w.dmg[1]+A.dmx)]; } return w; }; }
+// AI attachments: the classic seeded picks without the ammo slot; with Hazard Zone a seeded ammo pick per weapon on top
+{ const f=aiAtt; aiAtt=function(lv,...ks){ let out; hzNoAmmo++; try{ out=f(lv,...ks); } finally { hzNoAmmo--; }
+    if(G.mut&&G.mut.haz){ const ml=clamp(Math.floor(lv/2)+1,1,MAST_MAX);
+      for(const k of ks){ if(!out[k]) continue; const o=Object.keys(ATTACH).filter(id=>ATTACH[id].slot==='ammo'&&attNeed(k,id)!=null&&attNeed(k,id)<=ml); if(o.length&&RNG()<0.7) out[k].ammo=pick(o); } }
+    return out; }; }
+/* ---------- Gas Grenade (level 6 unlock; AI loadouts never draw it outside Hazard Zone, so classic rosters are unchanged) ---------- */
+UTILS.gas={name:'Gas Grenade',short:'Gas',charges:1,range:8,radius:1.6,gas:true,rounds:3,shop:true,noAI:true,
+  desc:'A toxic cloud (1.6-tile radius) for 3 rounds that poisons anyone inside (1 damage a turn, no healing) and drifts with the wind. Fire or a blast ignites it into an explosion. Range 8 tiles (Grenadier +2).'};
+for(const k in CLASSES) CLASSES[k].utils.push('gas');
+UNLOCKS[6].push('u_gas'); UNLOCK_LVL.u_gas=6;
+ICON.gas='<svg viewBox="0 0 24 24"><path d="M6 15a3.5 3.5 0 0 1 .6-7 5 5 0 0 1 9.6-.8A3.8 3.8 0 0 1 17 15z"/><circle cx="8" cy="19" r="1.2"/><circle cx="12.5" cy="20" r="1.2"/><circle cx="16.5" cy="18.5" r="1.2"/></svg>';
+{ const f=randomLoadout; randomLoadout=function(not,lv){ if(G.mut&&G.mut.haz) return f(not,lv); const keep={};
+    for(const c in CLASSES){ keep[c]=CLASSES[c].utils; CLASSES[c].utils=keep[c].filter(x=>!UTILS[x].noAI); }
+    try{ return f(not,lv); } finally { for(const c in keep) CLASSES[c].utils=keep[c]; } }; }
+
+/* ---------- status effects ---------- */
+function stSrc(id){ return id!=null&&id>=0?G.units.find(z=>z.id===id)||null:null; }
+function hasStatus(u,key){ return !!(u&&u.st&&u.st[key]); }
+function clearStatus(u,keys){ if(!u||!u.st) return 0; let n=0; for(const k of (keys||ST_KEYS)) if(u.st[k]){ delete u.st[k]; n++; } if(!Object.keys(u.st).length) u.st=null; return n; }
+function addStatus(u,key,turns,src){
+  const S=STATUS[key]; if(!S||!u||!u.alive) return false;
+  if(u.drone){ if(key==='shock'||key==='freeze'){ u.jam=1; if(shouldShow(u)) floatText(u,'GROUNDED',S.col,15); return true; } return false; }
+  if(u.downed||u.infDown) return false;
+  const show=shouldShow(u), sid=src&&src.id!=null&&!src.drone?src.id:-1;
+  if(key==='burn'&&G.surf[idx(u.x,u.y)]===1) return false; // standing in water
+  if(key==='chill'&&u.st&&u.st.burn){ clearStatus(u,['burn']); if(show){ floatText(u,'FIRE OUT',[200,230,255],16); stBurst(u,'chill'); } return true; } // cold puts the fire out
+  if(key==='burn'&&u.st&&(u.st.chill||u.st.freeze)) clearStatus(u,['chill','freeze']); // fire thaws
+  if(key==='chill'&&u.st&&u.st.chill){ clearStatus(u,['chill']); key='freeze'; } // chilled twice: frozen
+  const T=STATUS[key]; turns=turns||T.turns; if(key==='burn'&&wxNow().key==='rain') turns=Math.min(turns,1);
+  const st=u.st||(u.st={}), had=st[key];
+  st[key]={t:Math.max(had?had.t:0,turns),s:sid,f:G.turnU===u?1:0};
+  if(key==='shock'){ u.overwatch=false; u.hunker=false; u.kz=0; }
+  if(!had&&(show||mine(u))) feedLine(u.name+' '+T.verb,mine(u)||mine(src));
+  if(show){ floatText(u,T.name.toUpperCase(),T.col,17); stBurst(u,key); }
+  return true; }
+// hitInfo: aim modifiers of the shooter's statuses (listed in the target panel)
+function stAim(a,mods){ let s=0; if(a.drone) return 0; for(const k of ST_KEYS){ const v=a.st[k]&&STATUS[k].aim; if(v){ s+=v; mods.push([STATUS[k].name.toLowerCase(),v]); } } return s; }
+// medkit: stops Bleeding and Burning; Poisoned blocks the heal (returns the HP actually healed)
+function stMed(u,h){ if(!u.st) return h; const n=clearStatus(u,['bleed','burn']), p=hasStatus(u,'poison');
+  if(shouldShow(u)){ if(n) floatText(u,'TREATED',[93,255,154],16); if(p&&h>0) later(250,()=>floatText(u,'POISONED: NO HEALING',STATUS.poison.col,16)); }
+  return p?0:h; }
+// turn start: damage over time, then Frozen's lost AP and Chilled's mobility (restored by stEnd). true: the turn is over
+async function stTick(u,mid){
+  const show=shouldShow(u); let shown=false;
+  for(const k of ST_KEYS){ const e=u.st&&u.st[k]; if(!e||!standing(u)||G.over) continue; const S=STATUS[k];
+    if(S.dmg){ if(show){ if(!shown) focusOn(u.x,u.y); shown=true; floatText(u,S.name.toUpperCase(),S.col,17); stBurst(u,k); await wait(240); if(G.matchId!==mid) return true; }
+      const src=G.mut.one?null:stSrc(e.s); applyDamage(u,rollDmg(S.dmg),src,{pierce:true,anim:show,how:S.how}); if(show) await wait(380);
+      if(k==='burn'&&standing(u)) await hzIgnite(idx(u.x,u.y),src); } // a burning operative sets the grass it stands in alight
+    if(!standing(u)||G.over||G.matchId!==mid) return true;
+    if(S.ap){ u.ap=Math.max(0,u.ap-S.ap); if(show){ floatText(u,'FROZEN −'+S.ap+' AP',S.col,18); stBurst(u,k); await wait(300); } }
+    if(S.mob){ u.mob+=S.mob; u.stMob=(u.stMob||0)-S.mob; } }
+  if(u.isPlayer) updateHUD();
+  return !standing(u)||G.over||G.matchId!==mid; }
+// turn end: restore mobility, count statuses down (bleeding lasts until treated; hunkering down stops it)
+function stEnd(u){ if(u.stMob){ u.mob+=u.stMob; u.stMob=0; } const st=u.st; if(!st) return;
+  for(const k of ST_KEYS){ const e=st[k]; if(!e) continue; if(e.f){ e.f=0; continue; }
+    if(k==='bleed'){ if(u.hunker){ delete st[k]; if(shouldShow(u)) floatText(u,'BLEEDING STOPPED',[93,255,154],16); } continue; }
+    if(--e.t<=0) delete st[k]; }
+  if(!Object.keys(st).length) u.st=null; }
+// HUD unit panel: the local player's statuses after the other states
+function stHud(u){ const el=$('#uSt'); if(!el) return; const t=ST_KEYS.filter(k=>u.st&&u.st[k]).map(k=>STATUS[k].name+(k==='bleed'?'':' '+u.st[k].t)); if(t.length) el.textContent=(el.textContent?el.textContent+' · ':'')+t.join(' · '); }
+
+/* ---------- hazards (sim) ---------- */
+function hzReset(){ G.hz={mid:G.matchId,fire:{},gas:{},elec:{},scorch:{},still:{},on:false,wb:0}; return G.hz; }
+function hzLive(){ const H=G.hz; return H&&H.mid===G.matchId?H:null; }
+function hzS(){ return hzLive()||hzReset(); }
+function hzSync(){ const H=hzLive(); if(!H) return; H.on=false; for(const k of ['fire','gas','elec']){ for(const i in H[k]){ H.on=true; break; } if(H.on) break; } }
+function hzOn(){ const H=hzLive(); return H&&H.on?H:null; }
+function hzDue(){ const H=hzLive(); return !!H&&(H.on||(!!G.mut.haz&&wxNow().key==='snow')); }
+function hzCap(){ return Math.round(MW*MH/24); }
+function hzN(o){ let n=0; for(const i in o) n++; return n; }
+// wind (Sandstorm / Ashfall): a direction that turns every 3 rounds, derived from the match (no RNG)
+function hzWind(){ const k=wxNow().key; if(k!=='sand'&&k!=='ash') return null; const H=hzLive(); return DIRS8[((H?H.wb:0)+Math.floor(G.round/3))%8]; }
+function hzWet(i){ const o=G.grid[i]; return G.surf[i]===1&&(!o||!!o.pass); }
+// spread chance onto tile i (0: cannot burn): leafy / wooden cover, explosives, grass in the green regions
+function hzFlam(i){ const H=G.hz; if(H&&H.scorch[i]) return 0; const o=G.grid[i];
+  if(o){ if(o.roof||o.flat) return 0; if(boomOf(o)) return 0.5; return HZ.flam[o.kind]||0; }
+  if(G.surf[i]||G.floorT[i]||G.elev[i]) return 0; const x=i%MW, y=(i/MW)|0;
+  if(G.region==='jungle'&&(Math.abs(y-(MH*0.5+Math.sin(x*0.22)*6))<1.1||Math.abs(x-(MW*0.3+Math.sin(y*0.19+1)*5))<1.1)) return 0; // the paved roads (same test as the ground painter)
+  return HZ.grass[G.region]||0; }
+function hzGround(x,y){ const k=3, d=G.groundDirty, n={x0:x-k,y0:y-k,x1:x+k,y1:y+k}; G.groundDirty=d===true?true:d?{x0:Math.min(d.x0,n.x0),y0:Math.min(d.y0,n.y0),x1:Math.max(d.x1,n.x1),y1:Math.max(d.y1,n.y1)}:n; }
+// setupMatch, after modeSetup: wind heading, and with Hazard Zone the props (seeded calls after every classic one)
+function hzSetup(){ const H=hzReset(); H.wb=Math.floor(hash(Math.round(G.storm.cx*10),Math.round(G.storm.cy*10),7)*8)%8; if(G.mut.haz) hzProps(); }
+function hzProps(){
+  const P=HZ.props[G.region]||[3,2], K=MW*MH/1600, N=n=>Math.max(1,Math.round(n*K)), S=G.gm, placed=[];
+  const ok=(x,y)=>{ if(x<2||y<2||x>MW-3||y>MH-3) return false; const i=idx(x,y); if(G.floorT[i]||G.lvl[i]||G.surf[i]===1) return false;
+    for(let yy=y-1;yy<=y+1;yy++) for(let xx=x-1;xx<=x+1;xx++) if(G.grid[idx(xx,yy)]) return false; // a free ring: never cuts a path
+    if(G.units.some(u=>Math.hypot(u.x-x,u.y-y)<3)||G.crates.some(q=>Math.abs(q.x-x)<=1&&Math.abs(q.y-y)<=1)) return false;
+    if(S&&((S.hill&&Math.hypot(S.hill.x-x,S.hill.y-y)<3)||(S.core&&Math.hypot(S.core.x-x,S.core.y-y)<4))) return false;
+    return !placed.some(p=>Math.hypot(p[0]-x,p[1]-y)<4); };
+  const put=(x,y,kind)=>{ G.grid[idx(x,y)]={t:1,kind,h:0,v:RNG(),hp:TERR[kind].hp}; placed.push([x,y]); };
+  let n=N(P[0]), tr=0; while(n>0&&tr++<600){ const x=ri(2,MW-3), y=ri(2,MH-3); if(ok(x,y)){ put(x,y,'toxbar'); n--; } }
+  // power boxes: next to shallow water when the map has any
+  n=N(P[1]); tr=0; while(n>0&&tr++<900){ const x=ri(2,MW-3), y=ri(2,MH-3); if(!ok(x,y)) continue; const wet=DIRS8.some(d=>inMap(x+d[0],y+d[1])&&G.surf[idx(x+d[0],y+d[1])]===1); if(!wet&&tr<500) continue; put(x,y,'pbox'); n--; }
+  if(S&&S.grid0) for(const p of placed){ const i=idx(p[0],p[1]); S.grid0[i]=Object.assign({},G.grid[i]); } // Siege: rounds restart with them
+  if(placed.length) losClear(); }
+function hzSrcU(e){ return e?stSrc(e.s):null; }
+// set tile i alight (if it can burn); an explosive on it goes up, gas on it explodes, a unit on it catches fire
+async function hzIgnite(i,src){
+  const H=hzS(); if(H.fire[i]||!hzFlam(i)) return false; const o=G.grid[i], x=i%MW, y=(i/MW)|0;
+  if(o&&boomOf(o)){ await detonate(x,y,src); return true; }
+  if(hzN(H.fire)>=hzCap()) return false;
+  H.fire[i]={t:o?HZ.objT:HZ.fireT,s:src&&src.id!=null?src.id:-1}; H.on=true;
+  if(H.gas[i]) await hzGasBoom(i,src);
+  const v=unitAt(x,y); if(v&&standing(v)) addStatus(v,'burn',2,src);
+  return true; }
+// a fire burns out: wooden / leafy cover is gone (scorched debris, a door leaves its doorway), grass is scorched
+function hzBurnOut(i){ const H=G.hz; delete H.fire[i]; const o=G.grid[i], x=i%MW, y=(i/MW)|0;
+  if(o&&HZ.flam[o.kind]&&!o.roof){ G.grid[i]=o.kind==='door'?null:Object.assign(mkTerr('debris',o),{scorch:1}); terrChanged(true,x,y,0); if(tileShown(x,y)){ floatText(tileDummy(x,y),'BURNT DOWN',[255,150,70],15); terrBits(x,y,[40,30,24],10); } }
+  else if(!o) H.scorch[i]=1;
+  G.decals.push({x:x+.5,y:y+.5,r:.7}); hzGround(x,y); }
+// a gas cloud: every open tile within r (one level up or down) for t rounds
+function hzGas(x,y,r,src,t){ const H=hzS(), sid=src&&src.id!=null?src.id:-1, L=lvAt(x,y); let fire=-1;
+  for(let yy=Math.floor(y-r);yy<=Math.ceil(y+r);yy++) for(let xx=Math.floor(x-r);xx<=Math.ceil(x+r);xx++){ if(!inMap(xx,yy)||Math.hypot(xx-x,yy-y)>r+0.01||solidT(xx,yy)||Math.abs(lvAt(xx,yy)-L)>1) continue;
+    const i=idx(xx,yy), e=H.gas[i]; H.gas[i]={t:Math.max(e?e.t:0,t||HZ.gasT),s:sid}; if(H.fire[i]&&fire<0) fire=i; }
+  H.on=true;
+  for(const v of G.units) if(standing(v)&&!v.drone&&H.gas[idx(v.x,v.y)]) addStatus(v,'poison',3,src);
+  return fire; }
+// fire or a blast in a gas cloud: the whole connected cloud goes up
+async function hzGasBoom(i0,src){
+  const H=hzS(); if(!H.gas[i0]) return; const cl=[], st=[i0], seen={}; seen[i0]=1;
+  while(st.length){ const i=st.pop(); cl.push(i); const x=i%MW, y=(i/MW)|0; for(const d of DIRS8){ const nx=x+d[0], ny=y+d[1]; if(!inMap(nx,ny)) continue; const j=idx(nx,ny); if(H.gas[j]&&!seen[j]){ seen[j]=1; st.push(j); } } }
+  cl.sort((a,b)=>a-b); for(const i of cl) delete H.gas[i];
+  let cx=0, cy=0; for(const i of cl){ cx+=i%MW; cy+=(i/MW)|0; } cx=Math.round(cx/cl.length); cy=Math.round(cy/cl.length);
+  const near=v=>cl.some(i=>Math.max(Math.abs(v.x-i%MW),Math.abs(v.y-((i/MW)|0)))<=1), hit=G.units.filter(v=>v.alive&&near(v)), hitD=G.drones.filter(v=>v.alive&&near(v));
+  const anim=cl.some(i=>tileShown(i%MW,(i/MW)|0))||hit.some(shouldShow);
+  if(anim){ const p=tileC(cx,cy); G.cam.tx=p[0]; G.cam.ty=p[1]; explode(cx,cy,Math.min(2.6,0.9+Math.sqrt(cl.length)*0.35),false);
+    for(const i of cl){ const q=tileC(i%MW,(i/MW)|0); addFx({type:'fireball',x:q[0]+frand(-6,6),y:q[1]-8,r:18,col:[200,255,90],life:frand(.6,.9)}); addFx({type:'fire',x:q[0],y:q[1]-6,r:20,col:[255,170,60],life:.7}); }
+    floatText(tileDummy(cx,cy),'GAS IGNITES',[200,255,110],20); }
+  else if(G.player&&!G.fullVis) ping(cx,cy,[180,255,80]);
+  soundCue(cx,cy,'blast',null); if(G.noise) G.noise.push({id:src?src.id:-1,team:src?src.team:-1,x:cx,y:cy,r:G.round,blast:true});
+  feedLine('A gas cloud exploded',hit.some(mine));
+  for(const v of hit){ if(!v.alive) continue; applyDamage(v,ri(2,3),src,{anim:anim||shouldShow(v),how:'gas explosion'}); if(standing(v)) addStatus(v,'burn',2,src); }
+  for(const v of hitD){ if(v.alive) applyDamage(v,ri(2,3),src,{anim:anim||shouldShow(v)}); }
+  hzSync(); if(anim) await wait(550);
+  for(const i of cl) await hzIgnite(i,src); }
+// electrify the shallow water within r of (x,y) and every water tile connected to it within L tiles, until the end of next round
+async function hzElectrify(x,y,r,src,L){
+  const H=hzS(); L=L||(wxNow().key==='rain'?HZ.elecRain:HZ.elecL); const seen={}, q=[], out=[], sid=src&&src.id!=null?src.id:-1;
+  for(let yy=Math.floor(y-r);yy<=Math.ceil(y+r);yy++) for(let xx=Math.floor(x-r);xx<=Math.ceil(x+r);xx++){ if(!inMap(xx,yy)||Math.hypot(xx-x,yy-y)>r+0.01) continue; const i=idx(xx,yy); if(hzWet(i)&&!seen[i]){ seen[i]=1; q.push(i); } }
+  while(q.length){ const i=q.shift(); out.push(i); const cx=i%MW, cy=(i/MW)|0; for(const d of DIRS4){ const nx=cx+d[0], ny=cy+d[1]; if(!inMap(nx,ny)) continue; const j=idx(nx,ny); if(seen[j]||!hzWet(j)||Math.hypot(nx-x,ny-y)>L+0.01) continue; seen[j]=1; q.push(j); } }
+  if(!out.length) return 0; out.sort((a,b)=>a-b);
+  for(const i of out) H.elec[i]={u:G.round+1,s:sid}; H.on=true;
+  const hit=G.units.filter(v=>standing(v)&&H.elec[idx(v.x,v.y)]), anim=out.some(i=>tileShown(i%MW,(i/MW)|0));
+  if(anim){ for(const i of out) if(tileShown(i%MW,(i/MW)|0)&&Math.random()<0.5){ const p=tileC(i%MW,(i/MW)|0); addFx({type:'arcs',x:p[0],y:p[1],r:22,col:[150,230,255],life:frand(.3,.6)}); } SFX.zap(); floatText(tileDummy(x,y),'WATER ELECTRIFIED',[150,230,255],17); }
+  if(anim||hit.some(mine)) feedLine('The water is electrified',hit.some(mine));
+  for(const v of hit){ if(!standing(v)) continue; const sh=anim||shouldShow(v); if(sh) bolt(chest(v),[chest(v)[0]+frand(-12,12),chest(v)[1]+22],[150,230,255]); applyDamage(v,2,src,{pierce:true,anim:sh,how:'electrocuted'}); if(standing(v)) addStatus(v,'shock',1,src); }
+  for(const i of out) if(H.gas[i]){ await hzGasBoom(i,src); break; } // a spark in the gas
+  if(anim) await wait(450);
+  return out.length; }
+// a unit steps onto a tile (moveUnit): water douses fire; fire, gas and current hurt
+function hzStep(u){ if(u.drone||!standing(u)) return; const i=idx(u.x,u.y);
+  if(u.st&&u.st.burn&&G.surf[i]===1){ clearStatus(u,['burn']); if(shouldShow(u)) floatText(u,'FIRE OUT',[160,220,255],16); }
+  const H=hzOn(); if(!H) return; const show=shouldShow(u);
+  if(H.fire[i]){ const s=hzSrcU(H.fire[i]); applyDamage(u,1,s,{pierce:true,anim:show,how:'fire'}); if(standing(u)) addStatus(u,'burn',2,s); }
+  if(H.gas[i]&&standing(u)) addStatus(u,'poison',3,hzSrcU(H.gas[i]));
+  if(H.elec[i]&&standing(u)){ const s=hzSrcU(H.elec[i]); if(show) bolt(chest(u),[chest(u)[0],chest(u)[1]+22],[150,230,255]); applyDamage(u,1,s,{pierce:true,anim:show,how:'electrocuted'}); if(standing(u)) addStatus(u,'shock',1,s); } }
+// round start (runMatch, when any hazard is live): current fades, fire spreads / burns out, gas drifts, units in hazards
+async function hzPhase(){
+  const H=hzLive(); if(!H) return; const R=G.round, W=hzWind(), rain=wxNow().key==='rain'; let shown=false;
+  for(const i in H.elec) if(H.elec[i].u<R) delete H.elec[i];
+  const F=Object.keys(H.fire).map(Number);
+  if(F.length&&rain){ for(const i of F){ delete H.fire[i]; if(!G.grid[i]){ H.scorch[i]=1; G.decals.push({x:i%MW+.5,y:((i/MW)|0)+.5,r:.6}); hzGround(i%MW,(i/MW)|0); } if(tileShown(i%MW,(i/MW)|0)) shown=true; }
+    if(shown) feedLine('The rain puts the fires out',true); }
+  else if(F.length){ const add=[], seen=new Set();
+    for(const i of F){ const x=i%MW, y=(i/MW)|0, e=H.fire[i];
+      for(const d of DIRS8){ const nx=x+d[0], ny=y+d[1]; if(!inMap(nx,ny)) continue; const j=idx(nx,ny); if(H.fire[j]||seen.has(j)||Math.abs(G.lvl[i]-G.lvl[j])>1) continue;
+        let p=hzFlam(j); if(!p) continue; if(d[0]&&d[1]) p*=HZ.diag; if(W){ const dot=d[0]*W[0]+d[1]*W[1]; p*=dot>0?HZ.windUp:dot<0?HZ.windDown:1; }
+        if(RNG()<p){ seen.add(j); add.push([j,e.s]); } } }
+    for(const i of F){ const e=H.fire[i]; if(e&&--e.t<=0) hzBurnOut(i); }
+    for(const [j,s] of add){ await hzIgnite(j,stSrc(s)); if(G.over) return; if(tileShown(j%MW,(j/MW)|0)) shown=true; } }
+  // gas drifts one tile downwind (not into solid cover) and thins out
+  const Gk=Object.keys(H.gas).map(Number);
+  if(Gk.length){ const ng={}; for(const i of Gk){ const e=H.gas[i]; if(--e.t<=0) continue; let j=i;
+      if(W){ const nx=i%MW+W[0], ny=((i/MW)|0)+W[1]; if(inMap(nx,ny)&&!solidT(nx,ny)) j=idx(nx,ny); }
+      const o=ng[j]; if(!o||o.t<e.t) ng[j]={t:e.t,s:e.s}; }
+    H.gas=ng; for(const i of Object.keys(H.gas).map(Number)) if(H.gas[i]&&H.fire[i]){ await hzGasBoom(i,hzSrcU(H.fire[i])); if(G.over) return; } }
+  // units standing in hazards
+  for(const u of G.units){ if(!standing(u)||G.over) continue; const i=idx(u.x,u.y), show=shouldShow(u);
+    if(H.fire[i]){ const s=hzSrcU(H.fire[i]); if(show) shown=true; applyDamage(u,1,s,{pierce:true,anim:show,how:'fire'}); if(standing(u)) addStatus(u,'burn',2,s); }
+    if(H.gas[i]&&standing(u)){ addStatus(u,'poison',3,hzSrcU(H.gas[i])); if(show) shown=true; }
+    if(H.elec[i]&&standing(u)){ const s=hzSrcU(H.elec[i]); if(show) shown=true; applyDamage(u,1,s,{pierce:true,anim:show,how:'electrocuted'}); if(standing(u)) addStatus(u,'shock',1,s); } }
+  // snow (Hazard Zone): holding the same tile through 2 rounds chills
+  if(G.mut.haz&&wxNow().key==='snow') for(const u of G.units){ if(!standing(u)||u.drone){ delete H.still[u.id]; continue; } const i=idx(u.x,u.y), s=H.still[u.id];
+    if(s&&s[0]===i){ if(++s[1]>=3){ s[1]=1; addStatus(u,'chill',1,null); if(shouldShow(u)) shown=true; } } else H.still[u.id]=[i,1]; }
+  hzSync(); updateHUD();
+  if(shown&&!G.over) await wait(500); }
+// detonate (last): what each explosive leaves behind
+async function hzBoom(x,y,kind,src,B){
+  if(kind==='toxbar'){ const f=hzGas(x,y,HZ.toxR,src,HZ.gasT+1); if(tileShown(x,y)){ hzPuff(x,y,HZ.toxR); floatText(tileDummy(x,y),'TOXIC CLOUD',[160,255,100],17); } if(f>=0) await hzGasBoom(f,src); return; }
+  if(kind==='pbox'){ for(const v of G.units) if(standing(v)&&Math.hypot(v.x-x,v.y-y)<=1.6) addStatus(v,'shock',1,src); await hzElectrify(x,y,1.6,src,6); return; }
+  if(kind==='coolant'){ for(const v of G.units) if(standing(v)&&inBlast(v,x,y,B.r)) addStatus(v,'chill',1,src); return; }
+  if(HZ.boomFire[kind]) await hzBlast(x,y,B.r,src,1); }
+// a blast at (x,y): ignites any gas in it; fire=1 also sets flammable tiles next to the centre alight
+async function hzBlast(x,y,r,src,fire){
+  const H=hzLive(); if(H) for(let yy=Math.floor(y-r);yy<=Math.ceil(y+r);yy++) for(let xx=Math.floor(x-r);xx<=Math.ceil(x+r);xx++){ if(!inMap(xx,yy)||Math.hypot(xx-x,yy-y)>r+0.01) continue; const i=idx(xx,yy); if(H.gas[i]){ await hzGasBoom(i,src); break; } }
+  if(fire) for(const [dx,dy] of [[0,0],[1,0],[-1,0],[0,1],[0,-1]]){ if(inMap(x+dx,y+dy)) await hzIgnite(idx(x+dx,y+dy),src); } }
+// doThrow (last): gas clouds, plasma fire, arc current, and blasts igniting gas
+async function hzThrown(u,id,tx,ty,anim){
+  const U=UTILS[id]; if(!U) return;
+  if(U.gas){ const f=hzGas(tx,ty,U.radius,u,U.rounds); if(anim){ hzPuff(tx,ty,U.radius); SFX.noise(.9,'lowpass',700,.35); } if(f>=0) await hzGasBoom(f,u); return; }
+  if(U.arc){ for(const v of G.units) if(standing(v)&&inBlast(v,tx,ty,U.radius)) addStatus(v,'shock',1,u); await hzElectrify(tx,ty,U.radius,u); await hzBlast(tx,ty,U.radius,u,0); return; }
+  if(U.dmg) await hzBlast(tx,ty,U.radius,u,id==='plasma'?1:0); }
+// fireShot: ammo damage changes (armor-piercing, hollow-point, shock against drones)
+function amDmg(W,t,d){ const k=W.amk;
+  if(k==='ap'&&!W.pierce&&t.armor>0) d+=1;
+  else if(k==='hp'){ if(t.drone||t.armor>0) d=Math.max(1,d-1); else d+=1; }
+  else if(k==='shk'&&t.drone) d+=AMMO.shk.drone;
+  return d; }
+// fireShot after the damage: the ammo's status (seeded roll) and its terrain effects
+async function amHit(a,t,W,res,crit){ const A=AMMO[W.amk]; if(!A||!t.alive) return; const ti=idx(t.x,t.y), H=hzLive();
+  if(W.amk==='shk'&&t.drone){ t.jam=1; if(shouldShow(t)) floatText(t,'GROUNDED',A.col,15); return; }
+  if(t.drone||!standing(t)) return;
+  if(H&&H.gas[ti]&&(W.amk==='inc'||W.amk==='shk')){ await hzGasBoom(ti,a); return; } // a hot round into gas
+  if(!A.st) return;
+  let p=res==='graze'?A.p[1]:A.p[0]; if(W.amk==='hp'){ if(t.armor>0) p=0; if(crit) p=100; }
+  if(p<=0||RNG()*100>=p) return;
+  if(addStatus(t,A.st,0,a)){
+    if(W.amk==='inc') await hzIgnite(ti,a);
+    if(W.amk==='shk'&&G.surf[ti]===1) await hzElectrify(t.x,t.y,0.5,a,3); } }
+// AI: hazard tiles in move scoring (only called while a hazard is live)
+function hzTile(u,x,y){ const H=G.hz, i=idx(x,y); let s=0;
+  if(H.fire[i]) s-=40; else for(const d of DIRS4){ const j=idx(clamp(x+d[0],0,MW-1),clamp(y+d[1],0,MH-1)); if(H.fire[j]){ s-=5; break; } }
+  if(H.gas[i]) s-=28; if(H.elec[i]) s-=30;
+  if(u.st&&u.st.burn&&G.surf[i]===1) s+=12;
+  return s; }
+// AI: hazard attacks (toxic barrels and power boxes by enemies, igniting gas they stand in, gas grenades)
+function hzAiAtk(u,res,vis,canFire,avg){
+  const foesIn=(f)=>vis.filter(v=>!v.downed&&f(v)), noMates=f=>!G.units.some(v=>v.alive&&!isEnemy(u,v)&&f(v));
+  if(canFire&&!u.shot) for(const q of objTargets(u)){ const k=q.o.kind; if(k!=='toxbar'&&k!=='pbox') continue; const p=Math.min(1,avg/Math.max(1,q.o.hp));
+    if(k==='toxbar'){ const inR=v=>Math.hypot(v.x-q.x,v.y-q.y)<=HZ.toxR+0.01, f=foesIn(inR); if(f.length&&noMates(inR)) res.push({k:'obj',x:q.x,y:q.y,t:f[0],hit:100,score:f.length*20*p}); }
+    else { const inR=v=>Math.hypot(v.x-q.x,v.y-q.y)<=1.6||(G.surf[idx(v.x,v.y)]===1&&Math.hypot(v.x-q.x,v.y-q.y)<=6), f=foesIn(inR); if(f.length&&noMates(inR)) res.push({k:'obj',x:q.x,y:q.y,t:f[0],hit:100,score:f.length*16*p}); } }
+  for(const util of u.utils){ const U=UTILS[util.id]; if(!U.gas||util.ch<=0||u.shot) continue; const rg=throwRange(u,U);
+    for(const c of vis){ if(c.downed||tdist(u,c)>rg) continue; const inR=v=>Math.hypot(v.x-c.x,v.y-c.y)<=U.radius+0.01; if(!noMates(inR)) continue; const n=foesIn(inR).length; res.push({k:'throw',util,x:c.x,y:c.y,t:c,hit:100,score:n*13}); } }
+  const H=hzOn(); if(!H) return;
+  const inGas=vis.filter(v=>!v.downed&&H.gas[idx(v.x,v.y)]); if(!inGas.length) return;
+  for(const util of u.utils){ const U=UTILS[util.id]; if(!U.dmg||util.ch<=0) continue; const rg=throwRange(u,U);
+    for(const c of inGas){ if(tdist(u,c)>rg) continue; const near=v=>Math.hypot(v.x-c.x,v.y-c.y)<=2.5; if(!noMates(near)) continue; res.push({k:'throw',util,x:c.x,y:c.y,t:c,hit:100,score:(U.dmg[0]+U.dmg[1])/2*10+foesIn(near).length*22}); } }
+  if(u.W.amk==='inc'||u.W.amk==='shk') for(const r of res) if(r.k==='shoot'&&r.t&&inGas.includes(r.t)) r.score+=14; }
+// AI turn start: a medkit for bleeding (or burning out of water) when it would not be blocked by poison
+async function hzAiPre(u){ const med=u.utils.find(x=>x.id==='medkit'&&x.ch>0); if(!med||hasStatus(u,'poison')) return;
+  if(hasStatus(u,'bleed')||(hasStatus(u,'burn')&&u.hp<=u.maxHp*0.6)) await doMedkit(u,med); }
+// per-round hash input: hazards and statuses, only when present (matches without them hash as before)
+function hzHash(add){ const H=hzLive(); let on=false;
+  if(H){ for(const k of ['fire','gas','elec','scorch','still']) for(const i in H[k]){ on=true; break; } }
+  const us=G.units.filter(u=>u.st); if(!on&&!us.length) return;
+  add(0x485a);
+  if(H){ for(const i in H.fire){ add(+i); add(H.fire[i].t); add(H.fire[i].s); } add(-1); for(const i in H.gas){ add(+i); add(H.gas[i].t); add(H.gas[i].s); } add(-2);
+    for(const i in H.elec){ add(+i); add(H.elec[i].u); } add(-3); for(const i in H.scorch) add(+i); add(-4); for(const id in H.still){ add(+id); add(H.still[id][0]); add(H.still[id][1]); } }
+  for(const u of us){ add(u.id); ST_KEYS.forEach((k,j)=>{ const e=u.st[k]; if(e){ add(j); add(e.t); add(e.s); add(e.f); } }); } }
+
+/* ---------- hazards and statuses (visual only: frand / Math.random, never the seeded RNG) ---------- */
+function hzPuff(x,y,r){ const p=tileC(x,y); addFx({type:'shock',x:p[0],y:p[1],r:r*TW,col:[170,255,110],life:.45,flat:1});
+  for(let i=0;i<22;i++) part({x:p[0]+frand(-36,36)*r/1.6,y:p[1]+frand(-16,16)*r/1.6,z:frand(0,18),vx:frand(-18,18),vy:frand(-8,8),vz:frand(4,24),life:frand(1.2,2.2),size:frand(12,22),col:[120,170,70],type:'smoke'}); }
+// a burst on the unit when a status lands or ticks
+function stBurst(u,k){ const p=chest(u), S=STATUS[k], c=S.col;
+  if(k==='burn'){ addFx({type:'fire',x:p[0],y:p[1],r:18,col:[255,140,40],life:.5}); for(let i=0;i<12;i++) part({x:p[0]+frand(-8,8),y:p[1]+frand(-6,12),vx:frand(-30,30),vy:frand(-50,-10),vz:frand(10,50),life:frand(.5,1),size:frand(1.4,2.4),col:[255,160,60],type:'ember',grav:-20}); }
+  else if(k==='chill'||k==='freeze'){ addFx({type:'ring',x:p[0],y:p[1]+19,r:k==='freeze'?42:30,col:c,life:.5}); for(let i=0;i<(k==='freeze'?16:10);i++) part({x:p[0],y:p[1],vx:frand(-110,110),vy:frand(-110,40),life:frand(.3,.6),size:frand(1.6,3),col:[220,245,255],type:'shard',grav:160}); }
+  else if(k==='poison'){ for(let i=0;i<8;i++) part({x:p[0]+frand(-10,10),y:p[1]+frand(-4,10),z:2,vx:frand(-14,14),vy:frand(-6,6),vz:frand(10,30),life:frand(.8,1.4),size:frand(6,11),col:[110,190,60],type:'smoke'}); }
+  else if(k==='shock'){ for(let i=0;i<3;i++) addFx({type:'bolt',a:[p[0]+frand(-14,14),p[1]-16],b:[p[0]+frand(-14,14),p[1]+16],col:c,life:.25,thin:1}); addFx({type:'arcs',x:p[0],y:p[1],r:20,col:c,life:.35}); }
+  else if(k==='bleed'){ for(let i=0;i<10;i++) part({x:p[0]+frand(-5,5),y:p[1]+frand(-4,6),z:4,vx:frand(-50,50),vy:frand(-20,20),vz:frand(20,70),life:frand(.4,.8),size:frand(1.4,2.4),col:[150,12,24],type:'debris',grav:420}); } }
+// drawUnit (after the body): the status look on the operative
+function stDrawFx(c,u,p,t){ const st=u.st; if(!st||!u.alive||u.downed||u.drop>0) return; const ph=u.ph||0;
+  c.globalCompositeOperation='lighter';
+  if(st.burn){ for(let k=0;k<4;k++){ const f=Math.sin(t*(9+k*2.3)+ph*3+k)*0.5+0.5; softDot(c,[255,120-k*14,30],p[0]+Math.sin(t*4+k*1.7+ph)*6,p[1]-8-k*8-f*5,9-k+f*4,.55-k*.06,'fire'); }
+    softDot(c,[255,110,30],p[0],p[1]-20,26,.18); if(Math.random()<0.18) part({x:p[0]+frand(-8,8),y:p[1]-frand(6,30),vx:frand(-12,12),vy:frand(-40,-14),life:frand(.5,.9),size:frand(1.2,2),col:[255,170,70],type:'ember',grav:-30}); }
+  if(st.shock&&Math.random()<0.55){ const a=[p[0]+frand(-12,12),p[1]-frand(4,36)]; c.strokeStyle=C(STATUS.shock.col,1,.85); c.lineWidth=1.2; jagLine(c,a[0],a[1],a[0]+frand(-14,14),a[1]+frand(-12,12),4,4,(Math.random()*999)|0); c.stroke(); softDot(c,STATUS.shock.col,a[0],a[1],8,.5); }
+  if(st.chill||st.freeze){ softDot(c,[150,210,255],p[0],p[1]-20,st.freeze?24:18,st.freeze?.3:.2); }
+  c.globalCompositeOperation='source-over';
+  if(st.freeze){ const w=13, h=40; c.fillStyle='rgba(196,234,255,.24)'; c.strokeStyle='rgba(230,248,255,.65)'; c.lineWidth=1; c.beginPath(); c.moveTo(p[0]-w,p[1]-2); c.lineTo(p[0],p[1]+5); c.lineTo(p[0]+w,p[1]-2); c.lineTo(p[0]+w,p[1]-h); c.lineTo(p[0],p[1]-h-6); c.lineTo(p[0]-w,p[1]-h); c.closePath(); c.fill(); c.stroke();
+    c.beginPath(); c.moveTo(p[0],p[1]+5); c.lineTo(p[0],p[1]-h+1); c.stroke(); c.fillStyle='rgba(255,255,255,'+(.4+.3*Math.sin(t*3+ph))+')'; c.fillRect(p[0]-w+3,p[1]-h+4,2,10); }
+  else if(st.chill){ c.fillStyle='rgba(235,248,255,.85)'; for(let k=0;k<5;k++){ const a=t*.8+k*1.26+ph, r=11+3*Math.sin(t*1.3+k), x=p[0]+Math.cos(a)*r, y=p[1]-18+Math.sin(a)*r*.6, s=1.6+Math.sin(t*2+k)*.5; c.beginPath(); c.moveTo(x,y-s*1.6); c.lineTo(x+s*.6,y); c.lineTo(x,y+s*1.6); c.lineTo(x-s*.6,y); c.closePath(); c.fill(); } }
+  if(st.poison){ c.strokeStyle='rgba(150,240,90,.8)'; c.lineWidth=1; for(let k=0;k<5;k++){ const f=(t*.6+k/5+ph)%1, x=p[0]+Math.sin(k*2.1+t*1.5)*8, y=p[1]-6-f*36, r=1.3+f*1.8; c.globalAlpha=1-f; c.beginPath(); c.arc(x,y,r,0,Math.PI*2); c.stroke(); } c.globalAlpha=1;
+    c.globalCompositeOperation='lighter'; softDot(c,[110,220,60],p[0],p[1]-14,20,.14); c.globalCompositeOperation='source-over'; }
+  if(st.bleed){ c.fillStyle='rgba(170,14,28,.9)'; for(let k=0;k<3;k++){ const f=(t*.9+k/3+ph)%1, x=p[0]-5+k*5, y=p[1]-22+f*22; c.globalAlpha=f<.9?1:(1-f)*10; c.beginPath(); c.ellipse(x,y,1.2,1.9,0,0,Math.PI*2); c.fill(); } c.globalAlpha=1;
+    c.fillStyle='rgba(120,8,20,.45)'; c.beginPath(); c.ellipse(p[0],p[1]+1,7,2.6,0,0,Math.PI*2); c.fill(); } }
+// status icons (cached glyph badges) next to the HP bar
+const ST_ICO=new Map();
+function stIconTex(k){ let e=ST_ICO.get(k); if(e) return e; const S=4, cv2=document.createElement('canvas'); cv2.width=cv2.height=12*S; const g=cv2.getContext('2d'); g.scale(S,S);
+  g.fillStyle='rgba(4,8,14,.85)'; g.beginPath(); g.arc(6,6,5.6,0,Math.PI*2); g.fill(); g.strokeStyle=C(STATUS[k].col); g.lineWidth=1; g.stroke();
+  g.fillStyle=C(STATUS[k].col); g.strokeStyle=C(STATUS[k].col); g.lineWidth=.9; g.lineCap='round'; g.beginPath();
+  if(k==='burn'){ g.moveTo(6,2.3); g.quadraticCurveTo(9.2,5.4,8.3,7.6); g.quadraticCurveTo(7.4,9.6,6,9.6); g.quadraticCurveTo(3.4,9.6,3.6,7.2); g.quadraticCurveTo(4,5.6,5.2,5); g.quadraticCurveTo(5.4,6.4,6.2,6.6); g.quadraticCurveTo(6.6,4.4,6,2.3); g.fill(); }
+  else if(k==='poison'){ g.arc(4.6,7.4,1.6,0,Math.PI*2); g.moveTo(8.6,6); g.arc(7.6,6,1.1,0,Math.PI*2); g.moveTo(7,3.6); g.arc(6.2,3.6,.8,0,Math.PI*2); g.stroke(); }
+  else if(k==='chill'||k==='freeze'){ for(let a=0;a<3;a++){ const an=a*Math.PI/3; g.moveTo(6+Math.cos(an)*3.6,6+Math.sin(an)*3.6); g.lineTo(6-Math.cos(an)*3.6,6-Math.sin(an)*3.6); } g.stroke(); if(k==='freeze'){ g.beginPath(); g.rect(3.2,3.2,5.6,5.6); g.stroke(); } }
+  else if(k==='shock'){ g.moveTo(7,2.2); g.lineTo(4,6.6); g.lineTo(6.2,6.6); g.lineTo(5,9.8); g.lineTo(8.2,5.2); g.lineTo(6,5.2); g.closePath(); g.fill(); }
+  else if(k==='bleed'){ g.moveTo(6,2.4); g.quadraticCurveTo(8.8,6.2,8.6,7.4); g.arc(6,7.4,2.6,0,Math.PI); g.quadraticCurveTo(3.2,6.2,6,2.4); g.fill(); }
+  ST_ICO.set(k,cv2); return cv2; }
+function stIcons(c,u,x,y){ if(!u.st) return; for(const k of ST_KEYS){ if(!u.st[k]) continue; c.drawImage(stIconTex(k),x-5,y-4,11,11); x+=12; } }
+// world layers (drawWorld): ground glow for fire and current, then flames and gas above everything on the ground
+function hzKey(o){ let s=''; for(const i in o) s+=i+','; return s; }
+function hzDrawGround(c){ const H=hzLive(); if(!H||!H.on) return; const t=G.time;
+  const kf=hzKey(H.fire), ke=hzKey(H.elec), kg=hzKey(H.gas);
+  if(RC.hzK!==kf+'|'+ke+'|'+kg+'|'+RC.gen){ RC.hzK=kf+'|'+ke+'|'+kg+'|'+RC.gen; const zd=G.zDraw; G.zDraw=true; const pf=new Path2D(), pe=new Path2D(), pg=new Path2D();
+    for(const i in H.fire) tilePath(pf,i%MW,(i/MW)|0); for(const i in H.elec) tilePath(pe,i%MW,(i/MW)|0); for(const i in H.gas) tilePath(pg,i%MW,(i/MW)|0); G.zDraw=zd;
+    RC.hzF=kf?pf:null; RC.hzE=ke?pe:null; RC.hzG=kg?pg:null; }
+  if(RC.hzG){ c.fillStyle='rgba(110,170,50,'+(0.22+0.04*Math.sin(t*1.3))+')'; c.fill(RC.hzG); }
+  c.globalCompositeOperation='lighter';
+  if(RC.hzF){ c.fillStyle='rgba(255,90,20,'+(0.16+0.06*Math.sin(t*7.1)+0.04*Math.sin(t*12.3))+')'; c.fill(RC.hzF); }
+  if(RC.hzE){ c.fillStyle='rgba(120,210,255,'+(0.2+0.14*Math.max(0,Math.sin(t*9))+0.06*Math.sin(t*23))+')'; c.fill(RC.hzE);
+    const E=Object.keys(H.elec); for(let n=0;n<Math.min(9,E.length);n++){ if(Math.random()<0.3) continue; const i=+fpick(E), x=i%MW, y=(i/MW)|0; if(!tileShown(x,y)) continue; const p=tileC(x,y), a=[p[0]+frand(-24,24),p[1]+frand(-9,9)], b=[p[0]+frand(-24,24),p[1]+frand(-9,9)], sd=(Math.random()*999)|0;
+      c.strokeStyle='rgba(120,200,255,.45)'; c.lineWidth=3.5; jagLine(c,a[0],a[1],b[0],b[1],5,6,sd); c.stroke(); c.strokeStyle='rgba(235,250,255,.95)'; c.lineWidth=1.2; jagLine(c,a[0],a[1],b[0],b[1],5,6,sd); c.stroke(); softDot(c,[150,220,255],p[0],p[1],18,.35); } }
+  c.globalCompositeOperation='source-over'; }
+// a cached flame tongue: white-hot base, orange body, red tip (drawn additive, stretched and swayed per frame)
+function hzFlameTex(){ if(RC.hzFl) return RC.hzFl; const cv2=document.createElement('canvas'); cv2.width=32; cv2.height=64; const g=cv2.getContext('2d');
+  const gr=g.createLinearGradient(0,64,0,0); gr.addColorStop(0,'rgba(255,214,120,.9)'); gr.addColorStop(.3,'rgba(255,140,40,.8)'); gr.addColorStop(.65,'rgba(230,70,16,.55)'); gr.addColorStop(1,'rgba(180,24,8,0)');
+  g.fillStyle=gr; g.beginPath(); g.moveTo(16,64); g.bezierCurveTo(-2,60,2,34,12,20); g.quadraticCurveTo(15,10,16,0); g.quadraticCurveTo(18,12,21,20); g.bezierCurveTo(30,34,34,60,16,64); g.fill();
+  return RC.hzFl=cv2; }
+// a burning tile, pre-rendered as 8 flicker frames (glow, four tongues, hot core): one blit per tile per frame keeps a big
+// fire cheap (software-rasterised canvases on phones pay per pixel blended)
+function hzFireFrames(){ if(RC.hzFF) return RC.hzFF; const out=[], S=2, ft=hzFlameTex();
+  for(let f=0;f<8;f++){ const cv2=document.createElement('canvas'); cv2.width=68*S; cv2.height=68*S; const g=cv2.getContext('2d'); g.scale(S,S); g.globalCompositeOperation='lighter';
+    const cx=34, by=60; sdot(g,[255,90,20],cx,by-12,24,.32,'fire');
+    for(let n=0;n<4;n++){ const q=Math.sin(f/8*Math.PI*2*(1+n*.37)+n*1.9)*0.5+0.5, ox=(n-1.5)*8+Math.sin(f*.8+n)*2.5, hgt=(n===1||n===2?34:24)+q*12, w=(n===1||n===2?15:11)+q*3; g.globalAlpha=.5+.25*q; g.drawImage(ft,cx+ox-w/2,by+2-hgt,w,hgt); }
+    g.globalAlpha=1; sdot(g,[255,220,140],cx,by-5,8,.4); out.push(cv2); }
+  return RC.hzFF=out; }
+function hzDrawTop(c){ const H=hzLive(); if(!H||!H.on) return; const t=G.time, cam=G.cam, hw=VW/2/cam.z+60, hh=VH/2/cam.z+80, W=hzWind();
+  const on=(x,y)=>Math.abs(x-cam.x)<hw&&Math.abs(y-cam.y)<hh;
+  // gas: churning green billows (normal blend), drifting downwind
+  const dw=W?((t*.25)%1):0;
+  for(const k in H.gas){ const i=+k, x=i%MW, y=(i/MW)|0, p=iso(x+.5+(W?W[0]*dw*.4:0),y+.5+(W?W[1]*dw*.4:0)); p[1]-=ez(x,y); if(!on(p[0],p[1])) continue; const sh=tileShown(x,y)?1:.55, e=H.gas[k];
+    const ga=sh*Math.min(1,e.t/2+.4); for(let n=0;n<3;n++){ const a=n*2.4+t*(n%2?.35:-.28)+i, r=20+n*6+Math.sin(t*.7+i+n)*3; softDot(c,n===0?[84,140,44]:n===1?[128,190,70]:[176,226,120],p[0]+Math.cos(a)*10,p[1]-4-n*8+Math.sin(a)*4,r,(n===2?.34:.5)*ga); } }
+  // fire: flickering tongues (additive), embers and smoke
+  c.globalCompositeOperation='lighter';
+  for(const k in H.fire){ const i=+k, x=i%MW, y=(i/MW)|0, o=G.grid[i], p=iso(x+.5,y+.5); p[1]-=ez(x,y)+(o&&o.t?(o.t===2?18:8):0); if(!on(p[0],p[1])) continue; const sh=tileShown(x,y)?1:.5, s=hash(x,y,41)*6;
+    const fr=hzFireFrames(), fi=fr[(Math.floor(t*11+s*3)%fr.length+fr.length)%fr.length]; c.globalAlpha=sh; c.drawImage(fi,p[0]-34+Math.sin(t*1.7+s)*1.5,p[1]-58,68,68); c.globalAlpha=1;
+    if(sh>.6&&Math.random()<0.03) part({x:p[0]+frand(-12,12),y:p[1]-frand(4,16),vx:frand(-10,10)+(W?W[0]*20:0),vy:frand(-30,-10),vz:frand(10,40),life:frand(.6,1.2),size:frand(1.2,2),col:[255,170,70],type:'ember',grav:-25});
+    if(sh>.6&&Math.random()<0.008) part({x:p[0]+frand(-8,8),y:p[1]-14,z:10,vx:frand(-6,6)+(W?W[0]*14:0),vy:frand(-4,2),vz:frand(18,36),life:frand(1.6,2.6),size:frand(10,16),col:[60,54,50],type:'smoke'}); }
+  c.globalCompositeOperation='source-over'; }
+
+/* ---------- ammo mod visuals: tracer, muzzle and impact per round (shotFX hooks) ---------- */
+function amFx(a){ const W=a.anim&&a.anim.sec?(a.S&&a.S.W):a.W; return W&&W.amk?Object.assign({k:W.amk},AMMO[W.amk]):null; }
+function amMuzzle(A,m,ang){ addFx({type:'flash',x:m[0],y:m[1],r:14,col:A.col,life:.1});
+  for(let i=0;i<4;i++){ const an=ang+frand(-.5,.5), sp=frand(60,160); part({x:m[0],y:m[1],vx:Math.cos(an)*sp,vy:Math.sin(an)*sp*.7,life:frand(.12,.26),size:1.3,col:A.col,type:A.k==='cryo'?'shard':'spark'}); } }
+function amTrail(A,m,end,kind){ const k=A.k, dx=end[0]-m[0], dy=end[1]-m[1];
+  if(k==='inc') for(let i=0;i<5;i++){ const q=frand(.15,.95); part({x:m[0]+dx*q,y:m[1]+dy*q,vx:frand(-14,14),vy:frand(-30,-6),life:frand(.3,.6),size:frand(1.2,2),col:[255,150,50],type:'ember',grav:-20}); }
+  else if(k==='cryo'){ for(let i=0;i<6;i++){ const q=frand(.1,.95); part({x:m[0]+dx*q,y:m[1]+dy*q,vx:frand(-10,10),vy:frand(-10,10),life:frand(.3,.55),size:frand(1,1.8),col:[220,245,255],type:'shard'}); } }
+  else if(k==='tox') for(let i=0;i<3;i++){ const q=frand(.2,.9); part({x:m[0]+dx*q,y:m[1]+dy*q,vx:frand(-6,6),vy:frand(-6,2),life:frand(.5,.9),size:frand(4,7),col:[110,180,60],type:'smoke'}); }
+  else if(k==='shk'){ addFx({type:'bolt',a:m,b:end,col:A.col,life:.2,thin:1}); }
+  else if(k==='ap'){ addFx({type:'tracer',a:m,b:end,col:[255,255,255],w:.7,life:.24}); } }
+function amImpact(A,p,hit,mat){ const k=A.k;
+  if(k==='inc'){ addFx({type:'fire',x:p[0],y:p[1],r:13,col:[255,130,40],life:.45}); for(let i=0;i<12;i++) part({x:p[0],y:p[1],vx:frand(-70,70),vy:frand(-90,10),vz:frand(10,50),life:frand(.4,.9),size:frand(1.2,2.2),col:i%3?[255,150,50]:[255,220,140],type:'ember',grav:60}); }
+  else if(k==='cryo'){ addFx({type:'ring',x:p[0],y:p[1],r:22,col:[170,225,255],life:.4}); addFx({type:'flash',x:p[0],y:p[1],r:18,col:[210,240,255],life:.12}); for(let i=0;i<12;i++) part({x:p[0],y:p[1],vx:frand(-120,120),vy:frand(-120,40),life:frand(.3,.6),size:frand(1.6,2.8),col:[220,245,255],type:'shard',grav:200}); }
+  else if(k==='tox'){ for(let i=0;i<6;i++) part({x:p[0]+frand(-6,6),y:p[1]+frand(-4,4),vx:frand(-16,16),vy:frand(-10,4),vz:frand(4,16),life:frand(.8,1.3),size:frand(6,11),col:[110,190,60],type:'smoke'}); for(let i=0;i<6;i++) part({x:p[0],y:p[1],vx:frand(-50,50),vy:frand(-60,0),life:frand(.4,.7),size:frand(1.2,1.8),col:[160,255,90],type:'ember',grav:260}); }
+  else if(k==='shk'){ addFx({type:'arcs',x:p[0],y:p[1],r:24,col:A.col,life:.35}); for(let i=0;i<8;i++) part({x:p[0],y:p[1],vx:frand(-150,150),vy:frand(-150,50),life:frand(.2,.4),size:1.4,col:A.hot,type:'spark',grav:200}); }
+  else if(k==='ap'){ addFx({type:'flash',x:p[0],y:p[1],r:20,col:[255,255,255],life:.1}); if(hit){ addFx({type:'shock',x:p[0],y:p[1],r:14,col:[255,255,255],life:.18}); } for(let i=0;i<10;i++) part({x:p[0],y:p[1],vx:frand(-200,200),vy:frand(-140,40),life:frand(.12,.28),size:1.2,col:[255,255,255],type:'spark',grav:300}); }
+  else if(k==='hp'){ if(hit&&mat==='flesh') for(let i=0;i<16;i++) part({x:p[0],y:p[1],z:2,vx:frand(-110,110),vy:frand(-60,30),vz:frand(30,110),life:frand(.4,.8),size:frand(1.5,2.8),col:i%3?[150,12,24]:[200,30,40],type:'debris',grav:520});
+    else for(let i=0;i<14;i++) part({x:p[0],y:p[1],vx:frand(-170,170),vy:frand(-150,40),life:frand(.2,.45),size:frand(1.3,2.2),col:[255,214,160],type:'spark',grav:300});
+    addFx({type:'flash',x:p[0],y:p[1],r:26,col:[255,210,180],life:.14}); } }
+// armor-piercing: the round punches through a hit target (a short streak out the far side)
+function amPunch(A,m,end){ if(A.k!=='ap') return; const dx=end[0]-m[0], dy=end[1]-m[1], L=Math.hypot(dx,dy)||1; addFx({type:'tracer',a:end,b:[end[0]+dx/L*46,end[1]+dy/L*46],col:[255,255,255],w:1.1,life:.16}); }
+// weapon sprites: a coloured band on the magazine for the loaded ammo (part of the cached sprite)
+{ const f=paintWeapon; paintWeapon=function(g,D,fin,vis){ f(g,D,fin,vis); const ids=String(fin).split('+')[1]; if(!ids) return; let ak=null; for(const id of ids.split('.')) if(ATTACH[id]&&ATTACH[id].amk) ak=ATTACH[id].amk; if(!ak) return;
+    let yB=-1e9; for(const p of D.parts) if((p[0]==='R'||p[0]==='r')&&p[p.length-1]==='f') yB=Math.max(yB,p[2]+p[4]); if(yB<-1e8) yB=1.5; const S=D.hold==='pistol'?.62:.8, x=(D.tip[0]||10)*(D.hold==='pistol'?.12:.34);
+    g.fillStyle=C(AMMO[ak].col); g.fillRect(x-1.4*S,yB-1.1*S,2.8*S,1.3*S); g.fillStyle='rgba(255,255,255,.55)'; g.fillRect(x-1.4*S,yB-1.1*S,2.8*S,.35*S); }; }
+// loadout / picker previews: the weapon firing its ammo (tracer, muzzle and impact loop), drawn every frame
+function amPreview(cv2,k,ak,fin){ const D=WPN[k], A=AMMO[ak]; if(!D||!A) return; const c=cv2.getContext('2d'), W=cv2.width, H=cv2.height; c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,W,H);
+  const b=D.box, s=Math.min(W*.42/(b[2]+4),H*.7/(b[3]+2)), ox=W*.05-b[0]*s, oy=H*.5-(b[1]+b[3]/2)*s;
+  c.save(); c.translate(ox,oy); c.scale(s,s); WSC=s; drawWpn(c,k,fin,visorCol(),0,0,0); c.restore();
+  const mx=ox+(D.tip[0]+attMuzzle(D,String(fin).split('+')[1]||''))*s, my=oy+D.tip[1]*s, tx=W*.9, ty=my, T=(performance.now()/1000+hash(k.length,ak.length,3))%1.4, sc=H/84;
+  c.globalCompositeOperation='lighter';
+  if(T<.09){ const a=1-T/.09; softDot(c,A.col,mx+4*sc,my,16*sc*a+4,a); softDot(c,[255,250,230],mx+2*sc,my,7*sc,a); }
+  if(T<.3){ const h=Math.min(1,T/.12), tl=Math.max(0,h-.45-T), hx=lerp(mx,tx,h), tlx=lerp(mx,tx,tl), a=1-Math.max(0,T-.15)/.15;
+    c.strokeStyle=C(A.col,1,.4*a); c.lineWidth=5*sc; c.beginPath(); c.moveTo(tlx,my); c.lineTo(hx,ty); c.stroke(); c.strokeStyle=C(A.hot,1,a); c.lineWidth=(ak==='ap'?1:1.6)*sc; c.beginPath(); c.moveTo(tlx,my); c.lineTo(hx,ty); c.stroke();
+    if(ak==='shk'){ c.strokeStyle=C(A.col,1,.9*a); c.lineWidth=1.2*sc; jagLine(c,mx,my,hx,ty,7,4*sc,(T*97)|0); c.stroke(); } }
+  if(T>=.12&&T<1.1){ const q=(T-.12)/.98, a=1-q, R=(6+q*22)*sc;
+    if(ak==='inc'){ softDot(c,[255,130,40],tx,ty,R,a*.9,'fire'); for(let i=0;i<7;i++){ const an=-Math.PI/2+(i-3)*.35, d=q*28*sc; softDot(c,[255,170,70],tx+Math.cos(an)*d,ty+Math.sin(an)*d*1.2-q*8*sc,2.2*sc,a); } }
+    else if(ak==='cryo'){ softDot(c,[150,220,255],tx,ty,R*.8,a*.6); c.fillStyle=C([225,246,255],1,a); for(let i=0;i<8;i++){ const an=i/8*Math.PI*2+.3, d=(4+q*24)*sc, x=tx+Math.cos(an)*d, y=ty+Math.sin(an)*d*.8, z=2.2*sc; c.beginPath(); c.moveTo(x,y-z*1.6); c.lineTo(x+z*.6,y); c.lineTo(x,y+z*1.6); c.lineTo(x-z*.6,y); c.closePath(); c.fill(); } }
+    else if(ak==='tox'){ c.globalCompositeOperation='source-over'; for(let i=0;i<4;i++) softDot(c,[110,190,60],tx+(i-1.5)*6*sc*q,ty-q*10*sc-i*2,(8+q*10)*sc,a*.55); c.globalCompositeOperation='lighter'; softDot(c,[160,255,90],tx,ty,R*.5,a*.5); }
+    else if(ak==='shk'){ c.strokeStyle=C(A.col,1,a); c.lineWidth=1.2*sc; for(let i=0;i<4;i++){ const an=i*1.6+T*30; jagLine(c,tx,ty,tx+Math.cos(an)*R,ty+Math.sin(an)*R*.7,4,3*sc,(i*31+T*60)|0); c.stroke(); } softDot(c,A.col,tx,ty,R*.6,a*.6); }
+    else if(ak==='ap'){ softDot(c,[255,255,255],tx,ty,R*.5,a); c.strokeStyle=C([255,255,255],1,a); c.lineWidth=1.4*sc; c.beginPath(); c.moveTo(tx,ty); c.lineTo(Math.min(W-2,tx+q*40*sc),ty); c.stroke(); }
+    else if(ak==='hp'){ c.globalCompositeOperation='source-over'; c.fillStyle=C([170,16,28],1,a); for(let i=0;i<9;i++){ const an=-Math.PI/2+(i-4)*.32, d=q*26*sc; c.fillRect(tx+Math.cos(an)*d-1.2*sc,ty+Math.sin(an)*d+q*q*20*sc,2.4*sc,2.4*sc); } c.globalCompositeOperation='lighter'; softDot(c,[255,210,170],tx,ty,R*.6,a*.7); } }
+  c.globalCompositeOperation='source-over'; }
+function amAnim(){ if(typeof draft==='undefined'||!draft) return;
+  document.querySelectorAll('canvas[data-ampv]').forEach(cv2=>{ const r=cv2.getBoundingClientRect(); if(r.bottom<0||r.top>VH||!r.width) return; const [k,id]=cv2.dataset.ampv.split(':'), a=draft.att&&draft.att[k], o=Object.assign({},a||{},{ammo:id});
+    amPreview(cv2,k,ATTACH[id].amk,(mfinFor(k)||PROF.equip.finish)+'+'+attIds(o,k).join('.')); });
+  document.querySelectorAll('#loadout canvas[data-wpv]').forEach(cv2=>{ const k=cv2.dataset.wpv, a=draft.att&&draft.att[k], id=a&&a.ammo; if(!id||!ATTACH[id]||attNeed(k,id)==null) return; const r=cv2.getBoundingClientRect(); if(r.bottom<0||r.top>VH||!r.width) return;
+    amPreview(cv2,k,ATTACH[id].amk,(mfinFor(k)||PROF.equip.finish)+'+'+attIds(a,k).join('.')); }); }
+{ const f=drawMfAnim; drawMfAnim=function(){ f(); amAnim(); }; }
+// the ammo picker: every round's card shows the weapon firing it
+{ const f=attCards; attCards=function(k,s){ const h=f(k,s); if(s!=='ammo') return h; const ids=attIdsFor(k,s), parts=h.split('<button');
+    for(let j=2;j<parts.length;j++){ const id=ids[j-2]; if(!id) continue; const e=parts[j].indexOf('>'); parts[j]=parts[j].slice(0,e+1)+'<canvas class="wpv" data-ampv="'+k+':'+id+'" width="240" height="84" aria-hidden="true"></canvas>'+parts[j].slice(e+1); }
+    return parts.join('<button'); }; }
+/* ---------- Hazard Zone props on the map (drawObj / objLive) ---------- */
+{ const f=drawObj; drawObj=function(c,o,x,y,s,al){ const k=o.kind; if(k!=='toxbar'&&k!=='pbox') return f(c,o,x,y,s,al);
+    c.globalAlpha=al; const p=iso(x+.5,y+.55);
+    c.fillStyle='rgba(0,0,0,.28)'; c.beginPath(); c.ellipse(p[0]+3,p[1]+1,12,5,0,0,Math.PI*2); c.fill();
+    if(k==='toxbar'){ const b=[70,120,44], w=9, hh=23;
+      c.fillStyle=C(b,.82*s); c.fillRect(p[0]-w,p[1]-hh,w*2,hh); c.fillStyle=C(b,.55*s); c.fillRect(p[0]-w,p[1]-hh,5,hh); c.fillStyle=C(b,1.1*s); c.fillRect(p[0]+2,p[1]-hh,3,hh);
+      c.fillStyle=C(b,.6*s); c.beginPath(); c.ellipse(p[0],p[1],w,4,0,0,Math.PI); c.fill();
+      c.fillStyle=C([236,214,40],s); c.fillRect(p[0]-w,p[1]-hh*.66,w*2,7); c.fillStyle=C([20,20,20],s); c.beginPath(); c.arc(p[0],p[1]-hh*.66+3.5,2.6,0,Math.PI*2); c.fill(); c.fillStyle=C([236,214,40],s); c.beginPath(); c.arc(p[0],p[1]-hh*.66+3.5,1,0,Math.PI*2); c.fill();
+      c.fillStyle=C(b,1.25*s); c.beginPath(); c.ellipse(p[0],p[1]-hh,w,4,0,0,Math.PI*2); c.fill(); c.fillStyle=C([150,230,80],s,.85); c.beginPath(); c.ellipse(p[0]-3,p[1]-hh+.5,3,1.2,0,0,Math.PI*2); c.fill(); }
+    else { const P=drawBox(c,x,y,.24,.3,22,C([150,156,166],s),C([84,88,98],s),C([116,122,132],s));
+      c.fillStyle=C([236,200,40],s); faceQuad(c,P.B,P.R,.18,.82,8,16); c.fill(); c.fillStyle=C([22,22,26],s); c.beginPath(); const m=[lerp(P.B[0],P.R[0],.5),lerp(P.B[1],P.R[1],.5)]; c.moveTo(m[0]+1,m[1]-15.5); c.lineTo(m[0]-2,m[1]-11.5); c.lineTo(m[0]+.5,m[1]-11.5); c.lineTo(m[0]-1,m[1]-8.5); c.lineTo(m[0]+2.4,m[1]-12.6); c.lineTo(m[0],m[1]-12.6); c.closePath(); c.fill();
+      c.strokeStyle=C([40,42,48],s); c.lineWidth=1.4; c.beginPath(); c.moveTo(P.L[0]+4,P.L[1]-4); c.quadraticCurveTo(P.L[0]-2,P.L[1]+2,P.L[0]-8,P.L[1]+3); c.stroke(); }
+    { const T=TERR[k]; if(o.hp!=null&&o.hp<T.hp){ const dmg=1-o.hp/T.hp; c.strokeStyle='rgba(18,12,8,'+(0.45+dmg*0.4)+')'; c.lineWidth=1.3; for(let q=0;q<1+dmg*4;q++){ const hx=p[0]+(hash(x,y,200+q)-.5)*14, hy=p[1]-4-hash(x,y,210+q)*16; c.beginPath(); c.moveTo(hx,hy); c.lineTo(hx+3,hy+3); c.lineTo(hx+1,hy+6); c.stroke(); } } }
+    c.globalAlpha=1; }; }
+LIVEK.toxbar=1; LIVEK.pbox=1;
+{ const f=objLive; objLive=function(c,o,x,y,al){ const k=o.kind; if(k!=='toxbar'&&k!=='pbox') return f(c,o,x,y,al); const p=iso(x+.5,y+.55), t=G.time+hash(x,y,5)*9;
+    c.globalCompositeOperation='lighter';
+    if(k==='toxbar'){ softDot(c,[150,240,80],p[0],p[1]-24,7+Math.sin(t*2)*2,.35*al); const f2=(t*.4)%1; softDot(c,[130,210,70],p[0]+f2*6,p[1]-26-f2*16,4+f2*6,(1-f2)*.3*al); }
+    else if(Math.sin(t*2.3)>.3){ softDot(c,[255,220,90],p[0]+8,p[1]-20,6,.6*al); if(Math.random()<.05){ c.strokeStyle='rgba(255,240,150,.8)'; c.lineWidth=1; jagLine(c,p[0]+4,p[1]-22,p[0]+frand(-4,14),p[1]-frand(26,36),3,3,(Math.random()*99)|0); c.stroke(); } }
+    c.globalCompositeOperation='source-over'; }; }
+
 rbBoot();
 
 /* ================= debug hooks (used for automated checks) ================= */
