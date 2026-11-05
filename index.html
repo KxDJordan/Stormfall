@@ -779,6 +779,9 @@ body.sheet-open .nav{display:none}
 #emoteTray button{min-height:var(--tap);background:var(--panel-solid);border:1px solid var(--line2);border-radius:22px;padding:0 16px;font-size:13px;font-weight:600}
 #emoteTray button:active{background:rgba(63,210,255,.2)}
 #pingTray{position:absolute;left:50%;top:calc(var(--sat) + 96px);transform:translateX(-50%);width:min(360px,calc(100vw - 24px));background:var(--panel-solid);border:1px solid var(--line2);border-radius:var(--r3);padding:10px;z-index:3;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+#pingTray button.hot{border-color:rgb(120,255,200);box-shadow:0 0 0 1px rgb(120,255,200) inset;animation:hotP 1.2s ease-in-out infinite}
+@keyframes hotP{50%{background:rgba(120,255,200,.14)}}
+@media (prefers-reduced-motion:reduce){#pingTray button.hot{animation:none}}
 #pingTray .pt{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--muted);margin:0 2px 6px}
 #pingTray .pt b{font:600 20px/1 Teko,sans-serif;color:var(--text)}
 #pingTray .pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:6px;margin-bottom:8px}
@@ -1527,7 +1530,7 @@ html.pa-rm .toast,html.pa-rm .toast.lvl,html.pa-rm .toast.lvl::after,html.pa-rm 
       <li>Infection: everyone drops alone; at the start of round 1 one operative (two with 7 or more) turns Infected. Survivors become one team with shared sight; the Infected have claws only (dash up to 5 tiles), +2 mobility, +6 HP, regenerate 2 HP a turn and sense survivors within 10 tiles. The Infected never die: taken down, one regenerates for a turn (it can’t be hurt meanwhile) and gets back up at full HP. A survivor the Infected take out goes down “turning” and rises as Infected on its next turn. Survivors win if any of them is standing after round 15; the Infected win when nobody is left to turn.</li>
       <li>Blackout: Solo at night. You see only 3.5 tiles (+1 on high ground). Anyone standing in light (a flare, near a deployed Specialist drone, in a Scout Drone’s area) or who fired an unsuppressed shot since their last turn can be seen from normal sight range. Everyone carries a flare (throw it into the dark: it lights 3 tiles until the end of next round) and crates often hold another. Every shot flashes on every minimap. Suppressed weapons and blades stay dark.</li>
       <li>Mutators: in the waiting room the host (or you, offline) can switch on Low gravity, Explosive everything, One-shot, Double storm speed, Melee only and Perma-smoke for any mode. Guests see them in the room, they show as chips under the minimap in the match, and replays keep them.</li>
-      <li>Team pings: in Duos, Trios and Quads, tap 📍 then the map, or press and hold on the map, to ping (Enemy here, Move here, Watch this area, Loot here, Danger) or give a command (Hold, Regroup, Push, Fall back, Revive me). Only your team sees them; they fade after 2 rounds. An AI partner or squadmates follow them (online, orders given on your own turn).</li>
+      <li>Team pings: in Duos, Trios and Quads, tap 📍 then the map, or press and hold on the map, to ping (Enemy here, Move here, Watch this area, Loot here, Danger) or give a command (Heal me, Hold, Regroup, Push, Fall back, Revive me). Heal me calls your Medic or Engineer over to heal you (Heal Field) or restore your shield (Repair); it lights up when your HP is low, and AI teammates send it themselves when they’re hurt. Only your team sees them; they fade after 2 rounds. An AI partner or squadmates follow them (online, orders given on your own turn).</li>
       <li>Specialist drone: it rides docked just above the Specialist (no vision, can’t be hit) until you tap <em>Deploy</em> (free, once a turn) and pick a tile. Deployed, it is its own unit with its own drone AP each turn (2; 3 with the Extended battery): fly it, zap, mark, or use its model action. Combat Protocol, Aid Protocol, Capacitor Discharge, Chain Lightning, Guardian, Haywire, Overclock, Drone Shield and Restoration all need it deployed. It sees for your team, can be shot, blown up, zapped and caught by overwatch, takes 1 storm damage a round outside the zone, and never counts as an operative (turn order, victory, objectives). Tap <em>Drone</em> to control it, <em>Operative</em> to switch back, <em>Recall</em> to dock it. Destroyed: <em>Rebuild</em> (1 AP) after 2 of your turns. Chassis: Sparrow (scout, Scan), Striker (Burst, harder zaps), Mender (Heal Pulse), Bulwark (Shield Projector, 6 HP), Jammer (Jam). Drone mastery unlocks upgrades; drone skins are in the Store.</li>
       <li>Engineer: <em>Deploy Turret</em> (1 AP, cooldown 4) puts a sentry on an empty ground tile up to 3 tiles away: 5 HP, 3 shots, 3 rounds, sight 7. It takes one reaction shot at every enemy that moves in its sight (−15 aim like overwatch); it can be shot, blown up, zapped and jammed, and it goes down with its Engineer. <em>Build Cover</em> (1 AP, cooldown 2) raises half cover (6 HP) or full cover (4 HP) on a tile next to you. <em>Repair</em> (1 AP, cooldown 2) gives you or an ally within 3 tiles +3 shield, or a friendly turret or drone 3 HP.</li>
       <li>Medic: <em>Heal Field</em> (1 AP, cooldown 4) marks a 1.5-tile area up to 5 tiles away; allies who start their turn in it heal 1 HP, through the end of next round. <em>Revive Beam</em> (1 AP, cooldown 3) revives a downed ally up to 3 tiles away in line of sight. <em>Adrenaline</em> (1 AP, cooldown 5): you or an ally starts its next turn with 3 AP. Passive: a Medic’s revives cost 1 AP instead of the whole turn and bring the ally back with 4 HP, and the Medic regenerates 1 HP a turn (useful in Solo too).</li>
@@ -3187,7 +3190,7 @@ function setupMatch(lo,mk,net,pre){
   const nT0=Math.ceil(slots.length/per), maxT=M0.players/per, fr=maxT>2?clamp((nT0-2)/(maxT-2),0,1):1, r0=M0.storm.radii[0];
   G.M=Object.assign({},M0,{players:nT0*per,startR:fr>=1?M0.startR:Math.round((r0+(M0.startR-r0)*(0.35+0.65*fr))*10)/10,fill:nT0/maxT}); G.SC=G.M.storm;
   G.mut=mutSet(net?net.mut:pre&&pre.mut); if(G.mut.storm2) G.SC=G.M.storm=stormX2(G.SC); // mutators (cfg.mut): no RNG here
-  G.matchId++; G.timers=[]; G.tweens=[]; G.fx=[]; G.parts=[]; G.texts=[]; G.pings=[]; G.bubbles=[]; G.cmd={}; G.tpings=[]; G.mstat={};
+  G.matchId++; G.timers=[]; G.tweens=[]; G.fx=[]; G.parts=[]; G.texts=[]; G.pings=[]; G.bubbles=[]; G.cmd={}; G.tpings=[]; G.hpPing=null; G.mstat={};
   const rp=net?null:pick(REGIONS.filter(r=>r!==G.lastRegion));
   G.region=net?(REG[net.region]?net.region:'city'):pre&&REG[pre.region]?pre.region:rp; G.lastRegion=G.region; G.R=REG[G.region];
   G.rosterTxt=rosterTxt(slots,M0.key);
@@ -7940,6 +7943,7 @@ async function unitTurn(u,mid){
   if(stormHits(u.x,u.y)){ const d=stormDmg(G.storm.stage)||1; if(d>0){ const show=shouldShow(u); if(show){ focusOn(u.x,u.y); await wait(300); floatText(u,'STORM',G.R.storm,18); }
       applyDamage(u,d,null,{pierce:true,anim:show}); if(show) await wait(700); if(!standing(u)||G.over||G.matchId!==mid) return; } }
   if(u.st&&await stTick(u,mid)) return; // status effects tick (hazards and status effects)
+  lowHpPing(u); // visual only: a hurt AI teammate asks for a heal; a hurt player is reminded they can
   if(u.isPlayer&&!G.autoPlayer) await playerTurn(u); else if(u.net) await netTurn(u,mid); else await aiTurn(u,mid);
   if(u.disorient>0) u.disorient--;
   if(u.st||u.stMob) stEnd(u); // status effects count down
@@ -9054,7 +9058,8 @@ const PINGS={
   regroup:{t:'Regroup',col:[93,255,154],ai:1,ack:'On my way.'},
   push:{t:'Push',col:[255,90,60],ai:1,ack:'Pushing up!'},
   fallback:{t:'Fall back',col:[190,160,255],ai:1,ack:'Falling back.'},
-  revive:{t:'Revive me',col:[255,120,150],ack:'Hang on!'}
+  revive:{t:'Revive me',col:[255,120,150],ack:'Hang on!'},
+  heal:{t:'Heal me',col:[120,255,200],ai:1,ack:'Coming to patch you up.'}
 };
 const PING_LIFE=2; // rounds a ping stays up
 let pingCd=0, pingAt=null;
@@ -9065,9 +9070,9 @@ function closePingTray(){ const t=$('#pingTray'); if(t) t.classList.add('hidden'
 function openPingTray(x,y){
   if(!teamMode()||!G.player.alive) return; pingAt=[x,y]; closeEmotes();
   const pt=aiMate(G.player), mine2=G.player.ap>0&&inputOpen(), live=!NET.on||mine2;
-  const btn=k=>'<button data-ping="'+k+'"><i style="background:'+C(PINGS[k].col)+'"></i>'+PINGS[k].t+'</button>';
+  const low=hpLow(G.player), btn=k=>'<button data-ping="'+k+'"'+(k==='heal'&&low?' class="hot"':'')+'><i style="background:'+C(PINGS[k].col)+'"></i>'+PINGS[k].t+'</button>';
   const T=$('#pingTray'); T.innerHTML='<div class="pt"><b>Ping</b><span>tile '+x+','+y+'</span></div><div class="pg">'+['enemy','move','watch','loot','danger'].map(btn).join('')+'</div>'
-    +'<div class="pt"><b>Command</b><span>at your position</span></div><div class="pg">'+['hold','regroup','push','fallback','revive'].map(btn).join('')+'</div>'
+    +'<div class="pt"><b>Command</b><span>at your position</span></div><div class="pg">'+['heal','hold','regroup','push','fallback','revive'].map(btn).join('')+'</div>'
     +(pt?'<div class="pn">'+(()=>{ const ms=G.units.filter(m=>m!==G.player&&m.team===G.player.team&&standing(m)&&!m.human), nm=esc(ms.map(m=>m.name).join(', ').replace(/, ([^,]*)$/,' and $1'))+' (AI)', pl=ms.length>1;
       return live?nm+(pl?' follow':' follows')+' these orders.':nm+(pl?' take':' takes')+' orders on your turn; now they only mark the map.'; })()+'</div>':'');
   T.classList.remove('hidden'); SFX.click(); buzz(8); }
@@ -9104,9 +9109,24 @@ function cmdScore(u,C,x,y,threats){
   if(C.k==='fallback'){ let m=10; for(const t of threats) m=Math.min(m,Math.hypot(t.x-x,t.y-y)); return threats.length?m*1.5:0; }
   if(C.k==='watch') return (d<=u.sight&&hasLOS(x,y,C.x,C.y)?8:0)-d*0.3;
   if(C.k==='danger') return d<=2.5?-30:0;
+  if(C.k==='heal'){ const P=healPinger(u,C); if(!P) return 0; const e=Math.hypot(P.x-x,P.y-y); return canHealMates(u)?-Math.max(0,e-2)*3+(e<=2.5?6:0):-Math.max(0,e-5)*1; } // healers close in, the rest stay near
   return 0; }
+// low HP at a turn start (team modes, visual only: no sim state, no seeded RNG): an AI teammate of yours pings Heal me once
+// per time it drops low, when someone on the team can heal; your own operative gets a reminder instead
+function lowHpPing(u){ if(!teamMode()||!mine(u)||!standing(u)) return; G.hpPing=G.hpPing||new Set();
+  if(!hpLow(u)){ G.hpPing.delete(u.id); return; } if(G.hpPing.has(u.id)) return;
+  const H=G.units.some(m=>m!==u&&m.team===u.team&&standing(m)&&canHealMates(m)); if(!H) return; G.hpPing.add(u.id);
+  if(u===G.player){ if(!G.watch) hint('Low HP: hold the map and ping Heal me'); return; }
+  if(!u.human){ showTeamPing(u,'heal',u.x,u.y); bubble(u,'I need healing!'); } }
+// heal pings: who can heal a teammate (Medic: Heal Field; Engineer: Repair restores shield), low HP, and the pinger still in need
+function canHealMates(u){ return u.cls==='medic'||u.cls==='engineer'; }
+function hpLow(u){ return !!u&&u.alive&&!u.downed&&u.hp<=Math.max(2,Math.floor(u.maxHp*0.4)); }
+function healPinger(u,C){ const P=C&&C.k==='heal'&&G.units.find(z=>z.id===C.by); return P&&standing(P)&&P!==u&&P.hp<P.maxHp?P:null; }
+// the unit an active heal order asks this healer to treat
+function healAsk(u){ const C=!u.human&&G.cmd&&G.cmd[u.team]; return C&&G.round<=C.until?healPinger(u,C):null; }
 // with nothing in sight, an order with a place in it becomes the AI's goal
-function cmdGoal(u){ const C=!u.human&&G.cmd&&G.cmd[u.team]; return C&&(C.k==='move'||C.k==='loot'||C.k==='enemy'||C.k==='push'||C.k==='watch')?[C.x,C.y]:null; }
+function cmdGoal(u){ const C=!u.human&&G.cmd&&G.cmd[u.team]; const H=C&&C.k==='heal'&&canHealMates(u)?healPinger(u,C):null; if(H) return [H.x,H.y];
+  return C&&(C.k==='move'||C.k==='loot'||C.k==='enemy'||C.k==='push'||C.k==='watch')?[C.x,C.y]:null; }
 // small vector glyphs for ping markers
 function pingGlyph(c,k,x,y,s){ c.save(); c.translate(x,y); c.scale(s,s); c.strokeStyle='#fff'; c.fillStyle='#fff'; c.lineWidth=1.6; c.lineCap='round'; c.lineJoin='round'; c.beginPath();
   if(k==='enemy'){ c.arc(0,0,4,0,Math.PI*2); c.moveTo(-6.5,0); c.lineTo(-2,0); c.moveTo(2,0); c.lineTo(6.5,0); c.moveTo(0,-6.5); c.lineTo(0,-2); c.moveTo(0,2); c.lineTo(0,6.5); c.stroke(); }
@@ -9114,6 +9134,7 @@ function pingGlyph(c,k,x,y,s){ c.save(); c.translate(x,y); c.scale(s,s); c.strok
   else if(k==='watch'){ c.ellipse(0,0,6,3.5,0,0,Math.PI*2); c.stroke(); c.beginPath(); c.arc(0,0,1.8,0,Math.PI*2); c.fill(); }
   else if(k==='loot'){ c.rect(-4.5,-3.5,9,7); c.moveTo(-4.5,-.5); c.lineTo(4.5,-.5); c.stroke(); }
   else if(k==='danger'){ c.moveTo(0,-5.5); c.lineTo(0,1.5); c.stroke(); c.beginPath(); c.arc(0,4.6,1.1,0,Math.PI*2); c.fill(); }
+  else if(k==='heal'){ c.moveTo(0,-5); c.lineTo(0,5); c.moveTo(-5,0); c.lineTo(5,0); c.lineWidth=2.4; c.stroke(); }
   else if(k==='hold'){ c.moveTo(-2.5,-4.5); c.lineTo(-2.5,4.5); c.moveTo(2.5,-4.5); c.lineTo(2.5,4.5); c.stroke(); }
   else if(k==='regroup'){ c.arc(0,0,4.5,.4,Math.PI*1.7); c.stroke(); c.beginPath(); c.moveTo(4.6,-4.4); c.lineTo(4.4,-.6); c.lineTo(1,-2); c.stroke(); }
   else if(k==='push'){ c.moveTo(-4,3); c.lineTo(0,-1); c.lineTo(4,3); c.moveTo(-4,-1); c.lineTo(0,-5); c.lineTo(4,-1); c.stroke(); }
@@ -10150,7 +10171,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=32, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=33, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
@@ -11200,7 +11221,7 @@ function tutLoadout(){ return {name:LO.name,cls:'ranger',weapon:'rifle',armor:'m
 function setupTutorial(){
   seedRNG(TUT_SEED); UID=0; setMapSize(MAP0);
   G.M=Object.assign({},MODES.quick,{key:'tutorial',name:'Training',players:3,team:1,startR:9.5,fill:1,drops:[]}); G.SC=G.M.storm;
-  G.matchId++; G.timers=[]; G.tweens=[]; G.fx=[]; G.parts=[]; G.texts=[]; G.pings=[]; G.bubbles=[]; G.cmd={}; G.tpings=[]; G.mstat={};
+  G.matchId++; G.timers=[]; G.tweens=[]; G.fx=[]; G.parts=[]; G.texts=[]; G.pings=[]; G.bubbles=[]; G.cmd={}; G.tpings=[]; G.hpPing=null; G.mstat={};
   G.region='city'; G.R=REG.city; G.rosterTxt='Training'; G.gm=null; G.mut={}; G.flares=[]; G.inf=null;
   const g=new Array(MW*MH).fill(null), elev=new Uint8Array(MW*MH), floorT=new Uint8Array(MW*MH);
   const put=(x,y,t,kind,h,ex)=>{ g[idx(x,y)]=Object.assign({t,kind,h:h||0,v:RNG()},ex||{}); };
@@ -12666,7 +12687,7 @@ function aiKitCmd(u,loop){
     if(A('cheal')){ let miss=0; for(const m of G.units) if(standing(m)&&m.team===u.team&&tdist(u,m)<=3.01) miss+=Math.min(2,m.maxHp-m.hp); if(miss>=3) return {k:'act',a:'cheal'}; }
     if(ok('field')){ const R=kitFieldR(u), mates=G.units.filter(m=>standing(m)&&m.team===u.team&&!m.inf); let best=null,bs=th.length?2:3;
       for(const c of mates){ if(c.hp>=c.maxHp) continue; const x=c.x,y=c.y; if(!kitTileOk(u,'field',x,y)&&!(x===u.x&&y===u.y)) continue; if(kitL().fields.some(f=>f.team===u.team&&f.until>=G.round+1&&Math.hypot(f.x-x,f.y-y)<1.5)) continue;
-        let s=0; for(const m of mates) if(Math.hypot(m.x-x,m.y-y)<=R+0.01) s+=Math.min(3,m.maxHp-m.hp); if(s>bs){ bs=s; best=[x,y]; } }
+        let s=0; const H=healAsk(u); for(const m of mates) if(Math.hypot(m.x-x,m.y-y)<=R+0.01) s+=Math.min(3,m.maxHp-m.hp)+(m===H?3:0); if(s>bs){ bs=s; best=[x,y]; } }
       if(best&&best[0]===u.x&&best[1]===u.y){ let alt=null; for(const d of DIRS8){ const x=u.x+d[0],y=u.y+d[1]; if(kitTileOk(u,'field',x,y)){ alt=[x,y]; break; } } best=alt; } // the field covers its neighbours too
       if(best) return {k:'kit',a:'field',x:best[0],y:best[1]}; }
     if(!loop&&ok('adren')&&(th.length||vis.length)){ const L=kitTargets(u,'adren').filter(m=>!m.kAdr); let best=null,bs=-1e9;
@@ -12681,8 +12702,8 @@ function aiKitCmd(u,loop){
         for(const t of th){ const d=Math.hypot(t.x-x,t.y-y); if(d<=S.sight+2&&d>=2&&hasLOS(x,y,t.x,t.y)) s+=10-Math.abs(d-5)-(coverFrom(x,y,t.x,t.y)?0:2); }
         s+=hash(x,y,G.round)*0.5; if(s>bs){ bs=s; best=[x,y]; } }
       if(best) return {k:'kit',a:'turret',x:best[0],y:best[1]}; }
-    if(ok('repair')&&(th.length||vis.length)){ let best=null,bs=2;
-      for(const m of kitTargets(u,'repair')){ const s=m.drone?(m.maxHp-m.hp)*2:(m.shield<=0?3:0)+(m.maxHp-m.hp)*0.8+(m===u?0:1); if(s>bs){ bs=s; best=m; } }
+    const HA=healAsk(u); if(ok('repair')&&(th.length||vis.length||HA)){ let best=null,bs=2;
+      for(const m of kitTargets(u,'repair')){ const s=m.drone?(m.maxHp-m.hp)*2:(m.shield<=0?3:0)+(m.maxHp-m.hp)*0.8+(m===u?0:1)+(m===HA?6:0); if(s>bs){ bs=s; best=m; } }
       if(best) return {k:'kit',a:'repair',t:best.id}; }
     if(loop&&ok('wall')&&th.length){ let T=null,bd=1e9; for(const t of th){ const d=Math.hypot(t.x-u.x,t.y-u.y); if(d<bd){ bd=d; T=t; } }
       if(T&&bd<=12&&coverFrom(u.x,u.y,T.x,T.y)===0){ const sx=Math.sign(T.x-u.x), sy=Math.sign(T.y-u.y), adx=Math.abs(T.x-u.x), ady=Math.abs(T.y-u.y), C=[];
