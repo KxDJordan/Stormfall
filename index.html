@@ -950,6 +950,9 @@ body.sheet-open .nav{display:none}
 @media (hover:hover){ .deploy.friends:hover{background:rgba(16,36,50,.95);border-color:var(--signal)} }
 /* ---------- mode select ---------- */
 .ms-body{flex:1;min-height:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;display:flex;flex-direction:column;padding:var(--s4) 0 var(--s3)}
+.ms-seg{position:sticky;top:0;z-index:2;align-self:center;display:flex;gap:4px;padding:4px;margin:0 auto var(--s3);background:rgba(8,14,22,.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--line2);border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.ms-seg button{min-height:var(--tap);min-width:96px;padding:0 18px;border-radius:999px;font:600 20px/1 Teko,sans-serif;letter-spacing:.04em;color:var(--muted);background:transparent;border:0}
+.ms-seg button.on{background:var(--signal);color:var(--signal-ink)}
 .ms-lead{margin:auto auto var(--s3);padding:0 calc(var(--sar) + 16px) 0 calc(var(--sal) + 16px);max-width:560px;text-align:center;color:var(--muted);font-size:12.5px;line-height:1.4}
 .ms-strip{position:relative;display:flex;align-items:stretch;width:100%;max-width:1320px;margin:0 auto}
 .ms-track{--cw:min(78vw,312px);flex:1;min-width:0;display:flex;gap:var(--s3);overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;
@@ -1209,6 +1212,7 @@ html.pa-rm .toast,html.pa-rm .toast.lvl,html.pa-rm .toast.lvl::after,html.pa-rm 
     <div class="ph-t"><small id="msKick">Play vs AI</small><h2 class="display" id="msTitle">Choose a mode</h2></div>
   </header>
   <div class="ms-body">
+    <div class="ms-seg" id="msSeg" role="tablist" aria-label="Mode type"><button role="tab" data-msg="single">Single</button><button role="tab" data-msg="coop">Co-op</button></div>
     <p class="ms-lead" id="msLead"></p>
     <div class="ms-strip">
       <button class="iconbtn ms-arr" id="msPrev" aria-label="Previous mode"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
@@ -10476,8 +10480,14 @@ function renderOnline(){
    vs AI: Solo, Duos, Quick, the Daily challenge and the Tutorial (those two keep their own flows). Friends: Solo, Duos and
    Quick; Create lobby hosts an online room for that mode (netHost reads PROF.mode), and Join with code / Watch join one.
    Thumbnails are small iso scenes drawn once per mode and cached: deterministic hash() noise, never the seeded RNG. */
-const MS={friends:false,sel:'solo',art:{},wheel:0,wlock:0,st:null,lockT:0};
-function msKeys(){ const b=['solo','duos','trios','quads','quick','infection','blackout','survival'].concat(GM_KEYS); return MS.friends?b:b.concat(['daily','tutorial']); }
+const MS={friends:false,sel:'solo',grp:'single',art:{},wheel:0,wlock:0,st:null,lockT:0};
+function msKeysAll(){ const b=['solo','duos','trios','quads','quick','infection','blackout','survival'].concat(GM_KEYS); return MS.friends?b:b.concat(['daily','tutorial']); }
+// the Single / Co-op toggle: Co-op is every mode with teammates (teams of 2+, and Survival); Single is everything you play alone
+function msGrpOf(k){ return k==='survival'||(MODES[k]&&MODES[k].team>1)?'coop':'single'; }
+function msKeys(){ return msKeysAll().filter(k=>msGrpOf(k)===MS.grp); }
+function msSetGrp(g,keep){ MS.grp=g==='coop'?'coop':'single'; try{ localStorage.setItem('stormfall_msgrp',MS.grp); }catch(e){}
+  document.querySelectorAll('#msSeg [data-msg]').forEach(b=>{ const on=b.dataset.msg===MS.grp; b.classList.toggle('on',on); b.setAttribute('aria-selected',on); });
+  if(!keep&&msGrpOf(MS.sel)!==MS.grp){ const ks=msKeys(), last=MODES[PROF.mode]&&msGrpOf(PROF.mode)===MS.grp?PROF.mode:null; MS.sel=last&&ks.includes(last)?last:ks[0]; } }
 function msCards(){ const dk=dailyKey(), dd=dyLoad().days[dk], R=REG[dailyRegion(dk)], rn=R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
   const L=[
     {k:'solo',name:'Solo',tag:'Free for all',pc:'Up to 8 players',ds:MODES.solo.desc,li:['Last operative standing wins','Second Wind: get back up once','Storm closes in from round '+MODES.solo.storm.rounds[0]]},
@@ -10547,11 +10557,12 @@ function msThumb(k){ const dk=k==='daily'?dailyRegion(dailyKey()):'', key=k+dk; 
 function openModeSel(friends){ MS.friends=!!friends; if(typeof loPick!=='undefined'&&loPick) closePicker();
   if(curScreen==='loadout'&&draft){ draft.name=($('#callsign').value||'NOMAD'); LO=sanitize(draft); saveLO(); draft=null; }
   for(const m of META) show('#'+m,false); show('#nav',false); show('#lobby',false); show('#modesel',true);
-  if(!msKeys().includes(MS.sel)||MS.friends) MS.sel=MODES[PROF.mode]?PROF.mode:'solo';
+  if(!msKeysAll().includes(MS.sel)||MS.friends) MS.sel=MODES[PROF.mode]?PROF.mode:'solo';
+  let g=null; try{ g=localStorage.getItem('stormfall_msgrp'); }catch(e){} MS.grp=g==='coop'||g==='single'?g:msGrpOf(MS.sel); if(msGrpOf(MS.sel)!==MS.grp) msSetGrp(MS.grp);
   renderModeSel(); const b=$('#msBack'); if(b) b.focus({preventScroll:true}); }
 function renderModeSel(){
   $('#msKick').textContent=MS.friends?'Play with friends':'Play vs AI'; $('#msTitle').textContent=MS.friends?'Host a room':'Choose a mode';
-  const tr=$('#msTrack'), cards=msCards(), touch=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
+  msSetGrp(MS.grp,true); const tr=$('#msTrack'), ks=msKeys(), cards=msCards().filter(c=>ks.includes(c.k)), touch=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
   $('#msLead').textContent=(MS.friends?'Pick the mode for your room, or join a friend’s room below. ':'')+(touch?'Swipe to browse, tap a card to select it.':'Browse with the arrows, the mouse wheel or the arrow keys.');
   tr.setAttribute('aria-label',MS.friends?'Mode for your online room':'Game modes');
   tr.innerHTML=cards.map(c=>'<div class="mcard k-'+c.k+'" role="radio" tabindex="-1" aria-checked="false" data-msk="'+c.k+'" aria-label="'+esc(c.name+', '+c.pc+'. '+c.ds)+'">'
@@ -10608,6 +10619,7 @@ $('#modesel').addEventListener('keydown',e=>{
   else if(e.key==='Enter'||e.key===' '){ e.preventDefault(); if(c.dataset.msk===MS.sel&&e.key==='Enter') msGo(); else msSelect(c.dataset.msk,'smooth'); }
 });
 // swiping: when the strip settles, the card nearest the middle is the selection
+$('#msSeg').addEventListener('click',e=>{ const b=e.target.closest('[data-msg]'); if(!b||b.dataset.msg===MS.grp) return; SFX.click(); buzz(6); msSetGrp(b.dataset.msg); renderModeSel(); });
 $('#msTrack').addEventListener('scroll',()=>{ clearTimeout(MS.st); MS.st=setTimeout(()=>{ if(Date.now()<MS.lockT) return; const tr=$('#msTrack'), mid=tr.scrollLeft+tr.clientWidth/2; let best=null,bd=1e9;
   tr.querySelectorAll('[data-msk]').forEach(el=>{ const d=Math.abs(el.offsetLeft+el.offsetWidth/2-mid); if(d<bd){ bd=d; best=el.dataset.msk; } });
   if(best&&best!==MS.sel) msSelect(best,null); },120); },{passive:true});
