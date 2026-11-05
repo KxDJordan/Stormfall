@@ -94,8 +94,10 @@ browser ──► Worker "stormfall" (workers.dev or your domain)
              ├─ /api/account, /api/save/*, /api/daily/*                     ──► D1 "stormfall" (SQLite)
              ├─ /api/turn                                                   ──► Cloudflare Realtime TURN (optional)
              ├─ /api/social/* (friends, requests, profiles)                 ──► D1
-             └─ /api/peerjs (WebSocket), /api/peerjs/id, /api/social/ws     ──► Durable Object "Signal" (SQLite-backed,
-                                                                                WebSocket Hibernation): signaling + presence
+             ├─ /api/ranked/*, /api/bat/*, /api/report                      ──► D1
+             └─ /api/peerjs (WebSocket), /api/peerjs/id, /api/social/ws,    ──► Durable Object "Signal" (SQLite-backed,
+                /api/ranked/ws                                                  WebSocket Hibernation): signaling +
+                                                                                presence + ranked matchmaking
 ```
 
 - **One Worker with Static Assets** (not Pages + Functions): one deploy, one URL, one config, and the
@@ -128,6 +130,7 @@ All JSON. POST bodies are sent as `text/plain` and GETs have no custom headers, 
 | `GET /api/peerjs?key=peerjs&id=&token=&version=` | WebSocket to the signaling Durable Object | – |
 | `GET /api/health` | `{ok, turn}` | – |
 | `/api/social/*` | friends, requests, presence socket, invites: see **Socials** below | |
+| `/api/ranked/*`, `/api/bat/*`, `/api/report` | ranked queue, results, leaderboard; battalions, chat, moderation: see **Ranked & battalions** below | |
 
 Signaling messages (PeerJS server protocol): server → client `OPEN`, `ID-TAKEN` (room code already in use),
 `INVALID-KEY`, `ERROR`, `EXPIRE` (peer not connected → the client's "No room called …"); client ↔ client relayed by
@@ -274,6 +277,143 @@ when Friends opens after 30 s), the room code withheld unless joining is allowed
 socket state (no Durable Object storage writes), one D1 batch per socket auth, one write per session for last seen,
 offline invites only when the friend is not connected, every query on a primary key or index, caps on lists.
 
+### Ranked & battalions
+
+Code: `src/rb.js` (HTTP routes), `src/queue.js` (the matchmaker, inside the Signal Durable Object), `src/rlib.js` (rating
+math, consensus, moderation; unit tested), `migrations/0003_ranked_battalions.sql`; in the client one section,
+"ranked & battalions", that hooks in by wrapping functions (no other lines changed). Both need the online account.
+
+**Ranked** (Solo and Duos; the Ranked button on the mode select, a Ranked card in Profile):
+
+- **Queue and matchmaking.** `GET /api/ranked/ws?a=<account id>` opens a WebSocket to the global Signal object; the first
+  message `{t:'auth', auth, mode}` is checked against D1 in one batch (secret hash, this and last season's rating,
+  callsign, battalion). The queue is the sockets' attachments (no storage writes, survives hibernation). On every join
+  and every 3 s while anyone waits (the object's alarm, shared with the presence sweep), the longest-waiting player's
+  window is ±150 rating, +25 per second waited (max 800); a lobby forms when it is full (8 humans in Solo, 4 in Duos) or
+  when two or more fit and the oldest waited 10 s (`RANKED_WAIT`). The matchmaker writes the pending match to D1
+  (`rmatch`, with a snapshot of every seat's rating), then tells the longest-waiting player to host room `code` and the
+  others to wait; when the host's PeerJS room is open (`{t:'open'}`) the others get the code and join with the normal
+  online flow, so the match itself is the usual lockstep. A host who leaves or never opens a room cancels the match and
+  everyone is put back in the queue.
+- **Fixed ruleset.** The host's client locks the room: the queue's mode, 30 s turns, no mutators, every region, AI in
+  every empty seat at the lobby's difficulty (average rating < 1100 Recruit, < 1500 Veteran, else Elite), and in Duos one
+  human per team with an AI partner. It registers who actually joined (`/api/ranked/start`) and starts by itself.
+- **Rating (Glicko-lite).** Every pair of humans in the lobby is one game: the better team placement wins, equal is a
+  draw; each pair is weighted 1/√(N−1). Each player has a rating r (start 1000) and a deviation RD (start 300, min 60,
+  grows 15/day idle up to 350): new players move fast and settle as RD shrinks. Changes are capped at ±200 and applied as
+  `r = r + d` (relative), so two matches finishing at once never lose an update. Tiers: Bronze, Silver (1100), Gold
+  (1300), Platinum (1500), Diamond (1700), each with divisions III–I, then Stormlord (1900). A tier shows after 5
+  placement matches.
+- **Seasons.** 8 weeks from 2026-01-05. Ratings are per season and mode; a new season starts halfway back to 1000 with
+  RD ≥ 200 (soft reset). Rewards for the peak tier of the last season: a title for every tier, a banner from Gold up
+  (granted on the device from `/api/ranked/me`).
+- **Leaderboard.** `GET /api/ranked/top?mode=solo|duos[&s=season]`: top 100, cached (isolate memory, Cache API and browser
+  60 s; past seasons 1 h). `POST /api/ranked/rank` gives your position when you are not in the top 100.
+- **Leavers.** A player who disconnects or abandons is played by AI from their next turn (the existing `{k:'ai'}`
+  takeover, executed in sim order, so every client sees it at the same point). The reports list them as `left` and the
+  server rates them last, whatever their AI did.
+
+**Result reporting and the threat model.** Every human client reports once: `{mid, h: final simHash, pl: {seat: team
+place} for every registered human, left: [seat]}`, or `{bad: 1}` when the start cfg broke the ranked rules (each client
+checks mode, turn timer, mutators, bot difficulties, seats and that every player is a matched seat). The report lands
+with one `UPDATE … json_set … WHERE the seat has not reported` and is checked against the matchmaker's snapshot (the
+seat must belong to the caller's account and be registered). A match is rated when an agreeing group is a strict
+majority of all registered humans; otherwise, 60 s after the first report, when an agreeing group is a strict majority of
+the reports received; anything else (a tie, a `bad` report, no reports) voids it.
+
+| Threat | Defence |
+|---|---|
+| Inventing a win, a fake opponent, a match that never happened | matches exist only when the matchmaker made them; seats are bound to accounts in its D1 snapshot; reports need the account secret |
+| Picking your opponent (win trading with a second account) | the queue picks the lobby by rating and time; you cannot choose who you get. Two colluders who land together can agree on a fake result: accepted risk (cost: they also need a full lockstep match, and RD makes farming slow) |
+| A modded client that plays differently (wallhack aside) or lies about placements | the lockstep makes every client simulate everything; a different simulation gives a different simHash and placements, so its report disagrees and, alone, cannot outvote the others. With two humans the liar can only void the match |
+| A host that changes the rules (mutators, easy bots, a long timer) | every guest checks the start cfg and reports `bad` → void |
+| Reporting twice / for someone else / after the result | one report per seat (guarded update), seat must be the caller's, the result is fixed once rated |
+| Quitting to dodge a loss | the leaver's operative is AI-controlled and listed as `left` by everyone else → rated last. If the leaver keeps playing alone (the host quitting a 2-human match, then finishing vs AI), both reports claim the other left: they disagree and the match is void |
+| Replaying old reports, guessing match ids | match ids are 50-bit random and single-use; reports after the result change nothing |
+
+Known limits: two colluding humans in the same lobby can agree on anything; with exactly two humans one player can
+void a match (not win it); the client trusts the server's tier only for display; battalion tags and rank badges on name
+plates are cosmetic and come from the player's own client (the matchmaker's lobby list, the leaderboards and the
+battalion pages come from the server).
+
+**Battalions** (the shield button on Home, the Battalion button in an online waiting room, a card in Profile):
+
+- Create with a name (3–20, unique, case-insensitive), a tag (3–4 letters/digits, unique), an emblem (a name plate
+  banner you own as the background + one of 12 glyphs) and a description; open to everyone or invite only. Roles:
+  leader, officers, members; up to 30 members (guarded `UPDATE … WHERE n < 30`). Officers invite (by friend code, 7
+  days) and remove members; the leader promotes, demotes, hands over leadership and removes anyone; when the leader leaves
+  the oldest officer (else member) leads; the last one out disbands it.
+- The tag is shown beside the callsign above every operative in matches and in the unit panel. Battalion points per
+  member per week: ranked win 10, top half 6, others 3 (from the server-agreed result), first daily challenge of the day
+  3. `GET /api/bat/top` is the weekly board (top 50, cached 60 s); `GET /api/bat/get?id|tag` is the public profile page
+  (members with roles, weekly points and ranked tier; cached 60 s).
+- Chat: `POST /api/bat/say` stores one line in D1 (one write; 160 chars, profanity masked, one line per 1.5 s and 15 a
+  minute per account) and the Worker pushes it to the battalion's connected members through the presence socket
+  (`{t:'bm'}`); `POST /api/bat/chat {since}` fetches the last 50 (on opening the chat, or every 8 s only while the chat is
+  open and the presence socket is down). Lines older than 7 days are deleted by the cron.
+- Battalion mates use the presence socket like friends: they see each other online / in a lobby / in a match, and can
+  invite each other into an online room from the battalion page (the same invite card as friends; only when the mate is
+  connected). Membership changes push `{t:'bx'}` so lists refresh without polling.
+- Moderation: names and tags are refused when they contain a word from a small profanity list (leetspeak folded, a
+  short allow-list for innocent words); descriptions and chat are masked; chat and invites are rate limited; and
+  `POST /api/report {kind: player|bat|chat, target, why, ctx}` stores a report (5 a minute) for a human to read with
+  `wrangler d1 execute stormfall --remote --command "SELECT * FROM reports ORDER BY at DESC LIMIT 50"`.
+
+| Endpoint | Does | D1 cost |
+|---|---|---|
+| `GET /api/ranked/ws?a=` | the matchmaking socket (Signal Durable Object) | auth: ~6 reads; match: 1 insert |
+| `POST /api/ranked/me` `{auth}` | season, rating per mode (tier, division, placements left, peak), last season's peaks | ~8 reads |
+| `GET /api/ranked/top?mode=&s=` | top 100 (cached) | ≤ 200 reads per miss |
+| `POST /api/ranked/rank` `{auth, mode}` | your position and the total | index range count |
+| `POST /api/ranked/start` `{auth, mid, sids, teams}` | the host registers who joined (once) | ~5 reads, 1 write |
+| `POST /api/ranked/report` `{auth, mid, h, pl, left \| bad}` | one report; `{st: wait \| done \| void, d, r}` | ~6 reads, 1 write (+ the rating writes when it decides) |
+| `POST /api/ranked/result` `{auth, mid}` | the outcome for you (decides after the grace period) | ~5 reads |
+| `POST /api/bat/create \| me \| join \| leave \| invite \| act \| edit` | battalion management (`act`: kick, promote, demote, lead, decline) | 1–4 reads, 1–4 writes; `me` ~4 reads per member |
+| `GET /api/bat/get?id= \| tag=`, `GET /api/bat/top` | public profile, weekly board (cached 60 s) | ≤ 120 / ≤ 100 reads per miss |
+| `POST /api/bat/say \| chat` | chat line (pushed live) / fetch since | 1 write / ≤ 50 reads |
+| `POST /api/report` | moderation report | 1 write |
+
+D1 tables: `ratings (acct, season, mode)` + index `(season, mode, r DESC)`; `rmatch` (pending → registered → done / void,
+seat snapshot, reports, result); `bat`, `bat_mem` (one battalion per account), `bat_inv`, `bat_wk (week, bat)` + index
+`(wk, pts DESC)`, `bat_chat (bat, at)`, `reports`. The cron voids matches nobody finished after a day and deletes them
+after 30 days, deletes expired invites, chat older than 7 days and weekly rows older than 120 days.
+
+#### Ranked & battalions budget (free plan)
+
+Per ranked match with N humans (D1 counts index entries as rows written; estimates from the queries above):
+
+| | Worker requests | DO requests | D1 reads | D1 writes |
+|---|---|---|---|---|
+| Queue: socket + auth per human, the match row | N | ~N (messages billed 20:1) | ~6 N | 2 |
+| Host registers the match | 1 | 0 | ~5 | 1 |
+| Reports (one per human) + ~1 result poll each | 2 N | 0 | ~11 N | N |
+| Rating the match: guard + rating upserts (row + index) + battalion points | 0 | 0 | 0 | 1 + 3 N + up to 2 N |
+| `/api/ranked/me` after the match | N | 0 | ~8 N | 0 |
+| **Two humans** | **~7** | **~2** | **~55** | **~17** |
+| **Eight humans** | **~25** | **~8** | **~205** | **~55** |
+
+So about **8–9 D1 writes and ~28 reads per human per ranked match**, plus the queue alarm (one DO request every 3 s, only
+while someone is waiting: at most 28,800 a day if the queue is never empty).
+
+Per active player per day (5 ranked matches, a battalion of 20, opening Battalion 3 times, 10 chat lines, the boards):
+
+| | Worker requests | DO requests | D1 reads | D1 writes |
+|---|---|---|---|---|
+| 5 ranked matches (2–4 humans) | ~20 | ~5 | ~140 | ~45 |
+| Battalion: 3 opens (`me` with 20 members) + 1 chat fetch | 4 | 0 | ~250 | 0 |
+| 10 chat lines (each pushed through the DO) | 10 | 10 | ~40 | 10 |
+| Leaderboards (cached: shared misses) | 3 | 0 | ~0 | 0 |
+| **Total** | **~37** | **~15** | **~430** | **~55** |
+
+Writes are the first ranked limit: 100,000 / ~55 ≈ **1,800 heavy ranked players a day** (≈ 11,000 ranked matches);
+Worker requests next (with the ~17 of saves, dailies and socials: 100,000 / ~54 ≈ 1,850); reads stay far below 5 M
+(~430 × 1,800 ≈ 0.8 M). A typical player who plays one or two ranked matches costs a third of that. Optimizations: the
+queue lives in socket attachments (no D1 or storage writes while waiting) and shares the presence object's alarm and
+heartbeat auto-response; one batch per queue auth; ratings snapshotted at matchmaking and written once per match as a
+relative update (no read before write); one write per report (`json_set` with a guard); boards and battalion pages
+cached in isolate memory, the Cache API and the browser; your rank only when you are not in the top 100; chat pushed
+over the existing presence socket instead of polled, kept 7 days; membership changes pushed (`bx`), never polled.
+
 ### One-time setup
 
 1. Create a free Cloudflare account and open **Workers & Pages** once (this gives you a `workers.dev` subdomain).
@@ -305,9 +445,13 @@ cd cloudflare
 npm ci
 npm run dev           # builds public/, applies migrations to a local D1, runs wrangler dev on :8787
 npm test              # unit tests + API tests against a fresh local Worker (wrangler dev / Miniflare)
+                      # (the ranked API tests start theirs with --var RANKED_WAIT:1 --var RANKED_GRACE:3: short queue
+                      #  wait and report grace; with SF_API=<running worker> start it with the same two vars)
 node test/e2e/cloud.cjs                         # browser tests (Playwright + Chromium) against npm run dev
 node test/e2e/online.cjs quick 0 veteran spec   # two browsers + a spectator, lockstep over the own signaling DO
 node test/e2e/social.cjs                        # two players: friends, presence, invites, join, match in lockstep
+node test/e2e/battalion.cjs                     # create / find / join a battalion, live chat, report, invite a mate to a room
+node test/e2e/ranked.cjs                        # two players queue, get matched, play in lockstep, both ratings change
 ```
 
 ## Files
