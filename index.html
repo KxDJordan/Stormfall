@@ -2220,7 +2220,7 @@ const MAXP=Math.max(...Object.values(MODES).map(m=>m.players)); // the largest r
 const DIFFS={
   recruit:{key:'recruit',name:'Recruit',desc:'Shakier aim, older gear, short memory. Rarely uses abilities or flanks.',aim:-12,gear:-2,mem:1,hear:9,range:11,noise:8,abil:0.5,nade:0.35,ow:0.5,flank:0,owAvoid:0},
   veteran:{key:'veteran',name:'Veteran',desc:'The standard opposition: gear matched to your level.',aim:0,gear:0,mem:2,hear:14,range:13,noise:2.5,abil:1,nade:1,ow:1,flank:3,owAvoid:0},
-  elite:{key:'elite',name:'Elite',desc:'Sharper aim, better gear, long memory. Hunts flanks and avoids overwatch lanes.',aim:8,gear:2,mem:3,hear:18,range:15,noise:1,abil:1,nade:1,ow:1,flank:9,owAvoid:10}
+  elite:{key:'elite',name:'Elite',desc:'Sharper aim, better gear, long memory. Hunts flanks and avoids overwatch lanes. In squads: crossfires, shoot-and-scoot, ambushes and its own role beside you.',aim:8,gear:2,mem:3,hear:18,range:15,noise:1,abil:1,nade:1,ow:1,flank:9,owAvoid:10}
 };
 /* ================= flanking, weather, objectives (rules data) =================
    Flanking: a target that has cover from some direction but none against this attacker (see flankState).
@@ -7779,7 +7779,7 @@ function aiScoreTile(u,x,y,threats,cost){
   if(hzOn()) s+=hzTile(u,x,y); // hazards: fire, gas, live current
   // stay near the team leader; a human leader's orders (G.cmd[team], from pings / quick chat) tighten or loosen the leash
   const C=!u.human&&G.cmd&&G.cmd[u.team];
-  const L=leaderOf(u); if(L){ const d=aiWalk(F.lead,x,y,Math.hypot(L.x-x,L.y-y)); let lim=4.5, w=4;
+  const L=leaderOf(u); if(L&&!(SQC&&SQC.u===u&&SQC.T&&SQC.T.coh)){ const d=aiWalk(F.lead,x,y,Math.hypot(L.x-x,L.y-y)); let lim=4.5, w=4; if(SQC&&SQC.u===u&&SQC.T){ lim=threats.length?7:5.5; w=3; } // tactical layer: mutual support (sqTacTile) or a looser leash
     if(C&&L.human){ if(C.k==='regroup'||C.k==='fallback'||C.k==='revive'){ lim=2.5; w=9; } else if(C.k!=='hold'&&C.k!=='danger'){ lim=8; w=3; } }
     if(d>lim) s-=(d-lim)*w; }
   if(C) s+=cmdScore(u,C,x,y,threats);
@@ -7864,6 +7864,7 @@ function rfPen(u,t){ if(!rfReady(t,u)) return 0; const h=hitInfo(t,u,{reaction:t
 function secScore(u,s){ const si=secInfo(u,s.t,s.mode), avg=(si.dmg[0]+si.dmg[1])/2, eff=s.t.downed?0.5:s.t.hp+s.t.shield;
   return (si.full+si.graze*0.5)*(avg+si.crit/100*(si.critDmg||1))/10+(avg>=eff?si.any/6:0)-(s.path&&s.path.length>1?4:0); }
 async function aiExecute(u,a){
+  if(await sqPeek(u,a,true)) return; // tactical layer: a shot before moving keeps the last AP for a move back into cover
   const tk0=u.tk||0;
   if(a.k==='shoot'){ u.ap=0; await fireShot(u,a.t,{}); afterAttack(u,tk0,true); }
   else if(a.k==='deadeye'){ u.ap=0; u.cd.deadeye=abilCd(u,'deadeye'); await fireShot(u,a.t,{deadeye:true,label:'DEADEYE'}); afterAttack(u,tk0,true); }
@@ -7898,16 +7899,26 @@ async function aiRevive(u){
    anchor, scouts, smokes, revives). The plan is sim state (G.sq, hashed by sqHash when present), made and changed only inside
    AI turns with the seeded RNG, so every client and replay computes the same one. Hooks: aiTurn0 (sqPre: plan, smoke,
    scouting), aiRevive (sqNoRevive: the designated reviver goes, a teammate covers), aiChooseMove (sqCtx), aiScoreTile
-   (sqTile), aiBestAttack (sqAttack). A human-led squad still follows its leader's pings and orders (cmdScore and the leash);
-   tactics only shade choices within them. Strength per difficulty: the sq* knobs added to DIFFS below. */
+   (sqTile), aiBestAttack (sqAttack), aiExecute (sqPeek). A human-led squad still follows its leader's pings and orders
+   (cmdScore); tactics shade choices within them. Strength per difficulty: the sq* and tac knobs added to DIFFS below. The
+   tactical layer (tac, after sqAttack) replaces the leader leash with mutual support for Elite, lets a partner play its own
+   role beside a human, and adds shoot-and-scoot, expected-damage tile scoring, crossfire, ambushes, rotations, third-party
+   avoidance and disengage / re-engage by local strength. */
 // sq: weight of squad scoring (focus fire, roles, bounding, retreats) · sqRoles: anchor / flanker roles · sqUtil: chance a
 // coordinated utility play (smoke, flash, scout drone) is taken when one is on the table
-Object.assign(DIFFS.recruit,{sq:0.25,sqRoles:0,sqUtil:0.15});
-Object.assign(DIFFS.veteran,{sq:0.65,sqRoles:1,sqUtil:0.6});
-Object.assign(DIFFS.elite,{sq:1,sqRoles:1,sqUtil:1});
+// tac: tactical layer on top (0 none, 0.5 partial, 1 full): mutual-support cohesion instead of the leader leash, own roles
+// beside a human leader, crossfire, expected damage in and out per tile, ambush / pre-placed overwatch on approach routes,
+// early rotations, third-partying, disengage / re-engage by local strength, flush grenades, sensible finishing
+Object.assign(DIFFS.recruit,{sq:0.25,sqRoles:0,sqUtil:0.15,tac:0});
+Object.assign(DIFFS.veteran,{sq:0.65,sqRoles:1,sqUtil:0.6,tac:0.5});
+Object.assign(DIFFS.elite,{sq:1,sqRoles:1,sqUtil:1,tac:1});
 const SQ_ANCHOR=1, SQ_FLANK=2, SQ_SUP=3;
 let SQC=null; // scoring context of the AI unit whose move is being chosen (set by aiChooseMove, read by aiScoreTile)
 let SQ_OLD=null; // test flag: {team:true} for teams that play without squad tactics (head-to-head measurements)
+let SQ_V1=null; // test flag: {team:true} for teams that play the first squad tactics without the tactical layer (tac)
+// tactical layer strength for this unit / team (0: off)
+function sqTac(u){ return sqOn(u)&&!(SQ_V1&&SQ_V1[u.team])?sqDiff(u).tac||0:0; }
+function sqTacT(team){ return G.M.team>1&&!G.M.inf&&!(SQ_OLD&&SQ_OLD[team])&&!(SQ_V1&&SQ_V1[team])?teamDiff(team).tac||0:0; }
 function sqOn(u){ return G.M.team>1&&!G.M.inf&&!u.human&&standing(u)&&!(SQ_OLD&&SQ_OLD[u.team]); }
 function sqDiff(u){ return u.diff||teamDiff(u.team); }
 function sqOrder(u){ return G.units.indexOf(u); }
@@ -7929,13 +7940,19 @@ function sqFocus(team,mates,I){ const C=G.cmd&&G.cmd[team], hum=mates.some(m=>m.
     let s=30-md*1.5+sees*6+open*5+(e.fresh?6:0);
     if(e.fresh){ s+=(1-(t.hp+t.shield)/Math.max(1,t.maxHp+t.shield))*20; if(t.downed) s+=8; if(t.overwatch) s-=3; }
     if(C&&hum&&C.k==='enemy') s+=Math.max(0,25-Math.hypot(C.x-e.x,C.y-e.y)*3);
+    if(hum&&sqTacT(team)) for(const m of mates) if(m.human&&Math.hypot(m.x-e.x,m.y-e.y)<=sightOf(m)+0.5&&hasLOS(m.x,m.y,e.x,e.y)) s+=10; // back up the human's fight
     if(s>bs){ bs=s; best=e; } }
   return best; }
 // roles: the anchor has (or nearly has) sight of the focus from cover and the longest gun; the flanker is the most mobile healthy unit
 function sqRoles(P,ai,F){ P.ro={}; if(!F||!ai.length) return; const fr=m=>(m.hp+m.shield)/Math.max(1,m.maxHp+m.shield);
-  if(ai.length===1&&G.units.some(m=>m.team===P.team&&m.human&&standing(m))){ P.ro[ai[0].id]=SQ_SUP; return; } // a lone AI partner backs up its human
-  const as=m=>(hasLOS(m.x,m.y,F.x,F.y)?10:0)+(coverFrom(m.x,m.y,F.x,F.y)>0?8:0)+(m.cls==='sharpshooter'?8:0)+(hasP(m,'g_supp')?6:m.cls==='grenadier'?3:0)+fr(m)*4-Math.hypot(m.x-F.x,m.y-F.y)*0.2;
-  const fs=m=>m.mob*1.5+(m.cls==='ranger'?6:0)+fr(m)*6-Math.abs(Math.hypot(m.x-F.x,m.y-F.y)-6)*0.5;
+  const H=G.units.find(m=>m.team===P.team&&m.human&&standing(m)), tac=sqTacT(P.team);
+  if(ai.length===1&&H&&!tac){ P.ro[ai[0].id]=SQ_SUP; return; } // a lone AI partner backs up its human
+  // tactical layer: a human leader with eyes on the focus is the anchor, so the lone partner takes the crossfire angle; one
+  // that is not engaging leaves the anchor spot to the partner. Engineers anchor (walls, turret), Medics support, Recon flanks
+  if(ai.length===1&&H&&tac){ const m=ai[0]; P.ro[m.id]=m.cls==='medic'?SQ_SUP:hasLOS(H.x,H.y,F.x,F.y)||m.cls==='ranger'||m.cls==='recon'?SQ_FLANK:SQ_ANCHOR; return; }
+  const kb=m=>tac?(m.cls==='engineer'?6:m.cls==='medic'?-12:0):0, kf=m=>tac?(m.cls==='recon'?4:m.cls==='medic'?-30:0):0;
+  const as=m=>(hasLOS(m.x,m.y,F.x,F.y)?10:0)+(coverFrom(m.x,m.y,F.x,F.y)>0?8:0)+(m.cls==='sharpshooter'?8:0)+(hasP(m,'g_supp')?6:m.cls==='grenadier'?3:0)+fr(m)*4-Math.hypot(m.x-F.x,m.y-F.y)*0.2+kb(m);
+  const fs=m=>m.mob*1.5+(m.cls==='ranger'?6:0)+fr(m)*6-Math.abs(Math.hypot(m.x-F.x,m.y-F.y)-6)*0.5+kf(m);
   let a=null,b=-1e9; for(const m of ai){ const s=as(m); if(s>b){ b=s; a=m; } } P.ro[a.id]=SQ_ANCHOR;
   let f=null; b=-1e9; for(const m of ai){ if(m===a||fr(m)<0.5) continue; const s=fs(m); if(s>b){ b=s; f=m; } } if(f) P.ro[f.id]=SQ_FLANK;
   for(const m of ai) if(!P.ro[m.id]) P.ro[m.id]=SQ_SUP; }
@@ -7986,23 +8003,25 @@ function sqNoRevive(u){ if(!sqOn(u)) return false; const P=sqGet(u.team), D=sqDi
   return sqIntel(u.team).some(e=>dn.some(d=>Math.hypot(e.x-d.x,e.y-d.y)<=10)); }
 // aiChooseMove hook: what this unit's tile scoring needs from the plan, computed once per decision
 function sqCtx(u,threats){ if(!sqOn(u)) return null; const P=sqGet(u.team), D=sqDiff(u); let w=D.sq||0; if(!P||!w) return null;
-  const C=G.cmd&&G.cmd[u.team], L=leaderOf(u), led=!!(C&&L&&L.human); if(led) w*=0.5; // a human's order comes first
-  let role=P.ro[u.id]||0; if(led&&role===SQ_FLANK) role=0;
+  const tac=sqTac(u), C=G.cmd&&G.cmd[u.team], L=leaderOf(u), led=!!(C&&L&&L.human), tight=led&&(C.k==='regroup'||C.k==='fallback'||C.k==='revive'||C.k==='hold');
+  if(led) w*=tac&&!tight?0.8:0.5; // a human's order comes first (cmdScore); the tactical layer keeps its roles within movement orders
+  let role=P.ro[u.id]||0; if(led&&role===SQ_FLANK&&(!tac||tight)) role=0;
   const F=P.f>=0?threats.find(t=>t.id===P.f)||null:null, oi=sqOrder(u), allies=G.units.filter(m=>m!==u&&m.team===u.team&&standing(m));
   // bounding: a teammate that already moved this round stands in the open, so this one holds (cover, overwatch) instead (three or more standing: a pair needs both guns up)
   const adv=threats.length>0&&allies.length>=2&&allies.some(m=>sqOrder(m)<oi&&threats.some(t=>sqOpen(t,t.x,t.y,m.x,m.y)));
   // trading space: wounded, or (squads of three or more) clearly outnumbered here
   const near=threats.filter(t=>Math.hypot(t.x-u.x,t.y-u.y)<=7).length, buds=allies.filter(m=>Math.hypot(m.x-u.x,m.y-u.y)<=6).length;
-  const hurt=u.hp<=u.maxHp*0.4, retreat=threats.length>0&&(hurt||allies.length>=2&&near>=buds+3);
+  const hurt=u.hp<=u.maxHp*0.4; let retreat=threats.length>0&&(hurt||allies.length>=2&&near>=buds+3);
+  const T=tac?sqTacCtx(u,threats,P,F,allies,L,tight):null; if(T&&T.ratio<0.6) retreat=true; // tactical layer: outgunned here, give ground
   // revive cover: a downed teammate someone else will reach; watch the known enemy nearest to it
   let dn=null, dt=null; if(P.rv>=0&&P.rv!==u.id){ dn=G.units.find(m=>m.team===u.team&&m.alive&&m.downed)||null;
     if(dn){ let bd=10; for(const t of threats){ const d=Math.hypot(t.x-dn.x,t.y-dn.y); if(d<bd){ bd=d; dt=t; } } } }
   const held=!!F&&hasLOS(u.x,u.y,F.x,F.y)&&coverFrom(u.x,u.y,F.x,F.y)>0;
-  return {u,P,w,role,F,held,sq3:allies.length>=2,fd0:F?Math.hypot(F.x-u.x,F.y-u.y):0,fany:F?inCoverAny(F.x,F.y):false,adv,retreat,hurt,allies,dn,dt,owd:!!D.owAvoid,
+  return {u,P,w,role,F,held,T,tac,sq3:allies.length>=2,fd0:F?Math.hypot(F.x-u.x,F.y-u.y):0,fany:F?inCoverAny(F.x,F.y):false,adv,retreat,hurt,allies,dn,dt,owd:!!D.owAvoid,
     anc:allies.find(m=>P.ro[m.id]===SQ_ANCHOR)||null, ow:threats.filter(t=>t.overwatch&&threats.fresh&&threats.fresh.has(t.id))}; }
 // aiScoreTile hook: squad terms for one candidate tile
-function sqTile(u,x,y,threats){ const Q=SQC; if(!Q||Q.u!==u) return 0; const w=Q.w, F=Q.F; let s=0;
-  if(!threats.length) return Q.P.f>=0&&!G.gm?-Math.hypot(Q.P.ox-x,Q.P.oy-y)*0.15*w:0; // close on the team's mark together
+function sqTile(u,x,y,threats){ const Q=SQC; if(!Q||Q.u!==u) return 0; const w=Q.w, F=Q.F; let s=Q.T?sqTacTile(u,x,y,threats,Q):0;
+  if(!threats.length) return s+(Q.P.f>=0&&!G.gm?-Math.hypot(Q.P.ox-x,Q.P.oy-y)*0.15*w:0); // close on the team's mark together
   if(F){ const d=Math.hypot(F.x-x,F.y-y), los=d<=u.sight+sightBonus(u,G.lvl[idx(x,y)])+0.01&&hasLOS(x,y,F.x,F.y)&&!smokeBlocks(x,y,F.x,F.y);
     const fl=los&&Q.fany&&flankState(u,F,x,y).flanked;
     if(fl) s+=(Q.role===SQ_FLANK?18:6)*w;
@@ -8031,11 +8050,93 @@ function sqAttack(u,res,vis){ if(!sqOn(u)) return; const P=sqGet(u.team), D=sqDi
     if(t.id===P.f){ const open=coverFrom(t.x,t.y,u.x,u.y)===0; r.score+=w*(10+(1-fr)*10+(open?5:0))*Math.min(1,(r.hit||0)/50); } // a long shot at the focus is not worth a good one elsewhere
     if(r.k==='supp'&&role===SQ_ANCHOR&&(t.id===P.f||t.overwatch)) r.score+=8*w;
     if(r.k==='throw'&&UTILS[r.util.id].dmg&&G.units.some(m=>m!==u&&m.team===u.team&&standing(m)&&canSee(m,t))) r.score+=6*w; }
+  const tac=sqTac(u); if(tac) sqTacAtk(u,res,vis,tac);
   if(!D.sqUtil||u.ap<2) return; const fi=u.utils.findIndex(q=>q.id==='flash'&&q.ch>0); if(fi<0) return; const util=u.utils[fi], U=UTILS.flash, rg=throwRange(u,U);
   for(const c of vis){ if(c.downed||c.disorient>0||tdist(u,c)>rg) continue;
     const inR=G.units.filter(v=>v.alive&&!v.downed&&inBlast(v,c.x,c.y,U.radius)); if(inR.some(v=>!isEnemy(u,v)||!vis.includes(v))) continue;
     const n=inR.length, ow=inR.some(v=>v.overwatch), eng=G.units.some(m=>m!==u&&m.team===u.team&&standing(m)&&canSee(m,c)); if(n<2&&!ow) continue;
     res.push({k:'throw',util,x:c.x,y:c.y,t:c,hit:100,score:D.sqUtil*(n*10+(ow?14:0)+(c.id===P.f?6:0)+(eng?6:0))}); } }
+/* ---------- tactical layer (DIFFS tac: Elite full, Veteran partial) ----------
+   Everything here reads team intel (knownThreats / sqIntel), what the unit itself can see, and public state (storm, map,
+   teammates); never an unseen enemy's real position or health. Pure: no RNG, nothing written. */
+function sqTacCtx(u,threats,P,F,allies,L,tight){ const tac=sqTac(u), fresh=threats.fresh||new Set();
+  const T={tac,hl:L&&L.human?L:null,cx:0,cy:0,avg:(u.W.dmg[0]+u.W.dmg[1])/2,gu:Object.create(u),fr:threats.filter(t=>fresh.has(t.id)),coh:tac>=1&&!tight,sp:null,xf:[],rps:[],rot:null,brawl:null,ratio:9,push:false};
+  if(allies.length){ for(const m of allies){ T.cx+=m.x; T.cy+=m.y; } T.cx/=allies.length; T.cy/=allies.length; } // the rest of the squad's centre
+  T.gu.hunker=false; T.gu.overwatch=false; // a stand-in for this unit on a candidate tile (hitInfo from the enemy's side)
+  // crossfire: directions from the focus to teammates who already have it in sight
+  if(F) for(const m of allies){ const d=Math.hypot(m.x-F.x,m.y-F.y); if(d>0&&d<=sightOf(m)+0.5&&hasLOS(m.x,m.y,F.x,F.y)) T.xf.push([(m.x-F.x)/d,(m.y-F.y)/d]); }
+  // no contact beside a human leader: scout a point up to 5 tiles beyond the leader toward the goal
+  if(L&&L.human&&!threats.length&&u._goal){ const gx=u._goal[0]-L.x, gy=u._goal[1]-L.y, d=Math.hypot(gx,gy); if(d>2){ const k=Math.min(5,d)/d; T.sp=[L.x+gx*k,L.y+gy*k]; } }
+  if(!T.fr.length){
+    // ambush: the ground a remembered / heard enemy has to cross to reach the zone (or us), watched from cover
+    const Z=aiZone();
+    for(const t of threats){ const out=Math.hypot(t.x+.5-Z.zx,t.y+.5-Z.zy)>Z.safeR-2, tx=out?Z.zx:u.x, ty=out?Z.zy:u.y, rx=Math.round(t.x+(tx-t.x)*0.4), ry=Math.round(t.y+(ty-t.y)*0.4);
+      if(inMap(rx,ry)&&!solidT(rx,ry)) T.rps.push({x:rx,y:ry,t}); if(T.rps.length>=3) break; }
+    // rotation: the announced next circle
+    const st=G.storm; if(st&&st.ncx!=null&&(stormMoving()||stormIdxAt(G.round+1)>=0)) T.rot={x:st.ncx,y:st.ncy,r:st.nextR}; }
+  // no contact, three or more squads left (battle royale): don't walk across the map at a remembered enemy; hold good ground
+  // in the zone and let the other squads run into each other (the leader's orders and the storm still move us)
+  if(!threats.length&&!G.gm&&tac>=1&&u._goal&&!(G.cmd&&G.cmd[u.team])&&teamsLeft()>2){ const g=u._goal;
+    for(const [id,e] of intelOf(u.team)) if(e.x===g[0]&&e.y===g[1]){ T.camp=true; break; } }
+  // third-partying: known enemies of two different teams already close to each other
+  { const tb=new Set(); for(const a of threats) for(const b of threats) if(a.team!==b.team&&Math.hypot(a.x-b.x,a.y-b.y)<=8){ tb.add(a.team); tb.add(b.team); } if(tb.size>=2) T.brawl=tb; }
+  // local strength within 9 tiles: ours (hp + shield) against what the team knows of theirs (not seen this round: full health)
+  let ours=u.hp+u.shield, theirs=0; for(const m of allies) if(Math.hypot(m.x-u.x,m.y-u.y)<=9) ours+=m.hp+m.shield;
+  for(const t of threats) if(Math.hypot(t.x-u.x,t.y-u.y)<=9) theirs+=fresh.has(t.id)?(t.downed?0:t.hp+t.shield):t.maxHp;
+  if(theirs) T.ratio=ours/theirs; T.push=T.ratio>=1.5&&!!F;
+  return T; }
+function sqTacTile(u,x,y,threats,Q){ const T=Q.T, k=T.tac; let s=0; const sr=u.sight+sightBonus(u,G.lvl[idx(x,y)])+0.01;
+  // mutual support instead of the leader leash: close to the nearest teammate (whoever it is) and to the squad's centre; beside
+  // a human leader the bubble is wider (its own angle on the fight), with a loose cap on the distance to the human
+  if(T.coh&&Q.allies.length){ let dm=1e9; for(const m of Q.allies) dm=Math.min(dm,Math.hypot(m.x-x,m.y-y));
+    const lim=T.hl?6.5:4.5; if(dm>lim) s-=(dm-lim)*4; const dc=Math.hypot(T.cx-x,T.cy-y); if(dc>lim+1.5) s-=(dc-lim-1.5)*2;
+    if(T.hl){ const dh=Math.hypot(T.hl.x-x,T.hl.y-y); if(dh>10) s-=(dh-10)*3; if(threats.length&&dh<3.5) s-=(3.5-dh)*3; } } // in a fight: its own lane, not the human's shadow
+  if(T.sp) s-=Math.hypot(T.sp[0]-x,T.sp[1]-y)*0.8*k;
+  const gu=T.gu; gu.x=x; gu.y=y;
+  // expected damage out: the best shot from this tile at an enemy seen this round (scored like aiBestAttack's shot)
+  let bo=0; for(const t of T.fr){ if(t.downed) continue; if(Math.hypot(t.x-x,t.y-y)>sr||!hasLOS(x,y,t.x,t.y)||smokeBlocks(x,y,t.x,t.y)) continue;
+    const h=hitInfo(u,t,{fx:x,fy:y}), eff=t.hp+t.shield, sc=(h.full+h.graze*0.5)*(T.avg+h.crit/100*2)/10+(T.avg>=eff?h.any/6:0); if(sc>bo) bo=sc; }
+  s+=bo*0.35*k;
+  // expected damage in: every known enemy that would have this tile in sight, with its own hit chance against it
+  let inc=0, tm=null; for(const t of threats){ if(t.downed||!t.W) continue; if(Math.hypot(t.x-x,t.y-y)>sightOf(t)+0.5||!hasLOS(t.x,t.y,x,y)||smokeBlocks(t.x,t.y,x,y)) continue;
+    const h=hitInfo(t,gu), ad=(t.W.dmg[0]+t.W.dmg[1])/2; inc+=(h.full+h.graze*0.5)/100*ad*(1+h.crit/100); if(T.brawl&&T.brawl.has(t.team)) (tm||(tm=new Set())).add(t.team); }
+  s-=inc*2.2*k;
+  if(tm&&tm.size>=2) s-=12*k; // third party: never stand where both sides of someone else's fight can shoot
+  // crossfire: a second angle on the focus, ~65 degrees or more off a teammate's, so one piece of cover cannot face both
+  const F=Q.F; if(F&&T.xf.length){ const d=Math.hypot(x-F.x,y-F.y); if(d>0&&d<=sr&&hasLOS(x,y,F.x,F.y)){ const vx=(x-F.x)/d, vy=(y-F.y)/d; if(T.xf.some(a=>a[0]*vx+a[1]*vy<0.42)) s+=9*k; } }
+  if(T.push&&F&&Q.role!==SQ_ANCHOR) s-=Math.hypot(x-F.x,y-F.y)*0.6*k; // stronger here: close in
+  // ambush / pre-placed overwatch over the route a known enemy must take, ideally from where it cannot see us now
+  for(const r of T.rps){ const d=Math.hypot(r.x-x,r.y-y); if(d<=sr&&d>=3&&hasLOS(x,y,r.x,r.y)){ s+=6*k; if(!hasLOS(r.t.x,r.t.y,x,y)) s+=4*k; break; } }
+  if(T.camp){ const F0=u._wf||{}; s+=aiWalk(F0.goal,x,y,Math.hypot(u._goal[0]-x,u._goal[1]-y))*0.35; if(inCoverAny(x,y)) s+=4; if(G.lvl[idx(x,y)]) s+=3; }
+  if(T.rot&&Math.hypot(x+.5-T.rot.x,y+.5-T.rot.y)<=T.rot.r-1) s+=(6+(G.lvl[idx(x,y)]?3:0))*k; // early rotation into the next circle, onto height
+  return s; }
+// attack options: finish a downed enemy first when a teammate of theirs is close enough to pick it up, grenades that flush a target out of
+// cover (blasts ignore and break it), a flashbang on an enemy dug into full cover that a teammate is also engaging
+function sqTacAtk(u,res,vis,k){ const I=sqIntel(u.team);
+  for(const r of res){ const t=r.t; if(!t||!G.units.includes(t)) continue;
+    if(t.downed&&(r.k==='shoot'||r.k==='sec')){ if(I.some(e=>e.t!==t&&e.t.team===t.team&&Math.hypot(e.x-t.x,e.y-t.y)<=6)) r.score+=6*k; continue; }
+    if(r.k==='throw'&&r.util&&UTILS[r.util.id].dmg&&!t.downed&&coverFrom(t.x,t.y,u.x,u.y)>0) r.score+=8*k; }
+  const fi=u.utils.findIndex(q=>q.id==='flash'&&q.ch>0); if(fi<0||u.ap<2) return; const U=UTILS.flash, rg=throwRange(u,U);
+  for(const c of vis){ if(c.downed||c.disorient>0||tdist(u,c)>rg||coverFrom(c.x,c.y,u.x,u.y)<2) continue;
+    const inR=G.units.filter(v=>v.alive&&!v.downed&&inBlast(v,c.x,c.y,U.radius)); if(inR.some(v=>!isEnemy(u,v)||!vis.includes(v))) continue;
+    if(G.units.some(m=>m!==u&&m.team===u.team&&standing(m)&&canSee(m,c))) res.push({k:'throw',util:u.utils[fi],x:c.x,y:c.y,t:c,hit:100,score:14*k}); } }
+// peek / shoot-and-scoot: a primary shot taken before moving keeps 1 AP for a move (the player rule in execCmd 'fire'). A good
+// shot from here (Elite 55%+, Veteran 70%+, or any shot aiTurn0 takes without having moved) is fired first, and the AP left
+// goes on the safest tile in reach (sqCoverMove), often out of the target's sight before its turn
+async function sqPeek(u,atk,any){ const k=sqTac(u); if(!k||!atk||!atk.t||(atk.k!=='shoot'&&atk.k!=='deadeye')||u.moved||u.shot||u.ap<2||u.W.heavy||u.noGun||u.ammo<=0) return false;
+  { const Z=aiZone(); if(outsideStorm(u.x,u.y)||stormSoon(u)||Math.hypot(u.x+.5-Z.zx,u.y+.5-Z.zy)>Z.safeR-0.4) return false; } // the storm: full move first
+  if(!any&&(atk.hit<(k>=1?55:70)||atk.score<18)||!G.units.includes(atk.t)) return false;
+  await execCmd(u,{k:'fire',kind:atk.k,t:atk.t.id}); if(standing(u)&&!G.over&&u.ap>0) await sqCoverMove(u); return true; }
+// after a peek: the 1-AP tile that takes the least expected fire from every enemy the team knows of (staying put unless a
+// tile is clearly safer), inside the zone
+async function sqCoverMove(u){ const th=knownThreats(u); u.ap=0; if(!th.length) return; const R=computeReach(u,u.mob), Z=aiZone(), gu=Object.create(u); gu.hunker=false; gu.overwatch=false;
+  const inc=(x,y)=>{ gu.x=x; gu.y=y; let s=0; for(const t of th){ if(t.downed||!t.W) continue; if(Math.hypot(t.x-x,t.y-y)>sightOf(t)+0.5||!hasLOS(t.x,t.y,x,y)||smokeBlocks(t.x,t.y,x,y)) continue;
+      const h=hitInfo(t,gu), ad=(t.W.dmg[0]+t.W.dmg[1])/2; s+=(h.full+h.graze*0.5)/100*ad*(1+h.crit/100); } return s; };
+  const out=(x,y)=>Math.hypot(x+.5-Z.zx,y+.5-Z.zy)>Z.safeR-0.4?50:0;
+  const c0=inc(u.x,u.y)+out(u.x,u.y); let best=-1, bs=c0-0.4;
+  for(let i=0;i<MW*MH;i++){ const d=R.dist[i]; if(!isFinite(d)||d===0||d>u.mob+1e-6) continue; const x=i%MW, y=(i/MW)|0; if(hzOn()&&hzTile(u,x,y)<-5) continue;
+    const c=inc(x,y)+out(x,y)+d*0.02; if(c<bs){ bs=c; best=i; } }
+  if(best>=0){ u.moved=true; await moveUnit(u,buildPath(R,best)); } }
 /* ================= end AI squad tactics ================= */
 // the AI's turn, then whatever drone AP is left (zap, support, reposition or recall after the operative has acted)
 async function aiTurn(u,mid){ await aiTurn0(u,mid); if(standing(u)&&!G.over&&G.matchId===mid) await aiDrone(u,()=>!standing(u)||G.over||G.matchId!==mid,true); }
@@ -8061,6 +8162,7 @@ async function aiTurn0(u,mid){
   // standing on an objective at turn start: work it first (1 AP), then fight or reposition with the other
   if(await aiSite(u,null)){ if(stale()||u.ap<=0) return; }
   let atk=aiBestAttack(u);
+  if(await sqPeek(u,atk)){ if(stale()) return; atk=null; } // tactical layer: shoot first, keep the last AP to get back into cover
   const stay=atk&&(atk.hit>=70||(u.W.heavy&&atk.k!=='zap')||atk.k==='throw'||atk.k==='hail')&&atk.score>=18&&!outsideStorm(u.x,u.y)&&!stormSoon(u);
   if(u.ap>0&&!stay){ const mv=aiChooseMove(u); if(mv){ const ap=mv.cost<=u.mob+1e-6?1:2; if(ap<=u.ap){ u.ap-=ap; await moveUnit(u,mv.path); u.moved=true; } } }
   let guard=0;
@@ -9575,7 +9677,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=29, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=30, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
