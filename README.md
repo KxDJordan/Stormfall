@@ -33,6 +33,28 @@ when nobody on it is standing. Empty seats are filled by bots, and team pings / 
 size comes from the mode, so it is the same on every client, for spectators and in replays. Classic modes keep
 generating the exact same 40×40 maps for a given seed.
 
+**Regions.** Fifteen, picked by the map roulette after Deploy (never the one you just played; online the host's client
+picks, and the region travels in the match config and in replays). Every mode plays on every region, at the mode's map
+size. The daily challenge draws from all fifteen from 2026-11-06 (earlier days keep the first ten).
+
+| Region | Plays like |
+|--------|------------|
+| Neo-Kowloon | city grid of streets and blocks, neon towers with rooftops, cars and barriers |
+| Frostfall Station | bunkers, rock clusters and sandbag lines in the snow; footprints in snowfall |
+| Ember Wastes | mesas with walkable tops, ruined walls, wrecks; sandstorms cut sight |
+| Verdant Ruins | tree clusters, stepped temples, broken colonnades, burnable undergrowth |
+| Ironhaven Docks | container rows (some double-stacked), gantry cranes, warehouses |
+| Blackwell Refinery | tank clusters, pipe racks, control cabins, plenty of explosives |
+| Sandsea Bazaar | a souk of 1-tile alleys and flat roofs: most fights go up a ladder |
+| Hollow Quarry | a terraced pit with long sightlines across it, rock shelves on the rim |
+| Mirefen Marsh | shallow water (+1 move to wade), boardwalks, stilt houses, reed beds |
+| Cinder Lab | lava channels crossed only by bridges; sight and shots cross the lava |
+| Skyreach Monastery | a gorge split by rope-bridge chokepoints; contour terraces, crags and pagodas stack fights three or four levels high |
+| Underline Transit | tunnels and station platforms with parked trains (walkable roofs), a warren of rooms full of doors, a pillared concourse, a flooded tunnel with a junction box |
+| Saltglass Airfield | open salt flats and a runway: long sightlines, sparse hard cover (revetments, sandbag pits, jets), hangars, a two-story control tower |
+| Drowned Quarter | flooded streets (+1 move per tile waded), dry pavements, a deep canal crossed by footbridges, a rooftop high road over the tenements, junction boxes that electrify the water |
+| Frostvent Caldera | a frozen lake, hot springs and geysers that erupt every 3 rounds: a steam cloud that blocks sight through the next round, 2 damage to anyone on the vent |
+
 **Mutators** (waiting room, host or offline) stack on any mode: Low gravity (+1 mobility, grenades +3 tiles, drop off any
 ledge), Explosive everything (destroyed objects explode like oil drums), One-shot, Double storm speed, Melee only and
 Perma-smoke. They travel in the match config, so guests, spectators and replays play with the same set.
