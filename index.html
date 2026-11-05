@@ -254,6 +254,9 @@ body.sheet-open .nav{display:none}
 #mchips .mch.sv{color:#7fe8ff;border-color:rgba(127,232,255,.4)}
 #mchips .mch.nt{color:#c3b6ff;border-color:rgba(160,140,255,.45)}
 #mchips .mch.mu{color:var(--amber);border-color:rgba(255,179,64,.4)}
+#mchips .mch.zs{color:#9dff3a;border-color:rgba(157,255,58,.45)}
+#mchips .mch.zl{color:#ffb070;border-color:rgba(255,150,60,.5)}
+#mchips .mch.zq{color:#7fe8ff;border-color:rgba(127,232,255,.45)}
 .wr-specs{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;padding:8px 12px;border:1px dashed var(--line2);border-radius:var(--r2);color:var(--text2);font-size:13px}
 .wr-specs .btn{margin-left:auto}
 /* ---------- waiting room ---------- */
@@ -1528,6 +1531,7 @@ html.pa-rm .toast,html.pa-rm .toast.lvl,html.pa-rm .toast.lvl::after,html.pa-rm 
       <li>Siege: two teams of four, best of three rounds, sides swap after each. Defenders start inside a walled compound in the middle of the map (a door and a window in each wall, sandbags, crates) around the data core; attackers start outside under a smoke screen that clears after two rounds. Attackers win a round by holding the core (the cyan ring) with no defender in it at the end of a round, or by taking out every defender; defenders win by holding out for 10 rounds or wiping the attackers. Attackers carry 2 Breaching Charges (blow walls, doors and cover in a 1.5-tile blast clean away, 2–3 damage) and a Scout Drone; defenders trade their damaging grenades for 2 extra smoke grenades and 2 Barricades (drop a sandbag wall, half cover, on an empty ground tile within 2 tiles, not on the core). No storm, downs and revives as in Duos.</li>
       <li>Rumble: teams of two in a 24×24 arena, no storm. Eliminations score for the killer’s team; first to 12 wins (or the most after round 24). Respawns as in King of the Hill.</li>
       <li>Infection: everyone drops alone; at the start of round 1 one operative (two with 7 or more) turns Infected. Survivors become one team with shared sight; the Infected have claws only (dash up to 5 tiles), +2 mobility, +6 HP, regenerate 2 HP a turn and sense survivors within 10 tiles. The Infected never die: taken down, one regenerates for a turn (it can’t be hurt meanwhile) and gets back up at full HP. A survivor the Infected take out goes down “turning” and rises as Infected on its next turn. Survivors win if any of them is standing after round 15; the Infected win when nobody is left to turn.</li>
+      <li>Survival: co-op against waves of zombies, alone or with up to 3 more players or AI teammates (32×32 map, no storm). Zombies see only 4–6 tiles and hunt by sound: every sound shows as a ring as far as it carries. Unsuppressed gunshots carry 14 tiles, explosions 20, suppressed shots 3, melee 2, a normal move 2, a sprint (a 2-AP move) 5, doors 6 (rain shortens all of it). A zombie heads for the loudest, freshest sound it heard (yellow “?”); one that sees you chases (red “!”) and growls, pulling the others along. Walkers are the bulk; Runners are fast and fragile; closed doors hold zombies back for a couple of rounds while they bang them open, Brutes smash through doors and cover in one blow; Screamers call everything in 15 tiles to what they found; Bloaters burst into poison gas (shoot them from range, or near the horde); every 5th wave brings an Abomination. Everyone carries a Noise Maker (a beeping decoy, louder than gunfire, for 3 rounds) and a barricade. After each wave a 2-round breather brings crates, +4 HP, a barricade and fallen squadmates back. Survive 10 waves to extract; the horde difficulty is set in the waiting room.</li>
       <li>Blackout: Solo at night. You see only 3.5 tiles (+1 on high ground). Anyone standing in light (a flare, near a deployed Specialist drone, in a Scout Drone’s area) or who fired an unsuppressed shot since their last turn can be seen from normal sight range. Everyone carries a flare (throw it into the dark: it lights 3 tiles until the end of next round) and crates often hold another. Every shot flashes on every minimap. Suppressed weapons and blades stay dark.</li>
       <li>Mutators: in the waiting room the host (or you, offline) can switch on Low gravity, Explosive everything, One-shot, Double storm speed, Melee only and Perma-smoke for any mode. Guests see them in the room, they show as chips under the minimap in the match, and replays keep them.</li>
       <li>Team pings: in Duos, Trios and Quads, tap 📍 then the map, or press and hold on the map, to ping (Enemy here, Move here, Watch this area, Loot here, Danger) or give a command (Heal me, Hold, Regroup, Push, Fall back, Revive me). Heal me calls your Medic or Engineer over to heal you (Heal Field) or restore your shield (Repair); it lights up when your HP is low, and AI teammates send it themselves when they’re hurt. Only your team sees them; they fade after 2 rounds. An AI partner or squadmates follow them (online, orders given on your own turn).</li>
@@ -2232,7 +2236,9 @@ const MODES={
   // rules, infCap: the last round the survivors must hold out; night: Blackout's sight, flares and muzzle flashes
   infection:{key:'infection',name:'Infection',short:'Up to 8',desc:'Free-for-all drop, then the outbreak: one operative turns (two with 7+). Survivors team up and hold out; the Infected keep getting back up, and anyone they take down rises as one of them.',players:8,team:1,inf:true,infCap:15,
     storm:{rounds:[3,5,7,9,11,13],radii:[19,14,10,7,4.8,3.2],dmg:[0,1,1,2,2,3,4],minR:3.2,dmgMax:6},startR:30,drops:[3,6,9],place:[0,300,200,150,110,80,60,40,25],xp:[0,450,330,260,200,160,130,100,80]},
-  blackout:{key:'blackout',name:'Blackout',short:'Up to 8',desc:'Solo at night. You see 3–4 tiles; flares, drones and muzzle flashes light up targets from normal range.',players:8,team:1,night:true,storm:STORM,startR:30,drops:[3,6,9,12],place:[0,300,200,150,110,80,60,40,25],xp:[0,450,330,260,200,160,130,100,80]}
+  blackout:{key:'blackout',name:'Blackout',short:'Up to 8',desc:'Solo at night. You see 3–4 tiles; flares, drones and muzzle flashes light up targets from normal range.',players:8,team:1,night:true,storm:STORM,startR:30,drops:[3,6,9,12],place:[0,300,200,150,110,80,60,40,25],xp:[0,450,330,260,200,160,130,100,80]},
+  // Survival (see "Survival: zombie waves and sound-driven hordes"): co-op PvE, one squad of 1-4 (team set up by zsSetup), no storm
+  survival:{key:'survival',name:'Survival',short:'Co-op 1–4',desc:'Co-op against waves of zombies. They see poorly and hunt by sound: gunfire draws the horde, suppressors, blades and decoys keep you hidden. Survive 10 waves.',players:4,team:1,map:32,zs:true,storm:CALM,startR:99,drops:[],obj:[],place:[0,0,0,0,0],xp:[0,0,0,0,0]}
 };
 const MAXP=Math.max(...Object.values(MODES).map(m=>m.players)); // the largest roster (Quads: 16)
 /* AI difficulty (hostile AI only; an AI partner on a human's team always plays Veteran). Veteran is the original AI.
@@ -2277,7 +2283,7 @@ const SW_TXT='Second Wind (Solo): when you would be eliminated you go down inste
    seat list goes in cfg.seats and netCfgClean / seatSlots turn it into the slots (see "Team seats" in the waiting room).
    UI code never touches the seeded RNG. */
 const DKEYS=Object.keys(DIFFS);
-function rosterMin(mk,nH){ const M=MODES[mk]||MODES.solo, per=M.team; return Math.max(2*per,Math.ceil(nH/per)*per); }
+function rosterMin(mk,nH){ const M=MODES[mk]||MODES.solo, per=M.team; if(M.zs) return Math.max(1,nH); return Math.max(2*per,Math.ceil(nH/per)*per); }
 // bots for nH humans: valid difficulty keys, total within [rosterMin, max], whole teams; `fill` is the difficulty for added bots
 function normBots(mk,nH,bots,fill){ const M=MODES[mk]||MODES.solo, per=M.team, max=M.players;
   const b=(Array.isArray(bots)?bots:[]).slice(0,max).map(d=>DIFFS[d]?d:'veteran'), add=DIFFS[fill]?fill:b.length?b[b.length-1]:'veteran';
@@ -2285,7 +2291,7 @@ function normBots(mk,nH,bots,fill){ const M=MODES[mk]||MODES.solo, per=M.team, m
   while(nH+b.length>max&&b.length) b.pop();
   if((nH+b.length)%per){ if(nH+b.length+1<=max) b.push(add); else b.pop(); }
   return b; }
-function defaultBots(mk){ const M=MODES[mk]||MODES.solo; return new Array(M.players-1).fill(DIFFS[PROF.diff]?PROF.diff:'veteran'); }
+function defaultBots(mk){ const M=MODES[mk]||MODES.solo; return new Array(M.zs?0:M.players-1).fill(DIFFS[PROF.diff]?PROF.diff:'veteran'); }
 function rosterSlots(mk,humans,bots){ return humans.map(h=>({h})).concat(normBots(mk,humans.length,bots).map(b=>({b}))); }
 // "8 operatives · Elite AI" / "4 operatives · Mixed AI"
 function rosterTxt(slots,mk){ const M=MODES[mk]||MODES.solo, b=slots.filter(s=>!s.h).map(s=>s.b), u=[...new Set(b)];
@@ -3250,6 +3256,7 @@ function setupMatch(lo,mk,net,pre){
   G.gm=null; if(G.M.gm) gmSetup(); // objective modes (King of the Hill, Siege, Rumble): their RNG calls come after everything above
   modeSetup(); // Infection / Blackout / mutators: after everything above, so the classic seeded order is unchanged
   hzSetup(); // hazards and status effects: wind, and Hazard Zone props (seeded calls after every classic one)
+  G.zs=G.M.zs?zsSetup(net,pre):null; // Survival: one squad, Survival kit and the horde (seeded calls after everything above)
   computeVis(); buildGround(); G.bg=null; initWeather();
 }
 
@@ -3263,7 +3270,7 @@ function setupMenuScene(){
   const centre=floors.filter(i=>Math.hypot(i%MW-MW/2,((i/MW)|0)-MH/2)<6);
   for(let k=0;k<6;k++){ const s=pick(centre.length?centre:floors); if(G.units.some(u=>idx(u.x,u.y)===s)) continue; const lo=randomLoadout(); const r=RIVALS[k]; const u=makeUnit(lo,false,r[0],k===0?visorCol():r[1],null,k); placeUnit(u,s%MW,(s/MW)|0); u.face=Math.random()<.5?1:-1; G.units.push(u); }
   const cf=pick(floors); G.crates.push({x:cf%MW,y:(cf/MW)|0,ph:0,drop:true});
-  G.wx=null; G.sites=[]; G.scans=[]; G.prints=[]; G.objQ=[]; G.gm=null; G.mut={}; G.flares=[]; G.inf=null;
+  G.wx=null; G.sites=[]; G.scans=[]; G.prints=[]; G.objQ=[]; G.gm=null; G.mut={}; G.flares=[]; G.inf=null; G.zs=null;
   G.vis.fill(1); G.seen.fill(1); G.over=true; G.fullVis=true; G.reveals=[]; G.sensors=[]; G.lkp=new Map(); G.cues=[];
   buildGround(); G.bg=null; initWeather();
   const c=iso(MW/2,MH/2); G.cam.x=G.cam.tx=c[0]; G.cam.y=G.cam.ty=c[1]; G.cam.z=G.cam.tz=VW<600?0.62:0.85;
@@ -5276,6 +5283,7 @@ function drawUnit(c,u){
     if(down){ const r=20+Math.sin(t*5)*3; c.strokeStyle='rgba(255,77,94,'+(0.5+0.4*Math.sin(t*5))+')'; c.lineWidth=2.5; c.beginPath(); c.ellipse(p[0],p[1],r,r*0.48,0,0,Math.PI*2); c.stroke(); }
     if(G.mode==='target'&&G.targets[G.tIdx]===u){ c.strokeStyle='rgba(255,77,94,.95)'; c.lineWidth=2; const r=20+Math.sin(t*6)*2; c.beginPath(); c.ellipse(p[0],p[1],r,r*0.48,0,0,Math.PI*2); c.stroke(); for(let a=0;a<4;a++){ const an=a*Math.PI/2+t; c.beginPath(); c.moveTo(p[0]+Math.cos(an)*(r+3),p[1]+Math.sin(an)*(r+3)*0.48); c.lineTo(p[0]+Math.cos(an)*(r+9),p[1]+Math.sin(an)*(r+9)*0.48); c.stroke(); } }
   }
+  if(u.zb){ zbDraw(c,u,p,t); return; } // Survival: zombies have their own (cheap) figure
   // dash trail (Blade Strike and dashing melee): streak plus fading after-images
   if(u.vDash&&u.alive){ const tr=u.vTrail||(u.vTrail=[]); if(!tr.length||Math.hypot(tr[tr.length-1][0]-p[0],tr[tr.length-1][1]-p[1])>3) tr.push([p[0],p[1],t]); while(tr.length>10) tr.shift(); }
   else if(u.vTrail&&u.vTrail.length){ if(t-u.vTrail[u.vTrail.length-1][2]>.3) u.vTrail.length=0; }
@@ -6762,8 +6770,8 @@ async function moveUnit(u,path){
     const dc=cell(nx,ny); if(dc&&dc.kind==='door'&&dc.t===2) setDoor(nx,ny,true,u); // walking into a closed door opens it
     const anim=shouldShow(u)||tileShown(nx,ny);
     faceTo(u,nx,ny);
-    if(anim){ if(!(G.spec&&G.spec.follow)) focusOn(nx,ny); const diag=nx!==u.x&&ny!==u.y, l0=lvAt(u.x,u.y), l1=lvAt(nx,ny), climb=l0!==l1, lad=climb&&Math.max(l0,l1)>=2;
-      await new Promise(res=>G.tweens.push({u,fx:u.rx,fy:u.ry,tx:nx,ty:ny,fz:u.rz,tz:ez(nx,ny),t:0,dur:lad?0.28+Math.abs(l1-l0)*0.16:climb?0.32:diag?0.2:0.15,lad:lad?(l1>l0?0.4:0.6):0,res})); }
+    if(anim){ if(!(G.spec&&G.spec.follow)&&!u.zb) focusOn(nx,ny); const diag=nx!==u.x&&ny!==u.y, l0=lvAt(u.x,u.y), l1=lvAt(nx,ny), climb=l0!==l1, lad=climb&&Math.max(l0,l1)>=2;
+      await new Promise(res=>G.tweens.push({u,fx:u.rx,fy:u.ry,tx:nx,ty:ny,fz:u.rz,tz:ez(nx,ny),t:0,dur:(lad?0.28+Math.abs(l1-l0)*0.16:climb?0.32:diag?0.2:0.15)*(u.zb?0.55:1),lad:lad?(l1>l0?0.4:0.6):0,res})); }
     const ox=u.x, oy=u.y; placeUnit(u,nx,ny); if(!anim) paStep(u); cst(u,'tiles'); if(hasP(u,'r_slip')) u.slip=true;
     if(wxNow().prints){ G.prints.push({x:nx,y:ny,dx:nx-ox,dy:ny-oy,id:u.id,team:u.team,r:G.round}); if(G.prints.length>360) G.prints.splice(0,G.prints.length-360); } // snow tracks
     if(u.team===(G.player&&G.player.team)) computeVis();
@@ -7565,6 +7573,7 @@ function modeHud(){ const el=$('#mchips'); if(!el) return; const ch=[];
     if(on){ $('#hAlive').textContent=sv; $('#hAliveL').textContent='left'; }
     ch.push(['inf',on?sv+' survivors · '+zn+' Infected':'Outbreak in round 1']); if(on) ch.push(['sv',G.round<=G.M.infCap?'Hold out: round '+G.M.infCap:'Final round']); }
   if(G.M.night) ch.push(['nt','Night · sight '+BO.sight]);
+  if(G.zs) zsChips(ch);
   for(const k of MUT_KEYS) if(G.mut[k]) ch.push(['mu',MUTS[k].short]);
   const sig=ch.map(x=>x.join(':')).join('|'); if(sig===mchSig) return; mchSig=sig;
   el.innerHTML=ch.map(x=>'<span class="mch '+x[0]+'">'+esc(x[1])+'</span>').join('');
@@ -7606,10 +7615,12 @@ async function runMatch(){
     await objectivePhase(); if(G.over||G.matchId!==mid) break;
     if(G.gm){ await gmRoundStart(); if(G.over||G.matchId!==mid) break; } // objective modes: respawns, hill moves, round banners
     if(G.M.inf||G.M.night){ await modePhase(); if(G.over||G.matchId!==mid) break; } // the outbreak / its timer; flares burning out
+    if(G.zs){ await zsRound(); if(G.over||G.matchId!==mid) break; } // Survival: breathers, waves and spawns
     kitRound(); // class abilities: turrets expire, heal fields fade
     if(hzDue()){ await hzPhase(); if(G.over||G.matchId!==mid) break; } // hazards: fire spreads, gas drifts, current fades
-    for(const u of G.units){ if(G.over||G.matchId!==mid||(G.gm&&G.gm.halt)) break; if(!u.alive) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); const b=!G.over&&bountyOn(); if(b&&b.t===u.id) bountyPing(b); }
+    for(const u of G.units){ if(G.over||G.matchId!==mid||(G.gm&&G.gm.halt)) break; if(!u.alive||u.zb) continue; G.turnU=u; updateTurnOrder(); await unitTurn(u,mid); const b=!G.over&&bountyOn(); if(b&&b.t===u.id) bountyPing(b); }
     G.turnU=null;
+    if(G.zs){ await zsPhase(); if(G.over||G.matchId!==mid) break; } // Survival: the horde acts after the squad
     if(G.gm){ await gmRoundEnd(); if(G.over||G.matchId!==mid) break; } // objective modes: scoring, Siege round changes, the end
     { const n=G.smoke.length; G.smoke=G.smoke.filter(s=>s.until>G.round); if(G.smoke.length!==n) computeVis(); }
     for(const t in G.cmd) if(G.cmd[t].until<=G.round) delete G.cmd[t]; // team orders (pings / quick chat) expire
@@ -8257,7 +8268,7 @@ function aiScoreTile(u,x,y,threats,cost){
   if(C) s+=cmdScore(u,C,x,y,threats);
   if(G.gm) s+=gmTileScore(u,x,y,threats);
   if(SQC) s+=sqTile(u,x,y,threats); // squad tactics (team modes)
-  if(u.noGun||(G.inf&&G.inf.on)) s+=modeTile(u,x,y,threats); // melee-only units close in; Infection survivors bunch up and kite
+  if(u.noGun||(G.inf&&G.inf.on)||G.zs) s+=modeTile(u,x,y,threats); // melee-only units close in; Infection survivors bunch up and kite
   return s+RNG()*D.noise;
 }
 // AI objective values (public information only: site positions, type and progress)
@@ -8819,7 +8830,7 @@ function updateTop(){
   st.textContent=out?(stormHits(G.player.x,G.player.y)?'In the storm!':nar?'Storm next turn':'Storm hits next turn'):G.drop&&!G.drop.landed?'Drop inbound':nxt?(nxt-G.round===1?(mvs?(nar?'Moves next':'Storm moves next round'):(nar?'Storm next':'Storm next round')):(mvs?(nar?'Moves in ':'Storm moves in '):'Storm in ')+(nxt-G.round)+(nar?'':' rounds')):(nar?'Max storm':'Storm at max');
   st.parentNode.title=nxt?(mvs?'The storm moves':'The storm closes')+' at the start of round '+nxt:'The storm is at its smallest';
   chip.classList.toggle('hot',!!out);
-  if(G.gm) gmTop(); else if(chip.classList.contains('gm')){ chip.classList.remove('gm'); chip.removeAttribute('title'); $('#hAlive').parentNode.classList.remove('hidden'); }
+  if(G.gm) gmTop(); else if(G.zs) zsTop(); else if(chip.classList.contains('gm')){ chip.classList.remove('gm'); chip.removeAttribute('title'); $('#hAlive').parentNode.classList.remove('hidden'); }
   modeHud(); // Infection side counts, Blackout and mutator chips
   if(G.playerDead&&!G.over) fillSpec();
 }
@@ -8833,7 +8844,7 @@ let toSig='';
 function updateTurnOrder(){
   const el=$('#torder'); if(!el) return;
   if(G.scene!=='game'||!G.player||!G.units.length||G.over){ if(toSig!==''){ toSig=''; el.innerHTML=''; } return; }
-  const L=G.units, ci=G.turnU?L.indexOf(G.turnU):-1, items=[];
+  const L=G.zs?G.units.filter(u=>!u.zb):G.units, ci=G.turnU?L.indexOf(G.turnU):-1, items=[]; // Survival: the horde acts after the round's turns
   for(let i=Math.max(0,ci);i<L.length;i++) items.push([L[i],i===ci]);
   const sepAt=items.length;
   for(let i=0;i<L.length&&items.length<L.length+8;i++) items.push([L[i],false]);
@@ -8900,7 +8911,7 @@ function weaponMkU(u){ return u.mk||1; }
 // target panel for drone actions (from the drone's position)
 function fillDroneTarget(u,t,a){ const d=u.dr, A=DACTS[a]; if(!d) return;
   $('#tName').textContent=t===u?'You':t.drone?t.name+(t.tur?' turret':' drone'):t.name;
-  $('#tSub').textContent=(t.tur?'Sentry turret':t.drone?DMODELS[t.model].name+' drone':CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(d,t).toFixed(1)+' tiles from the drone';
+  $('#tSub').textContent=(t.tur?'Sentry turret':t.drone?DMODELS[t.model].name+' drone':t.zb?ZT[t.zb].name:CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(d,t).toFixed(1)+' tiles from the drone';
   let hit='100%', lbl=A.name, row=''; const zd=3+(hasP(u,'p_over')?1:0)+(DMODELS[d.model].zap||0);
   if(a==='zap') row='<span>Damage '+zd+(hasP(u,'p_chain')?' (+ chain)':'')+'</span><span>Armor-piercing</span>'+(hasP(u,'p_hay')?'<span>Haywire</span>':'');
   else if(a==='burst'){ hit=burstHit(d,t)+'%'; lbl='Burst · chance to hit'; row='<span>Damage '+DRONE.burst+'</span><span>Armor-piercing</span>'; }
@@ -8915,7 +8926,7 @@ function fillTargetPanel(){
   const u=G.player, t=G.targets[G.tIdx], k=G.tKind; if(!t) return;
   if(k.startsWith('d_')){ fillDroneTarget(u,t,k.slice(2)); return; }
   if(KIT[k]){ kitFillTarget(u,t,k); return; }
-  $('#tName').textContent=t.drone?t.name+(t.tur?' turret':' drone'):t.name; $('#tSub').textContent=(t.tur?'Sentry turret':t.drone?DMODELS[t.model].name+' drone':CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(u,t).toFixed(1)+' tiles'+(hi(t.x,t.y)?' · high ground':'');
+  $('#tName').textContent=t.drone?t.name+(t.tur?' turret':' drone'):t.name; $('#tSub').textContent=(t.tur?'Sentry turret':t.drone?DMODELS[t.model].name+' drone':t.zb?ZT[t.zb].name:CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(u,t).toFixed(1)+' tiles'+(hi(t.x,t.y)?' · high ground':'');
   let hit,crit,dmg,cov,mods=[],gr=0,full=0,lbl=null,note=null,aimTxt='Aim '+u.aim+' ',fl=false;
   const rb=hasP(u,'r_reaper')?2:0, zd=3+(hasP(u,'p_over')?1:0);
   if(k==='zap'){ hit=100; crit=0; dmg=String(zd)+(hasP(u,'p_chain')?' (+ chain)':''); cov=-1; }
@@ -9987,11 +9998,13 @@ function grantRewards(){
   const before=lvlInfo();
   // placement and victory pay less in a smaller field (a 1v1 is not an 8-player win)
   const maxT=(MODES[M.key]||M).players/M.team, fR=r.of>=maxT?1:0.4+0.6*Math.max(0,r.of-1)/Math.max(1,maxT-1);
-  const lines=[['Placement #'+r.place+' of '+r.of,Math.round((M.place[r.place]||20)*fR)],['Eliminations ×'+s.kills,s.kills*kv],['Damage dealt ('+s.dmg+')',s.dmg*2],['Rounds survived ('+s.rounds+')',s.rounds*5]];
+  let lines=[['Placement #'+r.place+' of '+r.of,Math.round((M.place[r.place]||20)*fR)],['Eliminations ×'+s.kills,s.kills*kv],['Damage dealt ('+s.dmg+')',s.dmg*2],['Rounds survived ('+s.rounds+')',s.rounds*5]];
   if(r.win) lines.push(['Victory bonus',Math.round(150*fR)]);
   if(s.objs) lines.push(['Objectives ×'+s.objs,s.objs*40]); if(s.bounty) lines.push(['Bounty claimed',s.bounty*150]);
+  if(G.zs) lines=zsLines(r,s); // Survival: waves, zombies, damage
   const total=lines.reduce((a,l)=>a+l[1],0);
-  const xp=Math.round(((M.xp[r.place]||60)+(r.win?200:0))*fR)+s.kills*80+s.dmg*3+s.rounds*12+s.revives*40+s.drops*60+(s.objs||0)*60+(s.bounty||0)*150;
+  let xp=Math.round(((M.xp[r.place]||60)+(r.win?200:0))*fR)+s.kills*80+s.dmg*3+s.rounds*12+s.revives*40+s.drops*60+(s.objs||0)*60+(s.bounty||0)*150;
+  if(G.zs) xp=zsXp(r,s);
   PROF.credits+=total; PROF.xp+=xp; const cxp=G.player?prsAddXp(G.player.cls,xp):null; // class XP (prestige)
   const after=lvlInfo(); const unl=[]; let shards=0;
   for(let l=before.l+1;l<=after.l;l++){ shards+=10; (UNLOCKS[l]||[]).forEach(id=>unl.push([l,unlockName(id)])); }
@@ -10005,16 +10018,16 @@ function grantRewards(){
   const ds=G.dstat; if(G.player&&G.player.dr&&ds){ const gain=ds.acts*DXP.act+ds.dmg*DXP.dmg+ds.kills*DXP.kill+ds.dkills*DXP.dkill+(ds.dep?DXP.deploy:0);
     if(gain){ const b=dMastInfo(); PROF.dmast=(PROF.dmast||0)+gain; const a2=dMastInfo(), un=[]; for(let l=b.l+1;l<=a2.l;l++) for(const k in DUPS) if(DUPS[k].m===l) un.push(DUPS[k].name);
       mast.push({k:'drone',gain,b,a:a2,unl:un,s:ds}); } }
-  const c=PROF.career; c.matches++; c.kills+=s.kills; c.dmg+=s.dmg; if(r.win) c.wins++; if(r.place<=3&&r.of>3) c.top3++;
+  const c=PROF.career; c.matches++; c.kills+=G.zs?0:s.kills; c.dmg+=s.dmg; if(r.win) c.wins++; if(r.place<=3&&r.of>3) c.top3++;
   PROF.history.unshift({m:M.key,r:G.region,p:r.place,of:r.of,k:s.kills,d:s.dmg,w:r.win,t:Date.now()}); PROF.history=PROF.history.slice(0,10);
   // quests
   refreshQuests();
-  const st={matches:1,kills:s.kills,dmg:s.dmg,top3:r.place<=3&&r.of>3?1:0,wins:r.win?1:0,crates:s.crates,drops:s.drops,highHits:s.highHits,owHits:s.owHits,nadeHits:s.nadeHits,revives:s.revives,duos:M.key==='duos'?1:0,quick:M.key==='quick'?1:0,squad:M.key==='trios'||M.key==='quads'?1:0};
+  const st={matches:1,kills:G.zs?0:s.kills,zwaves:G.zs?G.zs.cleared:0,zkills:G.zs?s.kills:0,dmg:s.dmg,top3:r.place<=3&&r.of>3?1:0,wins:r.win?1:0,crates:s.crates,drops:s.drops,highHits:s.highHits,owHits:s.owHits,nadeHits:s.nadeHits,revives:s.revives,duos:M.key==='duos'?1:0,quick:M.key==='quick'?1:0,squad:M.key==='trios'||M.key==='quads'?1:0};
   st['cls_'+G.player.cls]=1;
   const done=[];
   for(const q of PROF.q.daily.concat(PROF.q.weekly)){ const d=qDef(q.id); if(!d||q.c) continue; const was=q.p>=d.g; q.p=Math.min(d.g,q.p+(st[d.s]||0)); if(!was&&q.p>=d.g) done.push(d.t); }
   // class challenges (from the local player's own counters) and season pass XP
-  const cs=G.cstat||cstatNew(), cm=Object.assign({},s,cs,{cls:G.player.cls,win:!!r.win,place:r.place,of:r.of,mode:M.key,top3:st.top3,owOnly:Math.max(0,(s.owHits||0)-(cs.rfHits||0))});
+  const cs=G.cstat||cstatNew(), cm=Object.assign({},s,cs,G.zs?{kills:0}:{},{cls:G.player.cls,win:!!r.win,place:r.place,of:r.of,mode:M.key,top3:st.top3,owOnly:Math.max(0,(s.owHits||0)-(cs.rfHits||0))});
   const chal=chalApply(cm);
   passSync(); const pl=passLines(r,s,fR), pxp=pl.reduce((a,l)=>a+l[1],0), pass=Object.assign(passAdd(pxp),{lines:pl,xp:pxp});
   saveProf();
@@ -10092,11 +10105,11 @@ async function startMatch(daily){
   // Everything setupMatch reads (loadout, gear spec, AI level, roster) is captured in pre, so the replay recorder can rebuild it.
   const dk=daily===true?dailyKey():null, pre=dk?dailyPre(dk):pickOffline(), mk=dk?pre.mode:PROF.mode;
   if(!dk) pre.slots=modeTeams(PROF.mode)?offSeats().map(x=>x.p?{h:'local'}:{b:x.b}):rosterSlots(PROF.mode,['local'],wrBots(PROF.mode)); // team modes: the seat you picked
-  pre.rp=offSpec(); if(!pre.lv) pre.lv=level(); if(!dk){ const mu=mutClean(PROF.settings.mut); if(mu.length) pre.mut=mu; } const lo=JSON.parse(JSON.stringify(LO));
+  pre.rp=offSpec(); if(!pre.lv) pre.lv=level(); if(!dk){ const mu=mutClean(PROF.settings.mut); if(mu.length) pre.mut=mu; if(MODES[mk].zs) pre.zd=zsDiffKey0(); } const lo=JSON.parse(JSON.stringify(LO));
   setupMatch(lo,mk,null,pre); const mid=G.matchId;
   G.tm=dk?{t:DAILY.t,b:0}:{t:TM_OFF.includes(PROF.settings.timer)?PROF.settings.timer:30,b:TM_B.includes(PROF.settings.clock)?PROF.settings.clock:0}; tmInit();
   G.daily=dk?{key:dk}:null; if(dk) dailyMark(dk);
-  recStart('off',{seed:pre.seed,region:pre.region,mode:mk,slots:pre.slots,lo,rp:pre.rp,lv:pre.lv,tm:G.tm,daily:dk||undefined,mut:pre.mut});
+  recStart('off',{seed:pre.seed,region:pre.region,mode:mk,slots:pre.slots,lo,rp:pre.rp,lv:pre.lv,tm:G.tm,daily:dk||undefined,mut:pre.mut,zd:pre.zd});
   await mapRoulette(G.region); if(G.matchId!==mid) return;
   show('#hud',true); updateHUD(); runMatch();
 }
@@ -10171,7 +10184,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=33, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=34, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
@@ -10313,6 +10326,7 @@ function netStart(){
   const seats=modeTeams(NET.mode)?netSeats().map(x=>x.p?{p:x.p}:{b:x.b}):null;
   const cfg={m:NET.m+1,seed:(Math.random()*4294967296)>>>0,mode:NET.mode,region:fpick(REGIONS.filter(r=>r!==G.lastRegion)),players:NET.players,bots:seats?seatBots(seats):normBots(NET.mode,NET.players.length,NET.bots),aiLv:lv,tm:tmClean(NET.tm)};
   if(seats) cfg.seats=seats; const mu=mutClean(NET.mut); if(mu.length) cfg.mut=mu; // mutators: only when any are on
+  if(M.zs) cfg.zd=ZD[NET.zd]?NET.zd:zsDiffKey0(); // Survival: the horde difficulty
   NET.cfg=JSON.parse(JSON.stringify(cfg)); NET.log=[]; NET.done=false; NET.round=0; netLobby(); // kept for spectators who join mid-match
   netRelay({t:'start',cfg}); startNetMatch(cfg);
 }
@@ -10431,7 +10445,7 @@ function renderOnline(){
    Quick; Create lobby hosts an online room for that mode (netHost reads PROF.mode), and Join with code / Watch join one.
    Thumbnails are small iso scenes drawn once per mode and cached: deterministic hash() noise, never the seeded RNG. */
 const MS={friends:false,sel:'solo',art:{},wheel:0,wlock:0,st:null,lockT:0};
-function msKeys(){ const b=['solo','duos','trios','quads','quick','infection','blackout'].concat(GM_KEYS); return MS.friends?b:b.concat(['daily','tutorial']); }
+function msKeys(){ const b=['solo','duos','trios','quads','quick','infection','blackout','survival'].concat(GM_KEYS); return MS.friends?b:b.concat(['daily','tutorial']); }
 function msCards(){ const dk=dailyKey(), dd=dyLoad().days[dk], R=REG[dailyRegion(dk)], rn=R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
   const L=[
     {k:'solo',name:'Solo',tag:'Free for all',pc:'Up to 8 players',ds:MODES.solo.desc,li:['Last operative standing wins','Second Wind: get back up once','Storm closes in from round '+MODES.solo.storm.rounds[0]]},
@@ -10441,7 +10455,7 @@ function msCards(){ const dk=dailyKey(), dd=dyLoad().days[dk], R=REG[dailyRegion
     {k:'quick',name:'Quick',tag:'Fast match',pc:'Up to 4 players',ds:MODES.quick.desc,li:['Small zone, storm from round '+MODES.quick.storm.rounds[0],'Fewer crates, faster fights','About six minutes']},
     {k:'infection',name:'Infection',tag:'Outbreak',inf:1,pc:'Up to 8 players',ds:MODES.infection.desc,li:['Infected: claws, speed, regeneration','Taken down by the Infected? You turn','Survivors win by holding out to round '+MODES.infection.infCap]},
     {k:'blackout',name:'Blackout',tag:'Night ops',night:1,pc:'Up to 8 players',ds:MODES.blackout.desc,li:['Sight '+BO.sight+' tiles in the dark (+1 up high)','Flares light an area for 2 rounds','Shots flash on everyone’s minimap']}];
-  L.push(...gmCards());
+  L.push(zsCard()); L.push(...gmCards());
   if(MS.friends){ L[0].li[2]='Friends join with a code, bots fill up'; L[1].li[1]='Friends pick their team and seat'; L[2].li[2]='Friends pick their squad and seat'; L[3].li[2]='Up to '+MODES.quads.players+' players in one room'; }
   else L.push(
     {k:'daily',name:'Daily',tag:'Daily · '+fmtDay(dk),amber:1,pc:'8 players · Elite AI',ds:'Today in '+rn+'. The same map, spawns and bots for everyone.',
@@ -10493,6 +10507,7 @@ function msThumb(k){ const dk=k==='daily'?dailyRegion(dailyKey()):'', key=k+dk; 
     g.strokeStyle=o.col; g.lineWidth=2.5; g.globalAlpha=.9; g.beginPath(); g.ellipse(p[0],p[1],17,8.5,0,0,Math.PI*2); g.stroke(); g.globalAlpha=1;
     g.save(); try{ g.translate(p[0],p[1]); g.scale(1.75,1.75); drawSoldier(g,o.o); }catch(_){} g.restore(); }
   if(D0.inf||D0.night) msThumbMode(g,D0,D,W,H);
+  if(D0.zs) zsThumb(g,D0,D);
   if(D0.ring){ const R=D0.ring; for(let t=0;t<D0.u.length/R;t++){ const m=D0.u.slice(t*R,t*R+R), c0=D(m.reduce((a,q)=>a+q[0],0)/R,m.reduce((a,q)=>a+q[1],0)/R), rr=46+(R-2)*14; g.strokeStyle=m[0][2]; g.globalAlpha=.6; g.setLineDash([5,5]); g.lineWidth=2; g.beginPath(); g.ellipse(c0[0],c0[1],rr,rr/2,0,0,Math.PI*2); g.stroke(); g.setLineDash([]); g.globalAlpha=1; } }
   g.fillStyle=R.grade; g.fillRect(0,0,W,H);
   const sh=g.createLinearGradient(0,H*.6,0,H); sh.addColorStop(0,'rgba(5,8,13,0)'); sh.addColorStop(1,D0.amber?'rgba(60,34,0,.55)':'rgba(5,8,13,.55)'); g.fillStyle=sh; g.fillRect(0,0,W,H);
@@ -10689,7 +10704,7 @@ function renderLobby(){
       +(mv?'<span class="mvb"><button class="btn sm ghost" data-wmv="'+esc(h.pid)+'" aria-pressed="'+(moving===h.pid)+'" aria-label="'+(moving===h.pid?'Cancel moving ':'Move ')+esc(h.name)+' to another team">'+(moving===h.pid?'Cancel':'Move')+'</button></span>'
         :'<span class="who'+(h.me?' me':'')+'">'+(h.me?'You':'Player')+'</span>')+'</div>'; };
   const bRow=(d,i,partner)=>{ const D=DIFFS[d];
-    return '<div class="wslot bot d-'+d+(ed?'':' ro')+'"><i class="av bot">AI</i><div class="sn"><b>'+(partner?(per>2?'Squad AI':'Partner'):'Bot '+(i+1))+'</b><small>'+dRank(d)+(partner?(per>2?'AI squadmate · ':'AI partner · '):'')+D.name+'</small></div>'
+    return '<div class="wslot bot d-'+d+(ed?'':' ro')+'"><i class="av bot">AI</i><div class="sn"><b>'+(partner?(M.zs?'Ally '+(i+1):per>2?'Squad AI':'Partner'):'Bot '+(i+1))+'</b><small>'+dRank(d)+(partner?(per>2||M.zs?'AI squadmate · ':'AI partner · '):'')+D.name+'</small></div>'
       +(ed?'<div class="dseg" role="radiogroup" aria-label="Difficulty for bot '+(i+1)+'">'+DKEYS.map(k=>'<button role="radio" aria-checked="'+(k===d)+'" class="'+(k===d?'sel ':'')+'k-'+k+'" data-bd="'+i+':'+k+'" title="'+DIFFS[k].name+': '+esc(DIFFS[k].desc)+'"><span class="dl">'+DIFFS[k].name+'</span>'+dRank(k)+'</button>').join('')+'</div>'
         +(per===1&&n>minN?'<button class="rm" data-brm="'+i+'" aria-label="Remove bot '+(i+1)+'">×</button>':per===1?'<span class="rm ph"></span>':''):''
       +(ed?'':'<span class="dbadge">'+dRank(d)+D.name+'</span>'))+'</div>'; };
@@ -10704,9 +10719,9 @@ function renderLobby(){
       if(ed&&!moving&&!hs.length&&nT>2) act+='<button class="rm" data-trm="'+t+'" aria-label="Remove team '+(t+1)+'">×</button>';
       h+='<div class="wteam'+(mine?' mine':'')+(moving&&act?' tgt':'')+'" role="group" aria-label="Team '+(t+1)+'"><div class="wt-h"><b>Team '+(t+1)+'</b><small>'+(mine?'Your team':hs.length===per?'Squad':hs.length?(per>2?hs.length+' player'+(hs.length>1?'s':'')+' + '+(per-hs.length)+' AI':'Player + AI partner'):'AI squad')+'</small>'+act+'</div>'
         +mem.map(x=>x.p?hRow(hum(x.p)||{name:'?'}):bRow(x.b,bi++,hs.length>0)).join('')+'</div>'; } }
-  else h=c.humans.map(x=>({h:x})).concat(bots.map((d,i)=>({d,i}))).map(s=>s.h?hRow(s.h):bRow(s.d,s.i,false)).join('');
+  else h=c.humans.map(x=>({h:x})).concat(bots.map((d,i)=>({d,i}))).map(s=>s.h?hRow(s.h):bRow(s.d,s.i,!!M.zs)).join('');
   const open=M.players-n;
-  if(ed&&!over&&!moving) h+=canAdd?'<button class="wslot add" data-badd><i class="av">+</i><div class="sn"><b>Add '+(per>1?'AI team':'bot')+'</b><small>'+(per>1?open/per+' team'+(open/per===1?'':'s'):open+' slot'+(open===1?'':'s'))+' open · joins as '+DIFFS[fill].name+'</small></div></button>'
+  if(ed&&!over&&!moving) h+=canAdd?'<button class="wslot add" data-badd><i class="av">+</i><div class="sn"><b>Add '+(per>1?'AI team':M.zs?'AI teammate':'bot')+'</b><small>'+(per>1?open/per+' team'+(open/per===1?'':'s'):open+' slot'+(open===1?'':'s'))+' open · joins as '+DIFFS[fill].name+'</small></div></button>'
     :'<div class="wslot full"><small>'+(per>1?'All '+maxT+' teams':'All '+M.players+' slots')+' filled</small></div>';
   $('#wrSlots').innerHTML=h;
   // quick actions (host / offline only)
@@ -11222,7 +11237,7 @@ function setupTutorial(){
   seedRNG(TUT_SEED); UID=0; setMapSize(MAP0);
   G.M=Object.assign({},MODES.quick,{key:'tutorial',name:'Training',players:3,team:1,startR:9.5,fill:1,drops:[]}); G.SC=G.M.storm;
   G.matchId++; G.timers=[]; G.tweens=[]; G.fx=[]; G.parts=[]; G.texts=[]; G.pings=[]; G.bubbles=[]; G.cmd={}; G.tpings=[]; G.hpPing=null; G.mstat={};
-  G.region='city'; G.R=REG.city; G.rosterTxt='Training'; G.gm=null; G.mut={}; G.flares=[]; G.inf=null;
+  G.region='city'; G.R=REG.city; G.rosterTxt='Training'; G.gm=null; G.mut={}; G.flares=[]; G.inf=null; G.zs=null;
   const g=new Array(MW*MH).fill(null), elev=new Uint8Array(MW*MH), floorT=new Uint8Array(MW*MH);
   const put=(x,y,t,kind,h,ex)=>{ g[idx(x,y)]=Object.assign({t,kind,h:h||0,v:RNG()},ex||{}); };
   put(19,20,2,'container',38,{col:CONT_COLS[1],g:9001}); put(20,20,2,'container',38,{col:CONT_COLS[1],g:9001}); // your full cover
@@ -11489,6 +11504,7 @@ function simHash(){ let h=0x811c9dc5; const add=v=>{ v=v|0; h=Math.imul(h^(v&255
   for(const u of G.units) add(u.mark?u.mark.team*1000+u.mark.until:-1);
   kitHash(add); // class ability objects (only while any exist)
   if(G.gm) gmHash(add); // objective modes only (classic hashes unchanged)
+  if(G.zs) zsHash(add); // Survival only (other hashes unchanged)
   if(G.sq) sqHash(add); // AI squad plans (only once an AI squad has made one: other hashes unchanged)
   if(G.M.inf||G.M.night||mutBits()) modeHash(add); // Infection / Blackout / mutator state (only when active: other hashes unchanged)
   hzHash(add); // hazards and status effects (only when present: other hashes unchanged)
@@ -11546,7 +11562,7 @@ function playReplay(rep,o){ o=o||{}; if(!rep){ toast('Replay unavailable',''); r
   ffStop(); watchScreens(); NET.q=new Map(); NET.w=new Map(); show('#roul',false);
   try{ const c=JSON.parse(JSON.stringify(rep.cfg));
     if(rep.kind==='off'){ if(!c.lo||!CLASSES[c.lo.cls]||!WEAPONS[c.lo.weapon]||!Array.isArray(c.slots)||!MODES[c.mode]) throw new Error('bad cfg');
-      setupMatch(c.lo,c.mode,null,{seed:c.seed>>>0,region:REG[c.region]?c.region:'city',slots:c.slots.slice(0,MAXP),rp:c.rp&&typeof c.rp==='object'?Object.assign({},c.rp,{own:Array.isArray(c.rp.own)?c.rp.own:[]}):null,lv:clamp(c.lv|0,1,40),mut:mutClean(c.mut)}); }
+      setupMatch(c.lo,c.mode,null,{seed:c.seed>>>0,region:REG[c.region]?c.region:'city',slots:c.slots.slice(0,MAXP),rp:c.rp&&typeof c.rp==='object'?Object.assign({},c.rp,{own:Array.isArray(c.rp.own)?c.rp.own:[]}):null,lv:clamp(c.lv|0,1,40),mut:mutClean(c.mut),zd:c.zd}); }
     else { const cfg=netCfgClean(c); if(!cfg) throw new Error('bad cfg'); setupMatch(null,cfg.mode,Object.assign({},cfg,{me:rep.me||cfg.players[0].pid})); }
     G.tm=rep.cfg.tm?{t:rep.cfg.tm.t|0,b:rep.cfg.tm.b|0}:{t:0,b:0}; tmInit();
     G.watch={kind:'replay',rep,ok:0,bad:0,total:(rep.h||[]).length,other:!!(rep.b&&rep.b!==BUILD),from:o.from||''}; watchSetup();
@@ -12749,7 +12765,7 @@ function kitSts(u,sts){ if(u.kAdr) sts.push('Adrenaline: +1 AP next turn'); if(u
   if(u.cls==='recon'&&kitOn()){ const n=G.kit.mines.filter(m=>m.oid===u.id).length; if(n) sts.push(n+' mine'+(n>1?'s':'')+' out'); } }
 // target panel for the kit's targeted abilities (repair, beam, adrenaline, mark, purge, called shot)
 function kitFillTarget(u,t,k){ const X=ABIL[k]||ACTS[k];
-  $('#tName').textContent=kName(t,u); $('#tSub').textContent=(t.tur?'Sentry turret':t.drone?DMODELS[t.model].name+' drone':CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(u,t).toFixed(1)+' tiles';
+  $('#tName').textContent=kName(t,u); $('#tSub').textContent=(t.tur?'Sentry turret':t.drone?DMODELS[t.model].name+' drone':t.zb?ZT[t.zb].name:CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(u,t).toFixed(1)+' tiles';
   let hit='', lbl='', row='', note=X.desc||'';
   if(k==='repair'){ const amt=KITN.repair+(hasP(u,'e_patch')?2:0); hit='+'+amt; lbl=t.drone?'HP':'shield'; row='<span>1 AP, keeps your turn going</span>'; }
   else if(k==='beam'){ hit=String(u.cls==='medic'?KITN.revHp:3); lbl='HP on revive'; row='<span>1 AP, keeps your turn going</span>'+(hasP(u,'m_reach')?'<span>+2 shield</span>':''); }
@@ -13887,6 +13903,439 @@ LIVEK.toxbar=1; LIVEK.pbox=1;
 
 rbBoot();
 
+/* ================= Survival: zombie waves and sound-driven hordes =================
+   MODES.survival (G.M.zs): co-op PvE. One squad (you alone, or up to 4 humans and AI teammates) on a 32×32 map with no
+   storm holds out against waves of zombies that come in from the map edges. The zombies (G.units with u.zb = type key,
+   team ZS_T) are NPCs, not players: they take no unit turns; after every squad turn of a round the horde acts at once in
+   zsPhase (damage over time, senses, hearing, movement, then attacks), simulated one zombie at a time in id order and
+   animated in batches. They see only a few tiles and mostly hunt by sound:
+     - every sound has a hearing radius in tiles (ZS) and a loudness (ZS.L); rain shortens radii (wxHear). Unsuppressed
+       gunfire (G.noise shots, captured through G.noise.push) carries ZS.shot, explosions ZS.blast, suppressed shots ZS.quiet,
+       melee ZS.melee, walking ZS.step, sprinting (a move longer than one move's worth) ZS.sprint, doors ZS.door, a thrown
+       Noise Maker ZS.lure (and it keeps beeping ZS.lureEcho for ZS.lureRounds rounds); a zombie that sees prey growls
+       (ZS.growl) and a Screamer screams (ZS.scream), both pointing the horde at what they found.
+     - a zombie that hears a sound compares its loudness minus distance with its current lead (which fades ZS.decay a
+       round) and heads for the louder / fresher one; a zombie that sees a squad member chases it; with nothing to go on
+       it shambles (half a tile slower) around where it is, drifting toward the squad more and more as the wave drags on.
+   Zombie types (ZT): Walker, Runner, Brute (smashes doors and cover in its way; the others bang closed doors open), Screamer, Bloater (bursts into a gas cloud
+   through the hazards gas system) and an Abomination boss every 5th wave. Waves (zsCompose) grow with the wave number,
+   the squad size and the horde difficulty (cfg.zd / pre.zd: ZD); short breathers (ZS.rest rounds) between them bring
+   crates, +4 HP, a barricade charge and fallen squadmates back. Clearing wave ZS.waves wins (extraction).
+   Lockstep: every roll uses the seeded RNG in a fixed order; G.zs is sim state hashed by zsHash (only in Survival, so
+   other modes' hashes are unchanged); G.zsv is visual-only (sound rings, your kills by type). */
+const ZS_T=9; // the horde's team id (squads are team 0)
+const ZS={rest:2,waves:10,cap:22,capPer:3,decay:3,wander:5,smell:16,disperse:28,stepT:0.085,smash:6,bang:2,
+  shot:14,blast:20,quiet:3,melee:2,step:2,sprint:5,door:6,lure:16,lureEcho:12,lureRounds:2,growl:7,scream:15,smashS:8,burst:8,
+  L:{shot:8,blast:10,quiet:5,melee:4,step:3,sprint:5,door:6,lure:13,growl:9,scream:11,smashS:6,burst:7},cr:3,xp:6};
+const ZT={
+  walker:{name:'Walker',hp:4,ar:0,mob:3,dmg:[1,3],acc:72,sight:4,hear:1,col:'#86b86a',sc:1,loot:.05},
+  runner:{name:'Runner',hp:3,ar:0,mob:6,dmg:[1,2],acc:80,sight:5,hear:1.1,col:'#d6cf74',sc:.92,loot:.05},
+  brute:{name:'Brute',hp:11,ar:1,mob:3,dmg:[3,5],acc:70,sight:4,hear:.9,col:'#c07a5a',sc:1.32,loot:.3,smash:true},
+  screamer:{name:'Screamer',hp:3,ar:0,mob:4,dmg:[1,2],acc:75,sight:6,hear:1.35,col:'#c99ae8',sc:.96,loot:.15,scream:true},
+  bloater:{name:'Bloater',hp:5,ar:0,mob:2,dmg:[2,3],acc:90,sight:4,hear:.8,col:'#a6d84a',sc:1.12,loot:.12,gas:1.8},
+  boss:{name:'Abomination',hp:24,ar:1,mob:3,dmg:[3,5],acc:76,sight:5,hear:1.2,col:'#e2504c',sc:1.62,loot:1,smash:true,boss:true}
+};
+const ZT_KEYS=Object.keys(ZT);
+// horde difficulty: n (wave size), hp, acc, hear (radius factor), run (+mobility for Runners), dmg (max claw damage)
+const ZD={recruit:{n:.75,hp:-1,acc:-8,hear:.85,run:0,dmg:-1},veteran:{n:1,hp:0,acc:0,hear:1,run:0,dmg:0},elite:{n:1.3,hp:1,acc:5,hear:1.15,run:1,dmg:0}};
+const ZCLAW={id:'claw',name:'Claws',short:'Claws',type:'melee',dmg:[2,3],acc:80,crit:0,critDmg:0};
+const ZSND_COL={quiet:[127,232,255],melee:[127,232,255],step:[127,232,255],sprint:[255,214,90],door:[255,214,90],shot:[255,150,60],blast:[255,80,60],
+  lure:[200,140,255],growl:[157,255,58],scream:[214,120,255],smashS:[255,150,60],burst:[170,255,90]};
+G.zs=null; G.zsv=null;
+// Noise Maker: Survival kit (every operative starts with one); a device, so it can be thrown anywhere in range
+UTILS.lure={name:'Noise Maker',short:'Lure',charges:1,range:9,radius:0,dev:true,blind:true,gmk:1,lure:true,hitL:'tile',
+  info:'Survival. A beeping decoy: every zombie within '+ZS.lure+' tiles hears it (louder than gunfire), and it keeps beeping for '+ZS.lureRounds+' more rounds. Costs 1 AP and keeps your turn going'};
+UTILS.lure.desc=UTILS.lure.info+'. Range '+UTILS.lure.range+' tiles.';
+ICON.lure='<svg viewBox="0 0 24 24"><rect x="8" y="9" width="8" height="11" rx="2"/><path d="M12 9V6M5 6a9 9 0 0 1 3-3M19 6a9 9 0 0 0-3-3M3 10a12 12 0 0 1 1-4M21 10a12 12 0 0 0-1-4"/></svg>';
+QD.push({id:'d_surv',t:'Survive 5 waves in Survival',s:'zwaves',g:5}); QW.push({id:'w_zkill',t:'Take down 150 zombies',s:'zkills',g:150});
+
+function zsDiffKey(){ const d=LB&&LB.online?NET.zd:PROF.settings.zd; return ZD[d]?d:'veteran'; }
+function zsSquad(){ return G.units.filter(u=>!u.zb); }
+function zsZombies(){ return G.units.filter(u=>u.zb&&standing(u)); }
+// setupMatch (last): one squad on team 0 near the middle, Survival kit, hazard props, the horde state
+function zsSetup(net,pre){
+  const zd=(net||pre||{}).zd, sq=G.units, n=sq.length;
+  for(const u of sq) setTeam(u,0);
+  G.M.team=n; G.M.players=n; // one team: downs and revives with 2+, Second Wind alone
+  G.teamDiff={}; for(const u of sq){ if(!u.bot) continue; const c=G.teamDiff[0]; if(!c||DKEYS.indexOf(u.diff.key)>DKEYS.indexOf(c.key)) G.teamDiff[0]=u.diff; }
+  // the squad drops together on open ground near the middle
+  const fl=[]; for(let i=0;i<MW*MH;i++) if(!G.grid[i]&&!G.lvl[i]&&G.surf[i]!==1) fl.push(i);
+  fl.sort((a,b)=>Math.hypot(a%MW-CX,((a/MW)|0)-CX)-Math.hypot(b%MW-CX,((b/MW)|0)-CX)||a-b);
+  const c0=fl[Math.min(fl.length-1,ri(0,Math.min(8,fl.length-1)))], taken=new Set();
+  for(const u of sq){ let best=-1, bd=1e9; for(const i of fl){ if(taken.has(i)||G.crates.some(q=>idx(q.x,q.y)===i)) continue; const d=Math.hypot(i%MW-c0%MW,((i/MW)|0)-((c0/MW)|0)); if(d<bd){ bd=d; best=i; } if(d<=0.5) break; }
+    if(best<0) continue; taken.add(best); placeUnit(u,best%MW,(best/MW)|0); }
+  for(const u of sq){ for(const id of ['barricade','lure']){ const q=u.utils.find(x=>x.id===id); if(q) q.ch++; else u.utils.push({id,ch:1}); } u.ut0=u.utils.map(q=>({id:q.id,ch:q.ch})); u.sh0=u.shield; }
+  if(!G.mut.haz) hzProps(); // toxic barrels and power boxes: things to lure the horde into
+  // spawn points: open ground tiles along the edge that the squad can walk to
+  const F=walkField([idx(sq[0].x,sq[0].y)]), sp=[];
+  for(let i=0;i<MW*MH;i++){ const x=i%MW, y=(i/MW)|0; if(x>1&&y>1&&x<MW-2&&y<MH-2) continue; if(G.grid[i]||G.lvl[i]||G.surf[i]===1||!isFinite(F[i])) continue; sp.push(i); }
+  G.noise=zsNoiseArr();
+  G.zsv={fx:[],my:{}}; // visual only: sound rings, your takedowns by type
+  return {d:ZD[zd]?zd:'veteran',wave:0,cleared:0,state:'rest',next:2,w0:1,q:[],tot:0,snd:[],lures:[],sp,kills:0,won:false,resp:false,thr:-1,n}; }
+// G.noise in Survival: the same array, but every push (gunfire, blasts) is also heard by the horde
+function zsNoiseArr(){ const a=[]; a.push=function(){ for(const n of arguments) zsNoiseIn(n); return Array.prototype.push.apply(this,arguments); }; return a; }
+function zsNoiseIn(n){ const S=G.zs; if(!S||!n) return; const src=n.id>=0?G.units.find(u=>u.id===n.id)||G.drones.find(d=>d.id===n.id):null; if(src&&src.zb) return;
+  if(!n.blast&&S.thr>=0&&n.id===S.thr){ S.thr=-1; return; } // a thrown grenade is heard where it lands, not where it was thrown from
+  zsSnd(n.x,n.y,n.blast?'blast':'shot',src); }
+// a sound: (x,y) where it is heard from, R its radius in tiles, (tx,ty) where it sends the zombies that hear it
+function zsSnd(x,y,k,src,R,tx,ty){ const S=G.zs; if(!S||G.over) return; R=Math.round((R||ZS[k])*wxHear()*10)/10;
+  S.snd.push({x,y,k,R,L:ZS.L[k]||6,tx:tx==null?x:tx,ty:ty==null?y:ty,s:src&&src.id!=null?src.id:-1}); if(S.snd.length>160) S.snd.shift();
+  zsRing(x,y,R,k,0); }
+function zsRing(x,y,R,k,delay){ const V=G.zsv; if(!V||G.scene!=='game') return; V.fx.push({x,y,R,k,t:G.time+(delay||0)}); if(V.fx.length>48) V.fx.shift(); }
+
+/* ---------- round start: breathers, waves, spawns ---------- */
+async function zsRound(){ const S=G.zs, mid=G.matchId; if(!S) return;
+  G.units=G.units.filter(u=>!(u.zb&&!u.alive&&u.zdR<G.round)); // corpses from earlier rounds
+  if(S.resp){ S.resp=false; await zsRespawn(); if(G.over||G.matchId!==mid) return; }
+  if(S.state==='rest'&&G.round===1){ banner('Survival','The first wave hits next round. Zombies hunt by sound: unsuppressed shots carry '+ZS.shot+' tiles, explosions '+ZS.blast+'.','warn',3400); }
+  if(S.state==='rest'&&G.round>=S.next){ S.wave++; S.state='wave'; S.w0=G.round; S.q=zsCompose(S.wave); S.tot=S.q.length;
+    const sp=[...new Set(S.q)].filter(k=>k!=='walker').map(k=>ZT[k].name+(k==='boss'?'':'s'));
+    banner('Wave '+S.wave+(S.wave===ZS.waves?' · final':''),S.tot+' zombies'+(sp.length?': '+sp.join(', ').replace('Abomination','an Abomination'):'')+'.',S.wave%5===0?'lose':'warn',2200); SFX.tone(140,60,.9,.12,'sawtooth'); buzz([30,40,30]);
+    feedLine('Wave '+S.wave+': '+S.tot+' zombies',true); await wait(900); if(G.matchId!==mid) return; }
+  if(S.state==='wave'&&S.q.length) await zsSpawn();
+  // a wave that drags on: from ZS.smell rounds the horde smells the squad; after ZS.disperse rounds what is left (and still
+  // to come) disperses so a squad the horde cannot reach (rooftops, a choked ladder) never stalls the run
+  if(S.state==='wave'&&G.round-S.w0>=ZS.smell){ const sq=zsSquad().filter(standing);
+    if(G.round-S.w0>=ZS.disperse){ S.q=[]; for(const z of G.units) if(z.zb&&z.alive){ z.alive=false; z.deadT=1; z.zdR=G.round; z.zdT=G.time; } feedLine('The rest of wave '+S.wave+' scattered',true); zsCheckWave(); }
+    else if(sq.length) for(const z of G.units){ if(!z.zb||!standing(z)||z.zm===2) continue; let b=sq[0], bd=1e9; for(const p of sq){ const d=Math.hypot(p.x-z.x,p.y-z.y); if(d<bd){ bd=d; b=p; } } z.zt={x:b.x,y:b.y,p:6,r:G.round}; z.zm=1; } }
+  for(const L of S.lures) if(G.round<=L.until){ zsSnd(L.x,L.y,'lure',null,ZS.lureEcho); if(tileShown(L.x,L.y)) floatText(tileDummy(L.x,L.y),'BEEP',[200,140,255],14); }
+  S.lures=S.lures.filter(L=>L.until>G.round);
+  updateTop(); updateTurnOrder(); }
+// wave composition (seeded order): a boss every 5th wave, then Screamers, Bloaters, Brutes, Runners and Walkers
+function zsCompose(w){ const S=G.zs, D=ZD[S.d], n=Math.max(3,Math.round((2+1.5*w)*(0.55+0.45*S.n)*D.n)), q=[];
+  let left=n; const add=(k,c)=>{ c=Math.min(c,left); for(let i=0;i<c;i++) q.push(k); left-=c; };
+  if(w%5===0) add('boss',1);
+  if(w>=3) add('screamer',1+Math.floor((w-3)/5));
+  if(w>=4) add('bloater',Math.max(1,Math.floor(n*0.12)));
+  if(w>=4) add('brute',Math.max(0,Math.floor((w-1)/3)+(S.n>=3&&w>=8?1:0)-(w%5===0&&S.n<3?1:0))); // a small squad gets one Brute fewer on a boss wave
+  if(w>=2) add('runner',Math.floor(n*Math.min(0.35,0.08*w)));
+  add('walker',left);
+  const boss=q.filter(k=>k==='boss'), rest=shuffle(q.filter(k=>k!=='boss'));
+  return boss.concat(rest); }
+// spawn the next batch at one or two edge points out of the squad's sight
+async function zsSpawn(){ const S=G.zs, sq=zsSquad().filter(standing), alive=G.units.filter(u=>u.zb&&u.alive).length;
+  const cap=ZS.cap+ZS.capPer*S.n, k=Math.min(S.q.length,cap-alive,Math.max(3,Math.ceil(S.tot/3))); if(k<=0) return;
+  const far=S.sp.filter(i=>{ const x=i%MW, y=(i/MW)|0; return !sq.some(p=>{ const d=Math.hypot(p.x-x,p.y-y); return d<9||(d<=sightOf(p)&&hasLOS(p.x,p.y,x,y)); }); });
+  const pool=far.length?far:S.sp; if(!pool.length) return;
+  const groups=k>=6?2:1, made=[]; let shown=false;
+  for(let g=0;g<groups;g++){ const c=pick(pool), cx=c%MW, cy=(c/MW)|0, m=g<groups-1?Math.ceil(k/groups):k-made.length;
+    const cand=[]; for(let y=Math.max(0,cy-4);y<=Math.min(MH-1,cy+4);y++) for(let x=Math.max(0,cx-4);x<=Math.min(MW-1,cx+4);x++){ const i=idx(x,y); if(G.grid[i]||G.lvl[i]||G.surf[i]===1||unitAt(x,y)||droneOn(x,y)) continue; cand.push(i); }
+    cand.sort((a,b)=>Math.hypot(a%MW-cx,((a/MW)|0)-cy)-Math.hypot(b%MW-cx,((b/MW)|0)-cy)||a-b);
+    for(let j=0;j<m&&j<cand.length&&S.q.length;j++){ const i=cand[j]; if(unitAt(i%MW,(i/MW)|0)) continue; const z=zbMake(S.q.shift(),i%MW,(i/MW)|0); made.push(z); if(shouldShow(z)) shown=true; } }
+  if(!made.length) return;
+  G.units.push(...made);
+  for(const z of made){ z.zR=G.time; if(G.player&&!G.fullVis&&!shouldShow(z)) continue; const p=tileC(z.x,z.y); for(let i=0;i<6;i++) part({x:p[0]+frand(-10,10),y:p[1],z:2,vx:frand(-40,40),vy:frand(-20,20),vz:frand(30,80),life:frand(.4,.8),size:frand(2,3),col:[70,60,50],type:'debris',grav:300}); }
+  if(G.player&&!G.fullVis){ const seen=new Set(); for(const z of made){ const key=Math.round(z.x/4)+','+Math.round(z.y/4); if(seen.has(key)) continue; seen.add(key); ping(z.x,z.y,[157,255,58]); } }
+  if(shown) await wait(450); }
+// a zombie: a Ranger rig made into a melee-only NPC (the boss scales with the squad)
+function zbMake(k,x,y){ const T=ZT[k], S=G.zs, D=ZD[S.d], w=S.wave, Cl=CLASSES.ranger;
+  const u=makeUnit({cls:'ranger',weapon:Cl.weapons[0],armor:Cl.armors[0],utils:[],perk:null,sec:Cl.secs[0],tree:[0,0,0,0,0],lv:1,att:{}},false,T.name.toUpperCase(),T.col,null,ZS_T);
+  u.zb=k; u.noGun=true; u.noNade=true; u.W=Object.assign({},u.W,{clip:0}); u.ammo=0; u.S=ZCLAW; u.sid='claw'; u.sAmmo=0; u.sUses=0; u.utils=[]; u.cp={}; u.perk=null; u.dr=null;
+  u.maxHp=u.hp=Math.max(2,(T.boss?T.hp-15+5*S.n:T.hp)+Math.floor((w-1)/4)*(T.boss?4:T.smash?2:1)+D.hp); u.armor=T.ar; u.def=0; u.shield=0; u.mob=T.mob+(k==='runner'?D.run:0); u.sight=T.sight; u.aim=0;
+  u.zacc=T.acc+D.acc+Math.min(10,(w-1)*2); u.zdmg=[T.dmg[0]+(w>=9?1:0),Math.max(T.dmg[0],T.dmg[1]+D.dmg)+(w>=9?1:0)]; u.zm=0; u.zt=null; u.zcd=0;
+  placeUnit(u,x,y); u.face=x<MW/2?1:-1; return u; }
+// fallen squadmates come back at the start of a breather, next to a standing teammate
+async function zsRespawn(){ const sq=zsSquad(), up=sq.filter(standing), due=sq.filter(u=>!u.alive); if(!up.length||!due.length) return; let me=false;
+  for(const u of due){ const a=up[0]; let best=-1, bd=1e9;
+    for(let y=Math.max(0,a.y-3);y<=Math.min(MH-1,a.y+3);y++) for(let x=Math.max(0,a.x-3);x<=Math.min(MW-1,a.x+3);x++){ const i=idx(x,y); if(G.grid[i]&&!G.grid[i].pass||unitAt(x,y)||droneOn(x,y)||Math.abs(G.lvl[i]-lvAt(a.x,a.y))>1) continue; const d=Math.hypot(x-a.x,y-a.y)+i*1e-6; if(d<bd){ bd=d; best=i; } }
+    if(best<0) continue; gmRevive(u); u.hp=Math.ceil(u.maxHp/2); placeUnit(u,best%MW,(best/MW)|0); u.drop=1; dropLand(u,0.6); feedLine(u.name+' is back in the fight',true); if(u.isPlayer&&!G.watch) me=true; }
+  if(me){ const p=G.player; G.playerDead=false; G.spec=null; G.speed=1; $('#spSpeed').textContent='1×'; $('#spec').classList.add('hidden'); focusOn(p.x,p.y,defaultZ()); banner('Back in the fight','Your squad held on. You rejoin with half health.','win',1800); buzz(25); }
+  computeVis(); updateHUD(); await wait(me?900:500); }
+// a wave is cleared when its queue is empty and no zombie is left: breather (or the win after the last wave)
+function zsCheckWave(){ const S=G.zs; if(!S||G.over||S.state!=='wave'||S.q.length||G.units.some(u=>u.zb&&u.alive)) return;
+  S.cleared=S.wave; S.state='rest'; S.next=G.round+1+ZS.rest;
+  if(S.wave>=ZS.waves){ S.won=true; feedLine('Final wave cleared',true); endMatch(true); return; }
+  const sq=zsSquad().filter(standing);
+  for(const u of sq){ const h=Math.min(4,u.maxHp-u.hp); u.hp+=h; const q=u.utils.find(x=>x.id==='barricade'); if(q) q.ch=Math.min(3,q.ch+1); else u.utils.push({id:'barricade',ch:1}); if(shouldShow(u)&&h) floatText(u,'+'+h+' HP',[93,255,154],18); }
+  // supplies near the squad: crates, and a supply drop crate after every 5th wave
+  if(sq.length){ let cx=0, cy=0; for(const u of sq){ cx+=u.x; cy+=u.y; } cx/=sq.length; cy/=sq.length;
+    const cand=[]; for(let i=0;i<MW*MH;i++){ if(G.grid[i]||G.surf[i]===1) continue; const x=i%MW, y=(i/MW)|0, d=Math.hypot(x-cx,y-cy); if(d<2.5||d>8||unitAt(x,y)||G.crates.some(q=>q.x===x&&q.y===y)) continue; cand.push(i); }
+    const nc=1+Math.floor(S.n/2)+(S.wave%5===0?1:0);
+    for(let k=0;k<nc&&cand.length;k++){ const j=Math.floor(RNG()*cand.length), i=cand.splice(j,1)[0]; G.crates.push({x:i%MW,y:(i/MW)|0,ph:RNG()*6,drop:S.wave%5===0&&k===0}); } }
+  if(zsSquad().some(u=>!u.alive)) S.resp=true;
+  feedLine('Wave '+S.wave+' cleared',true);
+  banner('Wave '+S.wave+' cleared','Breather: loot, revive and rebuild. Wave '+(S.wave+1)+' in '+(S.next-G.round)+' rounds.','win',2400); SFX.heal(); buzz([20,30,20]);
+  updateTop(); }
+
+/* ---------- the horde's turn ---------- */
+async function zsPhase(){ const S=G.zs, mid=G.matchId; if(!S||G.over) return;
+  const stale=()=>G.over||G.matchId!==mid;
+  let L=zsZombies();
+  if(!L.length){ S.snd=[]; return; }
+  turnTag('The horde moves','enemy');
+  // damage over time (burning, poison, bleeding): no waits
+  for(const z of L) if(z.st) zbTick(z);
+  if(stale()) return; L=zsZombies();
+  const prey=G.units.filter(u=>!u.zb&&u.alive&&u.team!==ZS_T);
+  // sight: chase the nearest squad member in view and growl so the others follow
+  for(const z of L){ let b=null, bd=1e9; for(const p of prey){ if(!standing(p)||!canSee(z,p)) continue; const d=Math.hypot(p.x-z.x,p.y-z.y); if(d<bd){ bd=d; b=p; } }
+    if(b){ z.zm=2; z.zv=G.round; z.zt={x:b.x,y:b.y,p:40,r:G.round}; zsSnd(z.x,z.y,'growl',z,null,b.x,b.y); }
+    else if(z.zm===2) z.zm=1; }
+  zbHear(L,S.snd);
+  // Screamers that found something this round scream: everything in range heads for what they found
+  const sc=[];
+  for(const z of L){ if(!ZT[z.zb].scream||z.zcd>G.round||!z.zt||z.zt.r!==G.round||z.zt.p<=0) continue; z.zcd=G.round+2; z.zsc=G.time;
+    const s0=S.snd.length; zsSnd(z.x,z.y,'scream',z,null,z.zt.x,z.zt.y); sc.push(...S.snd.slice(s0));
+    if(shouldShow(z)){ floatText(z,'SCREAM',[214,120,255],18); SFX.tone(1800,600,.5,.06,'sawtooth'); } else if(G.player&&!G.fullVis) cueAt(z.x,z.y,'blast',null);
+    feedLine('A Screamer called the horde',true); }
+  if(sc.length) zbHear(L,sc);
+  S.snd=[];
+  await zbMoveAll(L); if(stale()) return;
+  await zbAttacks(); if(stale()) return;
+  for(const z of zsZombies()){ if(z.disorient>0) z.disorient--; if(z.st||z.stMob) stEnd(z); }
+  zsCheckWave(); updateTop(); updateHUD(); }
+function zbTick(z){ const show=shouldShow(z);
+  for(const k of ST_KEYS){ const e=z.st&&z.st[k], S=STATUS[k]; if(!e||!S.dmg||!standing(z)) continue;
+    applyDamage(z,rollDmg(S.dmg),G.mut.one?null:stSrc(e.s),{pierce:true,anim:show,how:S.how}); } }
+// hearing: the loudest, freshest lead wins (a zombie with prey in sight ignores sounds)
+function zbHear(L,snds){ const D=ZD[G.zs.d];
+  for(const z of L){ if(!standing(z)||z.zv===G.round) continue; const hm=ZT[z.zb].hear*D.hear;
+    for(const s of snds){ if(s.s===z.id) continue; const d=Math.hypot(s.x-z.x,s.y-z.y); if(d>s.R*hm+0.01) continue;
+      const pr=s.L-d*0.35, cur=z.zt?z.zt.p-(G.round-z.zt.r)*ZS.decay:-99;
+      if(pr>=cur){ z.zt={x:s.tx,y:s.ty,p:pr,r:G.round}; z.zm=1; z.zh=G.round; } } } }
+function zbWander(z){ const S=G.zs, sq=zsSquad().filter(u=>standing(u)); if(!sq.length) return null;
+  // roam around where it is, drifting toward a random squad member more and more as the wave drags on
+  const p=sq[Math.floor(RNG()*sq.length)], k=Math.min(0.8,0.3+0.1*(G.round-S.w0)), cx=z.x+(p.x-z.x)*k, cy=z.y+(p.y-z.y)*k;
+  for(let n=0;n<12;n++){ const a=RNG()*Math.PI*2, r=RNG()*ZS.wander, x=Math.round(cx+Math.cos(a)*r), y=Math.round(cy+Math.sin(a)*r); if(inMap(x,y)&&!G.grid[idx(x,y)]) return {x,y,p:0,r:G.round}; }
+  return {x:p.x,y:p.y,p:0,r:G.round}; }
+// one step i -> j in direction d (computeReach rules). A closed door is in the way of every zombie (+3: it is banged or
+// smashed open); smash: a Brute also goes through any destructible cover (+3)
+function zbCost(i,j,d,smash){ const o=G.grid[j]; let ob=!!(o&&o.kind==='door'&&o.t===2);
+  if(o&&!o.pass&&!o.roof){ if(!smash||!shootable(o)||boomOf(o)) return -1; ob=true; }
+  const cx=i%MW, cy=(i/MW)|0, diag=d[0]&&d[1], lc=G.lvl[i]; let climb=0;
+  if(diag){ if(G.lvl[j]!==lc) return -1; const a=idx(cx+d[0],cy), b=idx(cx,cy+d[1]); if(lc>=2?(G.lvl[a]!==lc||G.lvl[b]!==lc):(!clearT(a)||!clearT(b))) return -1; }
+  else { climb=climbCost(cx,cy,j%MW,(j/MW)|0); if(climb<0) return -1; }
+  return (diag?1.5:1)+climb+(G.surf[j]===1?1:0)+(ob?3:0); }
+// walking distance to tile t (binary heap, ties by tile index: deterministic), grown lazily: zbSettle(f,i) pops until tile i
+// is final, so every tile closer to t than i is final too (all a downhill step needs). Fields are shared per phase.
+function zbField(t,smash){ const N=MW*MH, f={dist:new Float32Array(N).fill(Infinity),done:new Uint8Array(N),H:[],smash}; f.dist[t]=0; zbPush(f.H,0,t); return f; }
+function zbPush(H,d,i){ H.push([d,i]); let k=H.length-1; while(k){ const p=(k-1)>>1; if(H[p][0]<d||(H[p][0]===d&&H[p][1]<i)) break; H[k]=H[p]; k=p; } H[k]=[d,i]; }
+function zbPop(H){ const top=H[0], last=H.pop(); if(H.length){ let k=0; for(;;){ const l=2*k+1, r=l+1; let m=k, mv=last;
+    if(l<H.length&&(H[l][0]<mv[0]||(H[l][0]===mv[0]&&H[l][1]<mv[1]))){ m=l; mv=H[l]; } if(r<H.length&&(H[r][0]<mv[0]||(H[r][0]===mv[0]&&H[r][1]<mv[1]))){ m=r; mv=H[r]; }
+    if(m===k) break; H[k]=H[m]; k=m; } H[k]=last; } return top; }
+function zbSettle(f,i){ const D=f.dist, H=f.H;
+  while(!f.done[i]&&H.length){ const [cd,cur]=zbPop(H); if(f.done[cur]||cd>D[cur]) continue; f.done[cur]=1; const cx=cur%MW, cy=(cur/MW)|0;
+    for(const d of DIRS8){ const nx=cx+d[0], ny=cy+d[1]; if(!inMap(nx,ny)) continue; const j=idx(nx,ny); if(f.done[j]) continue; const c=zbCost(cur,j,d,f.smash); if(c<0) continue; const nd=cd+c; if(nd<D[j]){ D[j]=nd; zbPush(H,nd,j); } } }
+  return D[i]; }
+function zbOcc(){ const o=new Uint8Array(MW*MH); for(const u of G.units) if(u.alive) o[idx(u.x,u.y)]=1; for(const d of G.drones) if(d.alive) o[idx(d.x,d.y)]=1; return o; }
+// a zombie's move this round: down the walking-distance field toward its lead, around occupied tiles
+function zbPlan(z,occ,F){
+  if(!z.zt||(z.zm!==2&&Math.hypot(z.zt.x-z.x,z.zt.y-z.y)<=1.5)||(z.zm===0&&G.round-z.zt.r>=3)){ if(z.zm===1) z.zm=0; z.zt=zbWander(z); }
+  if(!z.zt) return null;
+  const smash=!!ZT[z.zb].smash; let bud=z.zm===0?Math.max(2,z.mob-0.5):z.mob; if(hasStatus(z,'chill')) bud=Math.max(1,bud-1);
+  const fld=()=>{ const ti=idx(clamp(z.zt.x,0,MW-1),clamp(z.zt.y,0,MH-1)), key=ti*2+(smash?1:0); let f=F.get(key); if(!f){ f=zbField(ti,smash); F.set(key,f); } return f; };
+  let f=fld(); if(!isFinite(zbSettle(f,idx(z.x,z.y)))){ z.zm=0; z.zt=zbWander(z); if(!z.zt) return null; f=fld(); zbSettle(f,idx(z.x,z.y)); } // a lead it cannot walk to: back to roaming
+  let cur=idx(z.x,z.y), cost=0, sm=null; const path=[[z.x,z.y]]; occ[cur]=0;
+  const D=f.dist;
+  for(let g=0;g<16;g++){ let best=-1, bv=D[cur], bc=0;
+    for(const d of DIRS8){ const nx=cur%MW+d[0], ny=((cur/MW)|0)+d[1]; if(!inMap(nx,ny)) continue; const j=idx(nx,ny); if(occ[j]) continue; const c=zbCost(cur,j,d,smash); if(c<0) continue; if(D[j]<bv-1e-6){ bv=D[j]; best=j; bc=c; } }
+    if(best<0) break;
+    const o=G.grid[best]; if(o&&((!o.pass&&!o.roof)||(o.kind==='door'&&o.t===2))){ sm=[best%MW,(best/MW)|0]; break; } // a closed door (or, for a Brute, cover) in the way: bang on it
+    if(cost+bc>bud+1e-6) break;
+    cost+=bc; cur=best; path.push([cur%MW,(cur/MW)|0]); }
+  occ[cur]=1; return {path,smash:sm}; }
+// anything that reacts to a step (overwatch, Bladestorm, trip mines, turrets): those moves run through moveUnit, one by one
+// (a superset of what canSee / canMelee would allow, so a move that can trigger one never takes the fast path)
+function zbReactive(path){ const P=path.slice(1), sees=(w,sr)=>P.some(t=>Math.hypot(t[0]-w.x,t[1]-w.y)<=sr+0.01&&hasLOS(w.x,w.y,t[0],t[1]));
+  for(const w of G.units){ if(w.zb||!standing(w)) continue; if(w.overwatch&&w.ammo>0&&sees(w,sightOf(w))) return true; if(hasP(w,'r_storm')&&P.some(t=>Math.max(Math.abs(t[0]-w.x),Math.abs(t[1]-w.y))<=1)) return true; }
+  if(!kitOn()) return false; if((G.kit.mines||[]).some(m=>P.some(t=>t[0]===m.x&&t[1]===m.y))) return true;
+  return G.drones.some(d=>d.tur&&d.alive&&sees(d,Math.max(sightOf(d)||0,14))); }
+async function zbMoveAll(L){ const F=new Map(), pend=[]; let occ=zbOcc();
+  const flush=async()=>{ if(!pend.length) return; await Promise.all(pend.splice(0).map(zbTween)); };
+  for(const z of L){ if(!standing(z)||G.over) continue; if(hasStatus(z,'freeze')) continue;
+    const plan=zbPlan(z,occ,F); if(!plan) continue;
+    if(plan.path.length>1){ if(zbReactive(plan.path)){ await flush(); await moveUnit(z,plan.path); occ=zbOcc(); } else zbFast(z,plan.path,pend); }
+    if(plan.smash&&standing(z)&&!G.over){ await flush(); await zbSmash(z,plan.smash); occ=zbOcc(); }
+    if(pend.length>=12) await flush(); }
+  await flush(); }
+// the sim side of a move (moveUnit without the waits and reactions); the walk is animated later, in a batch
+function zbFast(z,path,pend){ const pts=[[z.rx,z.ry,z.rz]]; let shown=shouldShow(z);
+  for(let k=1;k<path.length;k++){ if(!standing(z)||G.over) break; const nx=path[k][0], ny=path[k][1];
+    const dc=cell(nx,ny); if(dc&&dc.kind==='door'&&dc.t===2) setDoor(nx,ny,true,z);
+    faceTo(z,nx,ny); const ox=z.x, oy=z.y; placeUnit(z,nx,ny);
+    if(wxNow().prints){ G.prints.push({x:nx,y:ny,dx:nx-ox,dy:ny-oy,id:z.id,team:z.team,r:G.round}); if(G.prints.length>360) G.prints.splice(0,G.prints.length-360); }
+    sensorCheck(z); if(z.st||hzOn()) hzStep(z); scanCheck(z);
+    pts.push([z.x,z.y,ez(z.x,z.y)]); if(tileShown(nx,ny)) shown=true; }
+  if(shown&&pts.length>1){ z.rx=pts[0][0]; z.ry=pts[0][1]; z.rz=pts[0][2]; pend.push({z,pts}); } }
+function zbTween(m){ const z=m.z, P=m.pts, n=P.length-1;
+  return new Promise(res=>G.tweens.push({t:0,dur:n*ZS.stepT*(ZT[z.zb].mob>=6?0.8:1),res,fn:k=>{ const f=k*n, i=Math.min(n-1,Math.floor(f)), q=f-i;
+    z.rx=lerp(P[i][0],P[i+1][0],q); z.ry=lerp(P[i][1],P[i+1][1],q); z.rz=lerp(P[i][2],P[i+1][2],q); z.walk=(z.walk||0)+0.03; if(k>=1){ z.rx=z.x; z.ry=z.y; z.rz=ez(z.x,z.y); } }})); }
+async function zbSmash(z,at){ const x=at[0], y=at[1], o=cell(x,y); if(!o||!shootable(o)) return; faceTo(z,x,y);
+  const anim=shouldShow(z)||tileShown(x,y), big=!!ZT[z.zb].smash;
+  if(anim){ z.zL=G.time; floatText(z,big?'SMASH':'BANG',[255,170,90],big?17:15); if(big) G.cam.shake=Math.max(G.cam.shake,5); SFX.noise(.35,'lowpass',300,big?.6:.35); await wait(big?200:120); }
+  zsSnd(x,y,'smashS',z); await damageTerr(x,y,big?ZS.smash:ZS.bang,z,anim); if(anim) await wait(big?250:150); }
+// attacks, after every zombie has moved: claws on an adjacent squad member (standing ones first); a Bloater bursts
+async function zbAttacks(){ let shown=false;
+  for(const z of zsZombies()){ if(G.over) break; if(!standing(z)) continue;
+    const adj=G.units.filter(p=>!p.zb&&!p.drone&&p.alive&&p.team!==ZS_T&&canMelee(z.x,z.y,p.x,p.y)); if(!adj.length) continue;
+    const up=adj.filter(standing), T=ZT[z.zb], anim=shouldShow(z)||adj.some(shouldShow);
+    if(T.gas&&up.length){ await zbBurst(z,anim); shown=shown||anim; continue; }
+    const tg=(up.length?up:adj).slice().sort((a,b)=>(a.hp+a.shield)-(b.hp+b.shield)||a.id-b.id); const hits=T.boss?tg.filter(standing).slice(0,2):[tg[0]];
+    if(!hits.length) hits.push(tg[0]);
+    for(const t of hits){ if(!t.alive||G.over) continue; faceTo(z,t.x,t.y);
+      const ok=t.downed||RNG()*100<clamp(z.zacc-(t.def|0)-(t.slip?15:0)-(z.disorient>0?20:0),5,97);
+      if(anim){ shown=true; z.zL=G.time; const p=chest(t); addFx({type:'slash',x:p[0],y:p[1],rot:z.face>0?0.3:-0.3,col:[255,110,90],life:.35,s:'slash'}); SFX.slash(); }
+      if(ok) applyDamage(t,ri(z.zdmg[0],z.zdmg[1]),z,{anim,how:'claws'}); else if(anim) floatText(t,'MISSED',[200,210,220],18);
+      if(t.isPlayer&&ok) buzz(30); }
+    if(anim) await wait(120); }
+  if(shown&&!G.over) await wait(320); }
+async function zbBurst(z,anim){ const x=z.x, y=z.y;
+  if(anim){ floatText(z,'BURST',[170,255,90],20); const p=chest(z); addFx({type:'ring',x:p[0],y:p[1]+19,r:1.6*TW,col:[170,255,90],life:.5}); SFX.noise(.5,'lowpass',500,.6); }
+  for(const v of G.units.filter(v=>v!==z&&standing(v)&&!v.drone&&Math.hypot(v.x-x,v.y-y)<=1.51)) applyDamage(v,2,z,{pierce:true,anim:anim||shouldShow(v),how:'bloater'});
+  if(z.alive) kill(z,null,anim,'burst');
+  if(anim) await wait(350); }
+// a zombie dies (kill() hands every zombie here): kill credit, a Bloater's gas, a rare crate, the wave check
+function zsDie(t,src,anim,how){ const S=G.zs, T=ZT[t.zb];
+  t.vDeathS=src&&src!==t?(iso(t.x,t.y)[0]>=iso(src.x,src.y)[0]?1:-1):-t.face; t.alive=false; t.downed=false; t.deadT=0.001; t.overwatch=false; t.zdR=G.round; t.zdT=G.time; t.zm=0;
+  S.kills++;
+  if(src&&!src.zb&&src!==t&&!src.drone){ src.kills++; src.tk=(src.tk||0)+1; if(src.isPlayer){ G.stats.kills++; const V=G.zsv; V.my[t.zb]=(V.my[t.zb]||0)+1; floatText(src,'+'+ZS.cr+' CR',[255,179,64],15); } }
+  if(T.boss||T.smash||T.scream||T.gas) feedLine((src&&src!==t&&!src.zb?src.name+' took down a ':'A ')+T.name+(how==='burst'?' burst':''),mine(src)||how==='burst');
+  if(anim||shouldShow(t)){ const p=chest(t); for(let i=0;i<(T.boss?26:12);i++) part({x:p[0],y:p[1],vx:frand(-110,110),vy:frand(-100,30),life:frand(.3,.7),size:frand(1.6,2.6),col:i%3?[90,140,60]:[140,30,30],type:'spark',grav:260});
+    if(T.boss){ G.cam.shake=Math.max(G.cam.shake,10); floatText(t,'ABOMINATION DOWN',[255,120,100],22); } }
+  if(T.gas){ hzGas(t.x,t.y,T.gas,src&&!src.zb?src:null,3); if(tileShown(t.x,t.y)){ hzPuff(t.x,t.y,T.gas); floatText(tileDummy(t.x,t.y),'TOXIC CLOUD',[160,255,100],16); } zsSnd(t.x,t.y,'burst',t); }
+  if(RNG()<T.loot&&!G.crates.some(q=>q.x===t.x&&q.y===t.y)) G.crates.push({x:t.x,y:t.y,ph:RNG()*6,drop:!!T.boss});
+  updateTop(); zsCheckWave(); }
+function zsHash(add){ const S=G.zs; add(S.wave); add(S.cleared); add(S.state==='wave'?1:0); add(S.next); add(S.q.length); add(S.kills); add(S.snd.length); add(+!!S.resp);
+  for(const L of S.lures){ add(L.x*97+L.y); add(L.until); }
+  for(const u of G.units) if(u.zb){ add(ZT_KEYS.indexOf(u.zb)); add(u.maxHp); add(u.zm|0); add(u.zt?u.zt.x*97+u.zt.y:-1); add(u.zt?Math.round(u.zt.p*10):0); add(u.zcd|0); } }
+
+/* ---------- the end, rewards and the results screen ---------- */
+function zsEnd(){ const S=G.zs, win=!!S.won; if(G.over) return; G.over=true; G.turnRes=null;
+  G.result={win,place:1,of:1,winner:null,wave:S.wave,cleared:S.cleared};
+  if(G.watch){ computeVis(); turnTag('',''); $('#spec').classList.add('hidden'); banner(win?'Extracted':'Overrun','The squad '+(win?'survived all '+ZS.waves+' waves.':'fell in wave '+S.wave+'.'),win?'win':'lose',2400);
+    recSave(); const mid=G.matchId; setTimeout(()=>{ if(G.matchId===mid) watchEnd('over'); },2600); return; }
+  if(NET.host&&NET.cfg&&!NET.done){ NET.done=true; netLobby(); }
+  const b=PROF.settings.zbest=Object.assign({},PROF.settings.zbest); if((b[S.d]|0)<S.cleared) b[S.d]=S.cleared; saveProf();
+  recSave(); computeVis(); turnTag('',''); $('#spec').classList.add('hidden'); $('#tmr').classList.add('hidden');
+  if(win){ banner('Extracted','You survived all '+ZS.waves+' waves.','win',2600); buzz([40,60,40,60,120]); }
+  else banner('Overrun',S.cleared?'Your squad survived '+S.cleared+' wave'+(S.cleared>1?'s':'')+'.':'The first wave got you.','lose',2600);
+  const mid=G.matchId; setTimeout(()=>{ if(G.matchId===mid) showEnd(); },2700); }
+// credits and XP: a long run pays about what two or three classic matches do (rounds are many and zombies plentiful)
+function zsLines(r,s){ const S=G.zs, L=[['Waves survived ×'+S.cleared,S.cleared*40],['Zombies taken down ×'+s.kills,s.kills*ZS.cr],['Damage dealt ('+s.dmg+')',Math.round(s.dmg/2)],['Rounds survived ('+s.rounds+')',s.rounds]];
+  if(r.win) L.push(['Extraction bonus',300]); if(s.revives) L.push(['Revives ×'+s.revives,s.revives*25]); return L; }
+function zsXp(r,s){ return G.zs.cleared*80+s.kills*ZS.xp+s.dmg+s.rounds*4+s.revives*40+s.drops*60+(r.win?400:0); }
+function zsEndScreen(){ const S=G.zs, s=G.stats, V=G.zsv||{my:{}}, reg=G.R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
+  $('#eRes').textContent=S.won?'Extracted':'Wave '+Math.max(1,S.wave); $('#eRes').className='display res '+(S.won?'win':'lose');
+  $('#eSub').textContent=(S.won?'You survived all '+ZS.waves+' waves':'Overrun in wave '+Math.max(1,S.wave)+' · '+S.cleared+' wave'+(S.cleared===1?'':'s')+' survived')+' in '+reg+', Survival ('+DIFFS[S.d].name+' horde'+(S.n>1?', squad of '+S.n:'')+').'+mutTxt();
+  const acc=s.shots?Math.round(s.hits/s.shots*100)+'%':'—', by=ZT_KEYS.filter(k=>V.my[k]).map(k=>V.my[k]+' '+ZT[k].name.toLowerCase()+(V.my[k]>1&&k!=='boss'?'s':'')).join(' · ');
+  $('#eGrid').innerHTML='<div><b>'+S.cleared+'</b>waves survived</div><div><b>'+s.kills+'</b>zombies you took down</div><div><b>'+S.kills+'</b>taken down by the squad</div><div><b>'+s.dmg+'</b>damage dealt</div><div><b>'+acc+'</b>accuracy</div><div><b>'+s.rounds+'</b>rounds survived</div>'
+    +(by?'<div style="grid-column:1/-1"><b style="font-size:15px">'+esc(by)+'</b>your takedowns by type</div>':''); }
+
+/* ---------- AI teammates, HUD, drawing ---------- */
+// aiScoreTile add-on (modeTile): keep out of claw reach and stick together
+function zsTile(u,x,y,threats){ let s=0, n=0;
+  for(const t of threats){ if(!t.zb) continue; const d=Math.hypot(t.x-x,t.y-y); if(d<1.6) s-=30; else if(d<3) s-=(3-d)*9; }
+  for(const m of G.units) if(m!==u&&!m.zb&&standing(m)&&m.team===u.team&&Math.hypot(m.x-x,m.y-y)<=4.5) n++;
+  return s+Math.min(3,n)*4; }
+function zsTop(){ const S=G.zs, chip=$('#hStormChip'), st=$('#hStorm'); chip.classList.add('gm'); $('#hAlive').parentNode.classList.add('hidden');
+  const zn=G.units.filter(u=>u.zb&&u.alive).length+S.q.length, nar=innerWidth<=440;
+  chip.classList.toggle('hot',S.state==='wave');
+  st.textContent=S.state==='wave'?'Wave '+S.wave+' · '+zn+' left':S.wave?(nar?'W':'Wave ')+(S.wave+1)+' in '+Math.max(1,S.next-G.round):'Wave 1 next';
+  chip.title=S.state==='wave'?'Wave '+S.wave+' of '+ZS.waves+': '+zn+' zombies left (on the map and still coming)':'Breather: the next wave arrives at the start of round '+S.next; }
+function zsChips(ch){ const S=G.zs, p=G.player; ch.push(['zs',DIFFS[S.d].name+' · '+S.cleared+'/'+ZS.waves+' waves']);
+  if(p&&standing(p)&&!G.watch){ const q=p.W&&p.W.silent; ch.push([q?'zq':'zl','Shots: '+(q?'quiet '+Math.round(ZS.quiet*wxHear()):'LOUD '+Math.round(ZS.shot*wxHear()))]); } }
+// sound rings (how far each sound carried) and what the visible zombies are going to investigate
+function zsDrawFx(c){ const V=G.zsv; if(!V||G.scene!=='game') return; const t=G.time;
+  V.fx=V.fx.filter(f=>t-f.t<2.6);
+  for(const f of V.fx){ const a=t-f.t; if(a<0) continue; if((f.k==='growl'||f.k==='scream'||f.k==='burst'||f.k==='smashS')&&!G.fullVis&&!tileShown(f.x,f.y)) continue;
+    const p=iso(f.x+.5,f.y+.5), z=ez(f.x,f.y), col=ZSND_COL[f.k]||[255,255,255], g=Math.min(1,a/0.7), al=a<0.7?0.9:Math.max(0,0.9*(1-(a-0.7)/1.9)), rx=f.R*TW/Math.SQRT2, ry=f.R*TH/Math.SQRT2;
+    c.strokeStyle=C(col,1,al); c.lineWidth=2.2; c.setLineDash(f.k==='quiet'||f.k==='step'||f.k==='melee'?[5,5]:[]); c.beginPath(); c.ellipse(p[0],p[1]-z,rx*g,ry*g,0,0,Math.PI*2); c.stroke();
+    c.fillStyle=C(col,1,al*0.07); c.fill(); c.setLineDash([]);
+    if(a<1.6&&f.R>=4&&f.k!=='growl'){ c.font='700 11px "Chakra Petch",sans-serif'; c.textAlign='center'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,'+(.7*al)+')'; const lb=(f.k==='shot'?'GUNSHOT':f.k==='blast'?'BLAST':f.k==='lure'?'LURE':f.k==='scream'?'SCREAM':f.k==='sprint'?'SPRINT':f.k==='door'?'DOOR':f.k==='burst'?'BURST':f.k==='smashS'?'SMASH':'NOISE')+' · '+Math.round(f.R);
+      c.strokeText(lb,p[0],p[1]-z-ry*g-4); c.fillStyle=C(col,1,al); c.fillText(lb,p[0],p[1]-z-ry*g-4); } }
+  const seen=new Set();
+  for(const u of G.units){ if(!u.zb||!u.alive||u.zm!==1||!u.zt||!shouldShow(u)) continue; const k=u.zt.x*97+u.zt.y; if(seen.has(k)||seen.size>=8) continue; seen.add(k);
+    const p=iso(u.zt.x+.5,u.zt.y+.5), z=ez(u.zt.x,u.zt.y), pu=.6+.4*Math.sin(t*4+k); c.strokeStyle='rgba(255,214,90,'+(.55*pu)+')'; c.lineWidth=1.6; c.setLineDash([3,4]); c.beginPath(); c.ellipse(p[0],p[1]-z,18,9,0,0,Math.PI*2); c.stroke(); c.setLineDash([]);
+    c.font='700 13px "Chakra Petch",sans-serif'; c.textAlign='center'; c.fillStyle='rgba(255,214,90,'+(.8*pu)+')'; c.fillText('?',p[0],p[1]-z+4); } }
+// a zombie figure (match, mode card): hunched body, reaching arms, glowing eyes; type adds bulk, a belly, a mouth, spikes
+function zbFig(c,x,y,k,f,t,ph,walk,s0,o){ const T=ZT[k], s=s0*T.sc*1.15, sk=hexc(T.col), dk=[sk[0]*.45|0,sk[1]*.45|0,sk[2]*.45|0], rag=[58+ph*5|0,56+ph*3|0,52];
+  const w=Math.sin(walk*9+ph*2), lean=(k==='runner'?.35:.22)*f, lu=o&&o.lunge?o.lunge:0;
+  c.save(); c.translate(x+lu*8*f,y);
+  c.lineCap='round';
+  c.strokeStyle=C(dk); c.lineWidth=3.6*s; c.beginPath(); c.moveTo(-2*s,-15*s); c.lineTo((-3+w*3)*s,0); c.moveTo(2*s,-15*s); c.lineTo((3-w*3)*s,0); c.stroke();
+  c.rotate(lean);
+  if(k==='bloater'){ c.fillStyle=C([170,220,80],1,.25+.1*Math.sin(t*3+ph)); c.beginPath(); c.arc(1*f*s,-21*s,13*s,0,Math.PI*2); c.fill(); }
+  c.fillStyle=C(rag); rr(c,-6*s,-31*s,12*s,17*s,4*s); c.fill();
+  if(k==='brute'||k==='boss'){ c.fillStyle=C(dk); rr(c,-9*s,-32*s,18*s,8*s,3*s); c.fill(); }
+  if(k==='bloater'){ c.fillStyle=C([150,200,70]); c.beginPath(); c.ellipse(2*f*s,-20*s,8.5*s,8*s,0,0,Math.PI*2); c.fill(); c.fillStyle='rgba(220,255,140,.6)'; c.beginPath(); c.arc((4*f-1)*s,-22*s,2.2*s,0,Math.PI*2); c.fill(); }
+  c.strokeStyle=C(sk); c.lineWidth=2.8*s; const ar=Math.sin(t*3+ph)*1.5+lu*5; c.beginPath(); c.moveTo(3*f*s,-28*s); c.lineTo((13+ar)*f*s,(-27+Math.sin(t*2+ph))*s); c.moveTo(-1*f*s,-28*s); c.lineTo((10+ar)*f*s,-23*s); c.stroke();
+  c.fillStyle=C(sk); c.beginPath(); c.arc(4*f*s,-36*s,5.4*s,0,Math.PI*2); c.fill();
+  c.fillStyle=k==='boss'?'#ff5040':'#ffe878'; c.beginPath(); c.arc((6*f)*s,-37*s,1.2*s,0,Math.PI*2); c.arc((3.4*f)*s,-37.4*s,1.1*s,0,Math.PI*2); c.fill();
+  if(k==='screamer'){ c.fillStyle='#2a0d20'; c.beginPath(); c.ellipse(5.4*f*s,-33.2*s,1.6*s,2.4*s+(o&&o.scream?1.6*s:0),0,0,Math.PI*2); c.fill(); }
+  if(k==='boss'){ c.fillStyle=C([90,30,30]); for(let i=0;i<3;i++){ c.beginPath(); c.moveTo((-4+i*4)*s,-31*s); c.lineTo((-3+i*4)*s,-37*s); c.lineTo((-1.5+i*4)*s,-31*s); c.fill(); } }
+  c.restore(); }
+function zbDraw(c,u,p,t){ const T=ZT[u.zb], dead=!u.alive;
+  if(dead){ const a=Math.max(0,1-Math.max(0,G.time-(u.zdT||G.time)-1.2)/1.4); if(a<=0) return; c.save(); c.globalAlpha=a*.85; c.translate(p[0],p[1]-2); c.rotate((u.vDeathS||1)*1.35); zbFig(c,0,0,u.zb,u.face||1,0,u.ph||0,0,SCL,null); c.restore(); return; }
+  let rise=1; if(u.zR!=null){ rise=Math.min(1,Math.max(0,(G.time-u.zR)/0.6)); if(rise>=1) u.zR=null; }
+  const lunge=u.zL&&G.time-u.zL<0.32?Math.sin((G.time-u.zL)/0.32*Math.PI):0, sc=u.zsc&&G.time-u.zsc<0.9;
+  if(T.boss){ c.globalCompositeOperation='lighter'; softDot(c,[255,60,40],p[0],p[1]-30,40,.18+.06*Math.sin(t*3)); c.globalCompositeOperation='source-over'; }
+  if(sc){ const k=(G.time-u.zsc)/0.9; c.strokeStyle='rgba(214,120,255,'+(1-k)+')'; c.lineWidth=2.5; c.beginPath(); c.ellipse(p[0],p[1]-34,10+k*40,6+k*22,0,0,Math.PI*2); c.stroke(); }
+  c.save(); if(rise<1){ c.globalAlpha=rise; c.beginPath(); c.rect(p[0]-60,p[1]-120,120,120); c.clip(); }
+  zbFig(c,p[0],p[1]+(1-rise)*34,u.zb,u.face||1,t,u.ph||0,u.walk||0,SCL*(u.flash>0?1.04:1),{lunge,scream:sc});
+  if(u.flash>0){ c.globalAlpha=Math.min(1,u.flash/.3)*.5; c.fillStyle='#fff'; c.beginPath(); c.ellipse(p[0],p[1]-22*T.sc,9*T.sc,18*T.sc,0,0,Math.PI*2); c.fill(); }
+  c.restore();
+  if(u.st&&G.scene==='game') stDrawFx(c,u,p,t);
+  if(G.scene!=='game'||rise<1) return;
+  // health bar and the "heard you" / "sees you" mark
+  const top=p[1]-54*T.sc*SCL, w=Math.max(16,Math.min(40,u.maxHp*3.2)), x0=p[0]-w/2;
+  c.fillStyle='rgba(4,8,14,.72)'; rr(c,x0-1.5,top-1.5,w+3,6,2); c.fill(); c.fillStyle=tcol('hpFoe'); c.fillRect(x0,top,w*Math.max(0,u.hp)/u.maxHp,3);
+  if(u.armor){ c.fillStyle='#cfd9e3'; c.fillRect(x0+w+3,top-1,3,5); }
+  c.textAlign='center'; c.font='800 14px "Chakra Petch",sans-serif'; c.lineWidth=3;
+  if(u.zm===2||u.zm===1){ const red=u.zm===2, s=red?'!':'?', y=top-6, b=u.zh===G.round&&!red?1+0.25*Math.max(0,Math.sin(t*8)):1; c.save(); c.translate(p[0],y); c.scale(b,b); c.strokeStyle='rgba(0,0,0,.75)'; c.strokeText(s,0,0); c.fillStyle=red?'#ff4d5e':'#ffd65a'; c.fillText(s,0,0); c.restore(); }
+  if(T.boss||T.smash||T.scream||T.gas){ c.font='600 9px "Chakra Petch",sans-serif'; c.strokeStyle='rgba(0,0,0,.65)'; c.strokeText(T.name.toUpperCase(),p[0],top+14+0*0); }
+  if(T.boss||T.smash||T.scream||T.gas){ c.fillStyle=T.col; c.fillText(T.name.toUpperCase(),p[0],top+14); } }
+// mode card thumbnail: the squad in the middle, the horde closing in from the edges with sound rings
+function zsThumb(g,D0,D){ const sq=D0.u.slice(0,3), cx=sq.reduce((a,q)=>a+q[0],0)/3, cy=sq.reduce((a,q)=>a+q[1],0)/3, c0=D(cx,cy);
+  for(let i=0;i<3;i++){ g.strokeStyle='rgba(255,150,60,'+(.55-i*.15)+')'; g.lineWidth=2.5; g.beginPath(); g.ellipse(c0[0],c0[1],50+i*46,25+i*23,0,0,Math.PI*2); g.stroke(); }
+  const zs=D0.zs.slice().sort((a,b)=>a[0]+a[1]-b[0]-b[1]);
+  for(const z of zs){ const p=D(z[0],z[1]); g.fillStyle='rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(p[0],p[1],14,7,0,0,Math.PI*2); g.fill(); zbFig(g,p[0],p[1],z[2],p[0]<c0[0]?1:-1,z[0]*1.3,z[1],z[0],1.75,null);
+    g.font='800 22px "Chakra Petch",sans-serif'; g.textAlign='center'; g.fillStyle=z[3]?'#ff4d5e':'#ffd65a'; g.strokeStyle='rgba(0,0,0,.7)'; g.lineWidth=4; g.strokeText(z[3]?'!':'?',p[0],p[1]-82*ZT[z[2]].sc); g.fillText(z[3]?'!':'?',p[0],p[1]-82*ZT[z[2]].sc); } }
+GM_THUMB.survival={reg:'city',sd:41,r:4.5,calm:1,zs:[[1.2,1.6,'walker'],[8.6,1.3,'runner'],[1.0,8.2,'brute',1],[8.8,8.4,'walker'],[5.1,0.6,'screamer'],[9.2,4.9,'bloater']],u:[[4.4,4.7,'#3fd2ff'],[5.4,4.2,'#3fd2ff'],[5.0,5.6,'#3fd2ff']]};
+function zsCard(){ const M=MODES.survival, b=PROF.settings.zbest||{}, best=Math.max(0,...DKEYS.map(k=>b[k]|0));
+  return {k:'survival',name:M.name,tag:'Co-op · zombies',pc:'1–4 players',ds:M.desc,li:['They hunt by sound: suppressors and melee keep you hidden','Walkers, Runners, Brutes, Screamers, Bloaters, a boss every 5th wave',best?'Your best: '+best+' wave'+(best>1?'s':'')+' survived':'Survive '+ZS.waves+' waves to extract']}; }
+// waiting room: the horde difficulty (host / offline edit; guests read it)
+function zsLobbyRow(ed){ const el=$('#wrTime'); if(!el) return; const d=zsDiffKey();
+  const h=ed?'<div class="wt-row"><span class="lbl">Horde</span><div class="seg" role="radiogroup" aria-label="Horde difficulty">'+DKEYS.map(k=>'<button role="radio" aria-checked="'+(k===d)+'" class="'+(k===d?'sel':'')+'" data-zd="'+k+'">'+DIFFS[k].name+'</button>').join('')+'</div></div><small>'+(d==='recruit'?'Smaller, weaker waves that hear less.':d==='elite'?'Bigger, tougher waves with sharp hearing and faster Runners.':'The standard horde.')+' Up to 4 players or AI teammates; '+ZS.waves+' waves to extract.</small>'
+    :'<div class="wt-row"><span class="lbl">Horde</span><span class="wt-ro">'+DIFFS[d].name+'</span></div>';
+  el.insertAdjacentHTML('afterbegin',h); }
+$('#lobby').addEventListener('click',e=>{ const b=e.target.closest('[data-zd]'); if(!b||!DIFFS[b.dataset.zd]) return; const c=lbCtx(); if(!c.edit||!MODES[c.mode].zs) return; SFX.click();
+  PROF.settings.zd=b.dataset.zd; saveProf(); if(LB.online){ NET.zd=b.dataset.zd; netLobby(); } else renderLobby(); });
+
+/* ---------- hooks into the shared systems (wrappers: unchanged outside Survival) ---------- */
+{ const f=kill; kill=function(t,src,anim,how){ if(t&&t.zb&&G.zs) return zsDie(t,src,anim,how); return f(t,src,anim,how); }; }
+{ const f=down; down=function(t,src,anim,how){ if(t&&t.zb&&G.zs) return kill(t,src,anim,how); return f(t,src,anim,how); }; }
+{ const f=bubble; bubble=function(u,txt){ if(u&&u.zb) return; return f(u,txt); }; }
+{ const f=pickup; pickup=function(u){ if(u&&u.zb) return; return f(u); }; }
+// the match goes on while anyone in the squad is in play (all zombies down between waves is not a win)
+{ const f=endMatch; endMatch=function(win){ if(!G.zs||G.scene!=='game') return f(win); if(G.over) return; if(!G.zs.won&&zsSquad().some(inPlay)) return; zsEnd(); }; }
+{ const f=showEnd; showEnd=function(){ f(); if(G.zs&&G.scene==='game') zsEndScreen(); }; }
+{ const f=drawIntel; drawIntel=function(c){ f(c); if(G.zs) zsDrawFx(c); }; }
+// AI squad members with a zombie in claw reach step away first (1 AP; aiScoreTile keeps them out of reach), then fight
+{ const f=aiTurn0; aiTurn0=async function(u,mid){ if(G.zs&&!u.zb&&standing(u)&&u.ap>=2&&!u.moved&&G.units.some(z=>z.zb&&standing(z)&&canMelee(z.x,z.y,u.x,u.y))){
+    const mv=aiChooseMove(u,1); if(mv&&mv.cost<=u.mob+1e-6&&mv.path.length>1){ const e=mv.path[mv.path.length-1]; if(!G.units.some(z=>z.zb&&standing(z)&&canMelee(z.x,z.y,e[0],e[1]))){ u.ap-=1; await moveUnit(u,mv.path); u.moved=true; if(!standing(u)||G.over||G.matchId!==mid) return; } } }
+  return f(u,mid); }; }
+{ const f=modeTile; modeTile=function(u,x,y,threats){ let s=f(u,x,y,threats); if(G.zs&&!u.zb) s+=zsTile(u,x,y,threats); return s; }; }
+{ const f=passLines; passLines=function(r,s,fR){ if(!G.zs) return f(r,s,fR); const L=f(Object.assign({},r,{of:2,place:r.win?1:2}),Object.assign({},s,{kills:Math.round(s.kills/6)}),1); if(L[0]) L[0][0]='Waves survived ('+G.zs.cleared+')'; return L; }; }
+{ const f=renderLobbyTime; renderLobbyTime=function(ed){ f(ed); const c=lbCtx(); if(MODES[c.mode]&&MODES[c.mode].zs) zsLobbyRow(ed); }; }
+{ const f=netCfgClean; netCfgClean=function(cfg){ const r=f(cfg); if(r){ if(MODES[r.mode].zs) r.zd=ZD[r.zd]?r.zd:'veteran'; else delete r.zd; } return r; }; }
+{ const f=netRelay; netRelay=function(msg,except){ if(msg&&msg.t==='lobby'&&NET.host){ if(!ZD[NET.zd]) NET.zd=zsDiffKey0(); msg.zd=NET.zd; } return f(msg,except); }; }
+{ const f=clientData; clientData=function(d){ if(d&&d.t==='lobby') NET.zd=ZD[d.zd]?d.zd:'veteran'; return f(d); }; }
+function zsDiffKey0(){ const d=PROF.settings.zd; return ZD[d]?d:'veteran'; }
+// sounds the shared systems make: suppressed shots, melee, moves, doors; grenades are heard where they land; Noise Makers
+{ const f=fireShot; fireShot=function(a,t,o){ if(G.zs&&a&&!a.zb&&!a.drone&&a.alive&&!a.downed&&t&&t.alive){ const W=(o&&o.W)||a.W; if(W&&W.silent) zsSnd(a.x,a.y,'quiet',a); } return f(a,t,o); }; }
+{ const f=doMelee; doMelee=function(u,t,M,o){ if(G.zs&&u&&!u.zb&&standing(u)&&t&&t.alive) zsSnd(u.x,u.y,'melee',u); return f(u,t,M,o); }; }
+{ const f=moveUnit; moveUnit=function(u,path){ if(G.zs&&u&&!u.zb&&!u.drone&&standing(u)&&Array.isArray(path)&&path.length>1){ const e=path[path.length-1], n=path.length-1, sp=n>u.mob;
+    if(inMap(e[0],e[1])){ const S=G.zs, R=(sp?ZS.sprint:ZS.step); S.snd.push({x:e[0],y:e[1],k:sp?'sprint':'step',R:Math.round(R*wxHear()*10)/10,L:ZS.L[sp?'sprint':'step'],tx:e[0],ty:e[1],s:u.id}); zsRing(e[0],e[1],R*wxHear(),sp?'sprint':'step',n*0.16); } }
+  return f(u,path); }; }
+{ const f=setDoor; setDoor=function(x,y,open,who){ const o=cell(x,y), ch=!!(o&&o.kind==='door'&&(o.t<2)!==open); f(x,y,open,who); if(ch&&G.zs&&who&&!who.zb) zsSnd(x,y,'door',who); }; }
+{ const f=doThrow; doThrow=async function(u,util,tx,ty){ if(G.zs&&u&&util&&UTILS[util.id]&&UTILS[util.id].dmg) G.zs.thr=u.id; try{ return await f(u,util,tx,ty); } finally { if(G.zs) G.zs.thr=-1; } }; }
+{ const f=deployDevice; deployDevice=async function(u,util,tx,ty,anim){ if(!UTILS[util.id].lure) return f(u,util,tx,ty,anim); const S=G.zs; if(!S) return;
+  S.lures.push({x:tx,y:ty,until:G.round+ZS.lureRounds,team:u.team}); zsSnd(tx,ty,'lure',u);
+  if(anim){ const p=tileC(tx,ty); addFx({type:'ring',x:p[0],y:p[1],r:2*TW,col:[200,140,255],life:.7}); SFX.tone(1200,1200,.08,.06,'square'); SFX.tone(1200,1200,.08,.06,'square',.2); if(mine(u)) floatText(tileDummy(tx,ty),'LURE ACTIVE',[200,140,255],16); await wait(450); } }; }
+{ const f=drawMinimap; drawMinimap=function(){ f(); if(!G.zs||G.scene!=='game') return; const m=$('#minimap'), c=m.getContext('2d'), s=m.width/MW;
+  for(const L of G.zs.lures){ c.strokeStyle='rgba(200,140,255,.85)'; c.lineWidth=1.5; c.beginPath(); c.arc((L.x+.5)*s,(L.y+.5)*s,s*(1.2+.5*Math.sin(G.time*6)),0,Math.PI*2); c.stroke(); }
+  const V=G.zsv; if(V) for(const q of V.fx){ const k=(G.time-q.t)/2.4; if(k<0||k>1||q.R<4||q.k==='growl') continue; const col=ZSND_COL[q.k]||[255,255,255]; c.strokeStyle=C(col,1,.7*(1-k)); c.lineWidth=1.2; c.beginPath(); c.arc((q.x+.5)*s,(q.y+.5)*s,q.R*s*Math.min(1,k*2.5),0,Math.PI*2); c.stroke(); } }; }
+/* ================= end Survival ================= */
 /* ================= debug hooks (used for automated checks) ================= */
 window.__stormfall={G,setupMatch,runMatch,onAction,pFire,pMove,pThrow,enterTarget,actionList,sanitize,update,render,startMatch,PROF:()=>PROF,go,renderStore,renderQuests,renderProfile,grantRewards,claimQuest,sendEmote};
 
