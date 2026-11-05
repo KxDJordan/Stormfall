@@ -9166,7 +9166,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=25, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=26, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
@@ -11855,6 +11855,513 @@ CHAL.push(
 Object.assign(CHAL_PRIME,{engineer:{title:'t_p_engineer',banner:'bn_p_engineer'},medic:{title:'t_p_medic',banner:'bn_p_medic'},recon:{title:'t_p_recon',banner:'bn_p_recon'}});
 QD.push({id:'d_eng',t:'Play a match as an Engineer',s:'cls_engineer',g:1},{id:'d_medic',t:'Play a match as a Medic',s:'cls_medic',g:1},{id:'d_recon',t:'Play a match as a Recon',s:'cls_recon',g:1});
 /* ================= end of class abilities ================= */
+/* ================= ranked & battalions =================
+   Self-contained section (backend: cloudflare/src/rb.js, queue.js, presence.js). Hooks into the rest of the game only by
+   wrapping functions at load time (mySpec, cleanSpec, setupMatch, kill, endMatch, showEnd, drawUnit, setPlate, renderMsFoot,
+   renderLobby, renderProfile, netCode, socMsg, friendsInviteButtonHtml, idHow), so no line elsewhere changes.
+   Ranked: Solo and Duos. Needs the online account (the cloud save one). The queue is a WebSocket to the Signal Durable
+   Object (/api/ranked/ws); when it matches players it picks a host and a room code: the host opens that room with the
+   normal online flow (netHost), the others join it (netJoin), the match runs in the usual lockstep. Fixed ruleset: no
+   mutators, every region, 30 s turns, AI fills the empty seats at a difficulty matched to the lobby's rating. The host
+   registers who joined (/api/ranked/start); at the end every human reports the final simHash and every human's team
+   place (/api/ranked/report); the server rates the match only when the reports agree. Leavers: their operative turns into
+   AI as in any online match (netTurn's {k:'ai'} takeover) and the reports list them as left, so they are rated last.
+   Every client checks the start cfg against the ranked rules and reports {bad:1} if the host broke them (match void).
+   Battalions: clans with a name, a 3-4 character tag (shown beside the callsign on in-match name plates), an emblem
+   (a name plate banner + a glyph), roles, invites, chat (stored in D1, pushed live through the presence socket), weekly
+   points from ranked results and dailies, a public profile and a leaderboard. Nothing here touches the seeded RNG. */
+const RK_KEY='stormfall_ranked', BT_KEY='stormfall_bat', RK_MODES=['solo','duos'], RK_TURN=30, RK_PLACE=5;
+const RK_TIERS=[{k:'bronze',n:'Bronze',lo:-1e9,c:'#d0905c'},{k:'silver',n:'Silver',lo:1100,c:'#c9d6e2'},{k:'gold',n:'Gold',lo:1300,c:'#ffc947'},
+  {k:'plat',n:'Platinum',lo:1500,c:'#58f0d2'},{k:'diamond',n:'Diamond',lo:1700,c:'#7fb6ff'},{k:'storm',n:'Stormlord',lo:1900,c:'#c792ff'}];
+const RK_DIV=['','I','II','III'];
+const BT_EMB={bolt:'M13 2L4 14h7l-1 8 9-12h-7z',crown:'M3 18h18l-2-10-5 5-2-7-2 7-5-5z',star:'M12 2l3 7 7 .6-5.3 4.7L18.4 22 12 18l-6.4 4 1.7-7.7L2 9.6 9 9z',
+  shield:'M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z',skull:'M12 3a8 8 0 0 0-8 8c0 3 1.5 5 3 6v3h10v-3c1.5-1 3-3 3-6a8 8 0 0 0-8-8zM9 10a1.6 1.6 0 1 1 0 3.2A1.6 1.6 0 0 1 9 10zm6 0a1.6 1.6 0 1 1 0 3.2A1.6 1.6 0 0 1 15 10z',
+  wolf:'M4 3l4 5h8l4-5v9l-3 4-5 5-5-5-3-4zM9 12l2 1-2 1zm6 0l-2 1 2 1z',eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zm10-3.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',
+  flame:'M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-4 0-6 1-9z',wing:'M2 6c6 0 10 2 12 6 1-3 4-5 8-5-1 6-5 11-11 11-4 0-7-3-9-5h5c-2-1-4-3-5-7z',
+  cross:'M11 2h2v8h8v2h-8v10h-2V12H3v-2h8z',anchor:'M12 2a3 3 0 0 1 1 5.8V9h4v2h-4v8.9c3-.4 5.4-2.5 6-5.4L17 14h5c-.5 4.5-4.6 8-10 8S2.5 18.5 2 14h5l-2 .5c.6 2.9 3 5 6 5.4V11H7V9h4V7.8A3 3 0 0 1 12 2z',
+  storm:'M6 9a6 6 0 0 1 11.6-2A4.5 4.5 0 0 1 18 16H7a4 4 0 0 1-1-7zm6 7l-2 4h3l-1 3 4-5h-3l1-2z'};
+const BT_ROLE={l:'Leader',o:'Officer',m:'Member'}, BT_CAP=30;
+// season rewards: a title for every peak tier, a banner from Gold up (cosmetic; granted on this device from /api/ranked/me)
+Object.assign(TITLES,{t_rk_bronze:{name:'Bronze contender',r:'c'},t_rk_silver:{name:'Silver contender',r:'c'},t_rk_gold:{name:'Gold contender',r:'r'},
+  t_rk_plat:{name:'Platinum contender',r:'r'},t_rk_diamond:{name:'Diamond contender',r:'e'},t_rk_storm:{name:'Stormlord',r:'l'}});
+Object.assign(BANNERS,{bn_rk_gold:{name:'Gold division',st:'chevron',c1:'#ffc947',c2:'#1c1404',r:'r'},bn_rk_plat:{name:'Platinum division',st:'scan',c1:'#58f0d2',c2:'#04181a',r:'r'},
+  bn_rk_diamond:{name:'Diamond division',st:'grid',c1:'#7fb6ff',c2:'#06101e',r:'e',anim:1},bn_rk_storm:{name:'Stormlord',st:'glow',c1:'#c792ff',c2:'#120a22',r:'l',anim:1}});
+const RK={ws:null,st:'',mode:'solo',q:null,mid:'',sid:'',host:false,code:'',pl:[],diff:'veteran',hostN:'',openT:0,opened:false,starting:false,started:false,parts:null,
+  mtch:0,bad:false,tp:{},rep:null,res:null,polls:0,tab:'queue',lbMode:'solo',lb:{},rank:{},open:false,forceCode:'',sig:'',joinTry:0,joinAt:0,hbT:0,err:''};
+let RKS=rkLoad(); // persisted: {me: /api/ranked/me, at}
+function rkLoad(){ try{ const o=JSON.parse(localStorage.getItem(RK_KEY)||'null'); if(o&&typeof o==='object') return o; }catch(e){} return {}; }
+function rkStore(){ try{ localStorage.setItem(RK_KEY,JSON.stringify(RKS)); }catch(e){} }
+const BT={tab:'members',view:null,lb:null,busy:false,msg:'',chat:[],last:0,pollT:0,more:'',conf:'',form:{name:'',tag:'',em:'bolt',bn:'',desc:'',open:true},find:'',open:false,sub:'create'};
+let BTS=btLoad(); // persisted: {acct, me: /api/bat/me (my battalion, role, members), at}
+function btLoad(){ try{ const o=JSON.parse(localStorage.getItem(BT_KEY)||'null'); if(o&&typeof o==='object') return o; }catch(e){} return {}; }
+function btStore(){ try{ localStorage.setItem(BT_KEY,JSON.stringify(BTS)); }catch(e){} }
+function rbOn(){ return !!API_BASE&&!!CLS.auth&&!CLS.out; }
+function rbAcct(){ const id=clId(); if(RKS.acct!==id){ RKS={acct:id}; rkStore(); } if(BTS.acct!==id){ BTS={acct:id}; btStore(); BT.chat=[]; BT.last=0; } }
+function btTag(){ return BTS.me&&BTS.me.bat?BTS.me.bat.tag:''; }
+function rkTier(r){ let i=0; for(let k=0;k<RK_TIERS.length;k++) if(r>=RK_TIERS[k].lo) i=k; const T=RK_TIERS[i];
+  if(i===RK_TIERS.length-1) return {i,k:T.k,n:T.n,c:T.c,div:0};
+  const lo=i===0?900:T.lo, hi=RK_TIERS[i+1].lo, f=clamp((r-lo)/(hi-lo),0,.9999); return {i,k:T.k,n:T.n,c:T.c,div:3-Math.floor(f*3)}; }
+const rkT=k=>RK_TIERS.find(t=>t.k===k)||null;
+function rkName(k,div){ const T=rkT(k); return T?T.n+(div?' '+RK_DIV[div]:''):'Unranked'; }
+// rank badge: a small shield in the tier color with the division numeral
+function rkBadge(k,div,o){ o=o||{}; const T=rkT(k); if(!T) return '';
+  return '<span class="rkb rk-'+T.k+(o.lg?' lg':'')+'" style="--rk:'+T.c+'" title="'+esc(rkName(k,div))+'" aria-label="'+esc(rkName(k,div))+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>'+(T.k==='storm'?'<path class="g" d="M13 6l-5 7h4l-1 5 5-7h-4z"/>':'')+'</svg>'+(div?'<b>'+RK_DIV[div]+'</b>':'')+'</span>'; }
+// my best placed tier (for name plates); '' while still in placements
+function rkBest(){ const M=RKS.me&&RKS.me.modes; if(!M) return null; let b=null; for(const k of RK_MODES){ const x=M[k]; if(x&&x.n>=RK_PLACE&&(!b||x.r>b.r)) b=x; } return b; }
+function btEmblem(bn,em,cls){ const b=bnKey(bn), p=BT_EMB[em]||BT_EMB.bolt; return '<span class="btem bn-'+b+(cls?' '+cls:'')+'" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="'+p+'"/></svg></span>'; }
+function rbAgo(t){ return t?agoTxt(Date.now()-t):'—'; }
+
+/* --- API --- */
+// like clApi, but a 429 here (chat too fast, a rate-limited lookup) never backs off the cloud save and online play
+async function rbFetch(path,body){ if(!API_BASE||CL.down) throw new Error('offline');
+  const ctl=window.AbortController?new AbortController():null, tm=setTimeout(()=>{ if(ctl) ctl.abort(); },9000);
+  try{ const r=await fetch(API_BASE+'/api/'+path,body===undefined?{signal:ctl&&ctl.signal}:{method:'POST',body:JSON.stringify(body),signal:ctl&&ctl.signal});
+    if(r.status===429) throw new Error('busy'); let j=null; try{ j=await r.json(); }catch(e){} if(!j||typeof j!=='object') throw new Error('server'); return {s:r.status,j}; }
+  finally{ clearTimeout(tm); } }
+async function rbApi(path,b){ return rbFetch(path,b===undefined?undefined:Object.assign({auth:CLS.auth},b)); }
+async function rkFetchMe(){ if(!rbOn()) return null; rbAcct();
+  try{ const r=await rbApi('ranked/me',{}); if(r.s===200){ RKS.me=r.j; RKS.at=Date.now(); rkStore(); rkRewards(); rbRefresh(); return r.j; } }catch(e){} return null; }
+// last season's peak tiers -> title (every tier) and banner (Gold and up), once
+function rkRewards(){ const P=RKS.me&&RKS.me.prev; if(!P) return; let got=[];
+  for(const m of RK_MODES){ const x=P[m]; if(!x||!rkT(x.tier)) continue; const i=RK_TIERS.findIndex(t=>t.k===x.tier);
+    for(let k=0;k<=i;k++){ if(grantTitle('t_rk_'+RK_TIERS[k].k)&&k===i) got.push(TITLES['t_rk_'+RK_TIERS[k].k].name); if(k>=2&&grantBanner('bn_rk_'+RK_TIERS[k].k)&&k===i) got.push(BANNERS['bn_rk_'+RK_TIERS[k].k].name+' banner'); } }
+  if(got.length){ saveProf(); toast('Season '+P.season+' rewards',got.join(', '),'lvl'); } }
+
+/* --- the ranked queue socket --- */
+function rkWsSend(o){ try{ if(RK.ws&&RK.ws.readyState===1) RK.ws.send(JSON.stringify(o)); }catch(e){} }
+async function rkQueue(mode){
+  if(!API_BASE){ toast('Ranked needs the online service',''); return; }
+  if(G.scene==='game'&&!G.over){ toast('Finish your match first',''); return; }
+  if(NET.on){ toast('Leave the online room first',''); return; }
+  RK.err=''; RK.mode=RK_MODES.includes(mode)?mode:'solo';
+  if(CLS.out){ RK.err='Ranked needs your online account. Turn cloud save back on in Profile → Account.'; rkRender(); return; }
+  RK.st='connecting'; rkRender();
+  try{ if(!await clEnsureAccount()) throw new Error('acct'); }catch(e){ RK.st=''; RK.err='Could not create your online account. Check your connection.'; rkRender(); return; }
+  rbAcct(); if(SOCS.code===undefined||!SOCS.code){ try{ await socPublish(true); }catch(e){} } // a public profile: name and friend code on the leaderboard
+  rkConnect(); }
+function rkConnect(){ rkClose(); let ws; try{ ws=new WebSocket(API_BASE.replace(/^http/,'ws')+'/api/ranked/ws?a='+clId()); }catch(e){ RK.st=''; RK.err='Can’t reach the online service right now.'; rkRender(); return; }
+  RK.ws=ws;
+  ws.onopen=()=>{ if(RK.ws!==ws) return; try{ ws.send(JSON.stringify({t:'auth',auth:CLS.auth,mode:RK.mode,name:LO.name})); }catch(_){}
+    clearInterval(RK.hbT); RK.hbT=setInterval(()=>{ try{ if(RK.ws===ws&&ws.readyState===1) ws.send('{"type":"HEARTBEAT"}'); }catch(_){} },50000); };
+  ws.onmessage=e=>{ if(RK.ws!==ws) return; let m; try{ m=JSON.parse(e.data); }catch(_){ return; } if(m&&typeof m==='object') rkMsg(m); };
+  ws.onclose=()=>{ if(RK.ws!==ws) return; RK.ws=null; clearInterval(RK.hbT);
+    if(RK.st==='queue'||RK.st==='connecting'||RK.st==='matched'){ RK.st=''; RK.err=RK.err||'Lost the matchmaking connection.'; rkReset(); rkRender(); } };
+  ws.onerror=()=>{}; }
+function rkClose(){ const ws=RK.ws; RK.ws=null; clearInterval(RK.hbT); if(ws){ try{ ws.close(1000,'bye'); }catch(_){} } }
+function rkReset(){ Object.assign(RK,{mid:'',sid:'',host:false,code:'',pl:[],openT:0,opened:false,starting:false,started:false,parts:null,forceCode:'',sig:'',joinTry:0,joinAt:0}); }
+function rkCancel(){ rkWsSend({t:'leave'}); rkClose(); if(RK.mid&&NET.on&&!RK.started) netLeave(); rkReset(); RK.st=''; rkRender(); }
+function rkMsg(m){
+  if(m.t==='q'){ RK.st='queue'; RK.q={n:m.n,r:m.r,rd:m.rd,t0:Date.now(),w:0}; rkRender(); return; }
+  if(m.t==='qs'){ if(RK.q){ RK.q.n=m.n; RK.q.w=m.w; } rkRender(); return; }
+  if(m.t==='err'){ RK.err=m.e==='auth'?'Your online account was not recognised.':m.e==='mode'?'That mode has no ranked queue.':'The matchmaker is busy. Try again in a minute.'; RK.st=''; rkClose(); rkRender(); return; }
+  if(m.t==='host'||m.t==='match'){ rkReset(); Object.assign(RK,{mid:m.mid,sid:m.me,mode:m.mode,pl:Array.isArray(m.pl)?m.pl:[],diff:DIFFS[m.diff]?m.diff:'veteran',host:m.t==='host',hostN:m.host||''});
+    SFX.init(); try{ SFX.click(); }catch(_){} buzz([20,40,20]);
+    if(m.t==='host'){ RK.st='hosting'; RK.code=String(m.code||''); RK.forceCode=RK.code; netHost(); }
+    else RK.st='matched';
+    toast('Match found',RK.pl.length+' players · '+MODES[RK.mode].name+(RK.host?' · you host':'')); rkRender(); return; }
+  if(m.t==='join'&&m.mid===RK.mid){ RK.code=String(m.code||''); RK.st='joining'; RK.joinTry=1; netJoin(RK.code); rkRender(); return; }
+  if(m.t==='cancel'){ if(NET.on&&!RK.started) netLeave(); rkReset(); RK.st='queue'; rkWsSend({t:'q',mode:RK.mode}); toast('Match cancelled','Back in the queue'); rkRender(); }
+}
+function rkInRoom(){ return !!RK.mid&&NET.on&&!!NET.code&&NET.code===RK.code; }
+function rkSidOk(s){ return typeof s==='string'&&RK.pl.some(p=>p.sid===s); }
+// the host keeps the room on the ranked rules (mode, 30 s turns, no mutators, AI at the matched difficulty, Duos: one human per team)
+function rkRoomSync(){ const d=RK.diff, sig=NET.players.map(p=>p.pid).join(',');
+  if(NET.mode===RK.mode&&RK.sig===sig&&NET.tm&&NET.tm.t===RK_TURN&&!NET.tm.b&&!mutClean(NET.mut).length) return;
+  RK.sig=sig; NET.mode=RK.mode; NET.tm={t:RK_TURN,b:0}; NET.mut=[];
+  if(RK.mode==='duos'){ const s=[], hp=NET.players.map(p=>p.pid); for(let t=0;t<4;t++){ s.push(hp[t]?{p:hp[t]}:{b:d}); s.push({b:d}); } NET.seats=s; NET.bots=seatBots(s); }
+  else { NET.seats=null; NET.bots=Array(MODES.solo.players).fill(d); }
+  netLobby(); }
+async function rkStart(){ if(RK.starting||RK.started) return; RK.starting=true;
+  const sids=NET.players.map(p=>p.pid===NET.me?RK.sid:p.rsid).filter(rkSidOk);
+  try{ const r=await rbApi('ranked/start',{mid:RK.mid,sids,teams:RK.mode==='duos'?4:MODES.solo.players});
+    if(r.s!==200) throw new Error(r.j&&r.j.error||'refused');
+    RK.parts=r.j.parts; RK.started=true; rkClose(); netStart(); }
+  catch(e){ RK.starting=false; rkFail('Could not start the ranked match ('+(e.message||'error')+').'); } }
+function rkFail(why){ rkWsSend({t:'fail',mid:RK.mid}); if(NET.on) netLeave(); toast('Ranked match cancelled',why); rkReset(); RK.st='queue'; rkWsSend({t:'q',mode:RK.mode}); openRanked('queue'); }
+// 4 times a second: drives the host's room (open, rules, kick strangers, auto start) and the guests' join
+function rkTick(){ const now=Date.now();
+  if(RK.st==='hosting'){
+    if(!NET.on||!NET.host){ rkFail('Could not open the room.'); return; }
+    if(NET.code&&NET.code!==RK.code){ rkFail('The room code was taken.'); return; }
+    if(NET.code===RK.code&&!RK.opened){ RK.opened=true; RK.openT=now; RK.forceCode=''; rkRoomSync(); rkWsSend({t:'open',mid:RK.mid}); closeRanked(); openLobby(true); }
+    if(RK.opened&&!RK.started){
+      for(const p of NET.players.slice(1)) if(!rkSidOk(p.rsid)){ const c=NET.conns.get(p.pid); try{ c&&c.conn.send({t:'reject',why:'This is a ranked room.'}); }catch(_){} hostDrop(p.pid); }
+      rkRoomSync();
+      const n=NET.players.filter(p=>p.pid===NET.me||rkSidOk(p.rsid)).length;
+      if(n>=RK.pl.length||(n>=2&&now-RK.openT>25000)) rkStart();
+      else if(now-RK.openT>45000) rkFail('Not enough players joined.'); } }
+  if(RK.st==='joining'){
+    if(inRoom()){ RK.st='lobby'; closeRanked(); if(G.scene!=='game') openLobby(true); }
+    else if(!NET.on&&RK.joinTry<4){ if(!RK.joinAt) RK.joinAt=now+1500; else if(now>=RK.joinAt){ RK.joinAt=0; RK.joinTry++; netJoin(RK.code); } }
+    else if(!NET.on){ RK.st='queue'; rkReset(); rkWsSend({t:'q',mode:RK.mode}); toast('Could not reach the host','Back in the queue'); } }
+  if(RK.open&&RK.st==='queue'&&RK.q){ const el=$('#rkWait'); if(el) el.textContent=fmtWait(Math.round((now-RK.q.t0)/1000)); }
+}
+function fmtWait(s){ return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+
+/* --- the ranked match: rules check, placements, report, result --- */
+function rkMatchStart(net){ if(!RK.mid||!net||!Array.isArray(net.players)) return;
+  const me=net.players.find(p=>p.pid===NET.me); if(!me||me.rsid!==RK.sid) return;
+  RK.mtch=G.matchId; RK.tp={}; RK.rep=null; RK.res=null; RK.polls=0; RK.st='match'; rkClose(); // the queue socket is done
+  const bots=(net.slots||[]).filter(s=>s&&s.b).map(s=>s.b);
+  RK.bad=!(net.mode===RK.mode&&!(net.mut&&net.mut.length)&&net.tm&&net.tm.t===RK_TURN&&!net.tm.b&&net.players.every(p=>rkSidOk(p.rsid))&&bots.every(b=>b===RK.diff)
+    &&(RK.mode!=='duos'||net.slots.every((s,i)=>i%2===1?!!s.b:true)));
+  if(RK.bad) toast('This match breaks the ranked rules','It will not count.'); }
+function rkLive(){ return !!RK.mtch&&RK.mtch===G.matchId&&!G.watch; }
+function rkEndScope(){ return !!RK.mtch&&G.matchId-RK.mtch>=0&&G.matchId-RK.mtch<=1; } // the ranked match, or its results after leaving it early (Results while spectating)
+function rkMatchEnd(){ if(!rkLive()||RK.rep) return;
+  const H=G.units.filter(u=>u.rsid), pl={};
+  for(const u of H) pl[u.rsid]=RK.tp[u.team]!=null?RK.tp[u.team]:1;
+  const parts=RK.parts||H.map(u=>u.rsid), P={}; for(const s of parts) if(pl[s]!=null) P[s]=pl[s];
+  RK.rep=RK.bad?{bad:1}:{h:simHash(),pl:P,left:H.filter(u=>!u.human&&parts.includes(u.rsid)).map(u=>u.rsid).sort()};
+  RK.st='report'; rkSend(); }
+async function rkSend(){ if(!RK.rep||!RK.mid) return; const mid=RK.mid;
+  try{ const r=await rbApi('ranked/report',Object.assign({mid},RK.rep)); if(RK.mid!==mid) return;
+    if(r.s===200) rkOutcome(r.j); else { RK.res={st:'err',e:r.j&&r.j.error||String(r.s)}; rkEndCard(); } }
+  catch(e){ if(RK.mid===mid&&RK.polls++<20) setTimeout(rkSend,6000); } }
+function rkOutcome(j){ RK.res=j; rkEndCard();
+  if(j.st==='wait'&&RK.polls++<30){ const mid=RK.mid; setTimeout(async()=>{ if(RK.mid!==mid) return; try{ const r=await rbApi('ranked/result',{mid}); if(r.s===200&&RK.mid===mid) rkOutcome(r.j); }catch(e){ setTimeout(()=>rkOutcome(RK.res),1); } },6000); return; }
+  if(j.st==='done'){ const t=rkTier(j.r); toast('Ranked '+(j.d>=0?'+':'')+Math.round(j.d),j.r+' · '+rkName(t.k,t.div),'lvl'); rkFetchMe(); }
+  if(j.st==='void') toast('Ranked match void','The reports did not agree, so it does not count.');
+  if(j.st!=='wait') RK.st='done'; }
+function rkEndCard(){ const end=$('#end'); if(!end) return; let el=$('#rkEnd');
+  if(!rkEndScope()){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.id='rkEnd'; el.className='rkend'; const a=$('#eRew'); if(a&&a.parentNode) a.parentNode.insertBefore(el,a); else end.appendChild(el); }
+  const j=RK.res||{st:RK.rep?'send':'early'}, M=MODES[RK.mode].name; let h;
+  if(j.st==='done'){ const t=rkTier(j.r), d=Math.round(j.d); h=rkBadge(t.k,t.div,{lg:1})+'<div><small>Ranked · '+esc(M)+'</small><b>'+esc(rkName(t.k,t.div))+' · '+j.r+'</b><span class="'+(d>=0?'up':'dn')+'">'+(d>=0?'+':'')+d+' rating</span></div>'; }
+  else if(j.st==='void') h='<div><small>Ranked · '+esc(M)+'</small><b>Match void</b><span>The players’ reports did not agree. No rating change.</span></div>';
+  else if(j.st==='early') h='<div><small>Ranked · '+esc(M)+'</small><b>Result pending</b><span>Your rating updates when the other players finish the match.</span></div>';
+  else if(j.st==='err') h='<div><small>Ranked · '+esc(M)+'</small><b>Result not counted</b><span>'+esc(j.e)+'</span></div>';
+  else h='<div><small>Ranked · '+esc(M)+'</small><b>Confirming the result…</b><span>'+(j.st==='wait'?'Waiting for the other players’ reports ('+(j.got||1)+'/'+(j.of||'?')+')':'Sending your report')+'</span></div><i class="spin" aria-hidden="true"></i>';
+  el.innerHTML=h; }
+
+/* --- the ranked sheet: queue, leaderboard --- */
+function rbSheet(id,title,kick){ let sh=$('#'+id); if(sh) return sh; sh=document.createElement('div'); sh.className='sheet hidden rbsheet'; sh.id=id;
+  sh.innerHTML='<div class="sheet-bg" data-rbx></div><div class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="'+id+'T"><div class="sheet-grip"></div><div class="sheet-head"><div><small id="'+id+'K">'+esc(kick)+'</small><h3 id="'+id+'T">'+esc(title)+'</h3></div><button class="iconbtn" data-rbx aria-label="Close">×</button></div><div class="sheet-body" id="'+id+'B"></div></div>';
+  document.body.appendChild(sh); return sh; }
+function rbShow(sh,on){ if(on){ document.body.classList.add('sheet-open'); sh.classList.remove('hidden'); requestAnimationFrame(()=>sh.classList.add('on')); }
+  else { sh.classList.remove('on'); sh.classList.add('hidden'); if(!document.querySelector('.sheet.on')) document.body.classList.remove('sheet-open'); } }
+function openRanked(tab,mode){ if(tab) RK.tab=tab; if(mode&&RK_MODES.includes(mode)){ RK.mode=mode; RK.lbMode=mode; } RK.open=true; const sh=rbSheet('rkSheet','Ranked','Competitive'); rbShow(sh,true); rkRender(); rkFetchMe(); if(RK.tab==='board') rkBoard(RK.lbMode); }
+function closeRanked(){ RK.open=false; const sh=$('#rkSheet'); if(sh) rbShow(sh,false); }
+function rkModeCard(k){ const x=(RKS.me&&RKS.me.modes&&RKS.me.modes[k])||{r:1000,n:0,w:0,peak:0};
+  const t=rkTier(x.r), prov=x.n<RK_PLACE;
+  return '<div class="rkmc'+(RK.mode===k?' sel':'')+'" data-rkm="'+k+'" role="radio" aria-checked="'+(RK.mode===k)+'" tabindex="0">'+(prov?'<span class="rkb rk-none"><svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/></svg></span>':rkBadge(t.k,t.div,{lg:1}))
+    +'<div><small>'+MODES[k].name+'</small><b>'+(prov?'Placement '+x.n+'/'+RK_PLACE:esc(rkName(t.k,t.div)))+'</b><span>'+x.r+' rating · '+x.n+' played · '+x.w+' won'+(x.peak?' · peak '+x.peak:'')+'</span></div></div>'; }
+function rkRender(){ const el=$('#rkSheetB'); if(!el||!RK.open) return; const me=RKS.me;
+  const tabs='<div class="seg rbtabs" role="tablist"><button role="tab" class="'+(RK.tab==='queue'?'sel':'')+'" data-rkt="queue">Queue</button><button role="tab" class="'+(RK.tab==='board'?'sel':'')+'" data-rkt="board">Leaderboard</button></div>';
+  let h=tabs;
+  if(!API_BASE){ el.innerHTML='<p class="frempty">Ranked needs the Stormfall online service.</p>'; return; }
+  if(RK.tab==='queue'){
+    const days=me?Math.max(0,Math.ceil((me.ends-Date.now())/86400000)):0;
+    h+='<div class="rkseason">'+(me?'Season '+me.season+' · ends in '+days+' day'+(days===1?'':'s'):'Season')+'<small>Soft reset at season end · rewards for your peak tier</small></div>';
+    h+='<div class="rkmodes" role="radiogroup" aria-label="Ranked mode">'+RK_MODES.map(rkModeCard).join('')+'</div>';
+    h+='<ul class="rkrules"><li>Fixed rules: no mutators, '+RK_TURN+' s turns, every region</li><li>AI fills the empty seats at your lobby’s skill</li><li>Placement against the other humans moves your rating</li><li>Leaving a match counts as last place</li></ul>';
+    const busy=['connecting','queue','matched','hosting','joining'].includes(RK.st);
+    if(RK.st==='queue'&&RK.q) h+='<div class="rkq"><i class="spin" aria-hidden="true"></i><div><b>Searching · '+esc(MODES[RK.mode].name)+'</b><small><span id="rkWait">'+fmtWait(Math.round((Date.now()-RK.q.t0)/1000))+'</span> · '+RK.q.n+' in queue · rating '+RK.q.r+'</small></div></div>';
+    else if(RK.st==='connecting') h+='<div class="rkq"><i class="spin" aria-hidden="true"></i><div><b>Connecting…</b><small>Joining the '+esc(MODES[RK.mode].name)+' queue</small></div></div>';
+    else if(RK.st==='matched'||RK.st==='hosting'||RK.st==='joining') h+='<div class="rkq ok"><i class="spin" aria-hidden="true"></i><div><b>Match found · '+RK.pl.length+' players</b><small>'+(RK.host?'Opening your room…':'Waiting for '+esc(RK.hostN||'the host')+'’s room…')+'</small></div></div>'
+      +'<div class="rkpl">'+RK.pl.map(p=>{ const t=rkTier(p.r); return '<span>'+rkBadge(t.k,t.div)+(p.t?'<em>['+esc(p.t)+']</em> ':'')+esc(p.n)+'</span>'; }).join('')+'</div>';
+    if(RK.err) h+='<p class="frnote warn">'+esc(RK.err)+'</p>';
+    h+='<div class="rkgo">'+(busy?'<button class="btn ghost deploy" data-rka="cancel">Cancel</button>':'<button class="btn primary deploy" data-rka="queue">Find '+esc(MODES[RK.mode].name)+' match<small>Ranked · needs your online account</small></button>')+'</div>';
+  } else {
+    const L=RK.lb[RK.lbMode], my=clId().slice(0,6);
+    h+='<div class="seg rbtabs sm" role="tablist">'+RK_MODES.map(k=>'<button class="'+(RK.lbMode===k?'sel':'')+'" data-rklb="'+k+'">'+MODES[k].name+'</button>').join('')+'</div>';
+    if(!L) h+='<p class="frempty"><i class="spin"></i> Loading…</p>';
+    else if(L.err) h+='<p class="frempty">Can’t load the leaderboard right now.</p>';
+    else { const mine=L.top.findIndex(x=>x.k===my);
+      h+=L.top.length?'<ol class="rklb">'+L.top.map((x,i)=>'<li class="'+(i===mine?'me':'')+'"><b>'+(i+1)+'</b>'+rkBadge(x.tier,x.div)+'<span>'+(x.t?'<em>['+esc(x.t)+']</em> ':'')+esc(x.n)+'<small>'+x.m+' played · '+x.w+' won</small></span><i>'+x.r+'</i></li>').join('')+'</ol>':'<p class="frempty">No ranked matches this season yet. Be the first.</p>';
+      const R=RK.rank[RK.lbMode]; if(mine<0&&R&&R.rank) h+='<div class="rklb me-pos"><b>#'+R.rank+'</b><span>You · '+R.r+'<small>of '+R.total+' ranked players</small></span></div>';
+      h+='<p class="frnote">Top 100 · season '+(L.season||'')+' · updates every minute</p>'; } }
+  el.innerHTML=h; }
+async function rkBoard(mode){ RK.lbMode=mode; rkRender();
+  try{ const r=await rbFetch('ranked/top?mode='+mode); RK.lb[mode]=r.s===200?r.j:{err:1}; }catch(e){ RK.lb[mode]={err:1}; }
+  const L=RK.lb[mode]; if(rbOn()&&L&&L.top&&!L.top.some(x=>x.k===clId().slice(0,6))){ try{ const r=await rbApi('ranked/rank',{mode}); if(r.s===200&&!r.j.none) RK.rank[mode]=r.j; }catch(e){} }
+  rkRender(); }
+document.addEventListener('click',e=>{ const sh=e.target.closest('#rkSheet'); if(!sh) return;
+  if(e.target.closest('[data-rbx]')){ closeRanked(); return; }
+  const t=e.target.closest('[data-rkt],[data-rklb],[data-rka],[data-rkm]'); if(!t) return; SFX.init(); SFX.click();
+  if(t.dataset.rkt){ RK.tab=t.dataset.rkt; if(RK.tab==='board') rkBoard(RK.lbMode); else rkRender(); return; }
+  if(t.dataset.rklb){ rkBoard(t.dataset.rklb); return; }
+  if(t.dataset.rkm){ if(!['queue','matched','hosting','joining','connecting'].includes(RK.st)){ RK.mode=t.dataset.rkm; rkRender(); } return; }
+  if(t.dataset.rka==='queue') rkQueue(RK.mode); else if(t.dataset.rka==='cancel') rkCancel(); });
+
+/* --- battalions --- */
+async function btEnsure(){ if(!API_BASE) return false; if(CLS.out){ BT.msg='Battalions need your online account. Turn cloud save back on in Profile → Account.'; return false; }
+  try{ if(!await clEnsureAccount()) return false; }catch(e){ return false; } rbAcct();
+  if(!SOCS.code){ socAcctCheck(); if(!await socPublish(true)) return false; } return true; }
+async function btFetch(){ if(!rbOn()) return; rbAcct();
+  try{ const r=await rbApi('bat/me',{}); if(r.s===200){ const had=btTag(); BTS.me=r.j; BTS.at=Date.now(); btStore(); if(btTag()!==had) BT.chat=[]; if(BTS.me.bat){ SOC.used=true; } } }catch(e){}
+  btRender(); rbRefresh(); }
+function openBat(tab){ if(tab) BT.tab=tab; BT.open=true; BT.view=null; BT.msg=''; BT.more=''; BT.conf=''; const sh=rbSheet('btSheet','Battalion','Clan'); rbShow(sh,true); btRender();
+  btEnsureFetch(); }
+async function btEnsureFetch(){ if(!rbOn()){ btRender(); return; } await btFetch(); if(BTS.me&&BTS.me.bat&&BT.tab==='chat') btChatLoad(); if(BT.tab==='board'||BT.sub==='board') btBoard(); }
+function closeBat(){ BT.open=false; clearInterval(BT.pollT); BT.pollT=0; const sh=$('#btSheet'); if(sh) rbShow(sh,false); }
+function btMemRow(x,mine){ const me=BTS.me, myRole=me&&me.role, on=SOC.pres[x.c], self=x.c===SOCS.code;
+  const st=self?'You':on?(on.s==='lobby'?'In a lobby':on.s==='match'?'In a match':'Online'):'Last seen '+rbAgo(x.seen);
+  const canKick=mine&&!self&&(myRole==='l'||(myRole==='o'&&x.role==='m')), lead=mine&&myRole==='l'&&!self;
+  let acts='';
+  if(mine&&!self&&on&&inRoom()) acts+='<button class="btn sm" data-bta="inv" data-c="'+x.c+'">Invite</button>';
+  if(canKick||lead) acts+='<button class="iconbtn" data-bta="more" data-c="'+x.c+'" aria-label="More">⋯</button>';
+  let more='';
+  if(BT.more===x.c){ more='<div class="frmore">'+(lead&&x.role==='m'?'<button class="btn sm" data-bta="promote" data-c="'+x.c+'">Make officer</button>':'')+(lead&&x.role==='o'?'<button class="btn sm" data-bta="demote" data-c="'+x.c+'">Make member</button>':'')
+    +(lead?'<button class="btn sm" data-bta="lead" data-c="'+x.c+'">'+(BT.conf==='lead'+x.c?'Tap to confirm':'Make leader')+'</button>':'')+(canKick?'<button class="btn sm ghost" data-bta="kick" data-c="'+x.c+'">'+(BT.conf==='kick'+x.c?'Tap to confirm':'Remove')+'</button>':'')+'</div>'; }
+  return '<div class="frrow btrow'+(on||self?' s-'+(self?'menu':on.s):'')+'" data-row="'+x.c+'"><i class="av">'+esc((x.n||'?')[0])+'</i><div><b class="btn-n">'+esc(x.n)+(x.tier&&x.rn>=RK_PLACE?' '+rkBadge(x.tier,0):'')+'</b><span class="frst">'+esc(BT_ROLE[x.role]||'Member')+' · '+x.pts+' pts this week'+(mine?' · '+esc(st):'')+'</span></div><div class="frbtns">'+acts+'</div>'+more+'</div>'; }
+function btHead(b,role){ return '<div class="bthead">'+btEmblem(b.bn,b.em,'lg')+'<div><b>'+esc(b.name)+' <em>['+esc(b.tag)+']</em></b><span>'+b.n+'/'+BT_CAP+' members · '+(b.wk||0)+' pts this week · '+(b.open?'open':'invite only')+(role?' · you: '+esc(BT_ROLE[role]):'')+'</span>'+(b.desc?'<p>'+esc(b.desc)+'</p>':'')+'</div></div>'; }
+function btRender(){ const el=$('#btSheetB'); if(!el||!BT.open) return; const me=BTS.me, b=me&&me.bat;
+  { const F=BT.form, n=$('#btName'), g=$('#btTag'), d=$('#btDesc'), f=$('#btFind'), c=$('#btInvC'), y=$('#btSay'); // keep what is typed across re-renders
+    if(n) F.name=n.value; if(g) F.tag=g.value; if(d) F.desc=d.value; if(f) BT.find=f.value; if(c) BT.invC=c.value; if(y) BT.say=y.value; }
+  const T=$('#btSheetT'), K=$('#btSheetK'); if(T) T.textContent=b?b.name:'Battalions'; if(K) K.textContent=b?'['+b.tag+'] · '+(BT_ROLE[me.role]||''):'Clans';
+  if(!API_BASE){ el.innerHTML='<p class="frempty">Battalions need the Stormfall online service.</p>'; return; }
+  if(!rbOn()||!SOCS.code){ el.innerHTML='<div class="frempty">Battalions are squads of up to '+BT_CAP+' players with a tag on your name plate, a chat and a weekly leaderboard. They use your online account and friend code.</div>'+(BT.msg?'<p class="frnote warn">'+esc(BT.msg)+'</p>':'')+'<div class="rkgo"><button class="btn primary deploy" data-bta="on">Turn on online account</button></div>'; return; }
+  if(BT.view){ el.innerHTML=btProfile(BT.view); return; }
+  let h='';
+  if(b){
+    h+=btHead(b,me.role);
+    h+='<div class="seg rbtabs" role="tablist">'+[['members','Members'],['chat','Chat'],['board','Leaderboard']].map(t=>'<button role="tab" class="'+(BT.tab===t[0]?'sel':'')+'" data-btt="'+t[0]+'">'+t[1]+'</button>').join('')+'</div>';
+    if(BT.tab==='members'){
+      const officer=me.role==='l'||me.role==='o';
+      if(officer) h+='<div class="fradd"><input id="btInvC" maxlength="9" value="'+esc(BT.invC||'')+'" placeholder="FRIEND CODE" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Friend code to invite"><button class="btn sm" data-bta="invite">Invite</button></div>';
+      if(BT.msg) h+='<p class="frnote'+(BT.warn?' warn':'')+'" id="btMsg">'+esc(BT.msg)+'</p>';
+      h+='<div class="frlist">'+(me.members||[]).map(x=>btMemRow(x,true)).join('')+'</div>';
+      if(officer) h+='<div class="frset"><div>Open to everyone<small>Off: invite only</small></div><button class="btn sm" data-bta="opent">'+(b.open?'On':'Off')+'</button></div>';
+      h+='<div class="rkgo"><button class="btn sm ghost" data-bta="leave">'+(BT.conf==='leave'?'Tap again to leave'+(b.n<=1?' and disband':''):'Leave battalion')+'</button></div>'; }
+    else if(BT.tab==='chat'){
+      h+='<div class="btchat" id="btChat">'+(BT.chat.length?BT.chat.map(btLine).join(''):'<p class="frempty">No messages yet. Say hi to your battalion.</p>')+'</div>'
+        +'<div class="fradd btsay"><input id="btSay" maxlength="160" value="'+esc(BT.say||'')+'" placeholder="Message your battalion" autocomplete="off" aria-label="Chat message"><button class="btn sm primary" data-bta="say">Send</button></div>'
+        +(BT.msg?'<p class="frnote'+(BT.warn?' warn':'')+'" id="btMsg">'+esc(BT.msg)+'</p>':'')+'<p class="frnote">Be kind. Tap a message to report it.</p>'; }
+    else h+=btBoardHtml(b.id);
+  } else {
+    const inv=(me&&me.inv)||[];
+    if(inv.length) h+='<div class="frsec"><h4>Invites <em>'+inv.length+'</em></h4><div class="frlist">'+inv.map(x=>'<div class="frrow"><i class="av">'+btEmblem(x.bn,x.em)+'</i><div><b>'+esc(x.name)+' ['+esc(x.tag)+']</b><span class="frst">'+x.n+'/'+BT_CAP+' · invited by '+esc(x.by)+'</span></div><div class="frbtns"><button class="btn sm primary" data-bta="join" data-id="'+x.id+'">Join</button><button class="btn sm ghost" data-bta="decline" data-id="'+x.id+'">No</button></div></div>').join('')+'</div></div>';
+    h+='<div class="seg rbtabs" role="tablist">'+[['create','Create'],['find','Find'],['board','Leaderboard']].map(t=>'<button role="tab" class="'+(BT.sub===t[0]?'sel':'')+'" data-bts="'+t[0]+'">'+t[1]+'</button>').join('')+'</div>';
+    if(BT.sub==='create'){ const F=BT.form, own=Object.keys(BANNERS).filter(bannerOwned); if(!F.bn||!own.includes(F.bn)) F.bn=myBanner();
+      h+='<div class="btform"><div class="btprev">'+btEmblem(F.bn,F.em,'lg')+'<div><b>'+esc(F.name||'Battalion name')+' <em>['+esc((F.tag||'TAG').toUpperCase())+']</em></b><span>'+esc(LO.name)+' · Leader</span></div></div>'
+        +'<label>Name<input id="btName" maxlength="20" value="'+esc(F.name)+'" placeholder="3-20 letters" autocomplete="off"></label>'
+        +'<label>Tag<input id="btTag" maxlength="4" value="'+esc(F.tag)+'" placeholder="3-4" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>'
+        +'<div class="btlbl">Emblem</div><div class="btpick" role="radiogroup" aria-label="Emblem">'+Object.keys(BT_EMB).map(k=>'<button class="'+(F.em===k?'sel':'')+'" data-btem="'+k+'" aria-label="'+k+'">'+btEmblem(F.bn,k)+'</button>').join('')+'</div>'
+        +'<div class="btlbl">Background <small>your name plate banners</small></div><div class="btpick bnp" role="radiogroup" aria-label="Background">'+own.map(k=>'<button class="'+(F.bn===k?'sel':'')+'" data-btbn="'+k+'" title="'+esc(BANNERS[k].name)+'">'+btEmblem(k,F.em)+'</button>').join('')+'</div>'
+        +'<label>Description<input id="btDesc" maxlength="120" value="'+esc(F.desc)+'" placeholder="Optional · 120 characters" autocomplete="off"></label>'
+        +'<div class="frset"><div>Open to everyone<small>Off: invite only</small></div><button class="btn sm" data-bta="fopen">'+(F.open?'On':'Off')+'</button></div>'
+        +(BT.msg?'<p class="frnote'+(BT.warn?' warn':'')+'" id="btMsg">'+esc(BT.msg)+'</p>':'')+'<div class="rkgo"><button class="btn primary deploy" data-bta="create">Create battalion</button></div></div>'; }
+    else if(BT.sub==='find') h+='<div class="fradd"><input id="btFind" maxlength="4" value="'+esc(BT.find)+'" placeholder="TAG" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Battalion tag"><button class="btn sm" data-bta="find">Find</button></div>'+(BT.msg?'<p class="frnote'+(BT.warn?' warn':'')+'" id="btMsg">'+esc(BT.msg)+'</p>':'')+'<p class="frnote">Or open one from the leaderboard.</p>';
+    else h+=btBoardHtml('');
+  }
+  el.innerHTML=h; if(BT.tab==='chat'){ const c=$('#btChat'); if(c) c.scrollTop=c.scrollHeight; } }
+function btLine(x){ const self=x.c===SOCS.code; return '<div class="btl'+(self?' me':'')+'" data-btl="'+x.at+'"><b>'+esc(x.n)+'</b><small>'+new Date(x.at).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})+'</small><p>'+esc(x.m)+'</p>'+(BT.more==='l'+x.at&&!self?'<button class="btn sm ghost" data-bta="rep" data-at="'+x.at+'">Report this message</button>':'')+'</div>'; }
+function btBoardHtml(mine){ const L=BT.lb; if(!L) return '<p class="frempty"><i class="spin"></i> Loading…</p>'; if(L.err) return '<p class="frempty">Can’t load the leaderboard right now.</p>';
+  return (L.top.length?'<ol class="rklb">'+L.top.map((x,i)=>'<li class="'+(x.id===mine?'me':'')+'" data-btv="'+x.id+'"><b>'+(i+1)+'</b>'+btEmblem(x.bn,x.em)+'<span>'+esc(x.name)+' <em>['+esc(x.tag)+']</em><small>'+x.n+' members</small></span><i>'+x.pts+'</i></li>').join('')+'</ol>':'<p class="frempty">No battalion points this week yet. Ranked matches and dailies earn them.</p>')
+    +'<p class="frnote">Week of '+esc(fmtDay(L.wk))+' · win 10, top half 6, others 3, daily 3</p>'; }
+function btProfile(v){ if(v.loading) return '<p class="frempty"><i class="spin"></i> Loading…</p>'; if(v.err) return '<p class="frempty">'+esc(v.err)+'</p><div class="rkgo"><button class="btn sm ghost" data-bta="back">Back</button></div>';
+  const b=v.bat, mine=BTS.me&&BTS.me.bat; return '<button class="btn sm ghost" data-bta="back">‹ Back</button>'+btHead(b,'')+'<div class="frlist">'+v.members.map(x=>btMemRow(x,false)).join('')+'</div>'
+    +'<div class="rkgo">'+(!mine&&b.open&&b.n<BT_CAP?'<button class="btn primary deploy" data-bta="join" data-id="'+b.id+'">Join '+esc(b.tag)+'</button>':'')+'<button class="btn sm ghost" data-bta="repbat" data-id="'+b.id+'">Report</button></div>'+(BT.msg?'<p class="frnote'+(BT.warn?' warn':'')+'">'+esc(BT.msg)+'</p>':''); }
+async function btView(q){ BT.view={loading:1}; BT.msg=''; btRender();
+  try{ const r=await rbFetch('bat/get?'+q); BT.view=r.s===200?r.j:{err:r.j&&r.j.error||'Not found'}; }catch(e){ BT.view={err:'Can’t reach the online service right now.'}; } btRender(); }
+async function btBoard(){ try{ const r=await rbFetch('bat/top'); BT.lb=r.s===200?r.j:{err:1}; }catch(e){ BT.lb={err:1}; } btRender(); }
+function btNote(t,warn){ BT.msg=t||''; BT.warn=!!warn; const el=$('#btMsg'); if(el){ el.textContent=BT.msg; el.classList.toggle('warn',BT.warn); } else btRender(); }
+async function btCall(path,b,ok){ BT.busy=true; try{ const r=await rbApi(path,b); if(r.s===200){ if(ok) ok(r.j); return r.j; } btNote(r.j&&r.j.error||'That did not work ('+r.s+')',true); }
+  catch(e){ btNote(e&&e.message==='busy'?'Too fast. Wait a moment and try again.':'Can’t reach the online service right now.',true); } finally{ BT.busy=false; } return null; }
+async function btChatLoad(){ if(!BTS.me||!BTS.me.bat) return; const since=BT.chat.length?BT.chat[BT.chat.length-1].at:0;
+  try{ const r=await rbApi('bat/chat',{since}); if(r.s===200&&r.j.msgs.length){ btChatAdd(r.j.msgs); } }catch(e){} }
+function btChatAdd(L){ let ch=false; for(const x of L){ if(!x||BT.chat.some(y=>y.at===x.at)) continue; BT.chat.push({at:+x.at,c:String(x.c||''),n:String(x.n||'').slice(0,12),m:String(x.m||'').slice(0,160)}); ch=true; }
+  if(!ch) return; BT.chat.sort((a,b)=>a.at-b.at); BT.chat=BT.chat.slice(-60);
+  if(BT.open&&BT.tab==='chat'&&!BT.view){ const foc=document.activeElement&&document.activeElement.id==='btSay'; btRender(); const i2=$('#btSay'); if(i2&&foc) i2.focus(); } }
+document.addEventListener('click',async e=>{ const sh=e.target.closest('#btSheet'); if(!sh) return;
+  if(e.target.closest('[data-rbx]')){ closeBat(); return; }
+  const ln=e.target.closest('[data-btl]'); if(ln&&!e.target.closest('[data-bta]')){ const k='l'+ln.dataset.btl; BT.more=BT.more===k?'':k; btRender(); return; }
+  const t=e.target.closest('[data-btt],[data-bts],[data-bta],[data-btem],[data-btbn],[data-btv]'); if(!t) return; SFX.init(); SFX.click();
+  const F=BT.form, keep=()=>{ const n=$('#btName'), g=$('#btTag'), d=$('#btDesc'); if(n) F.name=n.value; if(g) F.tag=g.value; if(d) F.desc=d.value; };
+  if(t.dataset.btt){ BT.tab=t.dataset.btt; BT.msg=''; BT.more=''; btRender(); if(BT.tab==='chat') btChatLoad(); if(BT.tab==='board') btBoard(); return; }
+  if(t.dataset.bts){ keep(); BT.sub=t.dataset.bts; BT.msg=''; btRender(); if(BT.sub==='board') btBoard(); return; }
+  if(t.dataset.btem){ keep(); F.em=t.dataset.btem; btRender(); return; }
+  if(t.dataset.btbn){ keep(); F.bn=t.dataset.btbn; btRender(); return; }
+  if(t.dataset.btv){ btView('id='+t.dataset.btv); return; }
+  const a=t.dataset.bta, c=t.dataset.c;
+  if(a==='on'){ BT.msg=''; if(await btEnsure()) await btFetch(); else btRender(); return; }
+  if(a==='back'){ BT.view=null; BT.msg=''; btRender(); return; }
+  if(a==='fopen'){ keep(); F.open=!F.open; btRender(); return; }
+  if(a==='create'){ keep(); btNote('Creating…'); const j=await btCall('bat/create',{name:F.name,tag:F.tag,em:F.em,bn:F.bn,desc:F.desc,open:F.open},()=>{ BT.msg=''; BT.tab='members'; toast('Battalion created','['+F.tag.toUpperCase()+'] '+F.name); }); if(j) await btFetch(); return; }
+  if(a==='find'){ const v=($('#btFind')||{}).value||''; BT.find=v; if(!/^[A-Za-z0-9]{3,4}$/.test(v.trim())){ btNote('Tags are 3-4 letters or digits.',true); return; } btView('tag='+encodeURIComponent(v.trim().toUpperCase())); return; }
+  if(a==='join'){ await btCall('bat/join',{id:t.dataset.id},j=>{ BT.view=null; BT.msg=''; BT.tab='members'; toast('Welcome to '+j.bat.name,'['+j.bat.tag+']'); }); await btFetch(); return; }
+  if(a==='decline'){ await btCall('bat/act',{a:'decline',id:t.dataset.id}); await btFetch(); return; }
+  if(a==='invite'){ const v=fcNorm(($('#btInvC')||{}).value); if(!v){ btNote('Friend codes are 8 characters, like ABCD-1234.',true); return; } await btCall('bat/invite',{code:v},j=>btNote('Invite sent to '+j.n+'. They see it in Battalion.')); return; }
+  if(a==='inv'){ socInvite(c); const f=(BTS.me.members||[]).find(x=>x.c===c); toast('Invite sent',(f?f.n:fcFmt(c))+' · room '+NET.code); return; }
+  if(a==='more'){ BT.more=BT.more===c?'':c; BT.conf=''; btRender(); return; }
+  if(['promote','demote','lead','kick'].includes(a)){ if((a==='kick'||a==='lead')&&BT.conf!==a+c){ BT.conf=a+c; btRender(); return; } BT.conf=''; BT.more='';
+    await btCall('bat/act',{a,code:c}); await btFetch(); return; }
+  if(a==='opent'){ await btCall('bat/edit',{open:!BTS.me.bat.open}); await btFetch(); return; }
+  if(a==='leave'){ if(BT.conf!=='leave'){ BT.conf='leave'; btRender(); return; } BT.conf=''; await btCall('bat/leave',{},j=>toast(j.disbanded?'Battalion disbanded':'You left the battalion','')); BT.chat=[]; await btFetch(); return; }
+  if(a==='say'){ const inp=$('#btSay'), v=inp?inp.value.trim():''; if(!v) return;
+    const j=await btCall('bat/say',{msg:v}); if(j){ const i2=$('#btSay'); if(i2) i2.value=''; BT.say=''; BT.msg=''; btChatAdd([j]); } return; }
+  if(a==='rep'){ const x=BT.chat.find(y=>String(y.at)===t.dataset.at); if(!x) return; await btCall('report',{kind:'chat',target:x.c,why:'chat',ctx:x.m},()=>{ BT.more=''; btNote('Thanks. The message was reported.'); }); return; }
+  if(a==='repbat'){ await btCall('report',{kind:'bat',target:t.dataset.id,why:'battalion'},()=>{ BT.msg='Thanks. The battalion was reported.'; btRender(); }); return; } });
+document.addEventListener('keydown',e=>{ if(e.key!=='Enter') return; const id=e.target&&e.target.id; if(id==='btSay'){ e.preventDefault(); const b=document.querySelector('#btSheet [data-bta=say]'); if(b) b.click(); }
+  else if(id==='btFind'||id==='btInvC'){ e.preventDefault(); const b=document.querySelector('#btSheet [data-bta='+(id==='btFind'?'find':'invite')+']'); if(b) b.click(); } });
+// chat while the sheet is open: live through the presence socket; a slow poll when that socket is down
+function btPoll(){ if(!(BT.open&&BT.tab==='chat'&&BTS.me&&BTS.me.bat)) return; if(!(SOC.ws&&SOC.authed)) btChatLoad(); }
+
+/* --- shared refresh: the home screen badge and buttons --- */
+function rbRefresh(){
+  const row=document.querySelector('#menu .hc-row'); if(row){ let b=$('#rkHome'); const best=rkBest(), tag=btTag();
+    const h=best?rkBadge(best.tier,best.div):''; // the tag shows in matches, Battalion and Profile (the Play card is narrow)
+    if(!b){ b=document.createElement('span'); b.id='rkHome'; b.className='rkhome'; const pl=$('#opPlate'); if(pl&&pl.nextSibling) row.insertBefore(b,pl.nextSibling); else row.appendChild(b); }
+    if(b.dataset.h!==h){ b.dataset.h=h; b.innerHTML=h; } }
+  if(curScreen==='profile') rkProfile();
+}
+function rbBoot(){
+  // home: a Ranked chip and a Battalion button beside Friends (only with a backend)
+  const top=document.querySelector('#menu .mtop'), fb=$('#bFriends');
+  if(API_BASE&&top&&!$('#bBat')){ const b=document.createElement('button'); b.className='iconbtn frbtn'; b.id='bBat'; b.setAttribute('aria-label','Battalion');
+    b.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M8.5 11.5l2.5 2.5 4.5-5"/></svg>'; if(fb&&fb.parentNode===top) top.insertBefore(b,fb); else top.appendChild(b);
+    b.addEventListener('click',()=>{ SFX.init(); SFX.click(); openBat(); }); }
+  rbRefresh();
+  setInterval(rkTick,250); setInterval(btPoll,8000);
+  setInterval(()=>{ if(BTS.me&&BTS.me.bat) SOC.used=true; },2000); // battalion members keep the presence socket (chat push, mates' presence, room invites)
+  if(rbOn()){ rbAcct(); if(!RKS.at||Date.now()-RKS.at>6*3600000) setTimeout(rkFetchMe,2500); if(SOCS.code&&(!BTS.at||Date.now()-BTS.at>3600000)) setTimeout(btFetch,3000); }
+}
+// Profile → Overview: a Ranked card (both modes, season, buttons)
+function rkProfile(){ const ov=$('#pp-overview'); if(!ov||!API_BASE) return; let el=$('#rkProf');
+  if(!el){ el=document.createElement('div'); el.className='sec'; el.id='rkProf'; const pb=ov.querySelector('.pbtns'); if(pb&&pb.nextSibling) ov.insertBefore(el,pb.nextSibling); else ov.appendChild(el); }
+  const me=RKS.me, tag=btTag(), b=BTS.me&&BTS.me.bat;
+  el.innerHTML='<h3>Ranked <small>'+(me?'season '+me.season+' · ends '+new Date(me.ends).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'Solo and Duos')+'</small></h3>'
+    +'<div class="rkmodes">'+RK_MODES.map(rkModeCard).join('')+'</div>'
+    +(b?'<div class="bthead sm" data-pbat>'+btEmblem(b.bn,b.em)+'<div><b>'+esc(b.name)+' <em>['+esc(tag)+']</em></b><span>'+esc(BT_ROLE[BTS.me.role]||'')+' · '+(b.wk||0)+' pts this week</span></div></div>':'')
+    +'<div class="pbtns"><button class="btn sm" data-prk="queue">Find match</button><button class="btn sm" data-prk="board">Leaderboard</button><button class="btn sm" data-prk="bat">'+(b?'Battalion':'Join a battalion')+'</button></div>'; }
+document.addEventListener('click',e=>{ const t=e.target.closest('#rkProf [data-prk],#rkProf [data-pbat]'); if(!t) return; SFX.init(); SFX.click();
+  if(t.dataset.prk==='bat'||t.hasAttribute('data-pbat')) openBat(); else openRanked(t.dataset.prk); });
+
+/* --- hooks (wrappers; the wrapped functions are unchanged) --- */
+{ const f=mySpec; mySpec=function(){ const s=f.apply(this,arguments); const tag=btTag(), best=rkBest(); if(tag) s.ctag=tag; if(best) s.rkt=best.tier; if(RK.mid&&RK.sid&&(RK.st==='joining'||RK.st==='lobby'||RK.st==='hosting')) s.rsid=RK.sid; return s; }; }
+{ const f=cleanSpec; cleanSpec=function(sp,pid){ const r=f.apply(this,arguments); if(sp&&typeof sp==='object'){ if(typeof sp.ctag==='string'&&/^[A-Z0-9]{3,4}$/.test(sp.ctag)) r.ctag=sp.ctag; if(typeof sp.rsid==='string'&&/^[0-9A-Z]{6}$/.test(sp.rsid)) r.rsid=sp.rsid; if(rkT(sp.rkt)) r.rkt=sp.rkt; } return r; }; }
+{ const f=setupMatch; setupMatch=function(lo,mk,net){ const r=f.apply(this,arguments);
+  try{ for(const u of G.units){ if(net&&u.pid&&Array.isArray(net.players)){ const sp=net.players.find(p=>p&&p.pid===u.pid); if(sp){ u.ctag=sp.ctag||''; u.rsid=sp.rsid||''; u.rkt=sp.rkt||''; } }
+      else if(!net&&u.isPlayer){ u.ctag=btTag(); u.rkt=(rkBest()||{}).tier||''; } }
+    if(net) rkMatchStart(net); else if(RK.mtch) RK.mtch=0; }catch(e){ console.warn(e); } return r; }; }
+{ const f=kill; kill=function(t){ const r=f.apply(this,arguments); try{ if(rkLive()&&t&&RK.tp[t.team]==null&&!teamStanding(t.team)) RK.tp[t.team]=teamsLeft()+1; }catch(e){} return r; }; }
+{ const f=endMatch; endMatch=function(){ const was=G.over, r=f.apply(this,arguments); try{ if(!was&&G.over) rkMatchEnd(); }catch(e){ console.warn(e); } return r; }; }
+{ const f=showEnd; showEnd=function(){ const r=f.apply(this,arguments); try{ rkEndCard(); if(rkEndScope()) $('#eAgain').textContent='Ranked again'; }catch(e){} return r; }; }
+// after a ranked match "Play again" leaves the finished room and goes back to the queue (capture: runs before the game's own handler)
+$('#eAgain').addEventListener('click',e=>{ if(!rkEndScope()) return; e.stopImmediatePropagation(); const m=RK.mode; RK.mtch=0; toMenu(); if(NET.on) netLeave(); rkReset(); RK.st=''; openRanked('queue',m); },true);
+// leaving a ranked room before it starts leaves the queue too (the host's leaving cancels the match for everyone)
+$('#wrLeave').addEventListener('click',()=>{ if(rkInRoom()&&!RK.started){ if(RK.host) rkWsSend({t:'fail',mid:RK.mid}); rkWsSend({t:'leave'}); rkClose(); rkReset(); RK.st=''; } },true);
+$('#eMenu').addEventListener('click',()=>{ if(rkEndScope()){ RK.mtch=0; if(NET.on) netLeave(); rkReset(); RK.st=''; } },true);
+{ const f=netCode; netCode=function(){ if(RK.forceCode){ const c=RK.forceCode; return c; } return f.apply(this,arguments); }; }
+{ const f=drawUnit; drawUnit=function(c,u){ f.apply(this,arguments);
+  if(!u.ctag||u.isPlayer||!u.alive||u.downed||u.drop>0||G.scene!=='game') return;
+  const p=unitScreen(u), y=p[1]-(u.dr&&u.dr.st==='dock'?74:56)-6; c.save(); c.font='600 10px "Chakra Petch",sans-serif'; c.textAlign='right';
+  const w=c.measureText(u.name).width, x=p[0]-w/2-3, t='['+u.ctag+']'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,.65)'; c.strokeText(t,x,y); c.fillStyle='#ffd27a'; c.fillText(t,x,y); c.restore(); }; }
+{ const f=setPlate; setPlate=function(el,name){ f.apply(this,arguments); if(!el||el.id!=='uPlate'||!G.player) return; const u=G.player, k=(u.ctag||'')+'|'+(u.rkt||'');
+  const sm=el.querySelector('small'); if(sm&&u.ctag) sm.textContent='['+u.ctag+']'+(sm.textContent?' · '+sm.textContent:''); const n=el.querySelector('b'); // the tag leads the title line (the callsign keeps its room)
+  let bd=el.querySelector('.rkb'); if(el.dataset.rk!==k){ el.dataset.rk=k; if(bd) bd.remove(); if(u.rkt&&n) n.insertAdjacentHTML('afterend',rkBadge(u.rkt,0)); } }; }
+{ const f=renderMsFoot; renderMsFoot=function(){ f.apply(this,arguments); const go=$('#msGo'); if(!go||!API_BASE) return; let b=$('#msRk');
+  if(!b){ b=document.createElement('button'); b.id='msRk'; b.className='btn ghost rkms'; b.addEventListener('click',()=>{ SFX.init(); SFX.click(); openRanked('queue',MS.sel); }); go.parentNode.insertBefore(b,go); }
+  const on=!MS.friends&&RK_MODES.includes(MS.sel); b.classList.toggle('hidden',!on); if(on){ const x=RKS.me&&RKS.me.modes&&RKS.me.modes[MS.sel], t=x&&x.n>=RK_PLACE?rkTier(x.r):null; b.innerHTML=(t?rkBadge(t.k,t.div):'')+'Ranked<small>'+(t?esc(rkName(t.k,t.div)):'Queue')+'</small>'; } }; }
+{ const f=renderLobby; renderLobby=function(){ f.apply(this,arguments); const el=$('#lobby'); if(!el) return; const on=rkInRoom(); el.classList.toggle('rk-lock',on); let n=$('#rkRoom');
+  if(!on){ if(n) n.remove(); return; } if(!n){ n=document.createElement('div'); n.id='rkRoom'; n.className='rkroom'; const r=$('#wrRoom'); r.parentNode.insertBefore(n,r); }
+  const got=NET.host?NET.players.filter(p=>p.pid===NET.me||rkSidOk(p.rsid)).length:NET.players.length;
+  n.innerHTML='<b>Ranked · '+esc(MODES[RK.mode].name)+'</b><span>'+got+'/'+RK.pl.length+' players here · '+RK_TURN+' s turns · no mutators · AI '+esc(DIFFS[RK.diff].name)+'</span><small>'+(RK.started?'Starting…':'Starts automatically when everyone is in')+'</small>'; }; }
+{ const f=renderProfile; renderProfile=function(){ f.apply(this,arguments); try{ rkProfile(); }catch(e){} }; }
+{ const f=socMsg; socMsg=function(m){ f.apply(this,arguments); if(!m) return;
+  if(m.t==='hi'&&m.bon&&typeof m.bon==='object'){ Object.assign(SOC.pres,m.bon); if(BT.open) btRender(); }
+  else if(m.t==='p'){ const L=BTS.me&&BTS.me.members; if(L&&m.s!=='off'&&!L.some(x=>x.c===m.c)&&!(SOCS.list&&SOCS.list.friends.some(f=>f.c===m.c))){ clearTimeout(BT.fxT); BT.fxT=setTimeout(btFetch,400); } else if(BT.open&&BT.tab==='members') btRender(); }
+  else if(m.t==='bm') btChatAdd([m]);
+  else if(m.t==='bx') btFetch();
+  else if(m.t==='err'&&m.e==='offline') toast('That battalion mate is offline','Room invites to battalion mates need them online.'); }; }
+{ const f=friendsInviteButtonHtml; friendsInviteButtonHtml=function(){ const h=f.apply(this,arguments); return h&&btTag()&&!rkInRoom()?h+'<button class="btn sm frinv" data-btinv>Battalion</button>':h; }; }
+document.addEventListener('click',e=>{ if(e.target.closest('#wrRoom [data-btinv]')){ SFX.init(); SFX.click(); openBat('members'); } });
+{ const f=idHow; idHow=function(kind,id){ if(/^(t|bn)_rk_/.test(id||'')){ const k=id.replace(/^(t|bn)_rk_/,''), T=rkT(k); return T?'Ranked: peak '+T.n+' in a season':''; } return f.apply(this,arguments); }; }
+{ const st=document.createElement('style'); st.id='rbCss'; st.textContent=`
+.rkb{position:relative;display:inline-grid;place-items:center;width:22px;height:24px;flex:none;vertical-align:middle;color:var(--rk,#8299ad)}
+.rkb svg{position:absolute;inset:0;width:100%;height:100%;fill:color-mix(in srgb,var(--rk,#8299ad) 26%,#0b1219);stroke:var(--rk,#8299ad);stroke-width:1.6}
+.rkb svg .g{fill:var(--rk);stroke:none}
+.rkb b{position:relative;font:700 9.5px/1 'Chakra Petch',sans-serif;color:var(--rk);letter-spacing:-.02em;padding-top:1px}
+.rkb.lg{width:40px;height:44px}.rkb.lg b{font-size:14px}
+.rkb.rk-none{--rk:#5b6f82}
+.rkhome{display:inline-flex;align-items:center;gap:4px;flex:none}
+.rkhome .rkb{width:19px;height:21px}.rkhome .rkb b{font-size:8.5px}
+.bttag{font:600 15px/1 Teko,sans-serif;color:#ffd27a;letter-spacing:.06em;font-style:normal;padding-top:2px}
+#uPlate .rkb{position:absolute;right:4px;top:3px;width:16px;height:18px}
+#modesel .wr-btns .rkms{flex:none;min-height:62px;flex-direction:column;gap:0;padding:0 14px;font-size:15px}
+#modesel .wr-btns .rkms small{display:block;font-size:11px;color:var(--muted);font-weight:500}
+#modesel .wr-btns .rkms .rkb{position:absolute;top:6px;left:6px;width:16px;height:18px}
+#modesel .wr-btns .rkms .rkb b{display:none}
+.rbsheet{z-index:43}
+.rbsheet .sheet-box{min-height:66%}
+@media (min-width:760px){ .rbsheet .sheet-box{width:min(560px,calc(100vw - 48px));height:auto} }
+.rbtabs{display:flex;width:100%;margin:2px 0 var(--s3)}
+.rbtabs button{flex:1}
+.rbtabs.sm button{min-height:34px}
+.rkseason{padding:10px 12px;margin-bottom:var(--s3);background:linear-gradient(90deg,rgba(199,146,255,.14),rgba(199,146,255,0));border-left:3px solid #c792ff;border-radius:0 var(--r2) var(--r2) 0;font-weight:600;font-size:14px}
+.rkseason small{display:block;color:var(--muted);font-weight:500;font-size:12px}
+.rkmodes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:var(--s3)}
+.rkmc{display:flex;gap:10px;align-items:center;padding:10px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r2);min-width:0}
+.rkmc.sel{border-color:var(--signal-line);box-shadow:inset 0 0 0 1px var(--signal-line)}
+.rkmc>div{min-width:0}
+.rkmc small{display:block;color:var(--muted);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.rkmc b{display:block;font:600 21px/1 Teko,sans-serif;letter-spacing:.03em;padding-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rkmc span{display:block;color:var(--text2);font-size:11.5px;line-height:1.3}
+.rkrules{margin:0 0 var(--s3);padding-left:18px;color:var(--text2);font-size:12.5px;line-height:1.55}
+.rkq{display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:var(--s3);background:var(--surf);border:1px solid var(--signal-line);border-radius:var(--r2)}
+.rkq.ok{border-color:rgba(93,255,154,.55)}
+.rkq b{display:block;font-size:15px}.rkq small{display:block;color:var(--text2);font-size:12.5px}
+.rkpl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:var(--s3)}
+.rkpl span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 6px;background:var(--surf2);border:1px solid var(--line);border-radius:16px;font-size:13px;font-weight:600}
+.rkpl em,.rklb em,.bthead em,.btprev em{font-style:normal;color:#ffd27a}
+.rkgo{display:flex;gap:8px;justify-content:center;margin:var(--s3) 0}
+.rkgo .deploy{flex:1;flex-direction:column;gap:0}
+.rkgo .deploy small{display:block;font-size:11.5px;font-weight:500;opacity:.8}
+.rklb{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.rklb li,.rklb.me-pos{display:grid;grid-template-columns:30px 26px minmax(0,1fr) auto;gap:8px;align-items:center;min-height:46px;padding:4px 10px 4px 6px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r2)}
+.rklb li[data-btv]{cursor:pointer}
+.rklb li .btem{width:26px;height:26px}
+.rklb li>b,.rklb.me-pos>b{text-align:center;font:600 20px/1 Teko,sans-serif;color:var(--muted);padding-top:2px}
+.rklb li:nth-child(-n+3)>b{color:var(--amber)}
+.rklb span{min-width:0;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rklb span small{display:block;font-weight:500;color:var(--muted);font-size:11.5px}
+.rklb i{font:600 22px/1 Teko,sans-serif;font-style:normal;color:var(--text);padding-top:2px}
+.rklb li.me,.rklb.me-pos{border-color:var(--signal-line);background:var(--signal-bg)}
+.rklb.me-pos{margin-top:8px;grid-template-columns:44px minmax(0,1fr)}
+.rkend{display:flex;align-items:center;gap:12px;margin:10px 0;padding:10px 12px;background:linear-gradient(90deg,rgba(199,146,255,.16),rgba(199,146,255,.02));border:1px solid rgba(199,146,255,.45);border-radius:var(--r2)}
+.rkend>div{flex:1;min-width:0}
+.rkend small{display:block;color:#c9b3ff;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.rkend b{display:block;font:600 24px/1 Teko,sans-serif;letter-spacing:.03em;padding-top:2px}
+.rkend span{display:block;font-size:13px;color:var(--text2)}
+.rkend span.up{color:var(--ok);font-weight:700}.rkend span.dn{color:var(--hostile);font-weight:700}
+.rkroom{display:flex;flex-direction:column;gap:2px;padding:10px 12px;margin-bottom:10px;border:1px solid rgba(199,146,255,.5);border-left:3px solid #c792ff;border-radius:var(--r2);background:rgba(199,146,255,.08)}
+.rkroom b{font:600 20px/1 Teko,sans-serif;letter-spacing:.05em;padding-top:2px}.rkroom span{font-size:13px;color:var(--text2)}.rkroom small{font-size:12px;color:#c9b3ff}
+#lobby.rk-lock #wrRoom,#lobby.rk-lock #wrModes,#lobby.rk-lock #wrQuick,#lobby.rk-lock #wrTime,#lobby.rk-lock #wrMut,#lobby.rk-lock [data-badd],#lobby.rk-lock #wrDeploy,#lobby.rk-lock #wrRoom [data-on=invite],#lobby.rk-lock #wrRoom .frinv,#lobby.rk-lock #wrWatch{display:none!important}
+#lobby.rk-lock #wrSlots{pointer-events:none}
+.btem{position:relative;display:inline-grid;place-items:center;width:34px;height:34px;flex:none;border-radius:8px;border:1.5px solid var(--bc,var(--signal));overflow:hidden}
+.btem svg{width:62%;height:62%;fill:var(--bc,var(--signal));filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.btem.lg{width:58px;height:58px;border-radius:12px;border-width:2px}
+.frrow .av .btem{width:34px;height:34px}
+.bthead{display:flex;gap:12px;align-items:center;padding:10px 12px;margin-bottom:var(--s3);background:var(--surf);border:1px solid var(--line2);border-radius:var(--r2)}
+.bthead>div{min-width:0;flex:1}
+.bthead b{display:block;font:600 24px/1 Teko,sans-serif;letter-spacing:.03em;padding-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bthead span{display:block;color:var(--text2);font-size:12px}
+.bthead p{margin:4px 0 0;font-size:13px;color:var(--text);line-height:1.35}
+.bthead.sm{margin:8px 0;cursor:pointer}.bthead.sm b{font-size:20px}
+.btrow .btn-n{display:flex;align-items:center;gap:6px;font-size:15px}
+.btrow .btn-n .rkb{width:18px;height:20px}
+.btform label{display:block;margin-bottom:10px;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.btform input,.btsay input{display:block;width:100%;margin-top:4px;min-height:var(--tap);font:500 15px/1.2 'Chakra Petch',sans-serif;background:#0b121a;color:var(--text);border:1px solid var(--line2);border-radius:var(--r1);padding:8px 10px;-webkit-user-select:text;user-select:text;text-transform:none;letter-spacing:0}
+.btform #btTag{font:600 22px/1 Teko,sans-serif;letter-spacing:.16em;text-transform:uppercase;padding-top:10px}
+.btlbl{margin:0 0 6px;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.btlbl small{text-transform:none;letter-spacing:0;font-weight:500}
+.btpick{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.btpick button{padding:3px;border:1.5px solid transparent;border-radius:10px;background:none}
+.btpick button.sel{border-color:var(--signal)}
+.btprev{display:flex;gap:12px;align-items:center;padding:10px;margin-bottom:12px;background:var(--surf);border:1px dashed var(--line2);border-radius:var(--r2)}
+.btprev b{display:block;font:600 22px/1 Teko,sans-serif;letter-spacing:.03em}
+.btprev span{font-size:12px;color:var(--muted)}
+.btchat{display:flex;flex-direction:column;gap:6px;max-height:44vh;min-height:180px;overflow-y:auto;padding:6px;background:#091018;border:1px solid var(--line);border-radius:var(--r2);margin-bottom:8px}
+.btl{padding:6px 10px;background:var(--surf);border:1px solid var(--line);border-radius:10px 10px 10px 2px;max-width:86%;align-self:flex-start;cursor:pointer}
+.btl.me{align-self:flex-end;border-radius:10px 10px 2px 10px;background:var(--signal-bg);border-color:var(--signal-line)}
+.btl b{font-size:12.5px;color:#ffd27a}.btl small{margin-left:6px;font-size:11px;color:var(--muted)}
+.btl p{margin:2px 0 0;font-size:14px;line-height:1.35;word-break:break-word}
+.btl .btn{margin-top:6px}
+.btsay{margin-top:0}.btsay input{margin-top:0}
+`; document.head.appendChild(st); }
+rbBoot();
+
 /* ================= debug hooks (used for automated checks) ================= */
 window.__stormfall={G,setupMatch,runMatch,onAction,pFire,pMove,pThrow,enterTarget,actionList,sanitize,update,render,startMatch,PROF:()=>PROF,go,renderStore,renderQuests,renderProfile,grantRewards,claimQuest,sendEmote};
 

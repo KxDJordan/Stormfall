@@ -12,6 +12,7 @@ import {
   originAllowed, normIce, MemLimiter, ID_LEN, SECRET_LEN, MAX_BODY, TOP_N,
   normFriendCode, cleanProfile, FCODE_LEN, MAX_LINKS, MAX_OUT, MAX_IN, MAX_BLOCKS,
 } from './lib.js';
+import { rbRoutes } from './rb.js';
 
 export { Signal };
 
@@ -21,6 +22,7 @@ const topMem = new Map();   // day -> {t, body}: per-isolate leaderboard cache (
 let turnMem = null;         // {ice, exp}: TURN credentials shared by everyone for a few hours
 
 class HttpError extends Error { constructor(status, msg, extra) { super(msg); this.status = status; this.extra = extra; } }
+let RB = null; // ranked & battalions routes (rb.js), built on first use with this file's helpers
 
 function json(status, obj, headers) {
   const h = new Headers(headers);
@@ -127,6 +129,7 @@ async function dailySubmit(env, ctx, url, b) {
   if (dup) mine = await env.DB.prepare('SELECT score, at FROM daily WHERE day = ? AND acct = ?').bind(r.day, acc.id).first();
   else {
     await env.DB.prepare('INSERT INTO daily_count (day, n) VALUES (?, 1) ON CONFLICT(day) DO UPDATE SET n = n + 1').bind(r.day).run();
+    ctx.waitUntil(rb().dailyPoints(env, acc.id).catch(() => {})); // battalion points (ranked & battalions)
     // this isolate and this location's Cache API show the new score at once; others within their short TTL
     topMem.delete(r.day);
     if (typeof caches !== 'undefined') await caches.default.delete(topKey(url, r.day)).catch(() => {});
@@ -340,8 +343,15 @@ async function socialAct(env, ctx, b) {
 
 /* ---------------- router ---------------- */
 
+function rb() { return RB || (RB = rbRoutes({ json, HttpError, allow, tooMany, memAcct, MemLimiter })); }
+
 async function route(req, env, ctx, url, ip) {
   const p = url.pathname, M = req.method;
+  if (/^\/api\/(ranked|bat|report)(\/|$)/.test(p)) { // ranked & battalions (rb.js)
+    const r = await rb().route(req, env, ctx, url, ip, body);
+    if (r) return r;
+    throw new HttpError(404, 'Not found');
+  }
   if (p === '/api/peerjs') {
     if (req.headers.get('Upgrade') !== 'websocket') throw new HttpError(426, 'Expected a WebSocket');
     return env.SIGNAL.get(env.SIGNAL.idFromName('global')).fetch(req);
@@ -419,6 +429,7 @@ export default {
       env.DB.prepare('DELETE FROM accounts WHERE rev = 0 AND created < ? AND id NOT IN (SELECT acct FROM profiles)').bind(now - 7 * 86400000),
       env.DB.prepare('DELETE FROM invites WHERE exp < ?').bind(now),
       env.DB.prepare("DELETE FROM links WHERE st IN ('i', 'o') AND at < ?").bind(now - 60 * 86400000),
+      ...rb().cron(env, now), // ranked & battalions: expired invites, old chat, unfinished matches
     ]);
   },
 };

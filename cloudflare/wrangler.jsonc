@@ -27,7 +27,8 @@
     }
   ],
 
-  // PeerJS signaling + friends presence/invites (one global instance; see src/presence.js for why they share it).
+  // PeerJS signaling + friends presence/invites + the ranked matchmaking queue (one global instance; see src/presence.js
+  // for why they share it). Ranked and battalions add no class and no binding: their tables come from migrations/0003.
   // The free plan only allows SQLite-backed Durable Objects, hence new_sqlite_classes. No new class for socials, so
   // no Durable Object migration is needed; the D1 tables come from migrations/0002_social.sql (applied on deploy).
   "durable_objects": {

@@ -22,6 +22,11 @@
 //                   {t:'invd', c, live, exp}      your invite was delivered now (live) or stored for when they open the app
 //                   {t:'invn', c, r}              a friend declined your invite
 //                   {t:'err', e}                  'auth' | 'rate' | 'notfriend' | 'room'
+// Battalions (see rb.js): a socket also knows its battalion (att.bat, from D1 at auth, updated by the Worker's batSet RPC).
+// Battalion mates see each other's presence like friends do ('hi' carries bon:{code:{s,...}}, then 'p' updates), may
+// invite each other to a room (live only: a mate who is not connected gets {t:'err', e:'offline'}), and get
+//                   {t:'bm', at, c, n, m}            a battalion chat line (stored in D1 by /api/bat/say)
+//                   {t:'bx'}                         your battalion changed (joined, kicked, invited...): refetch /api/bat/me
 // Each socket's state lives in its attachment (survives hibernation): {k:'s', c, t0, ok, fr:'CODE,CODE', n, s, r, m, o, at, off}
 // (off = this socket stored offline invites: they are deleted when its lobby closes).
 
@@ -84,10 +89,22 @@ export class Presence {
     return this.live(fc).filter(([, a]) => frList(a).includes(me));
   }
   send(w, o) { try { w.send(typeof o === 'string' ? o : JSON.stringify(o)); } catch (_) {} }
-  /** tell c's friends (only those connected) about c's new presence */
-  broadcast(c, fr, st) {
+  /** tell c's friends and battalion mates (only those connected) about c's new presence */
+  broadcast(c, fr, st, bat) {
     const msg = JSON.stringify(Object.assign({ t: 'p', c }, publicPresence(st)));
     for (const fc of fr) for (const [w] of this.peers(fc, c)) this.send(w, msg);
+    if (bat) for (const [w, a] of this.mates(bat, c)) if (!frList(a).includes(c)) this.send(w, msg);
+  }
+  /** connected, authenticated sockets of battalion `bat` other than account c's */
+  mates(bat, c) {
+    const out = [];
+    if (!bat) return out;
+    for (const w of this.ctx.getWebSockets(S_TAG)) {
+      if (w.readyState !== 1) continue;
+      const a = w.deserializeAttachment();
+      if (a && a.ok && !a.gone && a.bat === bat && a.c !== c) out.push([w, a]);
+    }
+    return out;
   }
 
   async message(ws, raw, att) {
@@ -123,8 +140,10 @@ export class Presence {
         DB.prepare('SELECT a.sh, p.fcode, p.name FROM accounts a JOIN profiles p ON p.acct = a.id WHERE a.id = ?').bind(a.id),
         DB.prepare("SELECT p.fcode FROM links l JOIN profiles p ON p.acct = l.b WHERE l.a = ? AND l.st = 'f' LIMIT ?").bind(a.id, MAX_LINKS),
         DB.prepare('SELECT from_code, room, mode, name, exp FROM invites WHERE to_code = ? AND exp > ?').bind(att.c, now),
+        DB.prepare('SELECT bat FROM bat_mem WHERE acct = ?').bind(a.id),
       ])]);
       acc = res[0].results[0]; fr = res[1].results.map(x => x.fcode); inv = res[2].results;
+      att.bat = res[3].results[0] ? res[3].results[0].bat : '';
       if (!acc || acc.sh !== sh || acc.fcode !== att.c) return fail();
     } catch (e) { this.send(ws, { t: 'err', e: 'busy' }); try { ws.close(1013, 'Try again'); } catch (_) {} return; }
     if (ws.readyState !== 1) return;
@@ -141,10 +160,12 @@ export class Presence {
       const host = this.state(this.live(x.from_code));
       if (host && host.s === 'lobby' && host.r === x.room) pend.push({ c: x.from_code, n: x.name, r: x.room, m: x.mode, exp: x.exp });
     }
-    this.send(ws, { t: 'hi', c: att.c, on, inv: pend });
+    const bon = {};
+    for (const [, a] of this.mates(att.bat, att.c)) if (!on[a.c]) bon[a.c] = publicPresence(this.state(this.live(a.c)));
+    this.send(ws, att.bat ? { t: 'hi', c: att.c, on, inv: pend, bon } : { t: 'hi', c: att.c, on, inv: pend });
     if (inv.length) this.ctx.waitUntil(DB.prepare('DELETE FROM invites WHERE to_code = ?').bind(att.c).run().catch(() => {}));
     const after = this.state(this.live(att.c));
-    if (!samePresence(before, after)) this.broadcast(att.c, fr, after);
+    if (!samePresence(before, after)) this.broadcast(att.c, fr, after, att.bat);
   }
 
   status(ws, att, m) {
@@ -154,7 +175,7 @@ export class Presence {
     Object.assign(att, p, { at: Date.now() });
     ws.serializeAttachment(att);
     const after = this.state(this.live(att.c));
-    if (!samePresence(before, after)) this.broadcast(att.c, frList(att), after);
+    if (!samePresence(before, after)) this.broadcast(att.c, frList(att), after, att.bat);
     this.roomClosed(ws, att, before, after);
   }
 
@@ -167,9 +188,10 @@ export class Presence {
 
   async invite(ws, att, m) {
     const to = normFriendCode(m.to), room = cleanRoom(m.r), mode = cleanMode(m.m);
-    if (!to || !frList(att).includes(to)) { this.send(ws, { t: 'err', e: 'notfriend', c: m.to }); return; }
+    const friend = !!to && frList(att).includes(to), mate = !!to && !friend && !!att.bat && this.live(to).some(([, a]) => a.bat === att.bat);
+    if (!friend && !mate) { this.send(ws, { t: 'err', e: to && att.bat ? 'offline' : 'notfriend', c: m.to }); return; }
     if (!room || att.s !== 'lobby' || att.r !== room) { this.send(ws, { t: 'err', e: 'room' }); return; }
-    const exp = Date.now() + INVITE_TTL, L = this.peers(to, att.c);
+    const exp = Date.now() + INVITE_TTL, L = friend ? this.peers(to, att.c) : this.live(to).filter(([, a]) => a.bat === att.bat);
     if (L.length) {
       const msg = JSON.stringify({ t: 'inv', c: att.c, n: att.n, r: room, m: mode, exp });
       for (const [w] of L) this.send(w, msg);
@@ -202,7 +224,7 @@ export class Presence {
     att.gone = 1; try { ws.serializeAttachment(att); } catch (_) {}
     const L = this.live(att.c, ws), after = this.state(L);
     const before = this.state(L.concat([[ws, att]]));
-    if (!samePresence(before, after)) this.broadcast(att.c, frList(att), after);
+    if (!samePresence(before, after)) this.broadcast(att.c, frList(att), after, att.bat);
     this.roomClosed(ws, att, before, after);
     if (!after && this.env.DB) {
       this.ctx.waitUntil(this.env.DB.prepare('UPDATE profiles SET seen = ? WHERE fcode = ?').bind(Date.now(), att.c).run().catch(() => {}));
@@ -245,6 +267,35 @@ export class Presence {
       for (const [w] of this.live(b)) this.send(w, { t: 'p', c: a, s: 'off' });
     }
     return true;
+  }
+
+  /** called by the Worker after a battalion change: c's sockets now belong to `bat`; notify: send {t:'bx'} to c */
+  batSet(c, bat, notify) {
+    c = normFriendCode(c);
+    if (!c) return false;
+    for (const [w, att] of this.live(c)) {
+      const old = att.bat || '';
+      if (old !== (bat || '')) {
+        att.bat = bat || ''; w.serializeAttachment(att);
+        const st = this.state(this.live(c));
+        if (old) for (const [m, a] of this.mates(old, c)) if (!frList(a).includes(c)) this.send(m, { t: 'p', c, s: 'off' });
+        if (bat) for (const [m, a] of this.mates(bat, c)) if (!frList(a).includes(c)) this.send(m, Object.assign({ t: 'p', c }, publicPresence(st)));
+      }
+      if (notify) this.send(w, '{"t":"bx"}');
+    }
+    return true;
+  }
+  /** a battalion chat line to every connected member */
+  batMsg(bat, msg) {
+    if (!bat || !msg) return 0;
+    const s = JSON.stringify(Object.assign({ t: 'bm' }, msg));
+    let n = 0;
+    for (const w of this.ctx.getWebSockets(S_TAG)) {
+      if (w.readyState !== 1) continue;
+      const a = w.deserializeAttachment();
+      if (a && a.ok && !a.gone && a.bat === bat) { this.send(w, s); n++; }
+    }
+    return n;
   }
 }
 
