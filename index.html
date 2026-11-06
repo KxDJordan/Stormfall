@@ -8135,7 +8135,7 @@ async function execCmd0(u,c){
   else if(c.k==='act'){ await doActive(u,c); }              // class perk active: {k:'act',a,t?}
   else if(c.k==='throw'){ const util=u.utils[c.i]; if(!util||util.ch<=0) return; const U=UTILS[util.id];
     if((U.dev||U.flare)&&(u.ap<=0||!inMap(c.x,c.y)||Math.hypot(c.x-u.x,c.y-u.y)>throwRange(u,U)+0.01||solidT(c.x,c.y))) return; // drone / sensor target checks (rooftops are fine)
-    u.ap=Math.max(0,u.ap-1); if(U.dmg&&!u.moved&&u.ap>0) u.shot=true; await doThrow(u,util,c.x,c.y); }
+    u.ap=Math.max(0,u.ap-1); await doThrow(u,util,c.x,c.y); } // a throw just costs 1 AP: every other option stays open with the AP left
   else if(c.k==='door'){ await doDoor(u,c.x,c.y); }       // open / close an adjacent door: {k:'door',x,y}
   else if(c.k==='breach'){ await doBreach(u,c.x,c.y); }   // smash an adjacent closed door: {k:'breach',x,y}
   else if(c.k==='obj'){ await shootObj(u,c.x,c.y); }      // shoot a destructible object or explosive: {k:'obj',x,y}
@@ -8438,7 +8438,7 @@ async function aiExecute(u,a){
   // secondaries and class perk actives run through the same code as player commands, so AI follows the same AP rules
   else if(a.k==='sec'){ await execCmd(u,{k:'sec',t:a.t.id,path:a.path}); }
   else if(ACTS[a.k]){ await execCmd(u,{k:'act',a:a.k,t:a.t?a.t.id:null}); }
-  else if(a.k==='throw'){ const U=UTILS[a.util.id]; u.ap=Math.max(0,u.ap-1); if(U.dmg&&!u.moved&&u.ap>0) u.shot=true; await doThrow(u,a.util,a.x,a.y); }
+  else if(a.k==='throw'){ const U=UTILS[a.util.id]; u.ap=Math.max(0,u.ap-1); await doThrow(u,a.util,a.x,a.y); }
   else if(a.k==='obj'){ await execCmd(u,{k:'obj',x:a.x,y:a.y}); }
 }
 async function aiRevive(u){
@@ -10749,7 +10749,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=39, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=40, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
