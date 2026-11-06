@@ -69,21 +69,22 @@ Walker (the bulk), Runner (fast, fragile), Brute (smashes doors and cover in its
 on the map to what it found), Bloater (bursts into a poison cloud through the hazards gas system) and an
 Abomination boss every 5th wave. A closed door holds the others back for a couple of rounds while they bang it open.
 Toxic barrels and power boxes are always on the map, for luring the horde into gas and live current.
-Each operative starts with a barricade and a Noise Maker. A breather after each wave brings crates, +4 HP, a barricade
+Each operative starts with a barricade and a Noise Maker. A breather after each wave brings crates, +8 HP, a barricade
 charge and eliminated squadmates back. Clear wave 10 to extract. The horde acts as one NPC turn after the squad's turns.
 It is simulated zombie by zombie with the seeded RNG, so it stays lockstep online and in replays, and it is animated in
 batches. Waves grow roughly with the square of the wave number. The on-map cap is 22 zombies, +3 per squad member and +3
 per wave, up to 58.
 
 **Noise hordes.** Loud sounds fill a noise meter shown under the minimap. An explosion adds 8. A sniper rifle, railgun,
-AM-50 or heavy-weapon shot adds 5, another unsuppressed shot 3, a sidearm shot 2 and a Noise Maker 3. The meter does not
-drop after a round with loud noise; otherwise it ticks down about 15% (at least 2) at the round start, and the HUD shows
-the tick. When it reaches 18 (+4 per squad member), right after the turn that filled it, an extra horde (separate from
-the wave count) comes in from a seeded random map edge, headed for the loudest sound. Two loud turns in a row usually do
-it. A banner, a red edge flash with an arrow and a minimap edge mark show where the horde comes from. A 3-round rest
-follows, and the meter drains to a quarter. Zombies the cap holds back come in at the next round starts. A turn that
-makes 4+ noise during a wave also pulls that wave's next zombies in at once. New zombies appear right after the noisy
-turn but first act in that round's horde phase, so they never move in the middle of the squad's turn order.
+AM-50 or heavy-weapon shot adds 5, another unsuppressed shot 3, a sidearm shot 2 and a Noise Maker 3. The meter does
+not drop after a round with loud noise; otherwise it ticks down about 15% (at least 2) at the round start, and the HUD
+shows the tick. When it reaches 14 + 8 per squad member (22 solo, 46 for four), right after the turn that filled it, an
+extra horde (separate from the wave count) comes in from a seeded random map edge, headed for the loudest sound. Two
+loud turns in a row usually do it. A banner, a red edge flash with an arrow and a minimap edge mark show where the
+horde comes from. A rest of 3 rounds (+2 per extra squad member) follows, and the meter drains to a quarter. Zombies
+the cap holds back come in at the next round starts. A turn that makes 4+ noise during a wave also pulls that wave's
+next zombies in at once. New zombies appear right after the noisy turn but first act in that round's horde phase, so
+they never move in the middle of the squad's turn order.
 
 **Mutators** (waiting room, host or offline) stack on any mode: Low gravity (+1 mobility, grenades +3 tiles, drop off any
 ledge), Explosive everything (destroyed objects explode like oil drums), One-shot, Double storm speed, Melee only and
