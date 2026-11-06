@@ -1444,7 +1444,7 @@ html.pa-rm .toast,html.pa-rm .toast.lvl,html.pa-rm .toast.lvl::after,html.pa-rm 
   <div class="bottom">
     <div class="spec pe hidden" id="spec">
       <div class="r1"><b id="spName">Spectating</b><span id="spSub"></span></div>
-      <div class="r2"><button class="btn sm" id="spPrev">‹ Prev</button><button class="btn sm" id="spNext">Next ›</button><button class="btn sm" id="spSpeed">1×</button><button class="btn primary sm" id="spLeave">Results</button></div>
+      <div class="r2"><button class="btn sm" id="spPrev">‹ Prev</button><button class="btn sm" id="spNext">Next ›</button><button class="btn sm" id="spSpeed">1×</button><button class="btn primary sm" id="spLeave">Leave</button></div>
       <div class="r3 hidden" id="spR3"><button class="btn sm" id="spPlay" aria-label="Pause replay">❚❚ Pause</button><button class="btn sm" id="spFinal">⏭ Final turns</button><span class="sprog"><i id="spProg"></i></span></div>
     </div>
     <div class="tgt pe hidden" id="tgt">
@@ -3294,7 +3294,7 @@ function setupMatch(lo,mk,net,pre){
   // supply crates can also sit on rooftops (a reason to climb)
   const cpool=floors.concat(G.lvl.reduce((a,l,i)=>(l>=2&&a.push(i),a),[]));
   for(let k=0;k<crateN;k++){ let best=-1,bd=-1; for(let t=0;t<50;t++){ const c=pick(cpool); if(!inR(c)||taken.has(c)||G.crates.some(q=>idx(q.x,q.y)===c)) continue; let md=99; for(const s of [...taken].concat(G.crates.map(q=>idx(q.x,q.y)))) md=Math.min(md,Math.hypot(c%MW-s%MW,((c/MW)|0)-((s/MW)|0))); if(md>bd){bd=md;best=c;} } if(best>=0) G.crates.push({x:best%MW,y:(best/MW)|0,ph:RNG()*6}); }
-  G.intel={}; G.noise=[]; G.round=0; G.over=false; G.playerDead=false; G.spec=null; G.speed=1; G.rewarded=null; G.result=null; G.place=0; G.busy=true; G.mode='idle'; G.reach=null; G.pending=-1; G.turnRes=null; G.paused=false; G.turnMax=0;
+  G.intel={}; G.noise=[]; G.round=0; G.over=false; G.playerDead=false; G.spec=null; G.speed=1; G.rewarded=null; G.result=null; specBg(false); G.speed=1; G.left=false; G.autoPlayer=false; G.place=0; G.busy=true; G.mode='idle'; G.reach=null; G.pending=-1; G.turnRes=null; G.paused=false; G.turnMax=0;
   G.stats={shots:0,hits:0,grazes:0,dmg:0,kills:0,rounds:0,crates:0,drops:0,owHits:0,highHits:0,nadeHits:0,revives:0};
   G.cstat=cstatNew(); G.cctx=null; // challenge / pass counters (local player only, write-only from the sim)
   G.reveals=[]; G.sensors=[]; G.lkp=new Map(); G.cues=[]; G.groundDirty=false;
@@ -8034,7 +8034,8 @@ async function unitTurn(u,mid){
       applyDamage(u,d,null,{pierce:true,anim:show}); if(show) await wait(700); if(!standing(u)||G.over||G.matchId!==mid) return; } }
   if(u.st&&await stTick(u,mid)) return; // status effects tick (hazards and status effects)
   lowHpPing(u); // visual only: a hurt AI teammate asks for a heal; a hurt player is reminded they can
-  if(u.isPlayer&&!G.autoPlayer) await playerTurn(u); else if(u.net) await netTurn(u,mid); else await aiTurn(u,mid);
+  if(u.isPlayer&&!G.autoPlayer) await playerTurn(u); else if(u.net) await netTurn(u,mid);
+  else { if(u.isPlayer&&u.human&&standing(u)&&(u.ap>0||dCanAct(u))&&!G.over&&!(G.gm&&G.gm.halt)){ u.human=false; clkTurn(u,false); } await aiTurn(u,mid); }
   if(u.disorient>0) u.disorient--;
   if(u.st||u.stMob) stEnd(u); // status effects count down
 }
@@ -8819,7 +8820,7 @@ function endMatch(win){
     G.result={win:false,place:0,of:nTeams(),winner:G.M.inf?infWinner():wt?(G.M.team>1?teamLabel(wt.team):wt.name):null};
     computeVis(); turnTag('',''); $('#spec').classList.add('hidden'); banner(G.result.winner?G.result.winner+' win'+(G.M.team>1||G.M.inf?'':'s'):'No survivors','Match over.','win',2400);
     recSave(); const mid=G.matchId; setTimeout(()=>{ if(G.matchId===mid) watchEnd('over'); },2600); return; }
-  if(NET.host&&NET.cfg&&!NET.done){ NET.done=true; netLobby(); } // the match is over for everyone: nothing left to spectate
+  netMatchOver(); // the match is over for everyone: nothing left to spectate
   if(win) G.place=1; else if(!G.place) G.place=G.M.inf?infPlace():teamsLeft()+1;
   G.result={win,place:win?1:G.place,of:nTeams(),winner:G.M.inf?(win?null:infWinner()):wt&&!win?(G.M.team>1?teamLabel(wt.team):wt.name):null};
   recSave();
@@ -9190,7 +9191,7 @@ function showTeamPing(u,k,x,y){ const P=PINGS[k]; if(!P||!u||!G.player||!mine(u)
 function netSendPing(k,x,y){ if(!NET.on||!G.player) return; const m={t:'tping',m:NET.m,u:G.player.id,k,x,y};
   if(NET.host) netRelayTeam(m,G.player.team); else if(NET.hostConn){ try{ NET.hostConn.send({t:'tping',k,x,y}); }catch(e){} } }
 // host: send a team message only to guests whose operative is on that team
-function netRelayTeam(msg,team,except){ for(const [pid,c] of NET.conns){ if(pid===except) continue; const v=G.units.find(z=>z.net===pid); if(!v||v.team!==team) continue; try{ c.conn.send(msg); }catch(e){} } }
+function netRelayTeam(msg,team,except){ for(const [pid,c] of NET.conns){ if(pid===except) continue; const v=hostUnit(pid); if(!v||v.team!==team) continue; try{ c.conn.send(msg); }catch(e){} } }
 // inbound ping from the network: validated, shown only to the pinger's team
 function recvPing(u,k,x,y){ if(!u||!PINGS[k]||!u.alive||typeof x!=='number'||typeof y!=='number') return; x=clamp(x|0,0,MW-1); y=clamp(y|0,0,MH-1); showTeamPing(u,k,x,y); }
 // AI side: how a team order shifts move scoring (called per candidate tile for AI units on that team)
@@ -10295,7 +10296,7 @@ function gmSpawnSpot(u){ const S=G.gm, foes=G.units.filter(v=>standing(v)&&isEne
 async function gmRespawns(){ const due=G.units.filter(u=>!u.alive&&u.rsp!=null&&u.rsp<=G.round); if(!due.length) return;
   let me=false;
   for(const u of due){ const i=gmSpawnSpot(u); if(i<0) continue; gmRevive(u); placeUnit(u,i%MW,(i/MW)|0); u.face=hash(u.x,u.y,u.id)<.5?1:-1; u.drop=1; dropLand(u,0.6);
-    feedLine(u.name+' redeployed',mine(u)); if(u.isPlayer&&!G.watch) me=true; }
+    feedLine(u.name+' redeployed',mine(u)); if(u.isPlayer&&!G.watch&&!G.autoPlayer) me=true; }
   if(me){ const p=G.player; G.playerDead=false; G.spec=null; G.speed=1; $('#spSpeed').textContent='1×'; $('#spec').classList.add('hidden'); focusOn(p.x,p.y,defaultZ()); banner('Back in the fight','You dropped in away from the enemy.','win',1600); buzz(25); }
   computeVis(); updateHUD(); await wait(me?900:500); }
 function gmPlayerOut(){ const S=G.gm; if(!S.resp) return false;
@@ -10338,7 +10339,7 @@ function gmFinish(){
   G.over=true; G.turnRes=null; computeVis(); turnTag('',''); $('#spec').classList.add('hidden');
   const why=S.k==='siege'?'Siege won '+S.score[win]+'–'+Math.min(...S.teams.map(t=>S.score[t]|0)):S.halt.cap?'Round limit: most '+(S.k==='koth'?'hill points':'eliminations'):S.k==='koth'?'First to '+G.M.target+' hill points':'First to '+G.M.target+' eliminations';
   if(G.watch){ G.result={win:false,place:0,of:order.length,winner:wl}; banner(wl+' win',why+'.','win',2400); recSave(); setTimeout(()=>{ if(G.matchId===mid) watchEnd('over'); },2600); return; }
-  if(NET.host&&NET.cfg&&!NET.done){ NET.done=true; netLobby(); }
+  netMatchOver();
   const my=G.player?G.player.team:-1, w=my===win; G.place=Math.max(1,order.indexOf(my)+1);
   G.result={win:w,place:w?1:G.place,of:order.length,winner:w?null:wl}; recSave(); $('#tmr').classList.add('hidden');
   if(w){ banner('Victory',why+'.','win',2400); buzz([40,60,40,60,120]); } else banner(wl+' win',why+'. You placed #'+G.place+' of '+order.length+'.','lose',2400);
@@ -10387,7 +10388,7 @@ function siegePlace(){ const S=G.gm, c=S.core.x, H=SIEGE.H, side=ri(0,3), dir=[[
     taken.add(i); gmRevive(u); siegeKit(u,att); placeUnit(u,i%MW,(i/MW)|0); u.face=(dir[0]+dir[1]>0)===att?-1:1; }
   // the attackers' approach starts under a smoke screen between them and the facing wall (it clears after the second round)
   for(const k of [-3.5,0,3.5]) G.smoke.push({x:Math.round(c+dir[0]*(H+2.5)-dir[1]*k),y:Math.round(c+dir[1]*(H+2.5)+dir[0]*k),r:2,until:S.r0+1});
-  if(G.player&&!G.watch){ G.playerDead=false; G.spec=null; G.speed=1; $('#spec').classList.add('hidden'); } }
+  if(G.player&&!G.watch&&!G.autoPlayer){ G.playerDead=false; G.spec=null; G.speed=1; $('#spec').classList.add('hidden'); } }
 // a new Siege round: the compound and pickups as they were at the start, everyone back in, sides as set by the caller
 function siegeReset(){ const S=G.gm;
   G.grid=S.grid0.map(o=>o?Object.assign({},o):null); G.crates=S.crates0.map(q=>Object.assign({},q));
@@ -10570,29 +10571,33 @@ function grantRewards(){
 }
 function showEnd(){
   liveClear();
-  const r=G.result, s=G.stats, rw=grantRewards();
+  // results taken early stay the results: the match's end only adds who won (your operative and squad played on without you)
+  if(G.left&&G.leftRes&&G.result!==G.leftRes){ const x=G.result||{}; G.result=Object.assign({},G.leftRes,{winner:x.winner||(x.win&&G.player?(G.M.team>1?teamLabel(G.player.team):G.player.name):null)}); }
+  const first=!G.rewarded, r=G.result, s=G.stats, rw=grantRewards();
   const title=r.win?(G.M.team>1?'Squad victory':'Victory'):'#'+r.place;
   $('#eRes').textContent=title; $('#eRes').className='display res '+(r.win?'win':'lose');
+  if(G.left&&!G.over) specBg(true); else specBg(false);
   const reg=G.R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
   $('#eSub').textContent=(G.M.inf?infEndTxt(r.win)[1].replace(/\.$/,''):r.win?'Last '+(G.M.team>2?'squad':G.M.team>1?'team':'operative')+' standing':(G.M.team>2?'Your squad placed #':'You placed #')+r.place+' of '+r.of+(G.M.team>2?' squads':''))+' in '+reg+', '+G.M.name+'.'+(r.winner?' '+r.winner+' won the match.':'')+mutTxt();
   if(G.gm) $('#eSub').textContent=gmEndSub(r,reg)+mutTxt();
+  if(specLive()) $('#eSub').textContent+=' The match goes on: spectate it to the end, or leave.';
   $('#ePlate').innerHTML=plateHtml(G.player.name,G.player.ttl,G.player.bnr,{pr:G.player.prk|0}); endProgressHtml(rw);
   const a=rw.after; $('#eLvl').textContent=a.l; $('#eXpT').textContent='+'+rw.xp+' XP';
   const bar=$('#eXp'); bar.style.transition='none'; bar.style.width=(rw.before.cur/rw.before.need*100)+'%'; void bar.offsetWidth; bar.style.transition='';
-  setTimeout(()=>{ bar.style.width=(a.l>rw.before.l?100:a.cur/a.need*100)+'%'; if(a.l>rw.before.l) setTimeout(()=>{ bar.style.transition='none'; bar.style.width='0%'; void bar.offsetWidth; bar.style.transition=''; bar.style.width=(a.cur/a.need*100)+'%'; },950); },120);
+  if(!first) bar.style.width=(a.cur/a.need*100)+'%'; else setTimeout(()=>{ bar.style.width=(a.l>rw.before.l?100:a.cur/a.need*100)+'%'; if(a.l>rw.before.l) setTimeout(()=>{ bar.style.transition='none'; bar.style.width='0%'; void bar.offsetWidth; bar.style.transition=''; bar.style.width=(a.cur/a.need*100)+'%'; },950); },120);
   $('#eRew').innerHTML=rw.lines.map(l=>'<div><span>'+l[0]+'</span><span>+'+l[1]+'</span></div>').join('')+'<div class="tot"><span>Credits earned</span><span>+'+rw.total+' CR</span></div>'+(rw.shards?'<div><span>Level-up bonus</span><span>+'+rw.shards+' shards</span></div>':'');
   $('#eUnl').innerHTML=(a.l>rw.before.l?'<div class="unl"><b>Level '+a.l+'</b><span>'+(rw.unl.length?'Unlocked '+rw.unl.map(x=>x[1]).join(', '):'Level up')+'</span></div>':'')+rw.done.map(t=>'<div class="unl" style="border-left-color:var(--amber);background:linear-gradient(90deg,rgba(255,179,64,.14),rgba(255,179,64,0))"><b style="color:var(--amber)">Quest</b><span>'+t+' — claim it in Quests</span></div>').join('');
   // weapon mastery progress: "Shotgun mastery 3 → 4" with what it unlocked
   $('#eMast').innerHTML=(rw.mast||[]).map(m=>{ const up=m.a.l>m.b.l, w=m.a.max?100:m.a.cur/m.a.need*100;
     return '<div class="mrow'+(up?' up':'')+'"><div class="mt"><b>'+esc(wName(m.k))+' mastery '+(up?m.b.l+' → '+m.a.l:m.a.l)+'</b><span>+'+m.gain+' XP'+(m.a.max?' · max':' · '+m.a.cur+'/'+m.a.need)+'</span></div><span class="xpbar"><i style="width:'+w.toFixed(1)+'%"></i></span>'
       +(m.unl.length?'<small>Unlocked: '+esc(m.unl.join(', '))+'</small>':'')+'</div>'; }).join('');
-  for(const m of rw.mast||[]) if(m.a.l>m.b.l) setTimeout(()=>toast(wName(m.k)+' mastery '+m.a.l,m.unl.length?'Unlocked '+m.unl.join(', '):'','lvl'),700);
+  if(first) for(const m of rw.mast||[]) if(m.a.l>m.b.l) setTimeout(()=>toast(wName(m.k)+' mastery '+m.a.l,m.unl.length?'Unlocked '+m.unl.join(', '):'','lvl'),700);
   const acc=s.shots?Math.round(s.hits/s.shots*100)+'%':'—';
   $('#eGrid').innerHTML='<div><b>'+s.kills+'</b>eliminations</div><div><b>'+s.dmg+'</b>damage dealt</div><div><b>'+acc+'</b>accuracy, '+s.grazes+' graze'+(s.grazes===1?'':'s')+'</div><div><b>'+s.rounds+'</b>rounds survived</div>';
   $('#eAgain').textContent=NET.on?'Back to room':G.daily?'Play':'Play again';
-  recSave(); $('#eReplay').disabled=!REC||!REC.h.length; dailyEnd();
+  if(G.over) recSave(); endReplayBtn(); dailyEnd();
   $('#end').classList.remove('hidden'); $('#hud').classList.add('hidden');
-  if(a.l>rw.before.l){ toast('Level '+a.l+' reached',rw.unl.length?rw.unl.map(x=>x[1]).join(', '):'+'+rw.shards+' shards','lvl'); SFX.heal(); buzz([30,40,30,40,80]); }
+  if(first&&a.l>rw.before.l){ toast('Level '+a.l+' reached',rw.unl.length?rw.unl.map(x=>x[1]).join(', '):'+'+rw.shards+' shards','lvl'); SFX.heal(); buzz([30,40,30,40,80]); }
   updateNavDot();
 }
 /* ================= toasts ================= */
@@ -10649,7 +10654,7 @@ function liveBoot(){ let o=null; try{ o=JSON.parse(localStorage.getItem(LIVE_KEY
   if(o.v) setTimeout(()=>toast('Your last match was cut off','The phone closed the game mid-match (usually low memory). Closing other apps can help.','',7000),1500); }
 setInterval(()=>{ if(G.scene==='game'&&!G.over&&!G.watch&&localStorage.getItem(LIVE_KEY)) liveMark(); },5000);
 document.addEventListener('visibilitychange',()=>{ if(G.scene==='game'&&!G.over&&!G.watch&&localStorage.getItem(LIVE_KEY)) liveMark(); });
-function toMenu(){ liveClear(); ffStop(); if(TUT.on) tutStop(); show('#tutEnd',false); show('#hud',false); show('#end',false); show('#wend',false); G.over=true; G.turnRes=null; G.watch=null; G.paused=false; setupMenuScene(); go('menu'); }
+function toMenu(){ liveClear(); ffStop(); if(G.left&&!G.over&&!G.watch&&G.scene==='game') recSave(); specBg(false); if(TUT.on) tutStop(); show('#tutEnd',false); show('#hud',false); show('#end',false); show('#wend',false); G.over=true; G.turnRes=null; G.watch=null; G.paused=false; setupMenuScene(); go('menu'); }
 function refreshMenu(){
   LO=sanitize(LO);
   const li=lvlInfo(); $('#mLvlN').textContent=li.l; $('#mXp').style.width=(li.cur/li.need*100)+'%'; $('#mXpT').textContent=li.cur+' / '+li.need+' XP';
@@ -10845,6 +10850,14 @@ async function netHost(){
   };
   tryOpen(0,own0);
 }
+// a guest's unit as the host relays it: from the host's own match, or (host back in the menus while the room plays on)
+// from the roster kept at the start; away: the host's screen is not running this match, so relay only
+function hostUnit(pid){ const H=NET.hu; if(H&&H.m===NET.m&&!NET.done&&G.matchId!==H.mid){ const v=H.u.get(pid); return v?{id:v.id,team:v.team,away:true}:null; }
+  return G.units.find(x=>x.net===pid)||null; }
+// the match is over: the host closes the room's live flag, a guest tells the host; results taken early: Spectate becomes the replay
+function netMatchOver(){ if(G.watch) return; if(!$('#end').classList.contains('hidden')) endReplayBtn();
+  if(NET.host&&NET.cfg&&!NET.done){ NET.done=true; netLobby(); }
+  else if(NET.on&&!NET.host&&NET.hostConn){ try{ NET.hostConn.send({t:'over',m:NET.m}); }catch(_){} } }
 function hostData(conn,d){
   if(!d||typeof d!=='object') return; const pid=conn.peer, rec=NET.conns.get(pid); if(rec) rec.last=Date.now();
   if(d.t==='hello'){
@@ -10864,18 +10877,19 @@ function hostData(conn,d){
   if(!rec) return;
   if(d.t==='watchme'){ netOfferWatch(conn); return; } // a spectator (or waiting player) asks for the running match again
   if(d.t==='seat'){ if(!rec.spec) hostSeat(pid,d.team); return; } // a guest picks a team (Duos); the host decides and broadcasts
+  if(d.t==='over'&&!rec.spec){ if(d.m===NET.m&&NET.cfg&&!NET.done){ NET.done=true; netLobby(); } return; } // a player's match ended (lockstep: it ends the same for all; the host may be behind, or away from it)
   if(rec.spec||(G.watch&&G.watch.kind==='replay')) return; // spectators only answer pings; a replay on the host's screen takes no input
   if(d.t==='pong') return;
-  if(d.t==='cmd'&&d.m===NET.m&&d.c&&typeof d.c==='object'){ const u=G.units.find(x=>x.net===pid); if(!u) return; netRelay({t:'cmd',m:NET.m,u:u.id,c:d.c},pid); netPush(u.id,d.c); return; }
-  if(d.t==='emo'){ const u=G.units.find(x=>x.net===pid); if(!u) return; netRelay({t:'emo',m:NET.m,u:u.id,k:d.k},pid); showEmote(u,d.k); }
-  if(d.t==='tping'){ const u=G.units.find(x=>x.net===pid); if(!u||!PINGS[d.k]||(rec.pingT&&Date.now()-rec.pingT<400)) return; rec.pingT=Date.now(); // team-only relay, rate limited
-    netRelayTeam({t:'tping',m:NET.m,u:u.id,k:d.k,x:d.x,y:d.y},u.team,pid); recvPing(u,d.k,d.x,d.y); }
+  if(d.t==='cmd'&&d.m===NET.m&&d.c&&typeof d.c==='object'){ const u=hostUnit(pid); if(!u) return; netRelay({t:'cmd',m:NET.m,u:u.id,c:d.c},pid); if(!u.away) netPush(u.id,d.c); return; }
+  if(d.t==='emo'){ const u=hostUnit(pid); if(!u) return; netRelay({t:'emo',m:NET.m,u:u.id,k:d.k},pid); if(!u.away) showEmote(u,d.k); }
+  if(d.t==='tping'){ const u=hostUnit(pid); if(!u||!PINGS[d.k]||(rec.pingT&&Date.now()-rec.pingT<400)) return; rec.pingT=Date.now(); // team-only relay, rate limited
+    netRelayTeam({t:'tping',m:NET.m,u:u.id,k:d.k,x:d.x,y:d.y},u.team,pid); if(!u.away) recvPing(u,d.k,d.x,d.y); }
 }
 function hostDrop(pid){
   if(!NET.host||!NET.conns.has(pid)) return; const rec=NET.conns.get(pid); NET.conns.delete(pid); try{ rec.conn.close(); }catch(_){}
   if(rec.spec){ const sp=NET.specs.find(x=>x.pid===pid); NET.specs=NET.specs.filter(x=>x.pid!==pid); if(sp) toast('Spectator left',sp.name); netLobby(); return; }
   const p=NET.players.find(x=>x.pid===pid); NET.players=NET.players.filter(x=>x.pid!==pid);
-  const u=!(G.watch&&G.watch.kind==='replay')&&G.units.find(x=>x.net===pid); if(u){ netRelay({t:'cmd',m:NET.m,u:u.id,c:{k:'ai'}}); netPush(u.id,{k:'ai'}); }
+  const u=!(G.watch&&G.watch.kind==='replay')&&hostUnit(pid); if(u){ netRelay({t:'cmd',m:NET.m,u:u.id,c:{k:'ai'}}); if(!u.away) netPush(u.id,{k:'ai'}); }
   if(p) toast('Player left',p.name); netLobby();
 }
 // the room state every guest renders; in team modes the seat list (seatNorm) is authoritative and NET.bots follows it
@@ -10924,6 +10938,7 @@ function startNetMatch(cfg){
   G.paused=false; if(draft){ draft=null; }
   setupMatch(null,cfg.mode,Object.assign({},cfg,{me:NET.me})); show('#hud',false);
   G.tm=cfg.tm; tmInit(); recStart('on',cfg,NET.me);
+  NET.hu=NET.host?{m:cfg.m,mid:G.matchId,u:new Map(G.units.filter(u=>u.net).map(u=>[u.net,{id:u.id,team:u.team}]))}:null;
   // every client lands its roulette on the host's region; commands that arrive meanwhile queue on the new units
   const mid=G.matchId; mapRoulette(G.region).then(()=>{ if(G.matchId!==mid) return; show('#hud',true); updateHUD(); runMatch(); });
 }
@@ -11853,7 +11868,7 @@ function setupTutorial(){
   for(const D of [D1,D2]){ D.bot=true; D.diff=DIFFS.recruit; D.tutGuard=true; } P.tutGuard=true;
   placeUnit(P,TY.start[0],TY.start[1]); placeUnit(D1,TY.d1[0],TY.d1[1]); placeUnit(D2,TY.d2[0],TY.d2[1]); P.face=-1; D1.face=1; D2.face=1;
   G.units=[P,D1,D2]; G.drones=G.units.filter(u=>u.dr).map(u=>u.dr); G.dmode=null; G.dstat=null; G.teamDiff={1:DIFFS.recruit,2:DIFFS.recruit}; TUT.d1=D1; TUT.d2=D2;
-  G.intel={}; G.noise=[]; G.round=1; G.over=false; G.playerDead=false; G.spec=null; G.speed=1; G.rewarded=null; G.result=null; G.place=0; G.busy=true; G.mode='idle'; G.reach=null; G.pending=-1; G.turnRes=null; G.paused=false; G.turnMax=0;
+  G.intel={}; G.noise=[]; G.round=1; G.over=false; G.playerDead=false; G.spec=null; G.speed=1; G.rewarded=null; G.result=null; specBg(false); G.speed=1; G.left=false; G.autoPlayer=false; G.place=0; G.busy=true; G.mode='idle'; G.reach=null; G.pending=-1; G.turnRes=null; G.paused=false; G.turnMax=0;
   G.stats={shots:0,hits:0,grazes:0,dmg:0,kills:0,rounds:0,crates:0,drops:0,owHits:0,highHits:0,nadeHits:0,revives:0}; G.cstat=cstatNew(); G.cctx=null;
   G.reveals=[]; G.sensors=[]; G.lkp=new Map(); G.cues=[]; G.groundDirty=false;
   G.scene='game'; computeVis(); buildGround(); G.bg=cvFree(G.bg); initWeather();
@@ -11991,10 +12006,10 @@ function howButtons(){ const t=$('#howTut'), c=$('#howClose'), done=PROF.tut.don
   t.querySelector('small').textContent=done?'Replay the scripted drill':'About 5 minutes · pays a reward the first time'; }
 
 /* ================= in-match controls ================= */
-$('#bPause').addEventListener('click',()=>{ if(G.scene!=='game') return; G.paused=!NET.on||!!(G.watch&&G.watch.kind==='replay'); $('#pQuit').textContent=G.watch?(G.watch.kind==='replay'?'Stop the replay':'Stop watching'):'Abandon match'; $('#pauseSet').innerHTML=setRows(true); $('#pause').classList.remove('hidden'); });
+$('#bPause').addEventListener('click',()=>{ if(G.scene!=='game') return; G.paused=!NET.on||!!(G.watch&&G.watch.kind==='replay'); $('#pQuit').textContent=G.watch?(G.watch.kind==='replay'?'Stop the replay':'Stop watching'):specLive()?'Leave to results':'Abandon match'; $('#pauseSet').innerHTML=setRows(true); $('#pause').classList.remove('hidden'); });
 $('#pauseSet').addEventListener('click',e=>onSetClick(e,()=>{ $('#pauseSet').innerHTML=setRows(true); }));
 $('#pResume').addEventListener('click',()=>{ G.paused=false; $('#pause').classList.add('hidden'); });
-$('#pQuit').addEventListener('click',()=>{ $('#pause').classList.add('hidden'); G.paused=false; if(G.watch){ exitWatch(); return; } if(NET.on&&!G.over) netLeave(); toMenu(); });
+$('#pQuit').addEventListener('click',()=>{ $('#pause').classList.add('hidden'); G.paused=false; if(G.watch){ exitWatch(); return; } if(specLive()){ specResults(); return; } if(NET.on&&!G.over) netLeave(); toMenu(); });
 $('#bEmote').addEventListener('click',()=>{ if($('#emoteTray').classList.contains('hidden')) openEmotes(); else closeEmotes(); });
 $('#emoteTray').addEventListener('click',e=>{ const b=e.target.closest('[data-em]'); if(!b) return; sendEmote(b.dataset.em); closeEmotes(); });
 // team pings: the 📍 button arms ping mode (next map tap opens the ping menu there); a long press on the map does the same
@@ -12009,7 +12024,7 @@ function fillSpec(){ if(!G.spec) return; const f=G.spec.follow, live=f&&f.alive,
   if(W&&W.kind==='replay'){ sub=(FF.on?'Skipping ahead… ':'')+sub+(W.bad?' · out of sync from round '+W.bad:W.ok?' · verified to round '+W.ok:''); $('#spProg').style.width=(W.total?Math.min(100,G.round/W.total*100):0)+'%';
     const pb=$('#spPlay'); pb.textContent=G.paused?'▶ Play':'❚❚ Pause'; pb.setAttribute('aria-label',G.paused?'Play replay':'Pause replay'); $('#spFinal').disabled=FF.on||G.round>=W.total-2; }
   $('#spSub').textContent=sub; $('#spR3').classList.toggle('hidden',!(W&&W.kind==='replay')); $('#spec').classList.toggle('watch',!!W);
-  $('#spLeave').textContent=W?'Exit':'Results'; $('#spSpeed').textContent=(G.speed||1)+'×'; }
+  $('#spLeave').textContent=W?'Exit':'Leave'; $('#spSpeed').textContent=(G.speed||1)+'×'; }
 function cycleSpec(dir){ if(!G.spec||G.over) return; const list=['auto','free'].concat(G.units.filter(u=>u.alive)); let i=list.indexOf(G.spec.free?'free':G.spec.follow||'auto'); if(i<0) i=0; i=(i+dir+list.length)%list.length;
   const v=list[i]; G.spec.free=v==='free'; G.spec.follow=typeof v==='object'?v:null; if(G.spec.follow) G.cam.tz=defaultZ(); SFX.click(); fillSpec(); }
 $('#spPrev').addEventListener('click',()=>cycleSpec(-1));
@@ -12017,7 +12032,25 @@ $('#spNext').addEventListener('click',()=>cycleSpec(1));
 $('#spSpeed').addEventListener('click',()=>{ const L=G.watch&&G.watch.kind==='replay'?[1,2,4,8]:[1,2,3], i=L.indexOf(G.speed||1); G.speed=L[(i+1)%L.length]; $('#spSpeed').textContent=G.speed+'×'; SFX.click(); });
 $('#spPlay').addEventListener('click',()=>{ if(!(G.watch&&G.watch.kind==='replay')||G.over) return; G.paused=!G.paused; SFX.click(); fillSpec(); });
 $('#spFinal').addEventListener('click',()=>{ const W=G.watch; if(!(W&&W.kind==='replay')||G.over) return; SFX.click(); G.paused=false; replayJumpFinal(); });
-$('#spLeave').addEventListener('click',()=>{ if(G.watch){ exitWatch(); return; } if(G.over||!G.playerDead) return; G.over=true; if(!G.place) G.place=teamsLeft(); G.result={win:false,place:G.place,of:nTeams(),winner:null}; G.matchId++; $('#spec').classList.add('hidden'); $('#banner').className=''; showEnd(); });
+$('#spLeave').addEventListener('click',()=>{ if(G.watch){ exitWatch(); return; } if(G.over||!G.playerDead) return; SFX.click(); specResults(); });
+/* Eliminated while the match runs: the results come now and the match carries on behind them (offline it waits, paused),
+   so Spectate on the results screen goes back to it. Rewards are granted once, here or at the end (G.rewarded).
+   Taking the results hands your operative to the AI ({k:'ai'}, the same command a player who drops sends): in modes where
+   you could come back (redeploys, Siege rounds, Survival breathers) nobody waits on you, and you stay a spectator.
+   The eliminated client keeps running the lockstep sim (it must: it may be the host, relaying for everyone). */
+function specLive(){ return G.scene==='game'&&!G.over&&!G.watch&&G.playerDead&&!!G.spec&&!!G.player; }
+function specResults(){ if(!specLive()) return;
+  if(!G.rewarded){ if(G.gm){ const o=gmRank(null); G.place=Math.max(1,o.indexOf(G.player.team)+1); G.result={win:false,place:G.place,of:o.length,winner:null}; } // objective modes: by the score so far
+    else { if(!G.place) G.place=G.M.inf?infPlace():teamsLeft(); G.result={win:false,place:G.place,of:nTeams(),winner:null}; } }
+  if(!G.left){ G.left=true; G.leftRes=G.result; G.autoPlayer=true; const c={k:'ai'}; recCmd(G.player.id,c); if(NET.on) netSendCmd(c); }
+  $('#spec').classList.add('hidden'); $('#banner').className=''; closeEmotes(); closePingTray(); showEnd(); }
+function specResume(){ if(!specLive()) return; specBg(false); show('#end',false); show('#hud',true); G.paused=false; updateHUD(); fillSpec(); }
+// the match behind the results: offline it waits (paused) for Spectate; online it must keep pace with the room, silently
+function specBg(on){ if(on){ if(!NET.on) G.paused=true; if(!G.bgSfx){ G.bgSfx={on:SFX.on,sp:G.speed||1}; SFX.on=false; if(NET.on) G.speed=4; } } // online: unseen, so it keeps up with the room at 4x
+  else if(G.bgSfx){ SFX.on=G.bgSfx.on; G.speed=G.bgSfx.sp; G.bgSfx=null; } }
+function endReplayBtn(){ const b=$('#eReplay'), live=specLive();
+  b.classList.toggle('hidden',!live&&!(REC&&REC.h.length&&REC.saved)); b.disabled=false;
+  b.innerHTML=live?'Spectate<small>'+teamsLeft()+(G.M.team>1?' teams':' operatives')+' left · round '+G.round+'</small>':'Watch the final turns'; }
 
 /* ================= turn time: per-turn timer and chess clock =================
    Lockstep-safe: only the acting client's own clock runs, and when it expires that client sends a normal {k:'end'} (timeUp).
@@ -12465,7 +12498,7 @@ $('#rpm').addEventListener('click',async e=>{ const b=e.target.closest('[data-rp
 $('#rpmFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f) return; if(f.size>4e6){ $('#rpmStat').textContent='That file is too large.'; return; } f.text().then(t=>{ $('#rpmTxt').value=t; rpImportText(t); }); });
 $('#rpmClose').addEventListener('click',()=>show('#rpm',false));
 $('#rpImport').addEventListener('click',()=>{ SFX.init(); SFX.click(); openRpImport(); });
-$('#eReplay').addEventListener('click',()=>{ if(!REC||!REC.h.length) return; SFX.click(); show('#end',false); playReplay(REC,{final:true,from:'end'}); });
+$('#eReplay').addEventListener('click',()=>{ if(specLive()){ SFX.click(); specResume(); return; } if(!REC||!REC.h.length) return; SFX.click(); show('#end',false); playReplay(REC,{final:true,from:'end'}); });
 
 /* ================= daily challenge =================
    One seeded match per UTC day, the same for everyone: the seed comes from the date and fixes the map, region, spawns, the
@@ -14652,7 +14685,7 @@ function zbMake(k,x,y){ const T=ZT[k], S=G.zs, D=ZD[S.d], w=S.wave, Cl=CLASSES.r
 async function zsRespawn(){ const sq=zsSquad(), up=sq.filter(standing), due=sq.filter(u=>!u.alive); if(!up.length||!due.length) return; let me=false;
   for(const u of due){ const a=up[0]; let best=-1, bd=1e9;
     for(let y=Math.max(0,a.y-3);y<=Math.min(MH-1,a.y+3);y++) for(let x=Math.max(0,a.x-3);x<=Math.min(MW-1,a.x+3);x++){ const i=idx(x,y); if(G.grid[i]&&!G.grid[i].pass||unitAt(x,y)||droneOn(x,y)||Math.abs(G.lvl[i]-lvAt(a.x,a.y))>1) continue; const d=Math.hypot(x-a.x,y-a.y)+i*1e-6; if(d<bd){ bd=d; best=i; } }
-    if(best<0) continue; gmRevive(u); u.hp=Math.ceil(u.maxHp/2); placeUnit(u,best%MW,(best/MW)|0); u.drop=1; dropLand(u,0.6); feedLine(u.name+' is back in the fight',true); if(u.isPlayer&&!G.watch) me=true; }
+    if(best<0) continue; gmRevive(u); u.hp=Math.ceil(u.maxHp/2); placeUnit(u,best%MW,(best/MW)|0); u.drop=1; dropLand(u,0.6); feedLine(u.name+' is back in the fight',true); if(u.isPlayer&&!G.watch&&!G.autoPlayer) me=true; }
   if(me){ const p=G.player; G.playerDead=false; G.spec=null; G.speed=1; $('#spSpeed').textContent='1×'; $('#spec').classList.add('hidden'); focusOn(p.x,p.y,defaultZ()); banner('Back in the fight','Your squad held on. You rejoin with half health.','win',1800); buzz(25); }
   computeVis(); updateHUD(); await wait(me?900:500); }
 // a wave is cleared when its queue is empty and no zombie is left: breather (or the win after the last wave)
@@ -14894,7 +14927,7 @@ function zsEnd(){ const S=G.zs, win=!!S.won; if(G.over) return; G.over=true; G.t
   G.result={win,place:1,of:1,winner:null,wave:S.wave,cleared:S.cleared};
   if(G.watch){ computeVis(); turnTag('',''); $('#spec').classList.add('hidden'); banner(win?'Extracted':'Overrun','The squad '+(win?'survived all '+ZS.waves+' waves.':'fell in wave '+S.wave+'.'),win?'win':'lose',2400);
     recSave(); const mid=G.matchId; setTimeout(()=>{ if(G.matchId===mid) watchEnd('over'); },2600); return; }
-  if(NET.host&&NET.cfg&&!NET.done){ NET.done=true; netLobby(); }
+  netMatchOver();
   const b=PROF.settings.zbest=Object.assign({},PROF.settings.zbest); if((b[S.d]|0)<S.cleared) b[S.d]=S.cleared; saveProf();
   recSave(); computeVis(); turnTag('',''); $('#spec').classList.add('hidden'); $('#tmr').classList.add('hidden');
   if(win){ banner('Extracted','You survived all '+ZS.waves+' waves.','win',2600); buzz([40,60,40,60,120]); }
@@ -14906,7 +14939,7 @@ function zsLines(r,s){ const S=G.zs, L=[['Waves survived ×'+S.cleared,S.cleared
 function zsXp(r,s){ return G.zs.cleared*80+s.kills*ZS.xp+s.dmg+s.rounds*4+s.revives*40+s.drops*60+(r.win?400:0); }
 function zsEndScreen(){ liveClear(); const S=G.zs, s=G.stats, V=G.zsv||{my:{}}, reg=G.R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
   $('#eRes').textContent=S.won?'Extracted':'Wave '+Math.max(1,S.wave); $('#eRes').className='display res '+(S.won?'win':'lose');
-  $('#eSub').textContent=(S.won?'You survived all '+ZS.waves+' waves':'Overrun in wave '+Math.max(1,S.wave)+' · '+S.cleared+' wave'+(S.cleared===1?'':'s')+' survived')+' in '+reg+', Survival ('+DIFFS[S.d].name+' horde'+(S.n>1?', squad of '+S.n:'')+').'+mutTxt();
+  $('#eSub').textContent=(S.won?'You survived all '+ZS.waves+' waves':(specLive()?'Out in wave ':'Overrun in wave ')+Math.max(1,S.wave)+' · '+S.cleared+' wave'+(S.cleared===1?'':'s')+' survived')+' in '+reg+', Survival ('+DIFFS[S.d].name+' horde'+(S.n>1?', squad of '+S.n:'')+').'+mutTxt()+(specLive()?' The squad fights on: spectate it, or leave.':'');
   const acc=s.shots?Math.round(s.hits/s.shots*100)+'%':'—', by=ZT_KEYS.filter(k=>V.my[k]).map(k=>V.my[k]+' '+ZT[k].name.toLowerCase()+(V.my[k]>1&&k!=='boss'?'s':'')).join(' · ');
   $('#eGrid').innerHTML='<div><b>'+S.cleared+'</b>waves survived</div><div><b>'+s.kills+'</b>zombies you took down</div><div><b>'+S.kills+'</b>taken down by the squad</div><div><b>'+s.dmg+'</b>damage dealt</div><div><b>'+acc+'</b>accuracy</div><div><b>'+s.rounds+'</b>rounds survived</div>'
     +(by?'<div style="grid-column:1/-1"><b style="font-size:15px">'+esc(by)+'</b>your takedowns by type</div>':''); }
