@@ -124,8 +124,8 @@ bar plate that every player sees.
 | Ranger | +5 aim | Long Lunge: Blade Strike reaches 1 tile farther |
 | Sharpshooter | +1 HP | Ghillie Shroud: while it has neither moved nor shot since the start of its last turn, enemies see and target it only within 6 tiles. Drawn in a full ghillie suit |
 | Grenadier | +1 HP, +1 armor | Siege Plating: damaging grenades blast 0.5 tiles wider. Drawn bulkier, with domed pauldrons and a grenade bandolier |
-| Specialist | +1 HP, +5 aim | Aegis Uplink: the drone has +2 HP, starts the match with 2 shield and its Combat Protocol zap deals +1 damage |
-| Engineer | +1 HP, +5 aim | Hardened Sentries: turrets +3 HP |
+| Specialist | +1 HP, +5 aim | Overclocked Protocol: Combat Protocol is ready a turn sooner (cooldown −1) and zaps for +1 damage; every zap jams its target (disoriented: −20 aim on its next turn, overwatch broken) and marks it (the team gets +10 aim against it until the end of next round) |
+| Engineer | +1 HP, +5 aim | Rapid Sentries: Deploy Turret is ready a turn sooner (cooldown −1) and turrets carry one more reaction shot |
 | Medic | +1 HP | Second Breath: revives give 2 more HP |
 | Recon | +1 HP, +5 aim | Deep Scan: Wall Scan radius +2 |
 

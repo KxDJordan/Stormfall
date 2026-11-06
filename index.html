@@ -1549,7 +1549,7 @@ html.pa-rm .toast,html.pa-rm .toast.lvl,html.pa-rm .toast.lvl::after,html.pa-rm 
       <li id="howRange">Every weapon has an optimal range where its aim is best.</li>
       <li>Every operative carries a secondary. Knives, axes and blades strike an adjacent enemy (the machete and Monoblade dash a few tiles to reach one); throwing weapons can also be thrown a few tiles, a limited number of times per match; pistols have their own magazine and range. Secondary attacks follow the shooting rules: before moving they cost 1 AP and leave a move, after moving (or after a dash) they end your turn.</li>
       <li>At levels 3, 6, 9, 12 and 15 your class unlocks a perk tier. Pick one of two class perks per tier in Loadout and change them between matches; some are new actions with cooldowns. The separate Perk slot works with any class.</li>
-      <li>Class prestige: at class level 20 you can prestige a class (Profile → Prestige) for a rank I–V, tokens, prestige weapons and cosmetics. Prestige I also unlocks that class’s <b>ascended form</b>, a stronger version with one trait: Ranger +5 aim, Blade Strike reaches 1 tile farther · Sharpshooter +1 HP and a ghillie shroud (while it has neither moved nor shot since its last turn began, enemies only see it within 6 tiles) · Grenadier +1 HP, +1 armor, grenades blast 0.5 tiles wider · Specialist +1 HP, +5 aim, its drone has +2 HP, starts with 2 shield and zaps for +1 · Engineer +1 HP, +5 aim, turrets +3 HP · Medic +1 HP, revives give 2 more HP · Recon +1 HP, +5 aim, Wall Scan +2 tiles. It has its own look and a themed health bar plate everyone can see. Switch it on or off in Loadout; it is off in Ranked and the daily challenge, and the AI never plays it.</li>
+      <li>Class prestige: at class level 20 you can prestige a class (Profile → Prestige) for a rank I–V, tokens, prestige weapons and cosmetics. Prestige I also unlocks that class’s <b>ascended form</b>, a stronger version with one trait: Ranger +5 aim, Blade Strike reaches 1 tile farther · Sharpshooter +1 HP and a ghillie shroud (while it has neither moved nor shot since its last turn began, enemies only see it within 6 tiles) · Grenadier +1 HP, +1 armor, grenades blast 0.5 tiles wider · Specialist +1 HP, +5 aim, Combat Protocol is ready a turn sooner, zaps for +1 and jams and marks its target (−20 aim for it, +10 team aim against it) · Engineer +1 HP, +5 aim, Deploy Turret is ready a turn sooner and turrets carry one more reaction shot · Medic +1 HP, revives give 2 more HP · Recon +1 HP, +5 aim, Wall Scan +2 tiles. It has its own look and a themed health bar plate everyone can see. Switch it on or off in Loadout; it is off in Ranked and the daily challenge, and the AI never plays it.</li>
       <li>Starter gear is ready at level 1; new weapons, armor, Mk upgrades and perks unlock as you level (see Loadout and Progress).</li>
       <li>The storm shrinks every other round. Once the safe zone is small it stops shrinking and starts moving: the next zone is marked with a white ring (and on the minimap) two rounds ahead, then the storm slides there. When the storm closes or moves, anyone it catches gets one turn to get out before it starts hurting; anyone who was already outside keeps taking damage. Storm damage keeps rising, so keep moving with it. Supply drops are announced a round early; the pod holds the best loot in the match.</li>
       <li>The strip under the top bar shows the turn order for this round, then the round break with any storm or supply event. You are highlighted, teammates are green, and enemies you cannot see show as “?”.</li>
@@ -2112,7 +2112,7 @@ const cap1=t=>t.charAt(0).toUpperCase()+t.slice(1);
 for(const k in ACTS) ACTS[k].desc=cap1(CP[ACTS[k].perk].desc.replace(/^Active: /,''));
 const hasP=(u,id)=>!!(u&&u.cp&&u.cp[id]);
 // cooldown of a class ability after perk modifiers
-function abilCd(u,ab){ return ABIL[ab].cd-((ab==='slash'&&hasP(u,'r_lunge'))||(ab==='deadeye'&&hasP(u,'s_dead'))||(ab==='hail'&&hasP(u,'g_hail'))||(ab==='zap'&&hasP(u,'p_over'))?1:0); }
+function abilCd(u,ab){ return ABIL[ab].cd-((ab==='slash'&&hasP(u,'r_lunge'))||(ab==='deadeye'&&hasP(u,'s_dead'))||(ab==='hail'&&hasP(u,'g_hail'))||(ab==='zap'&&hasP(u,'p_over'))?1:0)-(ab==='zap'&&ascT(u,'specialist')?ASC.specialist.zcd:0); } // - ascended Specialist ascended Specialist
 // chosen class perks for a class, given a 5-entry pick array and an "is this tier owned" test
 function cpList(cls,tree,has){ const out=[]; if(!CPERKS[cls]) return out; for(let i=0;i<5;i++) if(has('ct'+(i+1))) out.push(CPERKS[cls][i][tree&&tree[i]===1?1:0].id); return out; }
 ACTS.aid.drone=ACTS.cap.drone=true; // drone perk actives: used from drone control (DACTS), never from the Specialist's own bar
@@ -6896,10 +6896,11 @@ function droneAt(u){ const d=u&&u.dr; if(d&&d.alive) return unitScreen(d); const
 // Combat Protocol, fired by the Specialist's deployed drone from its own position (u = the Specialist: damage source and
 // perks). o.dmg/o.label: a side zap (Guardian) instead of Combat Protocol; Overclock, Haywire and Chain Lightning only modify the real ability
 async function doZap(u,t,o){
-  o=o||{}; const d=u.dr; if(!d||!d.alive||!t||!t.alive) return; const main=!o.dmg, dmg=o.dmg||(3+(hasP(u,'p_over')?1:0)+(DMODELS[d.model].zap||0)+(ascT(u,'specialist')?ASC.specialist.zap:0)); // + ascended Specialist
+  o=o||{}; const d=u.dr; if(!d||!d.alive||!t||!t.alive) return; const main=!o.dmg, dmg=o.dmg||(3+(hasP(u,'p_over')?1:0)+(DMODELS[d.model].zap||0)+(ascT(u,'specialist')?ASC.specialist.zdmg:0)); // + ascended Specialist
   const anim=shouldShow(d)||shouldShow(t);
   if(anim){ if(shouldShow(u)) vAnim(u,'cast',main?.75:.5); focusMid(d,t); floatText(d,o.label||'COMBAT PROTOCOL',[127,232,255],17); await wait(main?420:250); d.vZap=1; faceTo(d,t.x,t.y); bolt(chest(d),chest(t)); SFX.zap(); await wait(180); }
   applyDamage(t,dmg,u,{pierce:true,anim,how:'drone'}); dStat(u,t,dmg);
+  if(main) ascZapMark(u,t,anim); // ascended Specialist: Overclocked Protocol (jam and mark)
   if(main&&hasP(u,'p_hay')&&standing(t)){ if(t.drone){ t.jam=1; if(anim) floatText(t,'GROUNDED',[255,179,64],16); } else { t.disorient=Math.max(t.disorient,2); t.overwatch=false; if(anim) floatText(t,'DISORIENTED',[255,179,64],16); } }
   if(main&&hasP(u,'p_chain')&&d.alive&&!G.over){ const dd=v=>Math.hypot(v.x-t.x,v.y-t.y);
     const c2=visibleEnemies(d).filter(v=>v!==t&&!v.downed&&dd(v)<=4.01).sort((a,b)=>dd(a)-dd(b)||a.id-b.id)[0];
@@ -8984,7 +8985,7 @@ function weaponMkU(u){ return u.mk||1; }
 function fillDroneTarget(u,t,a){ const d=u.dr, A=DACTS[a]; if(!d) return;
   $('#tName').textContent=t===u?'You':t.drone?t.name+(t.tur?' turret':' drone'):t.name;
   $('#tSub').textContent=(t.tur?'Sentry turret':t.drone?DMODELS[t.model].name+' drone':t.zb?ZT[t.zb].name:CLASSES[t.cls].name)+' · '+(t.downed?'downed':t.hp+'/'+t.maxHp+' HP'+(t.shield?' +'+t.shield+' shield':''))+' · '+tdist(d,t).toFixed(1)+' tiles from the drone';
-  let hit='100%', lbl=A.name, row=''; const zd=3+(hasP(u,'p_over')?1:0)+(DMODELS[d.model].zap||0)+(ascT(u,'specialist')?ASC.specialist.zap:0);
+  let hit='100%', lbl=A.name, row=''; const zd=3+(hasP(u,'p_over')?1:0)+(DMODELS[d.model].zap||0)+(ascT(u,'specialist')?ASC.specialist.zdmg:0);
   if(a==='zap') row='<span>Damage '+zd+(hasP(u,'p_chain')?' (+ chain)':'')+'</span><span>Armor-piercing</span>'+(hasP(u,'p_hay')?'<span>Haywire</span>':'');
   else if(a==='burst'){ hit=burstHit(d,t)+'%'; lbl='Burst · chance to hit'; row='<span>Damage '+DRONE.burst+'</span><span>Armor-piercing</span>'; }
   else if(a==='mark'){ hit='+'+DRONE.markAim; lbl='team aim against it'; row='<span>Until the end of next round</span>'; }
@@ -9866,8 +9867,8 @@ const ASC={
   ranger:{name:'Ascended Ranger',aim:5,reach:1,trait:'Long Lunge',td:'Blade Strike reaches 1 tile farther.'},
   sharpshooter:{name:'Ascended Sharpshooter',hp:1,gh:6,trait:'Ghillie Shroud',td:'While you have neither moved nor shot since the start of your last turn, enemies can only see and target you within 6 tiles.'},
   grenadier:{name:'Ascended Grenadier',hp:1,armor:1,blast:.5,trait:'Siege Plating',td:'+1 armor, and your damaging grenades blast 0.5 tiles wider.'},
-  specialist:{name:'Ascended Specialist',hp:1,aim:5,dsh:2,dhp:2,zap:1,trait:'Aegis Uplink',td:'Your drone has +2 HP, starts the match with 2 shield, and its Combat Protocol zap deals +1 damage.'},
-  engineer:{name:'Ascended Engineer',hp:1,aim:5,tur:3,trait:'Hardened Sentries',td:'Your turrets have +3 HP.'},
+  specialist:{name:'Ascended Specialist',hp:1,aim:5,zcd:1,zdmg:1,zdis:1,zmark:1,trait:'Overclocked Protocol',td:'Combat Protocol is ready a turn sooner and zaps for +1 damage. Every zap jams its target (−20 aim on its next turn, overwatch broken) and marks it: your team gets +10 aim against it until the end of next round.'},
+  engineer:{name:'Ascended Engineer',hp:1,aim:5,tcd:1,tshots:1,trait:'Rapid Sentries',td:'Deploy Turret is ready a turn sooner, and your turrets carry one more reaction shot.'},
   medic:{name:'Ascended Medic',hp:1,rev:2,trait:'Second Breath',td:'Your revives bring an ally back with 2 more HP.'},
   recon:{name:'Ascended Recon',hp:1,aim:5,scan:2,trait:'Deep Scan',td:'Wall Scan reveals 2 tiles farther.'}
 };
@@ -9876,7 +9877,7 @@ function ascStatTxt(cls){ const A=ASC[cls]; if(!A) return ''; const o=[]; if(A.h
 // local: unlocked (Prestige I) and switched on
 function ascUnl(cls){ return !!ASC[cls]&&prsRank(cls)>=1; }
 function ascLocal(cls){ return ascUnl(cls)&&!(PROF.ascOff&&PROF.ascOff[cls]); }
-function ascApply(u){ const A=ASC[u.cls]; if(!A||u.asc) return; u.asc=1; u.maxHp+=A.hp||0; u.hp=u.maxHp; u.aim+=A.aim||0; u.armor+=A.armor||0; if(A.dsh&&u.dr){ u.dr.shield=A.dsh; u.dr.maxHp+=A.dhp||0; u.dr.hp=u.dr.maxHp; } }
+function ascApply(u){ const A=ASC[u.cls]; if(!A||u.asc) return; u.asc=1; u.maxHp+=A.hp||0; u.hp=u.maxHp; u.aim+=A.aim||0; u.armor+=A.armor||0; }
 // after setupMatch: the human operatives whose (cleaned) spec asks for it; never in Ranked or the daily (rp.asc is 0 there)
 function ascSetup(net,pre){
   if(net){ const P=Array.isArray(net.players)?net.players:[]; if(!P.length||P.every(p=>p&&p.rsid)) return; // Ranked: base classes
@@ -9887,6 +9888,10 @@ function ascHash(add){ if(!G.units.some(u=>u.asc)) return; add(0x4153); for(cons
 // Ghillie Shroud: firing (any shot, reactions included) gives the Sharpshooter away until the start of its next turn
 { const f=fireShot; fireShot=function(a){ if(a&&a.asc&&a.cls==='sharpshooter') a.ghT=1; return f.apply(this,arguments); }; }
 // traits read by the sim
+// Overclocked Protocol: a zap jams its target (disoriented through its next turn, overwatch broken) and marks it for the Specialist's
+// team (the drone mark: +DRONE.markAim aim, until the end of next round). Both are existing, hashed unit state.
+function ascZapMark(u,t,anim){ const A=ASC.specialist; if(!ascT(u,'specialist')||!t||t.drone||!standing(t)) return; if(A.zdis){ t.disorient=Math.max(t.disorient,1); t.overwatch=false; if(anim) floatText(t,'JAMMED',[255,179,64],15); } if(!A.zmark) return; t.mark={team:u.team,until:G.round+1};
+  if(anim) later(300,()=>floatText(t,'UPLINK MARK +'+DRONE.markAim+' AIM',[255,214,90],15)); }
 function ascSightCap(b,r){ return ascT(b,'sharpshooter')&&!b.moved&&!b.ghT&&!b.drone?Math.min(ASC.sharpshooter.gh,r):r; } // canSee
 function ascUtil(u,U){ return ascT(u,'grenadier')&&U&&U.dmg&&U.radius?Object.assign({},U,{radius:U.radius+ASC.grenadier.blast}):U; } // doThrow and the throw preview
 { const f=mySpec; mySpec=function(){ const s=f.apply(this,arguments); s.asc=ascLocal(LO.cls)&&!ascNoDaily?1:0; return s; }; }
@@ -10724,7 +10729,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=38, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=39, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
@@ -13055,10 +13060,10 @@ const kitOn=()=>!!(G.kit&&G.kit.mid===G.matchId);
 const kitHas=(u,a)=>!!(u&&CLASSES[u.cls]&&(CLASSES[u.cls].ability===a||(CLASSES[u.cls].kit||[]).includes(a)));
 const kName=(q,u)=>q===u?'You':q.tur?q.name+' turret':q.drone?q.name+' drone':q.name;
 function kitCd(u,a){ const b=ABIL[a].cd;
-  return Math.max(1,b-(a==='turret'&&hasP(u,'e_twin')?1:0)-(a==='wall'&&hasP(u,'e_fab')?1:0)-(a==='adren'&&hasP(u,'m_adr')?2:0)-(a==='field'&&hasP(u,'m_dose')?1:0)
+  return Math.max(1,b-(a==='turret'&&hasP(u,'e_twin')?1:0)-(a==='turret'&&ascT(u,'engineer')?ASC.engineer.tcd:0)-(a==='wall'&&hasP(u,'e_fab')?1:0)-(a==='adren'&&hasP(u,'m_adr')?2:0)-(a==='field'&&hasP(u,'m_dose')?1:0)
     -(a==='mine'&&hasP(u,'n_trap')?1:0)-(a==='wscan'&&hasP(u,'n_pulse')?2:0)); }
-function kitTurStats(u){ return {hp:KITN.tur.hp+(hasP(u,'e_plate')?3:0)+(ascT(u,'engineer')?ASC.engineer.tur:0),armor:hasP(u,'e_plate')?1:0,aim:KITN.tur.aim+(hasP(u,'e_optics')?10:0),sight:KITN.tur.sight+(hasP(u,'e_optics')?2:0),
-  shots:KITN.tur.shots+(hasP(u,'e_sentry')?2:0),rounds:KITN.tur.rounds+(hasP(u,'e_sentry')?1:0)}; }
+function kitTurStats(u){ return {hp:KITN.tur.hp+(hasP(u,'e_plate')?3:0),armor:hasP(u,'e_plate')?1:0,aim:KITN.tur.aim+(hasP(u,'e_optics')?10:0),sight:KITN.tur.sight+(hasP(u,'e_optics')?2:0),
+  shots:KITN.tur.shots+(hasP(u,'e_sentry')?2:0)+(ascT(u,'engineer')?ASC.engineer.tshots:0),rounds:KITN.tur.rounds+(hasP(u,'e_sentry')?1:0)}; }
 const myTurrets=u=>G.drones.filter(d=>d.tur&&d.alive&&d.oid===u.id);
 const kitScanR=u=>KITN.scan+(hasP(u,'n_wide')?2:0)+(ascT(u,'recon')?ASC.recon.scan:0);
 const kitBeamR=u=>KITN.beam+(hasP(u,'m_reach')?1:0);
