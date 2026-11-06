@@ -111,6 +111,30 @@ and jammed, and see for their team); walls are ordinary breakable cover; mines a
 for spectators and replays). AI operatives use every ability from their team's knowledge only, and the AI loadout pool
 includes all seven classes. An Infected operative loses its class abilities; Melee only switches turrets off.
 
+### Class prestige and ascended forms
+
+Every match's XP also levels the class you played (up to class level 20). At level 20 a class can be prestiged
+(Profile → Prestige): its level resets, it gains a rank (I–V) and pays prestige tokens. Ranks unlock prestige weapons
+(Mk III-grade sidegrades, the Prestige II / IV ones with a unique effect), prestige cosmetics in the class's theme and,
+at Prestige I, the class's **ascended form**: a stronger version of the class with its own look and a themed health
+bar plate that every player sees.
+
+| Ascended form | Stats | Trait |
+|---------------|-------|-------|
+| Ranger | +5 aim | Long Lunge: Blade Strike reaches 1 tile farther |
+| Sharpshooter | +1 HP | Ghillie Shroud: while it has neither moved nor shot since the start of its last turn, enemies see and target it only within 6 tiles. Drawn in a full ghillie suit |
+| Grenadier | +1 HP, +1 armor | Siege Plating: damaging grenades blast 0.5 tiles wider. Drawn bulkier, with domed pauldrons and a grenade bandolier |
+| Specialist | +1 HP, +5 aim | Aegis Uplink: the drone has +2 HP, starts the match with 2 shield and its Combat Protocol zap deals +1 damage |
+| Engineer | +1 HP, +5 aim | Hardened Sentries: turrets +3 HP |
+| Medic | +1 HP | Second Breath: revives give 2 more HP |
+| Recon | +1 HP, +5 aim | Deep Scan: Wall Scan radius +2 |
+
+It is on by default once unlocked and can be switched off per class in Loadout or the Prestige tab. Higher ranks add
+looks, never more power. The online spec carries it and every client keeps it only when the spec's cleaned prestige
+ranks allow it (like prestige weapons), then applies it in `setupMatch`, so lockstep play, spectators and replays agree.
+It is off in Ranked (every player in the room is on the ranked queue) and in the daily challenge, and the AI never
+plays it.
+
 ## Saving your progress
 
 Progress is stored in your browser. Two ways to keep it safe:
