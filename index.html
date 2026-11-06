@@ -10990,7 +10990,7 @@ function renderOnline(){
    vs AI: Solo, Duos, Quick, the Daily challenge and the Tutorial (those two keep their own flows). Friends: Solo, Duos and
    Quick; Create lobby hosts an online room for that mode (netHost reads PROF.mode), and Join with code / Watch join one.
    Thumbnails are small iso scenes drawn once per mode and cached: deterministic hash() noise, never the seeded RNG. */
-const MS={friends:false,sel:'solo',grp:'single',art:{},wheel:0,wlock:0,st:null,lockT:0};
+const MS={friends:false,sel:'solo',grp:'single',art:{},html:'',painted:null,praf:0,wheel:0,wlock:0,st:null,lockT:0};
 function msKeysAll(){ const b=['solo','duos','trios','quads','quick','infection','blackout','survival'].concat(GM_KEYS); return MS.friends?b:b.concat(['daily','tutorial']); }
 // the Single / Co-op toggle: Co-op is every mode with teammates (teams of 2+, and Survival); Single is everything you play alone
 function msGrpOf(k){ return k==='survival'||(MODES[k]&&MODES[k].team>1)?'coop':'single'; }
@@ -11072,19 +11072,27 @@ function openModeSel(friends){ MS.friends=!!friends; if(typeof loPick!=='undefin
   renderModeSel(); const b=$('#msBack'); if(b) b.focus({preventScroll:true}); }
 function renderModeSel(){
   $('#msKick').textContent=MS.friends?'Play with friends':'Play vs AI'; $('#msTitle').textContent=MS.friends?'Host a room':'Choose a mode';
-  msSetGrp(MS.grp,true); const tr=$('#msTrack'), ks=msKeys(), cards=msCards().filter(c=>ks.includes(c.k)), touch=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
+  msSetGrp(MS.grp,true); const tr=$('#msTrack'), ks=msKeys(), all=msKeysAll(), cards=msCards().filter(c=>all.includes(c.k)), touch=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
   $('#msLead').textContent=(MS.friends?'Pick the mode for your room, or join a friend’s room below. ':'')+(touch?'Swipe to browse, tap a card to select it.':'Browse with the arrows, the mouse wheel or the arrow keys.');
   tr.setAttribute('aria-label',MS.friends?'Mode for your online room':'Game modes');
-  tr.innerHTML=cards.map(c=>'<div class="mcard k-'+c.k+'" role="radio" tabindex="-1" aria-checked="false" data-msk="'+c.k+'" aria-label="'+esc(c.name+', '+c.pc+'. '+c.ds)+'">'
+  // build every card (both groups) once and keep it: the Single / Co-op toggle and reopening the menu only show and hide cards,
+  // so the thumbnails are not rebuilt and repainted each time (that made the menu lag on phones)
+  const html=cards.map(c=>'<div class="mcard k-'+c.k+'" role="radio" tabindex="-1" aria-checked="false" data-msk="'+c.k+'" aria-label="'+esc(c.name+', '+c.pc+'. '+c.ds)+'">'
     +'<div class="mth"><canvas width="640" height="360" aria-hidden="true"></canvas><span class="mtag'+(c.amber?' amber':c.ok?' ok':'')+'">'+esc(c.tag)+'</span><span class="mchk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>'
     +'<div class="mbd"><div class="mhd"><b>'+esc(c.name)+'</b><span class="mpc">'+esc(c.pc)+'</span></div><p class="mds">'+esc(c.ds)+'</p><ul>'+c.li.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></div>').join('');
-  tr.querySelectorAll('[data-msk]').forEach(el=>{ try{ el.querySelector('canvas').getContext('2d').drawImage(msThumb(el.dataset.msk),0,0); }catch(e){ console.warn(e); } });
-  $('#msDots').innerHTML=cards.map(c=>'<i data-d="'+c.k+'"></i>').join('');
+  if(html!==MS.html){ MS.html=html; tr.innerHTML=html; MS.painted=new Set(); }
+  tr.querySelectorAll('[data-msk]').forEach(el=>el.classList.toggle('hidden',!ks.includes(el.dataset.msk)));
+  $('#msDots').innerHTML=ks.map(k=>'<i data-d="'+k+'"></i>').join('');
+  msPaint(MS.sel); cancelAnimationFrame(MS.praf); const todo=ks.concat(all.filter(k=>!ks.includes(k)));
+  const step=()=>{ while(todo.length&&MS.painted.has(todo[0])) todo.shift(); if(!todo.length) return; msPaint(todo.shift()); MS.praf=requestAnimationFrame(step); }; MS.praf=requestAnimationFrame(step);
   show('#msJoin',MS.friends);
   msSelect(MS.sel,'jump');
 }
+// paint one card's thumbnail straight into its canvas (once per built card), spread over frames so opening the menu stays smooth
+function msPaint(k){ if(!MS.painted||MS.painted.has(k)) return; const el=$('#msTrack [data-msk="'+k+'"]'); if(!el) return; MS.painted.add(k);
+  try{ el.querySelector('canvas').getContext('2d').drawImage(msThumb(k),0,0); }catch(e){ console.warn(e); } }
 // select a card; how: 'jump' / 'smooth' centers it in the strip, null leaves the scroll alone (the user is swiping)
-function msSelect(k,how){ const keys=msKeys(); if(!keys.includes(k)) k=keys[0]; MS.sel=k;
+function msSelect(k,how){ const keys=msKeys(); if(!keys.includes(k)) k=keys[0]; MS.sel=k; msPaint(k);
   document.querySelectorAll('#msTrack [data-msk]').forEach(el=>{ const on=el.dataset.msk===k; el.classList.toggle('sel',on); el.setAttribute('aria-checked',on); el.tabIndex=on?0:-1; });
   document.querySelectorAll('#msDots i').forEach(d=>d.classList.toggle('on',d.dataset.d===k));
   const i=keys.indexOf(k); $('#msPrev').disabled=i<=0; $('#msNext').disabled=i>=keys.length-1;
@@ -11131,7 +11139,7 @@ $('#modesel').addEventListener('keydown',e=>{
 // swiping: when the strip settles, the card nearest the middle is the selection
 $('#msSeg').addEventListener('click',e=>{ const b=e.target.closest('[data-msg]'); if(!b||b.dataset.msg===MS.grp) return; SFX.click(); buzz(6); msSetGrp(b.dataset.msg); renderModeSel(); });
 $('#msTrack').addEventListener('scroll',()=>{ clearTimeout(MS.st); MS.st=setTimeout(()=>{ if(Date.now()<MS.lockT) return; const tr=$('#msTrack'), mid=tr.scrollLeft+tr.clientWidth/2; let best=null,bd=1e9;
-  tr.querySelectorAll('[data-msk]').forEach(el=>{ const d=Math.abs(el.offsetLeft+el.offsetWidth/2-mid); if(d<bd){ bd=d; best=el.dataset.msk; } });
+  tr.querySelectorAll('[data-msk]:not(.hidden)').forEach(el=>{ const d=Math.abs(el.offsetLeft+el.offsetWidth/2-mid); if(d<bd){ bd=d; best=el.dataset.msk; } });
   if(best&&best!==MS.sel) msSelect(best,null); },120); },{passive:true});
 // mouse wheel: about one card per notch (a vertical wheel moves the strip sideways)
 $('#msTrack').addEventListener('wheel',e=>{ const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY; if(!d) return; e.preventDefault();
