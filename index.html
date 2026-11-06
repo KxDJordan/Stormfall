@@ -11138,9 +11138,11 @@ $('#modesel').addEventListener('keydown',e=>{
 });
 // swiping: when the strip settles, the card nearest the middle is the selection
 $('#msSeg').addEventListener('click',e=>{ const b=e.target.closest('[data-msg]'); if(!b||b.dataset.msg===MS.grp) return; SFX.click(); buzz(6); msSetGrp(b.dataset.msg); renderModeSel(); });
-$('#msTrack').addEventListener('scroll',()=>{ clearTimeout(MS.st); MS.st=setTimeout(()=>{ if(Date.now()<MS.lockT) return; const tr=$('#msTrack'), mid=tr.scrollLeft+tr.clientWidth/2; let best=null,bd=1e9;
+// follow the swipe live: the card nearest the middle is highlighted (and its dot lit) as soon as it passes the centre, checked once per
+// frame, instead of only after the strip has stopped moving
+$('#msTrack').addEventListener('scroll',()=>{ if(MS.st) return; MS.st=requestAnimationFrame(()=>{ MS.st=0; if(Date.now()<MS.lockT) return; const tr=$('#msTrack'), mid=tr.scrollLeft+tr.clientWidth/2; let best=null,bd=1e9;
   tr.querySelectorAll('[data-msk]:not(.hidden)').forEach(el=>{ const d=Math.abs(el.offsetLeft+el.offsetWidth/2-mid); if(d<bd){ bd=d; best=el.dataset.msk; } });
-  if(best&&best!==MS.sel) msSelect(best,null); },120); },{passive:true});
+  if(best&&best!==MS.sel) msSelect(best,null); }); },{passive:true});
 // mouse wheel: about one card per notch (a vertical wheel moves the strip sideways)
 $('#msTrack').addEventListener('wheel',e=>{ const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY; if(!d) return; e.preventDefault();
   const now=Date.now(); if(now<MS.wlock) return; MS.wheel+=d; if(Math.abs(MS.wheel)<30) return; msStep(MS.wheel>0?1:-1); MS.wheel=0; MS.wlock=now+260; },{passive:false});
