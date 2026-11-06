@@ -1167,6 +1167,13 @@ html.pa-rm .toast,html.pa-rm .toast.lvl,html.pa-rm .toast.lvl::after,html.pa-rm 
 .card.prwc{border-color:rgba(255,207,74,.4)}
 .fe.prw{border-left-color:#ffcf4a;color:#ffe9a8}
 .prsrow{--sc:#ffcf4a}
+/* class prestige cosmetics (prestige tab) */
+.prcgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.prc{display:flex;flex-direction:column;gap:4px;padding:6px;background:var(--surf);border:1px solid rgba(255,207,74,.35);border-radius:var(--r1);font-size:12px;min-width:0}
+.prc canvas{width:100%;aspect-ratio:320/192;height:auto;border-radius:4px;background:rgba(0,0,0,.25)}
+.prc .np{min-height:44px}.prc b{font-size:13px;line-height:1.15}.prc small{color:var(--muted);font-size:11px}.prc small.ok{color:var(--ok)}
+.prc.lock{border-color:var(--line)}.prc.lock canvas,.prc.lock .np{opacity:.5;filter:grayscale(.6)}.prc .btn{margin-top:auto;min-height:40px}
+.item .prlk{flex:1;min-height:var(--tap);display:flex;align-items:center;justify-content:center;color:#ffcf4a;font-size:13px;font-weight:700;letter-spacing:.04em;background:rgba(255,207,74,.1);border:1px dashed rgba(255,207,74,.45)}
 </style>
 </head>
 <body>
@@ -1928,6 +1935,28 @@ function prsGen(){
       prwReg('p_'+cls+'_'+rk,{cls,rk,shape:b,pf:i?'p_void':'p_gild',trc:i?[196,120,255]:[255,206,90],tag:(i?'Void ':'Gilded ')+W0.short,
         w:Object.assign(W0,{name:(i?'Void ':'Gilded ')+W0.name,short:(i?'Void ':'Gilded ')+W0.short,crit:W0.crit+5,desc:'Prestige weapon. A '+(i?'void-forged':'gilded')+' '+W0.name+', Mk III grade, with +5% crit.'})}); }); } }
 prsGen();
+/* ----- class prestige: weapons with unique effects (Prestige II and IV, every class) -----
+   Mk III-grade stats minus a little (damage, magazine or crit) for an effect: sidegrades with flair, not upgrades. w.px is
+   the effect key, run in the sim by "class prestige: weapon effects" (pxShot / pxAim / pxCrit / pxDmg / pxTurn, seeded
+   RNG only); the same key picks its tracer and impact style (pxTrail / pxImpact, visual only). Same rules as PRW_DEF: rank-gated,
+   never in the AI pool, validated online by prwOk. Registered after prsGen so the gilded variants stay as they were. */
+const PRW_DEF2={
+  p_carom:{cls:'ranger',rk:2,shape:'slug',pf:'p_gild',trc:[255,222,130],tag:'Carom',w:{name:'Carom Slug Gun',short:'Carom',dmg:[4,7],clip:4,crit:20,critDmg:2,aim:0,fx:'single',px:'ricochet',rt:[[6,10],[7,0]],fall:10,desc:'Prestige weapon. Ricochet: a miss against a target in cover can glance off it (35%) and still hit for half damage. One less minimum damage than a Mk III Slug Gun.'}},
+  p_thorn:{cls:'ranger',rk:4,shape:'drum',pf:'p_ember',trc:[255,60,96],tag:'Bloodthorn',w:{name:'Bloodthorn Drum',short:'Bloodthorn',dmg:[4,5],clip:6,crit:25,critDmg:2,aim:5,fx:'pellet',px:'leech',rt:[[3,20],[4,5]],fall:15,desc:'Prestige weapon. Lifesteal: every hit heals you 1 HP, a takedown 3. One less max damage and round than a Mk III Drum.'}},
+  p_lancet:{cls:'sharpshooter',rk:2,shape:'sniper',pf:'p_aurora',trc:[150,236,255],tag:'Lancet',w:{name:'Lancet Railgun',short:'Lancet',dmg:[6,8],clip:3,crit:25,critDmg:3,aim:5,fx:'beam',heavy:true,px:'overpen',rt:[[3,-30],[6,-5],[99,5]],desc:'Prestige weapon. Overpenetration: a hit punches through to the first enemy up to 4 tiles behind the target for half damage. One less round than a Mk III Railgun.'}},
+  p_vigil:{cls:'sharpshooter',rk:4,shape:'semidmr',pf:'p_gild',trc:[255,238,170],tag:'Vigil',w:{name:'Vigil SR-9',short:'Vigil',dmg:[4,5],clip:5,crit:20,critDmg:2,aim:5,fx:'burst',px:'mark',rt:[[2,-5],[9,5],[99,0]],desc:'Prestige weapon. Spotter rounds: a hit marks the target, giving your whole team +10 aim against it until the end of next round. One less round than a Mk III SR-7.'}},
+  p_quake:{cls:'grenadier',rk:2,shape:'cannon',pf:'p_ember',trc:[255,150,70],tag:'Quake',w:{name:'Quake Cannon',short:'Quake',dmg:[4,7],clip:4,crit:15,critDmg:2,aim:0,fx:'heavy',px:'quake',rt:[[7,0],[8,-10]],fall:5,desc:'Prestige weapon. Concussive shells: every shot, hit or miss, knocks the cover between you and the target down a stage. Less damage and crit than a Mk III Cannon.'}},
+  p_cinder:{cls:'grenadier',rk:4,shape:'minigun',pf:'p_ember',trc:[255,112,36],tag:'Cinderstorm',w:{name:'Cinderstorm Minigun',short:'Cinderstorm',dmg:[4,6],clip:7,crit:20,critDmg:1,aim:0,mob:-1,fx:'heavy',px:'scorch',rt:[[6,10],[9,0]],fall:5,desc:'Prestige weapon. Incendiary crits: a critical hit sets the target Burning. Crits add +1 instead of +2, one less min damage than a Mk III Minigun.'}},
+  p_tempest:{cls:'specialist',rk:2,shape:'arcr',pf:'p_aurora',trc:[140,220,255],tag:'Tempest',w:{name:'Tempest Arc Rifle',short:'Tempest',dmg:[3,5],clip:4,crit:10,critDmg:2,aim:10,pierce:true,fx:'beam',arcfx:true,px:'chain',noAtt:['ammo'],rt:[[5,5],[8,0]],fall:10,desc:'Prestige weapon. Chain arc: a hit jumps to the nearest other enemy within 3 tiles of the target for 2 armor-piercing damage. Ignores armor. A little lighter than a Mk III Arc Rifle.'}},
+  p_perpetua:{cls:'specialist',rk:4,shape:'flech',pf:'p_void',trc:[200,150,255],tag:'Perpetua',w:{name:'Perpetua Needler',short:'Perpetua',dmg:[3,4],clip:4,crit:25,critDmg:2,aim:10,mob:1,pierce:true,fx:'burst',px:'recharge',rt:[[4,10],[6,0]],fall:8,desc:'Prestige weapon. Self-charging magazine: regains a round at the start of each of your turns. Ignores armor. Only 4 rounds.'}},
+  p_rampart:{cls:'engineer',rk:2,shape:'slug',pf:'p_gild',trc:[255,190,90],tag:'Rampart',w:{name:'Rampart Foam Gun',short:'Rampart',dmg:[4,6],clip:4,crit:15,critDmg:2,aim:0,fx:'single',px:'foam',rt:[[6,10],[7,0]],fall:10,desc:'Prestige weapon. Quick-set foam: once a turn, shooting from the open sets a half-cover foam barricade (2 HP) on the empty tile beside you toward the target. Less damage than a Mk III Slug Gun.'}},
+  p_breaker:{cls:'engineer',rk:4,shape:'smg',pf:'p_aurora',trc:[110,200,255],tag:'Breaker',w:{name:'Breaker SMG',short:'Breaker',dmg:[3,5],clip:6,crit:15,critDmg:2,aim:10,mob:1,fx:'burst',px:'breaker',rt:[[4,10],[7,0]],fall:7,desc:'Prestige weapon. Shield breaker: hits strip shields 50% faster and deal +1 to drones and turrets. Less damage and crit than a Mk III SMG.'}},
+  p_lifeline:{cls:'medic',rk:2,shape:'carbine',pf:'p_aurora',trc:[120,255,170],tag:'Lifeline',w:{name:'Lifeline Carbine',short:'Lifeline',dmg:[3,5],clip:6,crit:15,critDmg:2,aim:10,fx:'burst',px:'mend',rt:[[2,0],[7,5],[10,0]],fall:5,desc:'Prestige weapon. Healing splash: each hit heals you and every ally within 2 tiles of you 1 HP. Less damage than a Mk III Carbine.'}},
+  p_aegis:{cls:'medic',rk:4,shape:'rifle',pf:'p_gild',trc:[130,210,255],tag:'Aegis',w:{name:'Aegis Pulse Rifle',short:'Aegis',dmg:[4,5],clip:5,crit:15,critDmg:2,aim:5,fx:'burst',px:'ward',rt:[[4,5],[9,0],[10,-10]],fall:5,desc:'Prestige weapon. Ward link: each hit gives the most hurt ally within 4 tiles (you included) +1 shield, up to 2. Less damage than a Mk III Pulse Rifle.'}},
+  p_tracer:{cls:'recon',rk:2,shape:'dmr',pf:'p_void',trc:[255,90,200],tag:'Tracer',w:{name:'Tracer DMR',short:'Tracer',dmg:[4,5],clip:5,crit:20,critDmg:2,aim:10,fx:'single',px:'trace',rt:[[2,-10],[4,-5],[6,0],[99,5]],desc:'Prestige weapon. Tracer rounds: a hit tags the target, showing your team where it is through walls until the end of next round. One less max damage than a Mk III DMR.'}},
+  p_ghost:{cls:'recon',rk:4,shape:'wsmg',late:1,pf:'p_void',trc:[170,190,255],tag:'Ghostline',w:{name:'Ghostline SMG',short:'Ghostline',dmg:[3,4],clip:5,crit:20,critDmg:2,aim:5,mob:1,fx:'burst',silent:true,noAtt:['barrel'],px:'ambush',rt:[[4,10],[7,0]],fall:7,desc:'Prestige weapon. Ambush: +15 aim and +15% crit against a target that cannot see you. Suppressed. Less damage than a Mk III Hush SMG.'}}
+};
+for(const k in PRW_DEF2) if(!PRW[k]&&CLASSES[PRW_DEF2[k].cls]) prwReg(k,PRW_DEF2[k]);
 // a weapon's tracer colour (prestige weapons and the Thunderclap's flash shells); null: the team colour
 function wTracer(k){ return (PRW[k]&&PRW[k].trc)||(WEAPONS[k]&&WEAPONS[k].trc)||null; }
 function prwTag(k){ return PRW[k]?'★ '+PRW[k].tag:undefined; }
@@ -3051,6 +3080,7 @@ function computeVis(){
   for(const r of G.reveals||[]){ if(r.team!==G.player.team||G.round>r.until) continue;
     for(let y=Math.max(0,Math.floor(r.y-r.r));y<=Math.min(MH-1,Math.ceil(r.y+r.r));y++) for(let x=Math.max(0,Math.floor(r.x-r.r));x<=Math.min(MW-1,Math.ceil(r.x+r.r));x++)
       if(Math.hypot(x-r.x,y-r.y)<=r.r+0.01){ v[idx(x,y)]=1; G.seen[idx(x,y)]=1; } }
+  pxVis(v); // class prestige: Tracer DMR tags show through walls
 }
 
 /* ================= pathing ================= */
@@ -4354,7 +4384,7 @@ const PFIN={
   p_aurora:{name:'Prestige Aurora',c:'#1a3a40',pat:'aurora',anim:8,pc:[[22,52,62],[10,26,34],[120,255,200]]}
 };
 for(const k in PFIN) PFIN[k].id=k;
-function prsVis(){ for(const k in PRW){ if(WPN[k]) continue; const P=PRW[k], B=WPN[P.shape]||WPN.rifle, g=B.hold==='pistol'||B.hold==='blade'?.6:1;
+function prsVis(){ for(const k in PRW){ if(WPN[k]||(PRW[k].late&&!WPN[PRW[k].shape])) continue; /* late: its base shape is drawn later in the file (prsVis runs again then) */ const P=PRW[k], B=WPN[P.shape]||WPN.rifle, g=B.hold==='pistol'||B.hold==='blade'?.6:1;
   const rc=q=>{ const c=q[0]==='p'||q[0]==='l'?1:q.length-1, o=q.slice(); if(o[c]==='k') o[c]='F'; else if(o[c]==='m') o[c]='f'; return o; }; // the whole gun in the prestige finish
   WPN[k]=Object.assign({},B,{pf:P.pf,parts:B.parts.map(rc).concat([['c',2.2*g,-0.3*g,0.95*g,'v'],['c',2.2*g,-0.3*g,0.45*g,'s']])}); } }
 prsVis();
@@ -6483,6 +6513,7 @@ function drawFx(c){
         if(big) softDot(c,f.col,f.x,f.y,30,.5*a); } }
     else if(f.type==='shield'){ const a=Math.sin(Math.min(1,k*1.4)*Math.PI), r=f.r*(.9+.1*k); c.strokeStyle=C(f.col,1,.7*a); c.lineWidth=1.6; c.beginPath(); c.ellipse(f.x,f.y,r*.75,r,0,0,Math.PI*2); c.stroke();
       c.strokeStyle=C(f.col,1,.35*a); c.lineWidth=1; c.beginPath(); for(let i=0;i<6;i++){ const an=i/6*Math.PI*2+k; c.moveTo(f.x,f.y); c.lineTo(f.x+Math.cos(an)*r*.75,f.y+Math.sin(an)*r); } c.stroke(); softDot(c,f.col,f.x,f.y,r,.3*a); }
+    else if(f.type==='px'){ c.save(); f.draw(c,f,k); c.restore(); } // class prestige weapon effects (pxTrail / pxImpact / pxFx)
     else if(f.type==='kfx'){ const K=KFX[f.key]; if(K){ c.save(); K.draw(c,f.x,f.y,k,f.t,f.sd,f.vc,f.h); c.restore(); } }
     else if(f.type==='tland'){ const F=TFX[f.key]; if(F&&F.land){ F.land(c,f.x,f.y,f.col,k,1,f.sd); c.globalCompositeOperation='lighter'; c.globalAlpha=1; } }
     else if(f.type==='column'){ const a=(1-k), h=60+k*30; c.globalAlpha=a*.8; c.drawImage(beamTex(f.col),f.x-12,f.y-h,24,h); c.globalAlpha=1; }
@@ -6603,7 +6634,7 @@ function frame(now){
   if(!$('#menu').classList.contains('hidden')) drawOpCard();
   if(TUT.on) tutTick();
   if(!$('#pass').classList.contains('hidden')&&(pvF=!pvF)) passAnim();
-  if(!$('#profile').classList.contains('hidden')&&(pvF=!pvF)) prsAnim('#profile canvas[data-prw],#profile canvas[data-pm]'); // class prestige finishes
+  if(!$('#profile').classList.contains('hidden')&&(pvF=!pvF)) { prsAnim('#profile canvas[data-prw],#profile canvas[data-pm]'); prcAnim(); } // class prestige finishes and cosmetics
   if(!$('#store').classList.contains('hidden')&&(pvF=!pvF)) document.querySelectorAll('#stGrid canvas[data-pv],#stGrid canvas[data-set]').forEach(cv2=>{ const r=cv2.getBoundingClientRect(); if(r.bottom>0&&r.top<VH) (cv2.dataset.set?drawSetPreview(cv2):drawCosPreview(cv2)); });
   requestAnimationFrame(frame);
 }
@@ -6636,6 +6667,7 @@ function hitInfo(a,t,o){
   if(t.holo&&t.holo.team===a.team&&G.round<=t.holo.until){ aim+=15; mods.push(['holo-targeted',15]); }
   if(t.mark&&t.mark.team===a.team&&G.round<=t.mark.until){ aim+=DRONE.markAim; mods.push(['drone mark',DRONE.markAim]); }
   aim+=kitAim(a,t,d,mods); // Mark Target, Hunter, Long Sight (class abilities)
+  if(t.pmk||W.px) aim+=pxAim(a,t,W,ax,ay,mods); // class prestige weapons: Vigil mark, Ghostline ambush
   // weather: rain spoils long shots
   const wx=wxNow(); if(wx.longAim&&d>=wx.longD-0.01){ aim+=wx.longAim; mods.push(['rain at range',wx.longAim]); }
   const fs=flankState(a,t,ax,ay); if(fs.flanked){ aim+=FLANK.aim; mods.push(['flanked',FLANK.aim]); }
@@ -6648,7 +6680,7 @@ function hitInfo(a,t,o){
   if(t.hunker&&cov){ def+=20; mods.push(['hunkered',-20]); }
   if(smokeOnLine(ax,ay,t.x,t.y)){ def+=UTILS.smoke.smokeDef; mods.push(['through smoke',-UTILS.smoke.smokeDef]); } // any shot whose line crosses a cloud
   let hit=clamp(Math.round(aim-def),0,100);
-  let crit=W.crit+(cov===0?(over?20:fs.flanked?FLANK.crit:40):0)+(prim&&hasP(a,'s_vital')?15:0); if(t.hunker) crit=0; crit=clamp(crit,0,100);
+  let crit=W.crit+(cov===0?(over?20:fs.flanked?FLANK.crit:40):0)+(prim&&hasP(a,'s_vital')?15:0)+(W.px?pxCrit(a,t,W,ax,ay):0); if(t.hunker) crit=0; crit=clamp(crit,0,100);
   if(t.downed){ hit=100; crit=0; }
   const full=hit>=100?100:Math.max(0,hit-5), graze=(hit>=100||hit<=0)?0:Math.min(100,hit+10)-full;
   return {hit,crit,cov,d,mods,aim:a.aim,full,graze,any:full+graze,elevAdv:ha>ht,over,flank:fs.flanked};
@@ -6739,22 +6771,25 @@ async function fireShot(a,t,o){
   if(anim){ animShot(a,o.reaction?.26:.48,kind,!prim,o.label); focusMid(a,t); if(o.reaction) floatText(a,o.rf?'RETURN FIRE':'OVERWATCH',o.rf?[255,214,90]:[127,232,255],18); else if(o.label) floatText(a,o.label,[255,190,80],18); await wait(o.reaction?260:480); if(!a.alive||!t.alive) return false; shotFX(a,t,hit,kind); await wait(FXDUR[kind]||150); }
   else if(!W.silent&&G.player&&!G.fullVis&&viewers().some(v=>Math.hypot(a.x-v.x,a.y-v.y)<17)) ping(a.x,a.y); // a suppressed shot out of sight gives no ripple
   if(!W.silent){ makeNoise(a); if(G.M.night) boFlash(a); } // Blackout: the muzzle flash gives the shooter away
+  const up0=standing(t); // class prestige effects: was the target up before this shot (takedowns)
   if(hit){ let d=rollDmg(W.dmg)+(o.bonus||0)+(prim&&hasP(a,'r_point')&&info.d<=3.01?1:0); if(crit) d+=W.critDmg+(prim&&hasP(a,'s_vital')?1:0); if(o.deadeye) d=Math.ceil(d*1.5); if(res==='graze') d=Math.max(1,Math.ceil(d/2));
     if(prim&&!o.reaction&&hasP(a,'g_holo')) t.holo={team:a.team,until:G.round+1};
     if(W.amk) d=amDmg(W,t,d); // ammo mods: armor-piercing, hollow-point, shock against drones
+    if(prim&&W.px) d=pxDmg(a,t,W,d,anim); // class prestige: Breaker SMG
     applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how||(prim?prwTag(W.id):undefined),pierce:!!W.pierce||(prim&&hasP(a,'g_shred')),wid:W.id});
     if(W.flash&&standing(t)&&!t.drone){ t.disorient=Math.max(t.disorient,1); t.overwatch=false; if(anim) floatText(t,'DAZZLED',[255,240,170],16); } } // Thunderclap flash shells
   else if(anim) floatText(t,'MISSED',[200,210,220],20);
   if(hit&&W.amk) await amHit(a,t,W,res,crit); // ammo mods: status effects
+  if(prim&&W.px) await pxShot(a,t,W,res,crit,info,anim,up0); // class prestige weapon effects
   // a miss at a target behind destructible cover hits the cover instead (thrown blades excepted)
-  if(!hit&&info.cov>0&&!info.over&&W.fx!=='throw') await shotCover(a,t,W,anim);
+  if(!hit&&info.cov>0&&!info.over&&W.fx!=='throw'&&!(prim&&W.px==='quake')) await shotCover(a,t,W,anim); // (the Quake Cannon knocks it down a stage instead)
   if(anim) await wait(t.alive?650:1000);
   if(!o.reaction) await returnFire(t,a);
   return hit;
 }
 const FXDUR={burst:330,pellet:140,beam:160,single:140,heavy:440,throw:420};
 function shotFX(a,t,hit,kind){
-  const m=muzzle(a), tp=chest(t), wid=a.anim&&a.anim.sec?a.sid:a.wid, AM=amFx(a); const col=AM?AM.col:(!(a.anim&&a.anim.sec)&&wTracer(wid))||(mine(a)?[110,225,255]:[255,110,90]); // ammo mod, then prestige / special tracer colours
+  const m=muzzle(a), tp=chest(t), wid=a.anim&&a.anim.sec?a.sid:a.wid, AM=amFx(a), PXK=!(a.anim&&a.anim.sec)&&WEAPONS[wid]&&WEAPONS[wid].px; const col=AM?AM.col:(!(a.anim&&a.anim.sec)&&wTracer(wid))||(mine(a)?[110,225,255]:[255,110,90]); // ammo mod, then prestige / special tracer colours
   // misses end on the cover that stopped them, or kick up the ground past the target
   let end=tp, mat='flesh';
   if(!hit){ const ct=coverTile(t,a);
@@ -6774,6 +6809,7 @@ function shotFX(a,t,hit,kind){
     else if(kind==='beam'){ addFx({type:'beam',a:m,b:end,col,life:.5}); G.cam.shake=Math.max(G.cam.shake,5); }
     else { const e=[end[0]+frand(-5,5),end[1]+frand(-4,4)]; addFx({type:'tracer',a:m,b:e,col,w:kind==='heavy'?2.6:1.8,life:.17}); }
     if(AM){ amMuzzle(AM,m,ang); amTrail(AM,m,end,kind); later(60,()=>{ amImpact(AM,end,hit,mat); if(hit) amPunch(AM,m,end); }); } // ammo mod visuals
+    if(PXK){ pxTrail(PXK,m,end,col,i); if(i===n-1) later(60,()=>pxImpact(PXK,end,hit,col,mat)); } // class prestige weapon tracers and impacts
     later(55,()=>impact(end,hit,col,mat));
   });
 }
@@ -7740,7 +7776,7 @@ function drawRideAir(c){ const F=G.fly; if(!F||F.mid!==G.matchId) return; const 
 // one ship at x,y (its body centre), scale s, facing right (flip: left), with its live parts (rotors, props, wings, lights)
 function drawRide(c,key,x,y,s,t,o){ const K=RIDES[key]||RIDES.default, M=RMOD[K.m]; o=o||{};
   c.save(); c.translate(x,y); if(o.flip) c.scale(-1,1); c.rotate(o.tilt||0); c.scale(s,s); if(o.a!=null) c.globalAlpha=o.a;
-  if(M.under) M.under(c,K,t,o); c.drawImage(rideSpr(key),-100,-70,200,120); if(M.over) M.over(c,K,t,o);
+  if(M.under) M.under(c,K,t,o); c.drawImage(rideSpr(key),-100,-70,200,120); if(M.over) M.over(c,K,t,o); if(K.prc) prcRideFx(c,K,t); // class prestige glow
   if(o.pop>0){ c.globalCompositeOperation='lighter'; sdot(c,[255,240,200],M.dx||0,M.door||8,18,o.pop*2); c.globalCompositeOperation='source-over'; }
   c.restore(); c.globalAlpha=1; }
 /* cached sprites: body (gradients and livery baked once per ride at 2x) and a top-down shadow silhouette per model */
@@ -7767,6 +7803,7 @@ function ridePat(g,K){ const p=K.pat, a=K.a, b=K.b, k=K.k;
     g.strokeStyle='rgba(235,250,255,.55)'; g.lineWidth=.7; for(let i=0;i<14;i++){ const x=-80+hash(i,7,72)*160, y=-50+hash(i,8,72)*80; for(let q=0;q<3;q++){ const an=q*1.047; g.beginPath(); g.moveTo(x-Math.cos(an)*4,y-Math.sin(an)*4); g.lineTo(x+Math.cos(an)*4,y+Math.sin(an)*4); g.stroke(); } } }
   else if(p==='royal'){ g.fillStyle=C(a,1); g.fillRect(-100,-12,200,3); g.fillRect(-100,-1,200,1.5); for(let x=-90;x<90;x+=10){ RP(g,[[x,-17],[x+3,-14],[x,-11],[x-3,-14]],C(a,1)); } g.fillStyle=C(a,1,.85); g.fillRect(36,-40,3,70); }
   else if(p==='gold'){ for(let i=0;i<7;i++){ g.fillStyle=i%2?'rgba(255,250,220,.32)':'rgba(120,80,20,.22)'; g.beginPath(); g.moveTo(-100+i*30,-70); g.lineTo(-84+i*30,-70); g.lineTo(-124+i*30,50); g.lineTo(-140+i*30,50); g.closePath(); g.fill(); } }
+  else if(p==='prs') prcRidePat(g,K); // class prestige drop ships
   else if(p==='void'){ for(let i=0;i<70;i++){ const x=-96+hash(i,9,73)*192, y=-66+hash(i,10,73)*112, r=.4+hash(i,11,73)*1.1; RE(g,x,y,r,r,i%3?'rgba(255,255,255,.85)':C(a,1,.9)); }
     g.globalCompositeOperation='lighter'; for(let i=0;i<5;i++) g.drawImage(softTex(i%2?a:K.w),-80+hash(i,12,73)*140,-40+hash(i,13,73)*50,40,24); } }
 /* ride models: body(g,K) draws the sprite (livery goes on top), det(g,K) the parts the livery must not cover, under/over the
@@ -7978,6 +8015,7 @@ async function unitTurn(u,mid){
 async function turnStartPerks(u){
   if(hasP(u,'g_jugg')&&u.disorient>0) u.disorient=0;
   let show=false;
+  if(u.W&&u.W.px==='recharge'&&pxTurn(u)) show=true; // class prestige: the Perpetua Needler's self-charging magazine
   if(hasP(u,'p_shield')&&dOut(u)&&u.shield<1){ u.shield=1; if(shouldShow(u)){ floatText(u,'DRONE SHIELD',[111,208,255],16); show=true; } }
   if(hasP(u,'p_restore')&&dOut(u)) for(const m of G.units){ if(!standing(m)||m.team!==u.team||Math.hypot(m.x-u.dr.x,m.y-u.dr.y)>3.01||m.hp>=m.maxHp) continue; m.hp+=1; if(shouldShow(m)){ floatText(m,'+1 HP',[93,255,154],18); show=true; } }
   if(show) await wait(450);
@@ -9378,8 +9416,8 @@ function buySet(k){ const q=setQuote(k); if(q.owned) return true; const have=q.c
   if(q.cur==='sh') PROF.shards-=q.price; else PROF.credits-=q.price; for(const id of q.miss) PROF.cos.push(id); for(const id of q.ids){ const [c,key]=id.split(':'); PROF.equip[c]=key; } saveProf(); return true; }
 // how an item is earned, for store cards: "Level 12", "Win 25 matches", or ''
 const ACH_TXT={wins:'Win # matches',kills:'Get # eliminations',matches:'Play # matches',top3:'Finish top 3 # times'};
-function cosHow(cat,key){ const it=COS[cat]&&COS[cat][key]; if(!it) return ''; if(it.pass){ const S=SEASONS.find(x=>x.key===it.pass); return 'Season pass exclusive'+(S?' ('+S.name+')':''); } if(it.lvl) return 'Free at level '+it.lvl; if(it.ach) return ACH_TXT[it.ach.k].replace('#',it.ach.n); return ''; }
-function cosEarned(it){ return !!(it&&((it.lvl&&level()>=it.lvl)||(it.ach&&((PROF.career&&PROF.career[it.ach.k])||0)>=it.ach.n))); }
+function cosHow(cat,key){ const it=COS[cat]&&COS[cat][key]; if(!it) return ''; if(it.prs) return (CLASSES[it.prs.c]?CLASSES[it.prs.c].name:'Class')+' Prestige '+ROMAN[it.prs.rk]+' (never sold)'; if(it.pass){ const S=SEASONS.find(x=>x.key===it.pass); return 'Season pass exclusive'+(S?' ('+S.name+')':''); } if(it.lvl) return 'Free at level '+it.lvl; if(it.ach) return ACH_TXT[it.ach.k].replace('#',it.ach.n); return ''; }
+function cosEarned(it){ return !!(it&&((it.prs&&prsRank(it.prs.c)>=it.prs.rk)||(it.lvl&&level()>=it.lvl)||(it.ach&&((PROF.career&&PROF.career[it.ach.k])||0)>=it.ach.n))); }
 // grant level / career cosmetics (runs on save; quiet on load). Returns the names that were new.
 function syncCos(quiet){ try{ if(!PROF||!PROF.cos) return []; }catch(e){ return []; } const got=[];
   for(const cat in COS) for(const k in COS[cat]){ const id=cat+':'+k; if(!PROF.cos.includes(id)&&cosEarned(COS[cat][k])){ PROF.cos.push(id); got.push(COS[cat][k].name+' ('+COS_LABEL[cat].toLowerCase()+')'); } }
@@ -9514,7 +9552,11 @@ function bannerCss(B){ const h=x=>'rgba('+hexc(B.c1).join(',')+','+x+')', shade=
     chevron:'repeating-linear-gradient(60deg,'+h(.3)+' 0 4px,transparent 4px 16px),repeating-linear-gradient(-60deg,'+h(.3)+' 0 4px,transparent 4px 16px)',
     dots:'radial-gradient('+h(.6)+' 1.3px,transparent 1.9px) 0 0/9px 9px,radial-gradient(ellipse at 85% 50%,'+h(.3)+',transparent 70%)',
     scan:'repeating-linear-gradient(0deg,'+h(.35)+' 0 1px,transparent 1px 4px),linear-gradient(90deg,'+h(0)+' 30%,'+h(.45)+')',
-    split:'linear-gradient(112deg,transparent 0 58%,'+h(.85)+' 58% 61%,'+h(.28)+' 61% 100%)'}[B.st]||'linear-gradient(transparent,transparent)';
+    split:'linear-gradient(112deg,transparent 0 58%,'+h(.85)+' 58% 61%,'+h(.28)+' 61% 100%)',
+    // class prestige banners (Prestige I, III, V): c3 = the second theme colour
+    crest1:'linear-gradient(90deg,transparent 72%,'+h(.7)+' 72% 73%,transparent 73% 75%,'+h(.7)+' 75% 76%,transparent 76%),radial-gradient(ellipse 60% 160% at 92% 50%,'+h(.55)+','+h(.06)+' 60%,'+h(0)+' 76%)',
+    crest3:'repeating-linear-gradient(45deg,'+h(.2)+' 0 1px,transparent 1px 8px),repeating-linear-gradient(-45deg,'+h(.2)+' 0 1px,transparent 1px 8px),radial-gradient(ellipse 55% 150% at 90% 50%,'+h(.6)+','+h(.08)+' 62%,'+h(0)+' 78%)',
+    crest5:'repeating-conic-gradient(from 0deg at 88% 50%,'+h(.42)+' 0 7deg,transparent 7deg 22deg),radial-gradient(ellipse 50% 140% at 88% 50%,'+(B.c3||B.c1)+','+h(.25)+' 35%,'+h(0)+' 72%),linear-gradient(90deg,'+h(0)+' 40%,'+h(.18)+')'}[B.st]||'linear-gradient(transparent,transparent)';
   return shade+','+L+','+base; }
 function plateCssText(){ return Object.keys(BANNERS).map(k=>'.bn-'+k+'{background:'+bannerCss(BANNERS[k])+';--bc:'+BANNERS[k].c1+'}').join('\n'); }
 const hasK=(o,k)=>typeof k==='string'&&Object.prototype.hasOwnProperty.call(o,k);
@@ -9524,13 +9566,13 @@ function bnKey(id){ return hasK(BANNERS,id)?id:'bn_std'; }
 function plateHtml(name,title,banner,o){ o=o||{}; const B=BANNERS[bnKey(banner)], t=o.sub!=null?o.sub:titleName(title);
   return '<span class="np bn-'+bnKey(banner)+(B.anim?' bn-anim':'')+(o.cls?' '+o.cls:'')+(o.pr?' hasprm prk'+o.pr:'')+'"><b>'+esc(name)+'</b>'+(t?'<small>'+esc(t)+'</small>':'')+(o.pr?prsEmb(o.pr):'')+'</span>'; }
 function titleOwned(id){ const T=hasK(TITLES,id)&&TITLES[id]; return !!T&&((T.lvl&&level()>=T.lvl)||PROF.id.tt.includes(id)); }
-function bannerOwned(id){ const B=hasK(BANNERS,id)&&BANNERS[id]; return !!B&&((B.lvl&&level()>=B.lvl)||PROF.id.bn.includes(id)); }
+function bannerOwned(id){ const B=hasK(BANNERS,id)&&BANNERS[id]; return !!B&&((B.prs&&prsRank(B.prs.c)>=B.prs.rk)||(B.lvl&&level()>=B.lvl)||PROF.id.bn.includes(id)); }
 function myTitle(){ return titleOwned(PROF.id.title)?PROF.id.title:''; }
 function myBanner(){ return bannerOwned(PROF.id.banner)?PROF.id.banner:'bn_std'; }
 function grantTitle(id){ if(!hasK(TITLES,id)||PROF.id.tt.includes(id)) return false; PROF.id.tt.push(id); return true; }
 function grantBanner(id){ if(!hasK(BANNERS,id)||PROF.id.bn.includes(id)) return false; PROF.id.bn.push(id); return true; }
 // where a title or banner comes from, for the picker
-function idHow(kind,id){ const X=kind==='title'?TITLES[id]:BANNERS[id]; if(!X) return ''; if(X.lvl) return X.lvl>1?'Reach level '+X.lvl:'Default';
+function idHow(kind,id){ const X=kind==='title'?TITLES[id]:BANNERS[id]; if(!X) return ''; if(X.prs) return 'Prestige '+(CLASSES[X.prs.c]?CLASSES[X.prs.c].name:'a class')+' to rank '+ROMAN[X.prs.rk]; if(X.lvl) return X.lvl>1?'Reach level '+X.lvl:'Default';
   if(id==='t_graduate'||id==='bn_boot') return 'Finish the training';
   for(const c of CHAL) if(c.rw[kind]===id) return CLASSES[c.cls].name+' challenge: '+c.t;
   for(const k in CHAL_PRIME) if(CHAL_PRIME[k][kind]===id) return 'Complete every '+CLASSES[k].name+' challenge';
@@ -9636,6 +9678,158 @@ function passLines(r,s,fR){ const X=PASS_XP, L=[], half=Math.max(1,Math.ceil(r.o
   if(r.win&&PROF.pass.fw!==dayKey()){ PROF.pass.fw=dayKey(); L.push(['First win of the day',X.firstWin]); }
   return L; }
 
+/* ================= class prestige: cosmetics =================
+   Earned by class prestige rank, never sold. Every class has its own theme (PRC: gilded, void, ember or aurora look, in
+   the class's colours) and the same scheme:
+     Prestige I   banner "<theme> ascendant"        Prestige II  drop trail "<theme> wake"
+     Prestige III kill effect "<theme> requiem" and banner "<theme> exalted"
+     Prestige IV  drop ship "<theme> herald"         Prestige V   armor skin "<theme> regalia" and banner "<theme> paragon"
+   Items carry prs:{c:class,rk} (COS items and BANNERS). Unlock state is the profile's own class ranks (PROF.prs): syncCos
+   grants the COS items into PROF.cos once the rank is reached (cosEarned), bannerOwned reads the rank directly; so the
+   save backup and the cloud save carry them with the profile. Online, cleanSpec drops any prestige cosmetic or banner the
+   spec's cleaned ranks do not allow (prcClean, like prwOk for prestige weapons). Visual only: never read by the sim.
+   AI never wears them (added after the AI pools are built). Looks: SKMAT materials, TFX trails, KFX kill effects, a ride
+   livery (ridePat 'prs') plus a cheap animated glow (prcRideFx), CSS name-plate styles crest1/3/5 (bannerCss). */
+const PRC={
+  ranger:{th:'gild',pre:'Gilded',c:[255,204,84],c2:[255,246,205],dk:[64,42,10],m:'vtol'},
+  sharpshooter:{th:'void',pre:'Voidborn',c:[190,110,255],c2:[120,220,255],dk:[18,8,34],m:'stealth'},
+  grenadier:{th:'ember',pre:'Emberforged',c:[255,104,32],c2:[255,214,110],dk:[40,14,8],m:'gunship'},
+  specialist:{th:'aurora',pre:'Aurora',c:[90,255,190],c2:[140,150,255],dk:[6,30,34],m:'pod'},
+  engineer:{th:'gild',pre:'Forgelight',c:[255,150,70],c2:[255,222,176],dk:[56,26,10],m:'barge'},
+  medic:{th:'aurora',pre:'Dawnbloom',c:[255,130,180],c2:[255,226,150],dk:[40,14,30],m:'tandem'},
+  recon:{th:'void',pre:'Nightglass',c:[110,200,255],c2:[225,245,255],dk:[6,16,32],m:'jet'}
+};
+const PRC_RK={trail:2,kill:3,ride:4,skin:5}, PRC_BN=[1,3,5], PRC_BNAME={1:'ascendant',3:'exalted',5:'paragon'};
+const rgbHex=c=>'#'+c.map(v=>clamp(v|0,0,255).toString(16).padStart(2,'0')).join('');
+const shadeC=(c,k)=>c.map(v=>clamp(Math.round(v*k),0,255));
+// prestige cosmetic data of an item (COS category or 'banner'), and whether cleaned ranks pr allow it
+function prcOf(cat,key){ const it=cat==='banner'?(hasK(BANNERS,key)&&BANNERS[key]):(cosHas(cat,key)&&COS[cat][key]); return it&&it.prs||null; }
+function prcOk(cat,key,pr){ const P=prcOf(cat,key); return !P||((pr&&pr[P.c])|0)>=P.rk; }
+function prcHas(cat,key){ const P=prcOf(cat,key); return !!P&&prsRank(P.c)>=P.rk; }
+function prcClean(r,pr){ for(const cat of ['skin','visor','finish','trail','kill','drone','ride']) if(r[cat]&&!prcOk(cat,r[cat],pr)) r[cat]=cat==='visor'?'cyan':'default';
+  if(!prcOk('banner',r.banner,pr)) r.banner='bn_std'; return r; }
+// every prestige cosmetic of a class, by rank: [{cat,key,rk}]
+function prcList(cls){ const o=[], k='pr_'+cls; for(const r of PRC_BN) o.push({cat:'banner',key:'bn_pr'+r+'_'+cls,rk:r});
+  for(const cat in PRC_RK) if(cosHas(cat,k)) o.push({cat,key:k,rk:PRC_RK[cat]}); return o.filter(e=>prcOf(e.cat,e.key)).sort((a,b)=>a.rk-b.rk||(a.cat==='banner')-(b.cat==='banner')); }
+function prcName(e){ return e.cat==='banner'?BANNERS[e.key].name+' banner':COS[e.cat][e.key].name+' '+COS_LABEL[e.cat].toLowerCase(); }
+/* ----- looks per theme ----- */
+function prcMat(P){ const c=P.c, c2=P.c2, dk=P.dk;
+  if(P.th==='gild') return {pat:'gold',c:[shadeC(c,.68),shadeC(c,.44),mix(c,[255,255,255],.45)],metal:1,shim:1,ap:'filigree',ac:[c,shadeC(c,.5),c2,shadeC(c,.3)],glint:1,trim:1,trimc:c2,ov:'halo',mote:{k:'star',col:c2,n:4},aura:c};
+  if(P.th==='void') return {pat:'space',c:[shadeC(dk,.5),shadeC(c,.75),shadeC(c2,.6),[255,255,255]],ss:1,pl:1,ov:'rim',rimc:c,mote:{k:'orbit',col:c,n:4},aura:c};
+  if(P.th==='ember') return {pat:'lava',c:[[36,28,26],[18,14,14],[62,46,40],c,c2],gl:'lavaG',pl:1,glo:[.5,1,2.1],mote:{k:'ember',col:c,n:5},aura:c,trim:1,trimc:c2};
+  return {pat:'galaxy',c:[dk,shadeC(c,.6),shadeC(c2,.6),mix(c,[255,255,255],.5)],gl:'twinkle',gc:[[240,255,250]],fr:6,fps:4,pl:1,mote:{k:'rise',col:c,n:5},aura:c,trim:1,trimc:c}; }
+function prcSkinB(P){ return P.th==='gild'?{m:shadeC(P.c,.62),d:shadeC(P.c,.35),a:P.c2}:{m:mix(P.dk,P.c,.15),d:shadeC(P.dk,.5),a:P.c}; }
+function prcRideCols(P){ const c=P.c, c2=P.c2, dk=P.dk;
+  if(P.th==='gild') return {b:mix(c,[70,50,30],.3),k:shadeC(c,.38),a:c2,w:[60,40,20]};
+  if(P.th==='ember') return {b:[66,40,34],k:[26,14,12],a:c,w:c2};
+  if(P.th==='void') return {b:mix(dk,c,.18),k:shadeC(dk,.6),a:c,w:c2};
+  return {b:mix(dk,c,.25),k:shadeC(dk,.7),a:c,w:c2}; }
+// drop trail per theme (TFX contract: fly / part / land / burst, tc = TRAILS[key].c)
+function prcTrail(P){ const c2=P.c2;
+  if(P.th==='gild') return {bw:.8,ld:1.7,
+    fly(c,x,y,tc,t,s){ const L=170*s; c.lineCap='round';
+      for(let r=0;r<2;r++){ c.strokeStyle=C(r?c2:tc,1,r?.95:.7); c.lineWidth=(r?1.2:2.6)*s; c.beginPath(); for(let i=0;i<=16;i++){ const q=i/16; c.lineTo(x+Math.sin(t*7+q*10+r*Math.PI)*10*s*(1-q*.6),y-8*s-q*L); } c.stroke(); }
+      c.lineCap='butt'; for(let i=0;i<9;i++){ const q=(t*1.3+i/9)%1; pxStar(c,x+Math.sin(i*2.3+t*3)*16*s*q,y-14*s-q*L*.8,(4.5-q*3)*s,i%2?tc:c2,1-q,t*3+i); }
+      sdot(c,tc,x,y-8*s,26*s,.9); sdot(c,[255,255,255],x,y-8*s,9*s,.9); },
+    part(p,tc){ part({x:p[0]+frand(-8,8),y:p[1]-frand(10,90),vx:frand(-30,30),vy:frand(-10,30),life:frand(.4,.7),size:1.8,col:Math.random()<.5?c2:tc,type:'spark',grav:60}); },
+    land(c,x,y,tc,k,s){ const a=1-k; isoE(c,x,y,(20+30*ease(k))*s); c.strokeStyle=C(tc,1,.9*a); c.lineWidth=2.2*s; c.stroke();
+      for(let i=0;i<18;i++){ const an=i/18*Math.PI*2+k*.6, R=(24+22*ease(k))*s; c.fillStyle=C(i%2?tc:c2,1,.85*a); c.beginPath(); c.ellipse(x+Math.cos(an)*R,y+Math.sin(an)*R*.5,3.2*s,1.4*s,an+1.2,0,Math.PI*2); c.fill(); }
+      if(k<.5){ const q=k/.5; c.strokeStyle=C(c2,1,(1-q)*.8); c.lineWidth=1.6*s; c.beginPath(); for(let i=0;i<12;i++){ const an=i/12*Math.PI*2; c.moveTo(x+Math.cos(an)*10*s,y-6*s+Math.sin(an)*5*s); c.lineTo(x+Math.cos(an)*(30+60*q)*s,y-6*s+Math.sin(an)*(15+30*q)*s); } c.stroke(); sdot(c,tc,x,y-4*s,40*s*(1-q),1-q); }
+      for(let i=0;i<6;i++) pxStar(c,x+Math.cos(i*1.05+k*3)*30*s,y-k*50*s-(i%3)*8*s,3.5*s,c2,a,k*6+i); },
+    burst(p,tc){ for(let i=0;i<18;i++){ const an=Math.random()*6.28, sp=frand(60,170); part({x:p[0],y:p[1],z:2,vx:Math.cos(an)*sp,vy:Math.sin(an)*sp*.5,vz:frand(30,110),life:frand(.4,.8),size:1.6,col:Math.random()<.5?c2:tc,type:'spark',grav:260}); } }};
+  if(P.th==='void') return {bw:.7,ld:1.6,
+    fly(c,x,y,tc,t,s){ const L=170*s; c.globalCompositeOperation='source-over'; sdot(c,[8,2,18],x,y-40*s,22*s,.5); sdot(c,[8,2,18],x,y-100*s,18*s,.4); c.globalCompositeOperation='lighter';
+      for(let i=0;i<16;i++){ const q=(t*1.1+i/16)%1, an=q*9+i*.7, R=(22*(1-q)+3)*s; sdot(c,i%3===0?[255,255,255]:i%2?tc:c2,x+Math.cos(an)*R,y-12*s-q*L*.85+Math.sin(an)*R*.3,(1.6+q)*s,q*.95); }
+      for(let r=0;r<2;r++){ c.strokeStyle=C(r?c2:tc,1,.7); c.lineWidth=1.2*s; c.beginPath(); c.ellipse(x,y-(34+44*r)*s,(18-r*4)*s,5*s,(r?-.25:.25),t*(r?-4:5),t*(r?-4:5)+4.2); c.stroke(); }
+      sdot(c,tc,x,y-8*s,24*s,.85); sdot(c,[255,255,255],x,y-8*s,7*s,.9); },
+    part(p,tc){ part({x:p[0]+frand(-12,12),y:p[1]-frand(10,90),vx:frand(-10,10),vy:frand(-10,10),life:frand(.4,.8),size:2,col:Math.random()<.5?c2:tc,type:'ember',grav:0}); },
+    land(c,x,y,tc,k,s){ const a=1-k, op=k<.15?k/.15:1-clamp((k-.6)/.4,0,1); c.globalCompositeOperation='source-over'; isoE(c,x,y,30*s*op); c.fillStyle=C([6,2,14],1,.7*op); c.fill(); c.globalCompositeOperation='lighter';
+      isoE(c,x,y,30*s*op); c.strokeStyle=C(tc,1,.9*op); c.lineWidth=2*s; c.stroke(); isoE(c,x,y,(30+40*ease(k))*s); c.strokeStyle=C(c2,1,.5*a); c.lineWidth=1.2*s; c.stroke();
+      for(let i=0;i<12;i++){ const an=i/12*Math.PI*2+k*5, R=30*s*(1-ease(k)*.8); sdot(c,i%2?tc:[255,255,255],x+Math.cos(an)*R,y+Math.sin(an)*R*.5-4*s,2*s,a); } },
+    burst(p,tc){ for(let i=0;i<16;i++){ const an=i/16*6.28; part({x:p[0]+Math.cos(an)*40,y:p[1]+Math.sin(an)*20,vx:-Math.cos(an)*80,vy:-Math.sin(an)*40,life:.45,size:2,col:i%2?c2:tc,type:'ember',grav:0}); } }};
+  if(P.th==='ember') return {bw:.9,ld:1.6,
+    fly(c,x,y,tc,t,s){ const L=170*s; for(let i=0;i<14;i++){ const q=(t*1.8+i/14)%1, an=t*8+q*12; sdot(c,i%3?tc:c2,x+Math.cos(an)*9*s*(1-q*.3),y-10*s-q*L*.8,(7-q*4)*s,(1-q)*.8,'fire'); }
+      for(let i=0;i<8;i++){ const q=(t*1.1+i/8)%1; sdot(c,c2,x+Math.sin(i*3+t*5)*14*s*q,y-20*s-q*L,1.8*s,1-q); }
+      sdot(c,tc,x,y-8*s,28*s,.9,'fire'); sdot(c,[255,240,200],x,y-8*s,9*s,.9); },
+    part(p,tc){ part({x:p[0]+frand(-6,6),y:p[1]-frand(10,80),vx:frand(-30,30),vy:frand(-20,20),life:frand(.4,.8),size:2.2,col:Math.random()<.4?c2:tc,type:'ember',grav:-30}); },
+    land(c,x,y,tc,k,s){ const a=1-k; c.globalCompositeOperation='source-over'; isoE(c,x,y,30*s); c.fillStyle=C([24,12,8],1,.6*Math.min(1,a*1.5)); c.fill(); c.globalCompositeOperation='lighter';
+      for(let i=0;i<10;i++){ const an=i/10*Math.PI*2+hash(i,3,77); c.strokeStyle=C(tc,1,.9*a); c.lineWidth=1.4*s; c.beginPath(); c.moveTo(x+Math.cos(an)*6*s,y+Math.sin(an)*3*s); c.lineTo(x+Math.cos(an+.2)*18*s,y+Math.sin(an+.2)*9*s); c.lineTo(x+Math.cos(an)*30*s,y+Math.sin(an)*15*s); c.stroke(); }
+      isoE(c,x,y,30*s); c.strokeStyle=C(c2,1,.8*a); c.lineWidth=1.6*s; c.stroke();
+      for(let i=0;i<6;i++) sdot(c,tc,x+Math.cos(i*1.05)*24*s,y+Math.sin(i*1.05)*12*s-Math.abs(Math.sin(k*20+i))*8*s,8*s,.6*a,'fire'); if(k<.3) sdot(c,c2,x,y-10*s,50*s*(1-k/.3),1-k/.3,'fire'); },
+    burst(p,tc){ for(let i=0;i<18;i++) part({x:p[0]+frand(-12,12),y:p[1],z:4,vx:frand(-70,70),vy:frand(-30,30),vz:frand(40,140),life:frand(.6,1.1),size:2,col:Math.random()<.5?c2:tc,type:'ember',grav:-10}); }};
+  return {bw:.6,ld:1.7,
+    fly(c,x,y,tc,t,s){ const L=180*s; for(let r=0;r<3;r++){ c.strokeStyle=C(mix(tc,c2,r/2),1,.55); c.lineWidth=(5-r*1.3)*s; c.beginPath(); for(let i=0;i<=14;i++){ const q=i/14; c.lineTo(x+Math.sin(q*5+t*4+r*2.1)*(9+r*3)*s*(1-q*.5),y-8*s-q*L); } c.stroke(); }
+      for(let i=0;i<8;i++){ const q=(t*.9+i/8)%1; sdot(c,i%2?tc:c2,x+Math.sin(i*2+t*2)*18*s,y-16*s-q*L*.9,2*s,Math.sin(q*Math.PI)); }
+      sdot(c,tc,x,y-8*s,24*s,.8); sdot(c,c2,x,y-8*s,10*s,.8); },
+    part(p,tc){ part({x:p[0]+frand(-10,10),y:p[1]-frand(10,90),vx:frand(-15,15),vy:frand(-30,-5),life:frand(.6,1),size:2,col:Math.random()<.5?c2:tc,type:'ember',grav:-10}); },
+    land(c,x,y,tc,k,s){ const a=1-k; for(let r=0;r<4;r++){ const q=clamp(k*1.4-r*.12,0,1); if(q<=0||q>=1) continue; isoE(c,x,y,(10+60*ease(q))*s); c.strokeStyle=C(r%2?c2:tc,1,.8*(1-q)); c.lineWidth=(3-r*.5)*s; c.stroke(); }
+      for(let i=0;i<10;i++){ const an=i/10*Math.PI*2, R=24*s; sdot(c,i%2?tc:c2,x+Math.cos(an)*R,y+Math.sin(an)*R*.5-k*60*s*(.5+hash(i,5,78)),2.2*s,a); } sdot(c,tc,x,y,30*s,.4*a); },
+    burst(p,tc){ for(let i=0;i<14;i++) part({x:p[0]+frand(-20,20),y:p[1],z:2,vx:frand(-30,30),vy:frand(-15,15),vz:frand(40,100),life:frand(.8,1.3),size:2.2,col:Math.random()<.5?c2:tc,type:'ember',grav:-15}); }};
+}
+// kill effect per theme (KFX contract, see "kill effects")
+function prcKill(P){ const A=P.c, B=P.c2;
+  if(P.th==='gild') return {dur:2.4,
+    body(c,x,y,vd,draw){ const q=clamp((vd-.9)/1.1,0,1); if(q>=1) return; c.globalAlpha*=1-q; draw(); },
+    draw(c,x,y,k,t,sd,vc,h){ const cy=y-26*h;
+      if(t<.5){ const q=t/.5; sdot(c,B,x,cy,60*(1-q)+8,1-q); c.strokeStyle=C(B,1,1-q); c.lineWidth=1.6; c.beginPath(); for(let i=0;i<14;i++){ const an=i/14*Math.PI*2+t; c.moveTo(x+Math.cos(an)*12,cy+Math.sin(an)*12); c.lineTo(x+Math.cos(an)*(20+50*q),cy+Math.sin(an)*(20+50*q)); } c.stroke(); }
+      const e=kEnv(t,.1,.4,1.9,2.4), dq=ease(clamp(t/.9,0,1)), ly=lerp(y-70*h,y,dq), R=lerp(10,26,dq);
+      for(let i=0;i<20;i++){ const sg=i<10?-1:1, j=i%10, an=Math.PI/2+sg*(.35+j*.24); c.fillStyle=C(j%2?A:B,1,.9*e); c.beginPath(); c.ellipse(x+Math.cos(an)*R,ly+Math.sin(an)*R*.5,3.4,1.5,an+sg*1.3,0,Math.PI*2); c.fill(); }
+      const pb=kEnv(t,.6,.9,1.8,2.4); if(pb>0){ c.globalAlpha=pb*.6; c.drawImage(beamTex(A),x-18,y-300,36,300); c.globalAlpha=1; }
+      for(let i=0;i<20;i++){ const t0=.5+hash(i,sd,1)*1.2, b=t-t0; if(b<0||b>1.1) continue; pxStar(c,x+(hash(i,sd,2)-.5)*30+Math.sin(b*4+i)*4,y-hash(i,sd,3)*40*h-b*60,2.6*(1-b/1.1)+.6,i%3?A:B,1-b/1.1,b*4+i); }
+      const se=kEnv(t,1.1,1.35,2,2.4); if(se>0){ const sy=y-72*h; sdot(c,A,x,sy,26,se*.6); pxStar(c,x,sy,13*se,B,se,-Math.PI/2); pxStar(c,x,sy,7*se,[255,255,255],se,Math.PI/4); } },
+    snd(){ for(const [f,d] of [[784,0],[988,.1],[1175,.2],[1568,.42]]) SFX.tone(f,f,1.2,.04,'sine',d); SFX.noise(1.2,'highpass',7000,.05,.3); }};
+  if(P.th==='void') return {dur:2.2,stand:9,
+    body(c,x,y,vd,draw,h){ const q=clamp((vd-.35)/1.1,0,1); if(q>=1) return; kClip(c,x-40,y-90,x+40,y+1); c.translate(0,ease(q)*58*h); draw(); },
+    draw(c,x,y,k,t,sd,vc,h){ const op=t<.3?ease(t/.3):1-clamp((t-1.6)/.45,0,1), R=30*op;
+      c.globalCompositeOperation='source-over'; c.drawImage(kHole(),x-R*1.2,y-R*.6,R*2.4,R*1.2); c.globalCompositeOperation='lighter';
+      isoE(c,x,y,R); c.strokeStyle=C(A,1,.95*op); c.lineWidth=2; c.stroke(); isoE(c,x,y,R*1.2); c.strokeStyle=C(B,1,.4*op); c.lineWidth=1; c.stroke();
+      for(let i=0;i<26;i++){ const p=(t*.9+hash(i,sd,1))%1, an=hash(i,sd,2)*6.28+p*7, r=R*(1.9-p*1.7); sdot(c,i%3?A:i%2?B:[255,255,255],x+Math.cos(an)*r,y+Math.sin(an)*r*.5-(1-p)*hash(i,sd,3)*40*h,1.3+p*1.5,p*op); }
+      c.lineWidth=1.2; for(let i=0;i<5;i++){ const an=i/5*Math.PI*2+t*.8, x0=x+Math.cos(an)*R, y0=y+Math.sin(an)*R*.5, hh=30*h*op*(.6+.4*Math.sin(t*5+i)); c.strokeStyle=C(i%2?A:B,1,.6*op); c.beginPath(); c.moveTo(x0,y0); c.quadraticCurveTo(x0+Math.sin(t*4+i)*12,y0-hh*.6,x0+Math.cos(an)*6,y0-hh); c.stroke(); }
+      if(t>1.6&&t<2){ const q=(t-1.6)/.4; sdot(c,B,x,y,50*(1-q)+4,1-q); c.fillStyle=C([255,255,255],1,1-q); c.fillRect(x-60*(1-q),y-.6,120*(1-q),1.2); } },
+    snd(){ SFX.tone(80,40,1.4,.3,'sine'); SFX.tone(400,120,1.2,.04,'triangle',.2); SFX.noise(1.3,'lowpass',260,.25); SFX.tone(1400,2400,.25,.04,'sine',1.6); },
+    fx(p){ later(1600,()=>{ G.cam.shake=Math.max(G.cam.shake,8); }); }};
+  if(P.th==='ember') return {dur:2.3,stand:9,
+    body(c,x,y,vd,draw,h){ if(vd>=1.05) return; draw(); const q=clamp(vd/1,0,1); c.globalCompositeOperation='lighter'; sdot(c,A,x,y-26*h,26*q,.9*q,'fire'); sdot(c,B,x,y-30*h,10*q,q); },
+    draw(c,x,y,k,t,sd,vc,h){ const BT=1.05;
+      if(t<BT){ const q=t/BT; c.strokeStyle=C(B,1,q); c.lineWidth=1.1; for(let i=0;i<6;i++){ c.beginPath(); let px=x+(hash(i,sd,1)-.5)*10, py=y-hash(i,sd,2)*44*h-6; c.moveTo(px,py); for(let j=0;j<3;j++){ px+=(hash(i,sd,j+3)-.5)*9*q; py+=(hash(i,sd,j+7)-.5)*9*q; c.lineTo(px,py); } c.stroke(); }
+        sdot(c,A,x,y-2,20*q,.6*q,'fire'); return; }
+      const b=t-BT, f=1-k; if(b<.4) sdot(c,B,x,y-26*h,100*(1-b/.4)+10,1-b/.4,'fire'); if(b<.9) sdot(c,A,x,y-20*h-b*30,40*(1-b/.9),.7*(1-b/.9),'fire');
+      for(let i=0;i<40;i++){ const P2=[x+(hash(i,sd,1)-.5)*16+(hash(i,sd,3)-.5)*160*b*(1-b*.3),y-hash(i,sd,2)*50*h+(-60-hash(i,sd,4)*110)*b*(1-b*.3)]; const l=1-b/1.25; if(l<=0) continue; sdot(c,i%3?A:B,P2[0],P2[1],(3.4+hash(i,sd,5)*2.4)*l,l,i%4?null:'fire'); }
+      isoE(c,x,y,24); c.strokeStyle=C(A,1,.8*f); c.lineWidth=2; c.stroke(); for(let i=0;i<6;i++) sdot(c,A,x+Math.cos(i*1.05)*20,y+Math.sin(i*1.05)*10-Math.abs(Math.sin(t*9+i))*7,7,.55*f,'fire');
+      c.globalCompositeOperation='source-over'; for(let i=0;i<5;i++){ const a=b-i*.12; if(a<0||a>1.2) continue; sdot(c,[50,40,38],x+(hash(i,sd,9)-.5)*20+a*8,y-14-a*50,8+a*12,.4*(1-a/1.2)); } },
+    snd(){ SFX.noise(1,'bandpass',900,.12); SFX.tone(120,60,1,.15,'sawtooth'); SFX.noise(.6,'lowpass',500,.6,1.05); SFX.tone(220,40,.6,.4,'sine',1.05); },
+    fx(p){ later(1050,()=>{ G.cam.shake=Math.max(G.cam.shake,10); G.flashA=Math.max(G.flashA,.12); }); }};
+  return {dur:2.6,
+    body(c,x,y,vd,draw){ const q=clamp((vd-.5)/1.4,0,1); if(q>=1) return; c.translate(0,-ease(q)*30); c.globalAlpha*=1-q; draw(); },
+    draw(c,x,y,k,t,sd,vc,h){ const e=kEnv(t,0,.3,2.1,2.6), top=y-20*h-ease(clamp(t/1.6,0,1))*70;
+      for(let r=0;r<3;r++){ c.strokeStyle=C(mix(A,B,r/2),1,.6*e); c.lineWidth=3-r*.6; c.beginPath(); for(let i=0;i<=24;i++){ const q=i/24, yy=lerp(y,top,q), an=q*9+t*3+r*2.1, R=(16-q*6)*(1+.15*Math.sin(t*4+r)); c.lineTo(x+Math.cos(an)*R,yy+Math.sin(an)*R*.35); } c.stroke(); }
+      const ce=kEnv(t,1.2,1.6,2.1,2.6); if(ce>0){ for(let i=0;i<8;i++){ const an=i/8*Math.PI*2+t; sdot(c,i%2?A:B,x+Math.cos(an)*14,top+Math.sin(an)*5,3,ce); } isoE(c,x,top,14,.35); c.strokeStyle=C(B,1,ce); c.lineWidth=1.4; c.stroke(); }
+      isoE(c,x,y,28*e); c.strokeStyle=C(A,1,.7*e); c.lineWidth=1.4; c.stroke(); sdot(c,A,x,y,34,.3*e);
+      for(let i=0;i<18;i++){ const t0=hash(i,sd,1)*1.6, b=t-t0; if(b<0||b>1) continue; sdot(c,i%2?A:B,x+(hash(i,sd,2)-.5)*40+Math.sin(b*5+i)*5,y-b*90*h,2,Math.sin(b*Math.PI)); } },
+    snd(){ for(let i=0;i<6;i++) SFX.tone(440*Math.pow(2,i/5),440*Math.pow(2,i/5)*1.01,.9,.03,'sine',i*.12); SFX.noise(1.6,'highpass',6000,.04,.1); }};
+}
+// drop ship livery (painted source-atop into the cached sprite) and the live glow over it
+function prcRidePat(g,K){ const P=K.prc, a=K.a, w=K.w;
+  if(P.th==='gild'){ for(let i=0;i<6;i++){ g.fillStyle=i%2?C(a,1,.35):'rgba(80,50,10,.2)'; g.beginPath(); g.moveTo(-100+i*34,-70); g.lineTo(-88+i*34,-70); g.lineTo(-128+i*34,50); g.lineTo(-140+i*34,50); g.closePath(); g.fill(); }
+    g.fillStyle=C(a,1,.9); g.fillRect(-100,-3,200,1.4); for(let x=-80;x<80;x+=12) RP(g,[[x,-6],[x+3,-2.3],[x,1.4],[x-3,-2.3]],C(w,1,.9)); }
+  else if(P.th==='void'){ for(let i=0;i<70;i++){ const x=-96+hash(i,9,74)*192, y=-66+hash(i,10,74)*112, r=.4+hash(i,11,74)*1.1; RE(g,x,y,r,r,i%3?'rgba(255,255,255,.85)':C(a,1,.9)); }
+    g.strokeStyle=C(a,1,.8); g.lineWidth=1; g.beginPath(); g.moveTo(-100,-8); g.lineTo(100,-8); g.stroke(); g.strokeStyle=C(w,1,.6); g.beginPath(); g.moveTo(-100,-5); g.lineTo(100,-5); g.stroke(); }
+  else if(P.th==='ember'){ g.strokeStyle=C(a,1,.85); g.lineWidth=1.1; for(let i=0;i<14;i++){ let x=-90+hash(i,1,75)*180, y=-50+hash(i,2,75)*80; g.beginPath(); g.moveTo(x,y); for(let j=0;j<4;j++){ x+=(hash(i,j+3,75)-.5)*18; y+=(hash(i,j+7,75)-.5)*12; g.lineTo(x,y); } g.stroke(); }
+    g.fillStyle=C(w,1,.7); g.fillRect(-100,-4,200,1.2); }
+  else { for(let b=0;b<4;b++){ g.strokeStyle=C(b%2?w:a,1,.45); g.lineWidth=3; g.beginPath(); for(let x=-100;x<=100;x+=4) g.lineTo(x,-30+b*14+Math.sin(x*.05+b)*6); g.stroke(); } } }
+function prcRideFx(c,K,t){ const P=K.prc, a=K.a, w=K.w; c.globalCompositeOperation='lighter';
+  sdot(c,a,0,0,70,.18+.06*Math.sin(t*3));
+  for(let i=0;i<6;i++){ const q=(t*.8+i/6)%1, x=-50-q*70, y=(hash(i,1,76)-.5)*30+Math.sin(t*3+i)*4; if(P.th==='gild') pxStar(c,x,y,3.2*(1-q)+1,i%2?a:w,1-q,t*4+i); else sdot(c,i%2?a:w,x,y,3*(1-q)+1,1-q,P.th==='ember'?'fire':null); }
+  const g=(t*.6)%2.4; if(g<1){ const i=Math.floor(t*.6/2.4)%5, gx=-40+hash(i,2,76)*80, gy=-20+hash(i,3,76)*24; pxStar(c,gx,gy,8*Math.sin(g*Math.PI),[255,255,255],Math.sin(g*Math.PI),g*2); }
+  c.globalCompositeOperation='source-over'; }
+/* ----- register the items ----- */
+for(const cls of Object.keys(CLASSES)){ const P=PRC[cls]||(PRC[cls]={th:'gild',pre:CLASSES[cls].name,c:[255,204,84],c2:[255,246,205],dk:[64,42,10],m:'cargo'}), k='pr_'+cls, CN=CLASSES[cls].name;
+  SKMAT[k]=prcMat(P); SKINS[k]={name:P.pre+' regalia',price:0,r:'m',prs:{c:cls,rk:PRC_RK.skin},b:prcSkinB(P)};
+  TRAILS[k]={name:P.pre+' wake',c:rgbHex(P.c),price:0,r:'l',prs:{c:cls,rk:PRC_RK.trail}}; TFX[k]=prcTrail(P);
+  KILLS[k]={name:P.pre+' requiem',price:0,r:'l',prs:{c:cls,rk:PRC_RK.kill},d:{gild:'A sunburst, a gilded laurel crown and a prestige star seal the kill.',void:'A rift opens underfoot and the void drags them under.',ember:'They glow white-hot, crack, and burst into a column of embers.',aurora:'Aurora ribbons spiral up and carry them away.'}[P.th]}; KFX[k]=prcKill(P);
+  RIDES[k]=Object.assign({name:P.pre+' herald',price:0,r:'m',prs:{c:cls,rk:PRC_RK.ride},m:RMOD[P.m]?P.m:'cargo',pat:'prs',prc:P,spd:RMOD[P.m]&&RMOD[P.m].con?18:12,d:CN+' prestige drop ship, in '+P.pre.toLowerCase()+' livery with a living glow.'},prcRideCols(P));
+  PRC_BN.forEach(r=>{ BANNERS['bn_pr'+r+'_'+cls]={name:P.pre+' '+PRC_BNAME[r],st:'crest'+r,c1:rgbHex(P.c),c2:rgbHex(shadeC(P.dk,.8)),c3:rgbHex(P.c2),r:r===1?'e':r===3?'l':'m',anim:r>1?1:0,prs:{c:cls,rk:r}}; }); }
+/* ================= class prestige: cosmetics (end) ================= */
 /* ================= class prestige: progression and UI =================
    PROF.prs = {cls:{xp,rk}} (class XP toward the next level, prestige rank 0..PRS.ranks), PROF.ptok = prestige tokens.
    Both live in the profile, so the save backup (bkPack) and the cloud save, which carry the whole stormfall_profile
@@ -9673,17 +9867,152 @@ function renderPrestige(){ const el=$('#prsBody'); if(!el) return; const cls=CLA
   else h+='<button class="btn primary prsgo'+(prsArm===cls?' arm':'')+'" data-prsgo="'+cls+'"'+(I.max?'':' disabled')+'>'+(I.max?(prsArm===cls?'Tap again to prestige':'Prestige to '+ROMAN[I.rk+1]):'Prestige at class level '+PRS.max)+'</button>'
     +'<small class="prsx">Prestiging resets '+esc(C.name)+' to level 1, keeps all your gear and mastery, and pays '+PRS.tok[I.rk]+' prestige tokens'+(nx.length?' and unlocks the '+nx.map(k=>esc(WEAPONS[k].name)).join(' and '):'')+'.</small>';
   h+='</div><div class="prstrack">';
-  for(let r=1;r<=PRS.ranks;r++){ const rw=[PRS.tok[r-1]+' tokens'].concat(ws.filter(k=>PRW[k].rk===r).map(k=>WEAPONS[k].name)); if(r===1) rw.push('“'+TITLES['t_pr1_'+cls].name+'” title'); if(r===PRS.ranks) rw.push('“'+TITLES['t_pr5_'+cls].name+'” title'); rw.push(ROMAN[r]+' name plate emblem');
+  for(let r=1;r<=PRS.ranks;r++){ const rw=[PRS.tok[r-1]+' tokens'].concat(ws.filter(k=>PRW[k].rk===r).map(k=>WEAPONS[k].name)); if(r===1) rw.push('“'+TITLES['t_pr1_'+cls].name+'” title'); if(r===PRS.ranks) rw.push('“'+TITLES['t_pr5_'+cls].name+'” title'); rw.push(ROMAN[r]+' name plate emblem'); for(const e of prcList(cls)) if(e.rk===r) rw.push(prcName(e));
     h+='<div class="trow'+(I.rk>=r?' got':r===I.rk+1?' next':'')+'"><b class="prm r'+r+'">'+ROMAN[r]+'</b><span>'+rw.map(esc).join(', ')+'</span></div>'; }
   h+='</div><h3 class="prsws">Prestige weapons <small>'+esc(C.name)+' only · own finish, tracers and kill feed tag</small></h3>'+ws.map(k=>{ const W=WEAPONS[k], P=PRW[k], ok=I.rk>=P.rk, eq=LO.cls===cls&&LO.weapon===k;
     return '<div class="prwrow'+(ok?'':' lock')+'"><canvas data-prw="'+k+'" width="240" height="84" aria-hidden="true"></canvas><div><b>'+esc(W.name)+'</b><small>'+W.dmg[0]+'–'+W.dmg[1]+' dmg · '+W.clip+' rounds · '+W.crit+'% crit · optimal '+bandTxt(optBand(W))+(W.pierce?' · ignores armor':'')+(W.heavy?' · needs both AP':'')+(W.mob?' · '+sgn(W.mob)+' mobility':'')+'</small><small>'+esc(W.desc)+'</small><small class="'+(ok?'ok':'')+'">'+(ok?'Unlocked':'Unlocks at Prestige '+ROMAN[P.rk])+'</small></div>'
       +(ok?'<button class="btn sm" data-prseq="'+k+'"'+(eq?' disabled':'')+'>'+(eq?'Equipped':'Equip')+'</button>':'')+'</div>'; }).join('');
-  el.innerHTML=h; el.querySelectorAll('canvas[data-prw]').forEach(cv2=>wpnOn(cv2,cv2.dataset.prw,'default'));
+  h+=prcHtml(cls,I.rk);
+  el.innerHTML=h; el.querySelectorAll('canvas[data-prw]').forEach(cv2=>wpnOn(cv2,cv2.dataset.prw,'default')); el.querySelectorAll('canvas[data-pv]').forEach(drawCosPreview);
   const t=PROF.ptok|0; $('#prsTok').innerHTML='<div class="prstok"><b>'+t+'</b><span>prestige token'+(t===1?'':'s')+'<small>Earned by prestiging a class</small></span></div><div class="pbtns"><button class="btn sm" data-prsx="sh"'+(t?'':' disabled')+'>1 token → '+PRS_X.sh+' shards</button><button class="btn sm" data-prsx="cr"'+(t?'':' disabled')+'>1 token → '+PRS_X.cr+' CR</button></div>'; }
+// class prestige cosmetics of a class (prestige tab): preview, what unlocks it, equip
+function prcHtml(cls,rk){ const L=prcList(cls); if(!L.length) return '';
+  return '<h3 class="prsws">Prestige cosmetics <small>'+esc(CLASSES[cls].name)+' ranks only · never sold · also in the Store and the banner picker</small></h3><div class="prcgrid">'+L.map(e=>{ const ok=e.cat==='banner'?bannerOwned(e.key):(PROF.cos.includes(e.cat+':'+e.key)||prcHas(e.cat,e.key)), eq=e.cat==='banner'?myBanner()===e.key:PROF.equip[e.cat]===e.key, it=e.cat==='banner'?BANNERS[e.key]:COS[e.cat][e.key];
+    return '<div class="prc'+(ok?'':' lock')+'">'+(e.cat==='banner'?plateHtml(LO.name,myTitle(),e.key,{pr:rk}):'<canvas data-pv="'+e.cat+':'+e.key+'" width="320" height="192" aria-hidden="true"></canvas>')
+      +'<b>'+esc(it.name)+'</b><small>'+(e.cat==='banner'?'Name plate banner':COS_LABEL[e.cat])+(it.d?' · '+esc(it.d):'')+'</small><small class="'+(ok?'ok':'')+'">'+(ok?'Unlocked':'Unlocks at Prestige '+ROMAN[e.rk])+'</small>'
+      +(ok?'<button class="btn sm" data-prceq="'+e.cat+':'+e.key+'"'+(eq?' disabled':'')+'>'+(eq?'Equipped':'Equip')+'</button>':'')+'</div>'; }).join('')+'</div>'; }
+let prcF=0; function prcAnim(){ if((prcF=(prcF+1)%2)) return; document.querySelectorAll('#prsBody canvas[data-pv]').forEach(cv2=>{ const r=cv2.getBoundingClientRect(); if(r.bottom>0&&r.top<VH&&r.width) drawCosPreview(cv2); }); }
 // the animated prestige finishes, redrawn while their canvases are on screen
 function prsAnim(sel){ document.querySelectorAll(sel).forEach(cv2=>{ const k=cv2.dataset.wpv||cv2.dataset.prw||cv2.dataset.pm; if(!PRW[k]) return; const r=cv2.getBoundingClientRect(); if(r.bottom<0||r.top>VH||!r.width) return;
   const a=draft&&draft.att&&draft.att[k]; wpnOn(cv2,k,'default'+(a?'+'+attIds(a,k).join('.'):'')); }); }
 /* ================= class prestige: progression and UI (end) ================= */
+/* ================= class prestige: weapon effects =================
+   The effects of the Prestige II / IV weapons (w.px, PRW_DEF2). Sim (lockstep: identical on every client, seeded RNG only):
+   pxAim / pxCrit (hitInfo), pxDmg (fireShot, before the damage), pxShot (fireShot, after it), pxTurn (start of the owner's
+   turn), the Tracer tag (u.trk: pinged to the tagging team on every step, shown to the local team by pxVis) and the Vigil
+   mark (u.pmk). New state is hashed by pxHash only while present. Visuals (pxTrail / pxImpact / pxFx: fx type 'px') use
+   frand / Math.random and never touch the sim. */
+const PX={markAim:10,ambAim:15,ambCrit:15,ricP:.35,penR:4,chainR:3,chainDmg:2,mendR:2,wardR:4,wardMax:2,foamHp:2,leech:1,leechKo:3};
+function pxProxy(a,ax,ay){ return ax===a.x&&ay===a.y?a:Object.assign(Object.create(a),{x:ax,y:ay}); } // the shooter at a tile it is scoring (AI)
+function pxUnseen(a,t,ax,ay){ return !t.drone&&standing(t)&&!canSee(t,pxProxy(a,ax,ay)); }
+// hitInfo: the Vigil mark (any weapon of the marking team) and the Ghostline ambush
+function pxAim(a,t,W,ax,ay,mods){ let s=0;
+  if(t.pmk&&t.pmk.team===a.team&&G.round<=t.pmk.until){ s+=PX.markAim; mods.push(['vigil mark',PX.markAim]); }
+  if(W.px==='ambush'&&pxUnseen(a,t,ax,ay)){ s+=PX.ambAim; mods.push(['ambush: it cannot see you',PX.ambAim]); }
+  return s; }
+function pxCrit(a,t,W,ax,ay){ return W.px==='ambush'&&pxUnseen(a,t,ax,ay)?PX.ambCrit:0; }
+// before the damage: the Breaker SMG strips shields 50% faster and hits drones and turrets harder
+function pxDmg(a,t,W,d,anim){ if(W.px!=='breaker') return d; if(t.drone) return d+1;
+  if(t.shield>0){ const b=Math.min(t.shield,Math.ceil(d/2)); t.shield-=b; if(anim){ later(380,()=>floatText(t,'SHIELD BROKEN',[110,200,255],15)); pxFx('shatter',chest(t),wTracer(W.id)); } }
+  return d; }
+// after the shot (hit or miss): every other effect. up0: the target was standing before the shot (takedowns)
+async function pxShot(a,t,W,res,crit,info,anim,up0){ const k=W.px, hit=res!=='miss', how=prwTag(W.id), col=wTracer(W.id)||[255,220,140];
+  if(k==='ricochet'){ if(hit||!info.cov||info.over||t.drone||!standing(t)||RNG()>=PX.ricP) return;
+    const d=Math.max(1,Math.ceil(rollDmg(W.dmg)/2)); if(anim){ pxFx('ricochet',chest(t),col,chest(a)); floatText(t,'RICOCHET',col,17); await wait(240); }
+    applyDamage(t,d,a,{graze:true,anim,how,wid:W.id}); return; }
+  if(k==='leech'){ if(!hit||!standing(a)||hasStatus(a,'poison')) return; const ko=up0&&!standing(t)&&!t.drone, h=Math.min(ko?PX.leechKo:PX.leech,a.maxHp-a.hp); if(h<=0) return;
+    a.hp+=h; if(anim||shouldShow(a)){ pxFx('leech',chest(t),col,chest(a)); later(260,()=>floatText(a,'+'+h+' HP',[255,110,130],ko?20:16)); } return; }
+  if(k==='overpen'){ if(!hit) return; const dx=t.x-a.x, dy=t.y-a.y, L=Math.hypot(dx,dy)||1, ux=dx/L, uy=dy/L; let best=null, bs=1e9;
+    for(const v of G.units){ if(v===t||v===a||!standing(v)||v.infDown||!isEnemy(a,v)) continue; const rx=v.x-t.x, ry=v.y-t.y, s=rx*ux+ry*uy;
+      if(s<=.01||s>PX.penR+.01||Math.abs(rx*uy-ry*ux)>.75||s>=bs||!hasLOS(t.x,t.y,v.x,v.y)) continue; bs=s; best=v; }
+    if(!best) return; const d=Math.max(1,Math.ceil(rollDmg(W.dmg)/2)), sh=anim||shouldShow(best);
+    if(sh){ pxFx('overpen',chest(t),col,chest(best)); floatText(best,'OVERPENETRATION',col,16); await wait(200); }
+    applyDamage(best,d,a,{anim:sh,how,wid:W.id}); return; }
+  if(k==='mark'){ if(!hit||!standing(t)||t.drone) return; t.pmk={team:a.team,until:G.round+1};
+    if(anim){ pxFx('mark',chest(t),col); later(380,()=>floatText(t,'MARKED: +'+PX.markAim+' TEAM AIM',col,15)); } return; }
+  if(k==='quake'){ const c=coverCell(t.x,t.y,a.x,a.y); if(!c||!shootable(cell(c[0],c[1]))) return; const sh=anim||tileShown(c[0],c[1]);
+    if(sh){ pxFx('quake',tileC(c[0],c[1]),col); await wait(160); } await breakTerr(c[0],c[1],a,sh); return; }
+  if(k==='scorch'){ if(!crit||t.drone||!standing(t)) return; addStatus(t,'burn',0,a); if(anim) pxFx('scorch',chest(t),col); return; }
+  if(k==='chain'){ if(!hit) return; let best=null, bd=1e9;
+    for(const v of G.units){ if(v===t||!standing(v)||v.infDown||!isEnemy(a,v)) continue; const d=Math.hypot(v.x-t.x,v.y-t.y); if(d>PX.chainR+.01||d>=bd||!hasLOS(t.x,t.y,v.x,v.y)) continue; bd=d; best=v; }
+    if(!best) return; const sh=anim||shouldShow(best); if(sh){ pxFx('chain',chest(t),col,chest(best)); floatText(best,'CHAIN ARC',col,15); await wait(180); }
+    applyDamage(best,PX.chainDmg,a,{pierce:true,anim:sh,how,wid:W.id}); return; }
+  if(k==='foam'){ if(!standing(a)||a.pxR===G.round||coverCell(a.x,a.y,t.x,t.y)) return; const dx=t.x-a.x, dy=t.y-a.y, L=Math.hypot(dx,dy)||1; let best=null, bd=.35;
+    for(const D of DIRS8){ const x=a.x+D[0], y=a.y+D[1]; if(!kitTileOk(a,'wall',x,y)) continue; const dot=(D[0]*dx+D[1]*dy)/(L*Math.hypot(D[0],D[1])); if(dot>bd+1e-9){ bd=dot; best=[x,y]; } }
+    if(!best) return; const [x,y]=best; a.pxR=G.round; G.grid[idx(x,y)]={t:1,kind:'ebar',h:0,v:hash(x,y,94),hp:PX.foamHp,team:a.team}; terrChanged(true,x,y,0); cst(a,'walls');
+    if(anim||tileShown(x,y)){ pxFx('foam',tileC(x,y),col,chest(a)); floatText(tileDummy(x,y),'FOAM BARRICADE',col,15); SFX.land(); await wait(300); } return; }
+  if(k==='mend'){ if(!hit) return; const got=[];
+    for(const m of G.units){ if(!standing(m)||m.drone||m.team!==a.team||m.hp>=m.maxHp||hasStatus(m,'poison')||Math.hypot(m.x-a.x,m.y-a.y)>PX.mendR+.01) continue; m.hp+=1; got.push(m); }
+    for(const m of got) if(shouldShow(m)){ pxFx('mend',chest(m),col); floatText(m,'+1 HP',[93,255,154],16); } return; }
+  if(k==='ward'){ if(!hit) return; let best=null;
+    for(const m of G.units){ if(!standing(m)||m.drone||m.team!==a.team||m.shield>=PX.wardMax||Math.hypot(m.x-a.x,m.y-a.y)>PX.wardR+.01) continue; if(!best||m.hp*best.maxHp<best.hp*m.maxHp) best=m; }
+    if(!best) return; best.shield+=1; if(shouldShow(best)){ pxFx('ward',chest(best),col,chest(a)); shieldFx(best,true); floatText(best,'+1 SHIELD',[111,208,255],16); } return; }
+  if(k==='trace'){ if(!hit||t.drone||!standing(t)) return; t.trk={team:a.team,until:G.round+1}; pingPos(t,[a.team],'traced');
+    if(G.player&&a.team===G.player.team) computeVis(); if(anim){ pxFx('trace',chest(t),col); later(380,()=>floatText(t,'TRACED',col,16)); } return; }
+}
+// start of the owner's turn: the Perpetua Needler regains a round. true: shown (turnStartPerks waits)
+function pxTurn(u){ if(!standing(u)||u.ammo>=u.W.clip) return false; u.ammo++; if(!shouldShow(u)) return false; const col=wTracer(u.wid)||[200,150,255]; floatText(u,'+1 ROUND',col,16); pxFx('charge',chest(u),col); return true; }
+// Tracer tags: every step of a tagged enemy is pinged to the tagging team (scanCheck runs on each step), and shown to the local team
+{ const f=scanCheck; scanCheck=function(u){ f(u); const r=u.trk; if(!r||!standing(u)||G.round>r.until) return; pingPos(u,[r.team],'traced'); if(G.player&&r.team===G.player.team&&G.scene==='game') computeVis(); }; }
+function pxVis(v){ if(!G.player) return; for(const u of G.units){ const r=u.trk; if(r&&r.team===G.player.team&&G.round<=r.until&&standing(u)) v[idx(u.x,u.y)]=1; } }
+function pxHash(add){ const on=u=>u.pmk||u.trk||u.pxR!=null; if(!G.units.some(on)) return; add(0x5058);
+  for(const u of G.units){ if(!on(u)) continue; add(u.id); add(u.pmk?u.pmk.team*1000+u.pmk.until:-1); add(u.trk?u.trk.team*1000+u.trk.until:-1); add(u.pxR==null?-1:u.pxR); } }
+/* ----- visuals ----- */
+function pxStar(c,x,y,r,col,a,rot){ if(a<=0) return; c.fillStyle=C(col,1,a); c.beginPath(); for(let i=0;i<8;i++){ const an=(rot||0)+i*Math.PI/4, rr=i%2?r*.28:r; c.lineTo(x+Math.cos(an)*rr,y+Math.sin(an)*rr); } c.closePath(); c.fill(); }
+function pxHex(c,x,y,r,rot){ c.beginPath(); for(let i=0;i<6;i++){ const an=rot+i*Math.PI/3; c.lineTo(x+Math.cos(an)*r,y+Math.sin(an)*r); } c.closePath(); }
+function pxPlus(c,x,y,r,col,a){ c.fillStyle=C(col,1,a); c.fillRect(x-r,y-r*.3,r*2,r*.6); c.fillRect(x-r*.3,y-r,r*.6,r*2); }
+function pxChev(c,x,y,r,an,col,a){ const cs=Math.cos(an), sn=Math.sin(an); c.strokeStyle=C(col,1,a); c.lineWidth=1.4; c.beginPath(); c.moveTo(x-cs*r-sn*r*.8,y-sn*r+cs*r*.8); c.lineTo(x,y); c.lineTo(x-cs*r+sn*r*.8,y-sn*r-cs*r*.8); c.stroke(); }
+function pxJag(c,a,b,n,j){ c.beginPath(); c.moveTo(a[0],a[1]); for(let i=1;i<n;i++){ const q=i/n; c.lineTo(lerp(a[0],b[0],q)+frand(-j,j),lerp(a[1],b[1],q)+frand(-j,j)); } c.lineTo(b[0],b[1]); }
+// tracer styles (one per effect), drawn over the weapon's normal tracer; o: path geometry
+const PXT={
+  ricochet(c,a,b,col,q,t,o){ const h=Math.min(1,t/.06), x=lerp(a[0],b[0],h), y=lerp(a[1],b[1],h); pxStar(c,x,y,6,[255,255,240],1-q,t*40); sdot(c,col,x,y,9,1-q);
+    for(let i=1;i<4;i++){ const s=h-i*.12; if(s>0) pxChev(c,lerp(a[0],b[0],s),lerp(a[1],b[1],s),3.5,Math.atan2(o.dy,o.dx),col,(1-q)*(1-i*.25)); } },
+  leech(c,a,b,col,q,t,o){ const h=Math.min(1,t/.08); c.strokeStyle=C(col,1,.85*(1-q)); c.lineWidth=1.3; c.beginPath();
+    for(let i=0;i<=24;i++){ const s=i/24*h, w=Math.sin(s*o.L*.18+o.ph)*3.5; c.lineTo(lerp(a[0],b[0],s)+o.nx*w,lerp(a[1],b[1],s)+o.ny*w); } c.stroke();
+    for(let i=1;i<6;i++){ const s=i/6*h, w=Math.sin(s*o.L*.18+o.ph)*3.5, x=lerp(a[0],b[0],s)+o.nx*w, y=lerp(a[1],b[1],s)+o.ny*w; c.fillStyle=C([255,180,190],1,1-q); c.fillRect(x-.8,y-.8,1.6,1.6); } },
+  overpen(c,a,b,col,q,t,o){ const e=[b[0]+o.dx/o.L*70,b[1]+o.dy/o.L*70], h=Math.min(1,t/.05); c.strokeStyle=C([255,255,255],1,.9*(1-q)); c.lineWidth=1.2; c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(lerp(a[0],e[0],h),lerp(a[1],e[1],h)); c.stroke();
+    c.strokeStyle=C(col,1,.4*(1-q)); c.lineWidth=5; c.stroke(); for(let i=0;i<3;i++){ const s=(t*4+i/3)%1; isoE(c,lerp(b[0],e[0],s),lerp(b[1],e[1],s),5*(1-s)+2,1.4); c.strokeStyle=C(col,1,(1-q)*(1-s)); c.lineWidth=1; c.stroke(); } },
+  mark(c,a,b,col,q,t,o){ c.setLineDash([5,4]); c.lineDashOffset=-t*120; c.strokeStyle=C(col,1,.7*(1-q)); c.lineWidth=1; c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke(); c.setLineDash([]); },
+  quake(c,a,b,col,q,t,o){ for(let i=0;i<4;i++){ const s=Math.min(1,t/.08)-i*.18; if(s<=0) continue; const x=lerp(a[0],b[0],s), y=lerp(a[1],b[1],s); isoE(c,x,y,(3+i*2.5)*(1+q),1.6); c.strokeStyle=C(col,1,(1-q)*(.9-i*.2)); c.lineWidth=1.6; c.stroke(); } },
+  scorch(c,a,b,col,q,t,o){ for(let i=0;i<8;i++){ const s=((o.ph+i*.13)%1)*Math.min(1,t/.06), x=lerp(a[0],b[0],s)+o.nx*Math.sin(i*2.1)*3, y=lerp(a[1],b[1],s)+o.ny*Math.sin(i*2.1)*3-q*8; sdot(c,i%3?col:[255,230,150],x,y,3.2*(1-q)+1,(1-q)*.9,'fire'); } },
+  chain(c,a,b,col,q,t,o){ if(q<.6){ c.strokeStyle=C([230,250,255],1,.8*(1-q/.6)); c.lineWidth=1; pxJag(c,a,b,7,5); c.stroke(); } },
+  recharge(c,a,b,col,q,t,o){ for(let i=0;i<5;i++){ const s=i/5+.1; if(s>Math.min(1,t/.06)) break; const x=lerp(a[0],b[0],s), y=lerp(a[1],b[1],s); c.save(); c.translate(x,y); c.rotate(Math.atan2(o.dy,o.dx)); c.strokeStyle=C(col,1,(1-q)*.9); c.lineWidth=1.1; c.beginPath(); c.ellipse(0,0,1.6,4.5*(1-q*.5),0,0,Math.PI*2); c.stroke(); c.restore(); } },
+  foam(c,a,b,col,q,t,o){ const h=Math.min(1,t/.12), x=lerp(a[0],b[0],h), y=lerp(a[1],b[1],h)-Math.sin(h*Math.PI)*o.L*.12; sdot(c,[255,240,210],x,y,5,1-q); sdot(c,col,x,y,10,.6*(1-q));
+    for(let i=1;i<5;i++){ const s=Math.max(0,h-i*.05); sdot(c,col,lerp(a[0],b[0],s),lerp(a[1],b[1],s)-Math.sin(s*Math.PI)*o.L*.12,4-i*.6,(1-q)*.5); } },
+  breaker(c,a,b,col,q,t,o){ const h=Math.min(1,t/.06); for(let i=0;i<4;i++){ const s=h-i*.1; if(s<=0) continue; pxHex(c,lerp(a[0],b[0],s),lerp(a[1],b[1],s),3.2,t*12+i); c.strokeStyle=C(col,1,(1-q)*(1-i*.2)); c.lineWidth=1; c.stroke(); } },
+  mend(c,a,b,col,q,t,o){ const h=Math.min(1,t/.06); for(let i=0;i<4;i++){ const s=h-i*.12; if(s>0) pxPlus(c,lerp(a[0],b[0],s),lerp(a[1],b[1],s)-q*6,2.6,i?col:[230,255,240],(1-q)*(1-i*.2)); } },
+  ward(c,a,b,col,q,t,o){ const h=Math.min(1,t/.06), an=Math.atan2(o.dy,o.dx); for(let i=0;i<4;i++){ const s=h-i*.1; if(s>0) pxChev(c,lerp(a[0],b[0],s),lerp(a[1],b[1],s),4,an,i?col:[230,245,255],(1-q)*(1-i*.2)); } },
+  trace(c,a,b,col,q,t,o){ c.setLineDash([2,6]); c.lineDashOffset=-t*80; c.strokeStyle=C(col,1,.9*(1-q)); c.lineWidth=1.6; c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke(); c.setLineDash([]); },
+  ambush(c,a,b,col,q,t,o){ for(let i=1;i<3;i++){ c.strokeStyle=C(col,1,.22*(1-q)); c.lineWidth=1; c.beginPath(); c.moveTo(a[0]+o.nx*i*3,a[1]+o.ny*i*3); c.lineTo(b[0]+o.nx*i*3,b[1]+o.ny*i*3); c.stroke(); } }
+};
+const PXT_LIFE={mark:.45,trace:.6,foam:.35,leech:.35,overpen:.35};
+function pxTrail(k,m,end,col,i){ const D=PXT[k]; if(!D) return; const dx=end[0]-m[0], dy=end[1]-m[1], L=Math.hypot(dx,dy)||1, o={dx,dy,L,nx:-dy/L,ny:dx/L,ph:Math.random()*6,i}, a=m.slice(), b=end.slice();
+  addFx({type:'px',life:PXT_LIFE[k]||.28,draw:(c,f,q)=>D(c,a,b,col,q,f.t,o)}); }
+// impacts: a short signature burst where the round lands (pxFx adds the effect's own event visuals)
+function pxImpact(k,p,hit,col,mat){ const x=p[0], y=p[1];
+  if(k==='ricochet'&&!hit){ for(let i=0;i<8;i++) part({x,y,vx:frand(-160,160),vy:frand(-140,20),life:frand(.2,.4),size:1.3,col:[255,240,190],type:'spark',grav:240}); return; }
+  if(k==='quake'){ addFx({type:'px',life:.5,draw:(c,f,q)=>{ for(let r=0;r<2;r++){ isoE(c,x,y+10,(14+r*12)*ease(q)+4); c.strokeStyle=C(col,1,(1-q)*(.8-r*.3)); c.lineWidth=2.4-r; c.stroke(); } }});
+    for(let i=0;i<8;i++) part({x:x+frand(-8,8),y:y+6,z:2,vx:frand(-70,70),vy:frand(-30,30),vz:frand(60,150),life:frand(.4,.8),size:frand(1.6,2.8),col:[110,96,84],type:'debris',grav:520}); G.cam.shake=Math.max(G.cam.shake,5); return; }
+  if(k==='scorch'){ for(let i=0;i<10;i++) part({x,y,vx:frand(-60,60),vy:frand(-80,10),life:frand(.3,.6),size:2,col:Math.random()<.5?[255,220,120]:col,type:'ember',grav:-20}); return; }
+  if(k==='breaker'&&hit){ for(let i=0;i<6;i++) part({x,y,vx:frand(-90,90),vy:frand(-90,30),life:frand(.25,.45),size:2,col,type:'shard',grav:200}); return; }
+  if(k==='foam'){ addFx({type:'px',life:.4,draw:(c,f,q)=>{ for(let i=0;i<6;i++){ const an=i/6*Math.PI*2; sdot(c,col,x+Math.cos(an)*10*ease(q),y+Math.sin(an)*5*ease(q),4*(1-q)+1,.8*(1-q)); } }}); return; }
+  if(k==='trace'&&hit){ addFx({type:'px',life:.7,draw:(c,f,q)=>{ for(let r=0;r<3;r++){ const s=(q*1.5-r*.25); if(s<=0||s>=1) continue; c.strokeStyle=C(col,1,(1-s)*.9); c.lineWidth=1.2; c.beginPath(); c.arc(x,y,4+s*26,0,Math.PI*2); c.stroke(); } }}); return; }
+  if(k==='ambush'&&hit){ for(let i=0;i<5;i++) part({x:x+frand(-6,6),y:y+frand(-6,6),vx:frand(-20,20),vy:frand(-30,-5),life:frand(.4,.7),size:frand(6,9),col:[40,30,70],type:'smoke'}); return; }
+  if(k==='mend'&&hit){ for(let i=0;i<4;i++) part({x:x+frand(-8,8),y,vx:frand(-10,10),vy:frand(-50,-20),life:frand(.5,.8),size:2.6,col:[120,255,170],type:'cross'}); return; }
+  if(k==='recharge'&&hit){ addFx({type:'px',life:.35,draw:(c,f,q)=>{ isoE(c,x,y,4+q*16,1); c.strokeStyle=C(col,1,1-q); c.lineWidth=1.4; c.stroke(); }}); return; }
+  if(k==='leech'&&hit){ for(let i=0;i<6;i++) part({x,y,vx:frand(-50,50),vy:frand(-70,0),life:frand(.3,.5),size:1.8,col:[255,70,100],type:'spark',grav:260}); return; }
+  if(k==='overpen'&&hit){ addFx({type:'shock',x,y,r:20,col,life:.3}); return; }
+  if(k==='mark'&&hit){ addFx({type:'flash',x,y,r:16,col,life:.18}); return; }
+  if(k==='ward'&&hit){ addFx({type:'px',life:.35,draw:(c,f,q)=>{ pxHex(c,x,y,6+q*10,q*2); c.strokeStyle=C(col,1,1-q); c.lineWidth=1.3; c.stroke(); }}); return; }
+}
+// event visuals of the sim effects (p: screen point, p2: a second point: the shooter, the next target...)
+function pxFx(kind,p,col,p2){ const x=p[0], y=p[1];
+  if(kind==='ricochet'){ const b=[x+(p2[0]>x?-1:1)*frand(20,34),y-frand(18,30)]; addFx({type:'px',life:.4,draw:(c,f,q)=>{ const h=Math.min(1,f.t/.12), mx=lerp(b[0],x,h), my=lerp(b[1],y,h); c.strokeStyle=C([255,250,220],1,1-q); c.lineWidth=1.4; c.beginPath(); c.moveTo(b[0],b[1]); c.lineTo(mx,my); c.stroke(); pxStar(c,b[0],b[1],7*(1-q),col,1-q,f.t*20); sdot(c,col,mx,my,8,1-q); }}); return; }
+  if(kind==='leech'){ addFx({type:'px',life:.7,draw:(c,f,q)=>{ for(let i=0;i<9;i++){ const s=clamp(q*1.6-i*.07,0,1); if(s<=0||s>=1) continue; const w=Math.sin(s*Math.PI)*(14+i%3*5)*(i%2?1:-1), xx=lerp(x,p2[0],s), yy=lerp(y,p2[1],s)-Math.sin(s*Math.PI)*16+w*.3; sdot(c,i%2?col:[255,170,180],xx+w*.2,yy,3.4,1-s*.4); } }}); return; }
+  if(kind==='overpen'){ addFx({type:'beam',a:p,b:p2,col,life:.35}); addFx({type:'shock',x:p2[0],y:p2[1],r:22,col,life:.3}); return; }
+  if(kind==='mark'){ addFx({type:'px',life:1.1,draw:(c,f,q)=>{ const a=q<.15?q/.15:1-Math.max(0,q-.6)/.4, r=(16-8*ease(Math.min(1,q*3))); c.strokeStyle=C(col,1,a); c.lineWidth=1.4; c.beginPath(); for(let i=0;i<4;i++){ const an=i*Math.PI/2+f.t*2+Math.PI/4; c.lineTo(x+Math.cos(an)*r,y+Math.sin(an)*r); } c.closePath(); c.stroke();
+    c.beginPath(); for(let i=0;i<4;i++){ const an=i*Math.PI/2; c.moveTo(x+Math.cos(an)*(r+3),y+Math.sin(an)*(r+3)); c.lineTo(x+Math.cos(an)*(r+8),y+Math.sin(an)*(r+8)); } c.stroke(); sdot(c,col,x,y,6,a*.6); }}); return; }
+  if(kind==='quake'){ addFx({type:'shock',x,y:y+4,r:46,col,life:.45,flat:1}); addFx({type:'flash',x,y:y-8,r:40,col:[255,200,140],life:.2}); return; }
+  if(kind==='scorch'){ addFx({type:'fire',x,y:y+8,r:18,col,life:.6}); for(let i=0;i<10;i++) part({x:x+frand(-8,8),y:y+frand(-6,10),vx:frand(-30,30),vy:frand(-90,-30),life:frand(.4,.8),size:2,col:Math.random()<.5?[255,220,120]:col,type:'ember',grav:-20}); return; }
+  if(kind==='chain'){ addFx({type:'bolt',a:p,b:p2,col,life:.32}); addFx({type:'bolt',a:p,b:p2,col:[220,250,255],life:.22,thin:1}); addFx({type:'arcs',x:p2[0],y:p2[1],r:20,col,life:.3}); SFX.tone(1800,600,.12,.05,'sawtooth'); return; }
+  if(kind==='foam'){ addFx({type:'px',life:.5,draw:(c,f,q)=>{ const h=Math.min(1,q*2.4), xx=lerp(p2[0],x,h), yy=lerp(p2[1],y,h)-Math.sin(h*Math.PI)*18; if(h<1) sdot(c,col,xx,yy,6,1); else for(let i=0;i<7;i++){ const an=i/7*Math.PI*2, e=ease((q-.42)/.58); sdot(c,i%2?col:[255,245,220],x+Math.cos(an)*14*e,y+Math.sin(an)*7*e,5*(1-e)+2,1-e); } }}); return; }
+  if(kind==='shatter'){ addFx({type:'px',life:.5,draw:(c,f,q)=>{ for(let i=0;i<6;i++){ const an=i/6*Math.PI*2+.3, d=ease(q)*22; pxHex(c,x+Math.cos(an)*d,y+Math.sin(an)*d*.8,4*(1-q)+1,q*6+i); c.strokeStyle=C(col,1,1-q); c.lineWidth=1.2; c.stroke(); } pxHex(c,x,y,14,0); c.strokeStyle=C([230,245,255],1,(1-q)*.6); c.stroke(); }}); return; }
+  if(kind==='mend'){ addFx({type:'px',life:.9,draw:(c,f,q)=>{ for(let i=0;i<3;i++){ const s=clamp(q*1.4-i*.15,0,1); if(s<=0||s>=1) continue; pxPlus(c,x+(i-1)*9,y+10-s*34,3.2,i===1?[230,255,240]:col,1-s); } isoE(c,x,y+20,10+q*14); c.strokeStyle=C(col,1,.7*(1-q)); c.lineWidth=1.3; c.stroke(); }}); return; }
+  if(kind==='ward'){ addFx({type:'px',life:.45,draw:(c,f,q)=>{ const h=Math.min(1,q*2.2), xx=lerp(p2[0],x,h), yy=lerp(p2[1],y,h); if(h<1){ pxHex(c,xx,yy,4,f.t*10); c.strokeStyle=C(col,1,1); c.lineWidth=1.3; c.stroke(); sdot(c,col,xx,yy,7,.7); } }}); return; }
+  if(kind==='trace'){ addFx({type:'px',life:1.2,draw:(c,f,q)=>{ const a=1-q; c.strokeStyle=C(col,1,a); c.lineWidth=1.2; c.beginPath(); c.arc(x,y,12,0,Math.PI*2); c.stroke(); c.beginPath(); c.moveTo(x,y); c.lineTo(x+Math.cos(f.t*8)*12,y+Math.sin(f.t*8)*12); c.stroke(); for(let i=0;i<2;i++){ const s=(q*2+i*.5)%1; c.strokeStyle=C(col,1,a*(1-s)); c.beginPath(); c.arc(x,y,12+s*24,0,Math.PI*2); c.stroke(); } }}); return; }
+  if(kind==='charge'){ addFx({type:'px',life:.6,draw:(c,f,q)=>{ for(let i=0;i<3;i++){ const s=clamp(q*1.5-i*.2,0,1); if(s<=0||s>=1) continue; isoE(c,x,y+18-s*30,12*(1-s)+4,.45); c.strokeStyle=C(col,1,1-s); c.lineWidth=1.4; c.stroke(); } }}); return; }
+}
+/* ================= class prestige: weapon effects (end) ================= */
 /* ================= profile ================= */
 let PROF=loadProf(); syncCos(true); passSync();
 function loadProf(){
@@ -10222,7 +10551,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=36, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=37, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
@@ -10274,6 +10603,7 @@ function cleanDrone(D,lv){ D=D&&typeof D==='object'?D:{}; const m=DMODELS[D.m]&&
   r.lo.att=cleanAtt(lo.att,lv,[r.lo.weapon,r.lo.sec]); r.pr=pr;
   r.lo.drone=cleanDrone(lo.drone,lv); r.drone=cosHas('drone',sp.drone)?sp.drone:'default'; r.ride=cosHas('ride',sp.ride)?sp.ride:'default'; // drop ship: known ids only
   r.title=hasK(TITLES,sp.title)?sp.title:''; r.banner=bnKey(typeof sp.banner==='string'?sp.banner:''); // known ids only
+  prcClean(r,pr); // class prestige cosmetics and banners: only those its cleaned ranks allow
   return r; }
 
 /* per-unit command queues: a remote unit's turn waits on its queue */
@@ -11012,7 +11342,7 @@ let stFilter='all', stSort='rarity';
 const RAR_ORDER=['standard','common','rare','epic','legendary','mythic'], RAR_NAME={standard:'Standard',common:'Common',rare:'Rare',epic:'Epic',legendary:'Legendary',mythic:'Mythic'}, RAR_KEY={c:'common',r:'rare',e:'epic',l:'legendary',m:'mythic'};
 function rarityOf(it){ const T=COS[it.cat]&&COS[it.cat][it.key]; if(T&&RAR_KEY[T.r]) return RAR_KEY[T.r]; const r=T&&String(T.rarity||T.rar||'').toLowerCase(); if(RAR_NAME[r]) return r;
   const p=it.old||it.price; if(!p) return 'standard'; if(it.cur==='sh') return p>=200?'legendary':'epic'; return p>=500?'epic':p>=300?'rare':'common'; }
-function stOwned(it){ return PROF.cos.includes(it.id)||it.price===0&&!it.old; }
+function stOwned(it){ return PROF.cos.includes(it.id)||it.price===0&&!it.old&&!prcOf(it.cat,it.key); } // class prestige cosmetics: earned by rank only
 function renderStore(){
   $('#stCr').textContent=PROF.credits; $('#stSh').textContent=PROF.shards;
   $('#stTabs').innerHTML=ST_TABS.map(t=>'<button role="tab" aria-selected="'+(t===stTab)+'" class="tab'+(t===stTab?' sel':'')+'" data-tab="'+t+'">'+t+'</button>').join('');
@@ -11038,6 +11368,7 @@ function renderStore(){
   $('#stGrid').className='shopgrid';
   $('#stGrid').innerHTML=list.length?list.map(it=>{ const owned=stOwned(it), eq=PROF.equip[it.cat]===it.key, r=rarityOf(it); let btn;
     if(eq) btn='<span class="own">Equipped</span>'; else if(owned) btn='<button class="buy eq" data-eq="'+it.id+'">Equip</button>';
+    else if(prcOf(it.cat,it.key)) btn='<span class="prlk">Prestige '+ROMAN[prcOf(it.cat,it.key).rk]+'</span>';
     else { const have=it.cur==='sh'?PROF.shards:PROF.credits; btn='<button class="buy'+(it.cur==='sh'?' shb':'')+(have<it.price?' no':'')+'" data-buy="'+it.id+'" data-price="'+it.price+'" data-cur="'+it.cur+'" aria-label="Buy '+esc(it.name)+' for '+it.price+(it.cur==='sh'?' shards':' credits')+'"><span class="cur '+(it.cur==='sh'?'s':'c')+'"></span>'+it.price+(it.old?'<s>'+it.old+'</s>':'')+'</button>'; }
     return '<div class="item r-'+r+(owned?' own':'')+(eq?' eqd':'')+'"><div class="ipv"><canvas data-pv="'+it.id+'" width="320" height="192"></canvas><span class="rar">'+RAR_NAME[r]+'</span>'+(it.old?'<span class="deal">−25%</span>':'')+'</div><div class="ib"><span class="tag">'+COS_LABEL[it.cat]+'</span><div class="t">'+esc(it.name)+'</div>'+(it.cat==='kill'||it.cat==='ride'?'<div class="kd">'+esc(COS[it.cat][it.key].d)+'</div>':'')+(!owned&&cosHow(it.cat,it.key)?'<div class="how">'+esc(cosHow(it.cat,it.key))+'</div>':'')+'<div class="p">'+btn+'</div></div></div>'; }).join('')
     :'<p class="empty">'+(stFilter==='owned'?'Nothing owned in this category yet.':'You own everything here.')+'</p>';
@@ -11169,8 +11500,10 @@ $('#pSet').addEventListener('click',e=>onSetClick(e,renderProfile));
 $('#pp-prestige').addEventListener('click',e=>{
   const t=e.target.closest('[data-prscls]'); if(t){ prsCls=t.dataset.prscls; prsArm=null; SFX.click(); buzz(6); renderPrestige(); return; }
   const g=e.target.closest('[data-prsgo]'); if(g){ const k=g.dataset.prsgo; SFX.click(); if(prsArm!==k){ prsArm=k; renderPrestige(); return; } prsArm=null; const R=prsDo(k); if(R){ SFX.heal(); buzz([20,30,40]);
-      toast(CLASSES[k].name+' Prestige '+ROMAN[R.rk],'+'+R.tok+' tokens'+(R.wk.length?' · '+R.wk.map(w=>WEAPONS[w].name).join(', ')+' unlocked':'')+(R.tt?' · new title':''),'lvl'); } renderProfile(); return; }
+      toast(CLASSES[k].name+' Prestige '+ROMAN[R.rk],'+'+R.tok+' tokens'+(R.wk.length?' · '+R.wk.map(w=>WEAPONS[w].name).join(', ')+' unlocked':'')+(R.tt?' · new title':'')+prcList(k).filter(e=>e.rk===R.rk).map(e=>' · '+prcName(e)).join(''),'lvl'); } renderProfile(); return; }
   const q=e.target.closest('[data-prseq]'); if(q){ const k=q.dataset.prseq; if(!prsHas(k)) return; LO.cls=PRW[k].cls; LO.weapon=k; LO=sanitize(LO); saveLO(); SFX.click(); buzz(6); toast(WEAPONS[k].name+' equipped',CLASSES[LO.cls].name+' loadout'); renderProfile(); return; }
+  const pc=e.target.closest('[data-prceq]'); if(pc){ const [cat,key]=pc.dataset.prceq.split(':'); if(cat==='banner'){ if(bannerOwned(key)) PROF.id.banner=key; } else if(PROF.cos.includes(cat+':'+key)||prcHas(cat,key)){ if(!PROF.cos.includes(cat+':'+key)) PROF.cos.push(cat+':'+key); PROF.equip[cat]=key; } else return;
+    saveProf(); SFX.click(); buzz(6); toast((cat==='banner'?BANNERS[key].name:COS[cat][key].name)+' equipped',cat==='banner'?'Name plate banner':COS_LABEL[cat]); renderProfile(); return; }
   const x=e.target.closest('[data-prsx]'); if(x&&(PROF.ptok|0)>0){ PROF.ptok--; if(x.dataset.prsx==='sh') PROF.shards+=PRS_X.sh; else PROF.credits+=PRS_X.cr; saveProf(); SFX.click(); buzz(6); renderPrestige(); } });
 $('#loadout').addEventListener('click',e=>{ const b=e.target.closest('[data-prlock]'); if(!b) return; const P=PRW[b.dataset.prlock]; SFX.click(); hintMeta('Prestige '+ROMAN[P.rk]+' '+CLASSES[P.cls].name+' to unlock this: max the class level, then prestige it in Profile → Prestige.'); });
 
@@ -11554,6 +11887,7 @@ function simHash(){ let h=0x811c9dc5; const add=v=>{ v=v|0; h=Math.imul(h^(v&255
   if(G.sq) sqHash(add); // AI squad plans (only once an AI squad has made one: other hashes unchanged)
   if(G.M.inf||G.M.night||mutBits()) modeHash(add); // Infection / Blackout / mutator state (only when active: other hashes unchanged)
   hzHash(add); // hazards and status effects (only when present: other hashes unchanged)
+  pxHash(add); // class prestige weapon effects (only when present: other hashes unchanged)
   return h>>>0; }
 function roundHash(){ const h=simHash(); G.hlog.push(h); if(NET.host&&!G.watch) NET.round=G.round; if(REC&&REC.mid===G.matchId) REC.h.push(h); if(G.watch&&G.watch.kind==='replay') replayCheck(h); }
 function recInfo(){ const r=G.result||{}, me=G.player; return {mode:G.M.key,region:G.region,place:r.place||0,of:r.of||nTeams(),win:!!r.win,winner:r.winner||null,
@@ -12890,6 +13224,7 @@ Object.assign(GUNLEN,{wsmg:13});
 { const S=WPN.smg, D=WPN.wsmg={hold:'rifle',fg:S.fg,tip:[14.6,S.tip[1]],parts:S.parts.concat([['R',10,-1.8,4.4,2.8,'k'],['r',10.6,-1.1,3.2,.5,'m']])}; let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; const ext=(x,y)=>{ x0=Math.min(x0,x); y0=Math.min(y0,y); x1=Math.max(x1,x); y1=Math.max(y1,y); };
   for(const p of D.parts){ if(p[0]==='r'||p[0]==='R'){ ext(p[1],p[2]); ext(p[1]+p[3],p[2]+p[4]); } else if(p[0]==='c'){ ext(p[1]-p[3],p[2]-p[3]); ext(p[1]+p[3],p[2]+p[3]); } else { const o=p[0]==='l'?3:2; for(let i=o;i<p.length;i+=2) ext(p[i],p[i+1]); } }
   D.box=[x0-1.2,y0-1.2,x1-x0+2.4,y1-y0+2.4]; D.len=x1; }
+prsVis(); // the Ghostline SMG (class prestige) is drawn on the Hush SMG, defined just above
 // icons: class abilities, kit perk actives, turn-order / HUD class marks
 Object.assign(ICON,{
   turret:'<svg viewBox="0 0 24 24"><path d="M7 9h9v5H7zM16 11h6M11 14v3M7 21l4-4 4 4M11 17v4"/><circle cx="9.5" cy="11.5" r="1"/></svg>',
