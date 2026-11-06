@@ -3366,13 +3366,24 @@ try{ new ResizeObserver(()=>resize()).observe(cv); }catch(e){}
 let GOX=MH*TW/2+PAD; const GOY=PAD; // ground canvas origin (moves with the map size)
 function poly(c,pts){ c.beginPath(); c.moveTo(pts[0][0],pts[0][1]); for(let i=1;i<pts.length;i++) c.lineTo(pts[i][0],pts[i][1]); c.closePath(); }
 function tilePath(c,x,y,ins){ ins=ins||0; const z=G.zDraw?ez(x,y):0; const a=iso(x+ins,y+ins),b=iso(x+1-ins,y+ins),d=iso(x+1-ins,y+1-ins),e=iso(x+ins,y+1-ins); c.moveTo(a[0],a[1]-z); c.lineTo(b[0],b[1]-z); c.lineTo(d[0],d[1]-z); c.lineTo(e[0],e[1]-z); c.closePath(); }
+/* A fill-only tile region (fog, storm, lava, hazards, move range, clips): each row's run of tiles at one height is one
+   parallelogram, the exact area of its diamonds, and no closePath (a fill closes every subpath). Chrome's Path2D closePath
+   costs the length of the path so far, so the per-tile fog and storm paths took 75-120 ms to rebuild at 4x CPU throttle,
+   on every fog change and every frame of a storm shrink (the in-match stutter); ~20x fewer edges also halve the per-frame
+   fill. Pixels match the per-tile path except the faint antialiasing seams it left between tiles in a row. Returns the runs. */
+function tileRuns(p,test){ const zd=G.zDraw; let n=0;
+  for(let y=0;y<MH;y++){ let x0=-1, z0=0;
+    for(let x=0;x<=MW;x++){ const on=x<MW&&!!test(x,y), z=on&&zd?ez(x,y):0;
+      if(x0>=0&&(!on||z!==z0)){ const a=iso(x0,y),b=iso(x,y),d=iso(x,y+1),e=iso(x0,y+1); p.moveTo(a[0],a[1]-z0); p.lineTo(b[0],b[1]-z0); p.lineTo(d[0],d[1]-z0); p.lineTo(e[0],e[1]-z0); n++; x0=-1; }
+      if(on&&x0<0){ x0=x; z0=z; } } }
+  return n; }
 function isBuildingish(x,y){ const c=cell(x,y); return c&&(c.kind==='building'); }
 
 /* ================= rendering: caches (visual only, never read by gameplay) =================
    Static objects and raised platforms are rasterised once into small sprites (per object, fog shade
    and zoom bucket) and blitted each frame; an LRU pixel budget bounds memory. buildGround() clears it,
    which covers every change to the grid (grenades) and every new map. */
-const RC={gen:0,made:0,last:new Map(),any:new Map(),anyM:-1,spr:new Map(),ids:new WeakMap(),nid:0,px:0,budget:12e6,baking:false,soft:new Map(),
+const RC={gen:0,made:0,fr:0,pool:[],dead:null,ghb:null,ghT:0,last:new Map(),any:new Map(),anyM:-1,spr:new Map(),ids:new WeakMap(),nid:0,px:0,budget:12e6,baking:false,soft:new Map(),
   fade:new Float32Array(MW*MH).fill(1),fadeT:0,fogKey:'',fogA:null,fogB:null,stormKey:'',stormP:null,plats:null,ov:null,ovKey:'',icons:{},reachM:new Uint8Array(MW*MH),focusM:new Uint8Array(MW*MH)};
 /* Per-match map size (see MAP0). Reallocates everything sized by the map; the caller then builds the map (genMap) and
    the ground. Same size: nothing to do (the arrays are refilled by the usual setup). Never touches the seeded RNG. */
@@ -3382,7 +3393,7 @@ function cvFree(c){ try{ if(c&&c.width){ c.width=0; c.height=0; } }catch(e){} re
 function setMapSize(w,h){ h=h||w; if(w===MW&&h===MH) return false;
   MW=w; MH=h; CX=(MW-1)/2; GOX=MH*TW/2+PAD; const N=MW*MH;
   G.vis=new Uint8Array(N); G.seen=new Uint8Array(N); G.elev=new Uint8Array(N); G.floorT=new Uint8Array(N); G.surf=new Uint8Array(N); G.lvl=new Uint8Array(N); G.lad=new Uint8Array(N);
-  losReset(); G.reach=null; G.ground=cvFree(G.ground); G.groundHalf=cvFree(G.groundHalf); G.groundKey=''; G.bg=cvFree(G.bg);
+  losReset(); G.reach=null; G.ground=cvFree(G.ground); ghFree(); G.groundKey=''; G.bg=cvFree(G.bg);
   RC.fade=new Float32Array(N).fill(1); RC.reachM=new Uint8Array(N); RC.focusM=new Uint8Array(N); RC.plats=null; RC.fogKey=''; RC.fogA=RC.fogB=null; RC.stormKey=''; RC.stormP=null; RC.ov=null; RC.ovKey='';
   return true; }
 // the map size a mode plays on (classic modes MAP0; the squad modes carry their own)
@@ -3391,23 +3402,31 @@ function modeSize(mk){ const M=MODES[mk]; return M&&M.map?M.map:MAP0; }
 function sprClear(){ RC.gen++; const old=new Set([...RC.any.values(),...RC.spr.values()]);
   if(RC.anyM!==G.matchId){ for(const e of RC.last.values()) old.add(e); RC.any=new Map(); RC.last.clear(); RC.anyM=G.matchId; } else { RC.any=new Map(); for(const [k,e] of RC.spr) RC.any.set(k.slice(0,k.indexOf('@')),e); }
   // free the dropped sprites' pixels now (stand-ins kept in RC.any stay; RC.last skips a freed one: it checks cv.width)
-  for(const e of RC.any.values()) old.delete(e); for(const e of old) cvFree(e.cv);
+  for(const e of RC.any.values()) old.delete(e); for(const e of old) sprDrop(e);
   RC.spr.clear(); RC.px=0; RC.plats=null; }
 function sprScale(){ const s=DPR*G.cam.z; return Math.min(3.2,Math.max(0.5,Math.pow(2,Math.ceil(Math.log2(Math.max(0.3,s))*2-0.2)/2))); }
 function sprite(key,x0,y0,w,h,draw){
   const sc=sprScale(), k=key+'@'+sc; let e=RC.spr.get(k);
-  if(e){ RC.spr.delete(k); RC.spr.set(k,e); return e; }
+  // LRU order: move a hit to the back at most every 8 frames (not on every hit of every frame: each move leaves a hole at
+  // the front of the Map that the eviction scan below then walks over; a sprite in use is never older than 8 frames)
+  if(e){ if(RC.fr-e.tf>7){ RC.spr.delete(k); RC.spr.set(k,e); e.tf=RC.fr; } return e; }
   // at most a few new rasterisations per frame; meanwhile reuse this object's sprite from another zoom bucket
   if(RC.made>=8){ let f=RC.last.get(key); if(!f||!f.cv.width) f=RC.any.get(key); if(f&&f.cv.width) return f; }
   RC.made++;
   const cw=Math.max(1,Math.ceil(w*sc)), ch=Math.max(1,Math.ceil(h*sc));
-  const cvs=document.createElement('canvas'); cvs.width=cw; cvs.height=ch; const g=cvs.getContext('2d');
+  // a pooled canvas (a dropped sprite's element and context, pixels already freed): resizing it resets its context state
+  const cvs=RC.pool.pop()||document.createElement('canvas'); cvs.width=cw; cvs.height=ch; const g=cvs.getContext('2d');
   g.setTransform(sc,0,0,sc,-x0*sc,-y0*sc); const zd=G.zDraw; G.zDraw=false; RC.baking=true;
   try{ draw(g); } finally { RC.baking=false; G.zDraw=zd; }
-  e={cv:cvs,x:x0,y:y0,w:cw/sc,h:ch/sc}; RC.spr.set(k,e); RC.last.set(key,e); RC.px+=cw*ch;
-  while(RC.px>RC.budget&&RC.spr.size>1){ const f=RC.spr.keys().next().value, v=RC.spr.get(f); RC.px-=v.cv.width*v.cv.height; v.cv.width=v.cv.height=0; RC.spr.delete(f); }
+  e={cv:cvs,x:x0,y:y0,w:cw/sc,h:ch/sc,tf:RC.fr}; RC.spr.set(k,e); RC.last.set(key,e); RC.px+=cw*ch;
+  if(RC.any.size){ const a=RC.any.get(key); if(a){ RC.any.delete(key); sprDrop(a); } } // its stand-in from before the last sprClear is no longer needed
+  if(RC.px>RC.budget){ const it=RC.spr.entries(); while(RC.px>RC.budget&&RC.spr.size>1){ const [f,v]=it.next().value; RC.px-=v.cv.width*v.cv.height; RC.spr.delete(f); sprDrop(v); } }
   return e;
 }
+// free a sprite's pixels now and keep its canvas for reuse; the entry gets a 0x0 canvas, so a stale reference to it
+// (RC.last / RC.any stand-ins check cv.width) reads as gone and never shows another sprite's pixels
+function sprDrop(e){ const c=e&&e.cv; if(!c||c===RC.dead) return; if(!RC.dead){ RC.dead=document.createElement('canvas'); RC.dead.width=RC.dead.height=0; }
+  e.cv=RC.dead; c.width=c.height=0; if(RC.pool.length<64) RC.pool.push(c); }
 function objId(o){ let id=RC.ids.get(o); if(!id){ id=++RC.nid; RC.ids.set(o,id); } return id; }
 // tight world-space bounds of an object's drawing (less transparent padding = cheaper blits)
 // newer kinds: [extra height above the usual top, side margin, extra bottom] for parts that overhang their tile
@@ -3438,13 +3457,14 @@ function buildGround(rect){
   const R=G.R, w=(MW+MH)*TW/2+PAD*2, h=(MW+MH)*TH/2+PAD*2+SLAB;
   if(rect&&G.ground&&G.groundKey===G.matchId+':'+G.region){
     const x0=Math.max(0,rect.x0),y0=Math.max(0,rect.y0),x1=Math.min(MW-1,rect.x1),y1=Math.min(MH-1,rect.y1), sc=G.gScale, g=G.ground.getContext('2d');
-    g.save(); g.setTransform(sc,0,0,sc,GOX*sc,GOY*sc); g.beginPath(); for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) tilePath(g,x,y); g.clip();
+    g.save(); g.setTransform(sc,0,0,sc,GOX*sc,GOY*sc); g.beginPath(); tileRuns(g,(x,y)=>x>=x0&&x<=x1&&y>=y0&&y<=y1); g.clip();
     groundLayers(g,R,x0,y0,x1,y1,4); g.restore();
     if(G.groundHalf){ const a=iso(x0,y1+1)[0], b=iso(x1+1,y0)[0], c0=iso(x0,y0)[1], c1=iso(x1+1,y1+1)[1];
       const sx=Math.max(0,Math.floor((a+GOX)*sc/2)*2), sy=Math.max(0,Math.floor((c0+GOY)*sc/2)*2), sw=Math.min(G.ground.width-sx,Math.ceil((b-a)*sc)+4), sh=Math.min(G.ground.height-sy,Math.ceil((c1-c0)*sc)+4);
       if(sw>0&&sh>0) G.groundHalf.getContext('2d').drawImage(G.ground,sx,sy,sw,sh,sx/2,sy/2,sw/2,sh/2); }
+    if(RC.ghb) RC.ghb.y=0; // a half copy being made: start it over from the changed ground
     return; }
-  G.ground=cvFree(G.ground); G.groundHalf=cvFree(G.groundHalf);
+  G.ground=cvFree(G.ground); ghFree();
   let sc=Math.min(2,Math.max(1,DPR)); if(w*h*sc*sc>perfGroundPx()) sc=Math.sqrt(perfGroundPx()/(w*h)); G.gScale=sc;
   const cvs=document.createElement('canvas'); cvs.width=w*sc|0; cvs.height=h*sc|0; const g=cvs.getContext('2d');
   g.scale(sc,sc); g.translate(GOX,GOY);
@@ -3461,11 +3481,16 @@ function buildGround(rect){
   { const T0=iso(0,0); g.strokeStyle='rgba(255,255,255,.16)'; g.lineWidth=1.5; g.beginPath(); g.moveTo(T0[0],T0[1]); g.lineTo(A[0],A[1]); g.lineTo(B[0],B[1]); g.lineTo(Cc[0],Cc[1]); g.stroke(); }
   groundLayers(g,R,0,0,MW-1,MH-1,0);
   G.ground=cvs; G.groundKey=G.matchId+':'+G.region;
-  // half-resolution copy for zoomed-out views (cuts the per-frame ground blit cost ~4x when minified)
-  G.groundHalf=null;
-  if(sc>=1.5){ const hc=document.createElement('canvas'); hc.width=Math.ceil(cvs.width/2); hc.height=Math.ceil(cvs.height/2); const hg=hc.getContext('2d'); hg.imageSmoothingQuality='high'; hg.drawImage(cvs,0,0,hc.width,hc.height); G.groundHalf=hc; }
   sprClear();
 }
+/* Half-resolution copy of the ground for zoomed-out views (cuts the per-frame ground blit ~4x when minified). Made only when
+   a view first needs it, 256 rows per frame (the full ground is drawn meanwhile, for those few frames), and freed after 20 s
+   unused: most matches never zoom out that far, and it is ~11 MB at High. Returns it once complete, else null. */
+function ghNeed(){ RC.ghT=performance.now(); if(G.groundHalf) return G.groundHalf;
+  const F=G.ground; let b=RC.ghb; if(!b){ const hc=document.createElement('canvas'); hc.width=Math.ceil(F.width/2); hc.height=Math.ceil(F.height/2); const hg=hc.getContext('2d'); hg.imageSmoothingQuality='high'; b=RC.ghb={cv:hc,g:hg,y:0}; }
+  const n=Math.min(256,F.height-b.y), k=b.cv.height/F.height; if(n>0) b.g.drawImage(F,0,b.y,F.width,n,0,b.y*k,b.cv.width,n*k); b.y+=256; // the one-shot scale, strip by strip
+  if(b.y<F.height) return null; RC.ghb=null; return G.groundHalf=b.cv; }
+function ghFree(){ G.groundHalf=cvFree(G.groundHalf); if(RC.ghb){ cvFree(RC.ghb.cv); RC.ghb=null; } }
 // tiles x0..x1 / y0..y1, plus occlusion and shadows cast by objects up to m tiles outside them, and decals
 function groundLayers(g,R,X0,Y0,X1,Y1,m){
   const x0=Math.max(0,X0-m),y0=Math.max(0,Y0-m),x1=Math.min(MW-1,X1+m),y1=Math.min(MH-1,Y1+m);
@@ -6072,8 +6097,8 @@ function updateFade(focus){
 }
 // lava: painted into the ground cache; one additive pulse over all lava tiles per frame (a cached path, no gradients)
 function lavaGlow(c,t){
-  if(RC.lavaG!==G.grid){ RC.lavaG=G.grid; const p=new Path2D(); let n=0; const zd=G.zDraw; G.zDraw=false;
-    for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const o=G.grid[idx(x,y)]; if(o&&o.kind==='lava'){ tilePath(p,x,y); n++; } } G.zDraw=zd; RC.lavaP=n?p:null; }
+  if(RC.lavaG!==G.grid){ RC.lavaG=G.grid; const p=new Path2D(); const zd=G.zDraw; G.zDraw=false;
+    const n=tileRuns(p,(x,y)=>{ const o=G.grid[idx(x,y)]; return o&&o.kind==='lava'; }); G.zDraw=zd; RC.lavaP=n?p:null; }
   if(!RC.lavaP) return; c.globalCompositeOperation='lighter'; c.fillStyle='rgba(255,100,28,'+(0.08+0.06*Math.sin(t*1.7))+')'; c.fill(RC.lavaP); c.globalCompositeOperation='source-over'; }
 // wading: two thin rings around an operative standing in shallow water
 function wadeRings(c,q,t){ c.lineWidth=1.2; for(let k=0;k<2;k++){ const f=(t*0.6+k*0.5)%1; c.strokeStyle='rgba(210,236,232,'+(0.5*(1-f))+')'; c.beginPath(); c.ellipse(q[0],q[1]+1,9+f*12,(9+f*12)*0.45,0,0,Math.PI*2); c.stroke(); } }
@@ -6082,19 +6107,19 @@ function drawWorld(c){
   // smooth pseudo-noise shake (no per-frame jitter pops)
   const sx=sk*0.5*(Math.sin(t*91.7)*0.6+Math.sin(t*57.3+1.3)*0.4), sy=sk*0.5*(Math.sin(t*83.1+0.7)*0.6+Math.sin(t*49.9+2.1)*0.4);
   c.save(); c.translate(VW/2,VH/2); c.scale(cam.z,cam.z); c.translate(-cam.x+sx,-cam.y+sy);
-  RC.made=0; if(RC.last.size>6000) RC.last.clear();
+  RC.made=0; RC.fr++; if(RC.last.size>6000) RC.last.clear();
   const hw=VW/2/cam.z+48, hh=VH/2/cam.z+48, vx0=cam.x-hw, vx1=cam.x+hw, vy0=cam.y-hh, vy1=cam.y+hh+60;
   const onScreen=(x,y,w,h)=>x<vx1&&x+w>vx0&&y<vy1&&y+h>vy0;
-  if(G.ground){ const src=(G.groundHalf&&DPR*cam.z<G.gScale*0.6)?G.groundHalf:G.ground; c.drawImage(src,-GOX,-GOY,G.ground.width/G.gScale,G.ground.height/G.gScale); }
+  if(G.ground){ const src=(G.gScale>=1.5&&DPR*cam.z<G.gScale*0.6&&ghNeed())||G.ground; c.drawImage(src,-GOX,-GOY,G.ground.width/G.gScale,G.ground.height/G.gScale);
+    if((G.groundHalf||RC.ghb)&&performance.now()-RC.ghT>20000) ghFree(); }
   if(G.region==='lavalab') lavaGlow(c,t); else if(G.region==='caldera') ventGlow(c,t);
   G.zDraw=true;
   if(!RC.plats){ RC.plats=[]; for(let y=0;y<MH;y++) for(let x=0;x<MW;x++) if(G.elev[idx(x,y)]) RC.plats.push([x,y]); RC.plats.sort((a,b)=>(a[0]+a[1])-(b[0]+b[1])); }
   const st=G.storm;
-  if(st){ const key=st.cx+','+st.cy+','+st.r+','+RC.gen; if(key!==RC.stormKey){ RC.stormKey=key; const p=new Path2D(); let n=0;
-      for(let y=0;y<MH;y++) for(let x=0;x<MW;x++) if(Math.hypot(x+.5-st.cx,y+.5-st.cy)>st.r){ tilePath(p,x,y); n++; } RC.stormP=n?p:null; }
+  if(st){ const key=st.cx+','+st.cy+','+st.r+','+RC.gen; if(key!==RC.stormKey){ RC.stormKey=key; const p=new Path2D(), n=tileRuns(p,(x,y)=>Math.hypot(x+.5-st.cx,y+.5-st.cy)>st.r); RC.stormP=n?p:null; }
     if(RC.stormP){ c.fillStyle=C(R.storm,1,.22+0.06*Math.sin(t*2)); c.fill(RC.stormP); } }
   if(G.scene==='game'&&!G.fullVis){ let h=RC.gen; for(let i=0;i<MW*MH;i++) h=(Math.imul(h,31)+(G.vis[i]?2:0)+(G.seen[i]?1:0))|0;
-    if(h!==RC.fogKey){ RC.fogKey=h; const a=new Path2D(), b=new Path2D(); for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const i=idx(x,y); if(!G.vis[i]) tilePath(G.seen[i]?a:b,x,y); } RC.fogA=a; RC.fogB=b; }
+    if(h!==RC.fogKey){ RC.fogKey=h; const a=new Path2D(), b=new Path2D(); tileRuns(a,(x,y)=>{ const i=idx(x,y); return !G.vis[i]&&G.seen[i]; }); tileRuns(b,(x,y)=>{ const i=idx(x,y); return !G.vis[i]&&!G.seen[i]; }); RC.fogA=a; RC.fogB=b; }
     c.fillStyle=G.M.night?'rgba(2,5,16,.86)':'rgba(4,6,14,.42)'; c.fill(RC.fogA); c.fillStyle=G.M.night?'rgba(1,3,10,.93)':'rgba(4,6,14,.58)'; c.fill(RC.fogB); }
   if(G.M.night&&G.scene==='game') boDraw(c); // Blackout: night tint, light pools (cached paths and two glow sprites)
   if(G.scene==='game') drawPrints(c);
@@ -6173,7 +6198,7 @@ function roofHL(c,x,y,i){
 function edge(c,x,y,dir){ const z=G.zDraw?ez(x,y):0; let a,b; if(dir===0){a=iso(x+1,y);b=iso(x+1,y+1);} else if(dir===1){a=iso(x,y);b=iso(x,y+1);} else if(dir===2){a=iso(x,y+1);b=iso(x+1,y+1);} else {a=iso(x,y);b=iso(x+1,y);} c.moveTo(a[0],a[1]-z); c.lineTo(b[0],b[1]-z); }
 function regionDraw(c,inSet,fill,stroke,key){
   let e=key&&RC.rd&&RC.rd.get(key);
-  if(!e){ const f=new Path2D(), b=new Path2D(); for(let i=0;i<MW*MH;i++) if(inSet(i)) tilePath(f,i%MW,(i/MW)|0);
+  if(!e){ const f=new Path2D(), b=new Path2D(); tileRuns(f,(x,y)=>inSet(idx(x,y)));
     for(let i=0;i<MW*MH;i++){ if(!inSet(i)) continue; const x=i%MW,y=(i/MW)|0; DIRS4.forEach((d,k)=>{ const nx=x+d[0],ny=y+d[1]; if(!inMap(nx,ny)||!inSet(idx(nx,ny))||hi(nx,ny)!==hi(x,y)) edge(b,x,y,k); }); }
     e={f,b}; if(key){ if(!RC.rd||RC.rd.size>8) RC.rd=new Map(); RC.rd.set(key,e); } }
   c.fillStyle=fill; c.fill(e.f);
@@ -7630,7 +7655,7 @@ function boDraw(c){ const t=G.time, full=G.fullVis, me=G.player&&!G.watch?G.play
   if(full){ c.fillStyle='rgba(3,6,20,.42)'; c.fill(RC.boTint); }
   else { const vs=viewers(); let key=RC.fogKey+':'+G.flares.length; for(const v of vs) key+=':'+v.x+','+v.y;
     if(key!==RC.boKey){ RC.boKey=key; const p=new Path2D(), zd=G.zDraw; G.zDraw=false;
-      for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){ const i=idx(x,y); if(!G.vis[i]) continue; let near=false; for(const v of vs) if(Math.hypot(x-v.x,y-v.y)<=boSight(v)-1.2){ near=true; break; } if(!near&&!boLitAt(x,y)) tilePath(p,x,y); }
+      tileRuns(p,(x,y)=>{ const i=idx(x,y); if(!G.vis[i]) return false; for(const v of vs) if(Math.hypot(x-v.x,y-v.y)<=boSight(v)-1.2) return false; return !boLitAt(x,y); });
       G.zDraw=zd; RC.boDim=p; }
     c.fillStyle='rgba(3,6,20,.32)'; c.fill(RC.boDim); }
   const cool=boGlowSpr(false), warm=boGlowSpr(true), glow=(spr,x,y,r,a)=>{ const q=iso(x+.5,y+.5), w=r*TW*1.42; c.globalAlpha=Math.min(1,a); c.drawImage(spr,q[0]-w,q[1]-ez(Math.round(x),Math.round(y))-w/2,w*2,w); };
@@ -8951,9 +8976,13 @@ function updateTimer(){
   const el=$('#tmr'); if(!el) return;
   const on=G.turnMax>0&&!!G.turnRes&&!G.over&&!G.playerDead;
   el.classList.toggle('hidden',!on); if(!on) return;
-  const left=Math.max(0,G.turnLeft); $('#tmrN').textContent=left>=60?fmtClock(left):Math.ceil(left); el.querySelector('small').textContent=G.tm&&G.tm.b?(G.bank0>0?'bank':'grace'):'sec'; $('#tmrB').style.width=(left/G.turnMax*100)+'%';
+  // called every frame of your turn: touch the DOM only when something shown changes (the bar in 0.05% steps, under a pixel)
+  const left=Math.max(0,G.turnLeft), n=String(left>=60?fmtClock(left):Math.ceil(left)), u=G.tm&&G.tm.b?(G.bank0>0?'bank':'grace'):'sec', w=Math.round(left/G.turnMax*2000)/20+'%';
+  const T=TMR||(TMR={n:'',u:'',w:''});
+  if(n!==T.n){ T.n=n; $('#tmrN').textContent=n; } if(u!==T.u){ T.u=u; el.querySelector('small').textContent=u; } if(w!==T.w){ T.w=w; $('#tmrB').style.width=w; }
   el.classList.toggle('warn',left<=5);
 }
+var TMR; // what updateTimer last wrote (var: hoisted, so a call before this line is fine)
 function updateHUD(){
   updatePingBtn();
   if(G.scene!=='game'||!G.player) return; updateTop(); updateTimer();
@@ -9193,7 +9222,7 @@ function netSendPing(k,x,y){ if(!NET.on||!G.player) return; const m={t:'tping',m
 // host: send a team message only to guests whose operative is on that team
 function netRelayTeam(msg,team,except){ for(const [pid,c] of NET.conns){ if(pid===except) continue; const v=hostUnit(pid); if(!v||v.team!==team) continue; try{ c.conn.send(msg); }catch(e){} } }
 // inbound ping from the network: validated, shown only to the pinger's team
-function recvPing(u,k,x,y){ if(!u||!PINGS[k]||!u.alive||typeof x!=='number'||typeof y!=='number') return; x=clamp(x|0,0,MW-1); y=clamp(y|0,0,MH-1); showTeamPing(u,k,x,y); }
+function recvPing(u,k,x,y){ if(!u||!PINGS[k]||!u.alive||typeof x!=='number'||typeof y!=='number') return; x=clamp(x|0,0,MW-1); y=clamp(y|0,0,MH-1); paWake(); showTeamPing(u,k,x,y); }
 // AI side: how a team order shifts move scoring (called per candidate tile for AI units on that team)
 function cmdScore(u,C,x,y,threats){
   const d=Math.hypot(C.x-x,C.y-y);
@@ -10720,6 +10749,8 @@ function mapThumb(k){ k=k||1; // k: scale (the daily result card draws it large)
     g.fillStyle=C(col,o&&o.t===2?1.15:1); g.beginPath(); g.moveTo(T[0],T[1]-h); g.lineTo(Rr[0],Rr[1]-h); g.lineTo(B[0],B[1]-h); g.lineTo(L[0],L[1]-h); g.fill(); }
   g.fillStyle=R.grade; g.fillRect(0,0,240*k,150*k); return cv;
 }
+// the hidden strip's ~22 card canvases and the cached region art (~5 MB) are not needed until the next roulette
+function rlFree(tr){ try{ tr.querySelectorAll('canvas').forEach(cvFree); tr.innerHTML=''; for(const k in RL.art) cvFree(RL.art[k]); RL.art={}; }catch(e){} }
 function mapRoulette(rk){
   if(RL.fin) RL.fin(true);
   const tok=++RL.tok, el=$('#roul'), tr=$('#rlTrack'), win=$('#rlWin');
@@ -10736,7 +10767,7 @@ function mapRoulette(rk){
   const CW=182, ww=win.clientWidth||360, x0=ww/2-85, x1=ww/2-((n-1)*CW+85), DUR=reduce?0:1900, HOLD=reduce?1400:800, t0=performance.now();
   let landed=false, lastI=0, done=false, holdT=null;
   return new Promise(res=>{
-    const finish=cancel=>{ if(done) return; done=true; RL.fin=null; clearTimeout(holdT); clearTimeout(guard); el.onpointerdown=null; el.classList.add('out'); setTimeout(()=>{ if(RL.tok===tok) el.classList.add('hidden'); res(); },cancel?0:260); };
+    const finish=cancel=>{ if(done) return; done=true; RL.fin=null; clearTimeout(holdT); clearTimeout(guard); el.onpointerdown=null; el.classList.add('out'); setTimeout(()=>{ if(RL.tok===tok){ el.classList.add('hidden'); rlFree(tr); } res(); },cancel?0:260); };
     RL.fin=finish;
     const land=()=>{ if(landed) return; landed=true; tr.style.transform='translateX('+x1+'px)'; el.classList.add('landed'); if(!reduce){ SFX.tone(520,1040,.22,.08,'triangle'); SFX.tone(780,1560,.3,.05,'sine',.06); buzz([20,30,40]); } holdT=setTimeout(()=>finish(),HOLD); };
     const step=now=>{ if(done||landed) return; const k=Math.min(1,(now-t0)/DUR), e=1-Math.pow(1-k,4), x=lerp(x0,x1,e); tr.style.transform='translateX('+x+'px)';
@@ -10813,11 +10844,12 @@ function cleanDrone(D,lv){ D=D&&typeof D==='object'?D:{}; const m=DMODELS[D.m]&&
 function netNext(id){ const q=NET.q.get(id); if(q&&q.length) return Promise.resolve(q.shift());
   if(G.watch&&G.watch.kind==='replay'){ watchEnd('end'); return new Promise(()=>{}); } // the recording ran out (the recorder left early)
   return new Promise(r=>NET.w.set(id,r)); }
-function netPush(id,c){ recCmd(id,c); const w=NET.w.get(id); if(w){ NET.w.delete(id); w(c); return; } if(!NET.q.has(id)) NET.q.set(id,[]); NET.q.get(id).push(c); }
+// paWake: a remote action resumes the frame loop now (it may be idle while waiting on that player, see paNetWait)
+function netPush(id,c){ recCmd(id,c); paWake(); const w=NET.w.get(id); if(w){ NET.w.delete(id); w(c); return; } if(!NET.q.has(id)) NET.q.set(id,[]); NET.q.get(id).push(c); }
 function netRelay(msg,except){ if(msg.t==='cmd'&&NET.log&&msg.m===NET.m) NET.log.push([msg.u,msg.c]); for(const [pid,c] of NET.conns) if(pid!==except){ try{ c.conn.send(msg); }catch(e){} } }
 function netSendCmd(c){ if(NET.host) netRelay({t:'cmd',m:NET.m,u:G.player.id,c}); else if(NET.hostConn){ try{ NET.hostConn.send({t:'cmd',m:NET.m,c}); }catch(e){} } }
 function netSendEmote(k){ if(!NET.on||!G.player) return; if(NET.host) netRelay({t:'emo',m:NET.m,u:G.player.id,k}); else if(NET.hostConn){ try{ NET.hostConn.send({t:'emo',k}); }catch(e){} } }
-function showEmote(u,k){ const e=EMOTES.find(x=>x.k===k); if(!u||!e||!u.alive) return; bubble(u,e.t); feedLine(u.name+': '+e.t,mine(u)); }
+function showEmote(u,k){ const e=EMOTES.find(x=>x.k===k); if(!u||!e||!u.alive) return; paWake(); bubble(u,e.t); feedLine(u.name+': '+e.t,mine(u)); }
 
 async function netTurn(u,mid){
   if(shouldShow(u)){ turnTag(u.name+' · '+CLASSES[u.cls].name,mine(u)?'you':'enemy'); focusOn(u.x,u.y); } else turnTag('Waiting for '+u.name,'enemy');
@@ -12691,7 +12723,7 @@ function socInvAdd(x,quiet){ const c=fcNorm(x.c), r=String(x.r||''), exp=+x.exp|
 function socInvDrop(pred){ const n=SOCS.inv.length; SOCS.inv=SOCS.inv.filter(x=>!pred(x)); if(SOCS.inv.length!==n){ socStore(); socInvRender(); socBadge(); renderFriends(); } }
 function socInvLive(){ const now=Date.now(); return SOCS.inv.filter(x=>x.exp>now&&!(NET.on&&NET.code===x.r)); }
 function socInvRender(){ const box=$('#sfInv'), bd=$('#sfInvBadge'); if(!box||!bd) return; const L=socInvLive(), match=socInMatch();
-  bd.classList.toggle('hidden',!L.length||!match); bd.querySelector('i').textContent=L.length;
+  bd.classList.toggle('hidden',!L.length||!match); { const i=bd.querySelector('i'), t=String(L.length); if(i.textContent!==t) i.textContent=t; } // every 2 s: no DOM write when unchanged
   const want=match||SOC.open?[]:L.slice(-2);
   for(const el of [...box.children]) if(!want.some(x=>x.c+x.r===el.dataset.k)) el.remove();
   for(const x of want){ if(box.querySelector('[data-k="'+x.c+x.r+'"]')) continue;
@@ -12975,7 +13007,10 @@ function paAuto(dt,rt){
   if(slow){ PA.slowN++; if(cur>0&&PA.slowN>=(PA.evals<=2?1:2)){ to=cur-1; PA.slowN=0; } }
   else { PA.slowN=0; if(cur<2&&G.scene!=='game'&&f75<tgt*1.15&&r75<tgt*.3) to=cur+1; } // only step up on the menus, never mid-match
   if(to!==cur){ paSet().gfxA=PA_ORDER[to]; try{ saveProf(); }catch(e){} paApply(); } }
-function paBusy(){ if(TUT.on||FF.on||G.busy&&G.scene==='game') return true;
+// waiting on another player's input (online): nothing moves until their command arrives (netPush wakes the loop), so the
+// loop may go idle like on your own turn instead of redrawing an unchanged scene at full rate through their whole turn
+function paNetWait(){ if(!NET.on||!NET.w.size) return false; for(const id of NET.w.keys()){ const q=NET.q.get(id); if(q&&q.length) return false; } return true; }
+function paBusy(){ if(TUT.on||FF.on||G.busy&&G.scene==='game'&&!paNetWait()) return true;
   if(G.tweens.length||G.fx.length||G.parts.length||G.timers.length||G.texts.length||G.pings.length||G.bubbles.length||G.fly) return true;
   if(G.scene==='game'){ const c=G.cam; if(Math.abs(c.tx-c.x)>.5||Math.abs(c.ty-c.y)>.5||Math.abs(c.tz-c.z)>.002) return true; }
   return false; }
@@ -14419,7 +14454,7 @@ function hzKey(o){ let s=''; for(const i in o) s+=i+','; return s; }
 function hzDrawGround(c){ const H=hzLive(); if(!H||!H.on) return; const t=G.time;
   const kf=hzKey(H.fire), ke=hzKey(H.elec), kg=hzKey(H.gas);
   if(RC.hzK!==kf+'|'+ke+'|'+kg+'|'+RC.gen){ RC.hzK=kf+'|'+ke+'|'+kg+'|'+RC.gen; const zd=G.zDraw; G.zDraw=true; const pf=new Path2D(), pe=new Path2D(), pg=new Path2D();
-    for(const i in H.fire) tilePath(pf,i%MW,(i/MW)|0); for(const i in H.elec) tilePath(pe,i%MW,(i/MW)|0); for(const i in H.gas) tilePath(pg,i%MW,(i/MW)|0); G.zDraw=zd;
+    tileRuns(pf,(x,y)=>idx(x,y) in H.fire); tileRuns(pe,(x,y)=>idx(x,y) in H.elec); tileRuns(pg,(x,y)=>idx(x,y) in H.gas); G.zDraw=zd;
     RC.hzF=kf?pf:null; RC.hzE=ke?pe:null; RC.hzG=kg?pg:null; }
   if(RC.hzG){ c.fillStyle='rgba(110,170,50,'+(0.22+0.04*Math.sin(t*1.3))+')'; c.fill(RC.hzG); }
   c.globalCompositeOperation='lighter';
