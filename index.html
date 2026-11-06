@@ -3233,6 +3233,7 @@ const SCL=1.14; // operative rig scale (visual)
 // offline: seed and region are chosen before the map roulette, then handed to setupMatch (same RNG order as before)
 function pickOffline(){ const seed=(Math.random()*4294967296)>>>0; seedRNG(seed); return {seed,region:pick(REGIONS.filter(r=>r!==G.lastRegion))}; }
 function setupMatch(lo,mk,net,pre){
+  try{ msRelease(); }catch(e){} // the mode-select thumbnails are not needed in a match: free their memory
   // net = online match config from the host: same seed, region, difficulty and roster on every client
   seedRNG(net?net.seed:pre?pre.seed:(Math.random()*4294967296)>>>0); UID=0;
   // offline: pre.lv fixes the AI level and pre.rp is the player's gear/cosmetics spec, so a replay (or the daily) builds the same match
@@ -3308,7 +3309,7 @@ function setupMatch(lo,mk,net,pre){
   modeSetup(); // Infection / Blackout / mutators: after everything above, so the classic seeded order is unchanged
   hzSetup(); // hazards and status effects: wind, and Hazard Zone props (seeded calls after every classic one)
   G.zs=G.M.zs?zsSetup(net,pre):null; // Survival: one squad, Survival kit and the horde (seeded calls after everything above)
-  computeVis(); buildGround(); G.bg=null; initWeather();
+  computeVis(); buildGround(); G.bg=cvFree(G.bg); initWeather();
 }
 
 function setupMenuScene(){
@@ -3323,7 +3324,7 @@ function setupMenuScene(){
   const cf=pick(floors); G.crates.push({x:cf%MW,y:(cf/MW)|0,ph:0,drop:true});
   G.wx=null; G.sites=[]; G.scans=[]; G.prints=[]; G.objQ=[]; G.gm=null; G.mut={}; G.flares=[]; G.inf=null; G.zs=null;
   G.vis.fill(1); G.seen.fill(1); G.over=true; G.fullVis=true; G.reveals=[]; G.sensors=[]; G.lkp=new Map(); G.cues=[];
-  buildGround(); G.bg=null; initWeather();
+  buildGround(); G.bg=cvFree(G.bg); initWeather();
   const c=iso(MW/2,MH/2); G.cam.x=G.cam.tx=c[0]; G.cam.y=G.cam.ty=c[1]; G.cam.z=G.cam.tz=VW<600?0.62:0.85;
 }
 
@@ -3358,7 +3359,7 @@ setInterval(()=>{ try{ if(PROF.settings.vpinfo||/[?&]vp=1/.test(location.search)
 function resize(){ setAppH(); DPR=Math.min(perfDpr(),window.devicePixelRatio||1); cv.style.width=''; cv.style.height='';
   const r=cv.getBoundingClientRect(); VW=Math.round(r.width)||window.innerWidth||390; VH=Math.round(r.height)||window.innerHeight||800;
   const w=Math.round(VW*DPR), h=Math.round(VH*DPR); if(cv.width===w&&cv.height===h&&G.bg) return;
-  cv.width=w; cv.height=h; G.bg=null; initWeather(); }
+  cv.width=w; cv.height=h; G.bg=cvFree(G.bg); initWeather(); }
 window.addEventListener('resize',resize); window.addEventListener('orientationchange',()=>setTimeout(resize,250));
 if(window.visualViewport) visualViewport.addEventListener('resize',resize);
 try{ new ResizeObserver(()=>resize()).observe(cv); }catch(e){}
@@ -3375,23 +3376,29 @@ const RC={gen:0,made:0,last:new Map(),any:new Map(),anyM:-1,spr:new Map(),ids:ne
   fade:new Float32Array(MW*MH).fill(1),fadeT:0,fogKey:'',fogA:null,fogB:null,stormKey:'',stormP:null,plats:null,ov:null,ovKey:'',icons:{},reachM:new Uint8Array(MW*MH),focusM:new Uint8Array(MW*MH)};
 /* Per-match map size (see MAP0). Reallocates everything sized by the map; the caller then builds the map (genMap) and
    the ground. Same size: nothing to do (the arrays are refilled by the usual setup). Never touches the seeded RNG. */
+// release a canvas's pixels now (iOS keeps a dropped canvas's memory until a later garbage collection, and a home-screen app
+// that runs out of memory is closed and restarted at the menu); returns null so it can replace the reference
+function cvFree(c){ try{ if(c&&c.width){ c.width=0; c.height=0; } }catch(e){} return null; }
 function setMapSize(w,h){ h=h||w; if(w===MW&&h===MH) return false;
   MW=w; MH=h; CX=(MW-1)/2; GOX=MH*TW/2+PAD; const N=MW*MH;
   G.vis=new Uint8Array(N); G.seen=new Uint8Array(N); G.elev=new Uint8Array(N); G.floorT=new Uint8Array(N); G.surf=new Uint8Array(N); G.lvl=new Uint8Array(N); G.lad=new Uint8Array(N);
-  losReset(); G.reach=null; G.ground=null; G.groundHalf=null; G.groundKey=''; G.bg=null;
+  losReset(); G.reach=null; G.ground=cvFree(G.ground); G.groundHalf=cvFree(G.groundHalf); G.groundKey=''; G.bg=cvFree(G.bg);
   RC.fade=new Float32Array(N).fill(1); RC.reachM=new Uint8Array(N); RC.focusM=new Uint8Array(N); RC.plats=null; RC.fogKey=''; RC.fogA=RC.fogB=null; RC.stormKey=''; RC.stormP=null; RC.ov=null; RC.ovKey='';
   return true; }
 // the map size a mode plays on (classic modes MAP0; the squad modes carry their own)
 function modeSize(mk){ const M=MODES[mk]; return M&&M.map?M.map:MAP0; }
 // keeps the previous sprites as stand-ins (RC.any) so a grenade blast re-rasterises gradually instead of in one hitch
-function sprClear(){ RC.gen++; if(RC.anyM!==G.matchId){ RC.any=new Map(); RC.last.clear(); RC.anyM=G.matchId; } else { RC.any=new Map(); for(const [k,e] of RC.spr) RC.any.set(k.slice(0,k.indexOf('@')),e); }
+function sprClear(){ RC.gen++; const old=new Set([...RC.any.values(),...RC.spr.values()]);
+  if(RC.anyM!==G.matchId){ for(const e of RC.last.values()) old.add(e); RC.any=new Map(); RC.last.clear(); RC.anyM=G.matchId; } else { RC.any=new Map(); for(const [k,e] of RC.spr) RC.any.set(k.slice(0,k.indexOf('@')),e); }
+  // free the dropped sprites' pixels now (stand-ins kept in RC.any stay; RC.last skips a freed one: it checks cv.width)
+  for(const e of RC.any.values()) old.delete(e); for(const e of old) cvFree(e.cv);
   RC.spr.clear(); RC.px=0; RC.plats=null; }
 function sprScale(){ const s=DPR*G.cam.z; return Math.min(3.2,Math.max(0.5,Math.pow(2,Math.ceil(Math.log2(Math.max(0.3,s))*2-0.2)/2))); }
 function sprite(key,x0,y0,w,h,draw){
   const sc=sprScale(), k=key+'@'+sc; let e=RC.spr.get(k);
   if(e){ RC.spr.delete(k); RC.spr.set(k,e); return e; }
   // at most a few new rasterisations per frame; meanwhile reuse this object's sprite from another zoom bucket
-  if(RC.made>=8){ const f=RC.last.get(key)||RC.any.get(key); if(f&&f.cv.width) return f; }
+  if(RC.made>=8){ let f=RC.last.get(key); if(!f||!f.cv.width) f=RC.any.get(key); if(f&&f.cv.width) return f; }
   RC.made++;
   const cw=Math.max(1,Math.ceil(w*sc)), ch=Math.max(1,Math.ceil(h*sc));
   const cvs=document.createElement('canvas'); cvs.width=cw; cvs.height=ch; const g=cvs.getContext('2d');
@@ -3437,6 +3444,7 @@ function buildGround(rect){
       const sx=Math.max(0,Math.floor((a+GOX)*sc/2)*2), sy=Math.max(0,Math.floor((c0+GOY)*sc/2)*2), sw=Math.min(G.ground.width-sx,Math.ceil((b-a)*sc)+4), sh=Math.min(G.ground.height-sy,Math.ceil((c1-c0)*sc)+4);
       if(sw>0&&sh>0) G.groundHalf.getContext('2d').drawImage(G.ground,sx,sy,sw,sh,sx/2,sy/2,sw/2,sh/2); }
     return; }
+  G.ground=cvFree(G.ground); G.groundHalf=cvFree(G.groundHalf);
   let sc=Math.min(2,Math.max(1,DPR)); if(w*h*sc*sc>perfGroundPx()) sc=Math.sqrt(perfGroundPx()/(w*h)); G.gScale=sc;
   const cvs=document.createElement('canvas'); cvs.width=w*sc|0; cvs.height=h*sc|0; const g=cvs.getContext('2d');
   g.scale(sc,sc); g.translate(GOX,GOY);
@@ -5286,7 +5294,7 @@ function buildBg(){
   }
   // soft ambient glow behind the play slab (was a per-frame world-space gradient)
   const ag=g.createRadialGradient(w*.5,h*.55,20,w*.5,h*.55,Math.max(w,h)*.75); ag.addColorStop(0,G.region==='city'?'rgba(150,40,255,.2)':G.region==='refinery'||G.region==='lavalab'?'rgba(255,110,40,.16)':'rgba(255,255,255,.1)'); ag.addColorStop(1,'rgba(0,0,0,0)'); g.fillStyle=ag; g.fillRect(0,0,w,h);
-  G.bg=b;
+  if(G.bg&&G.bg!==b) cvFree(G.bg); G.bg=b;
 }
 // visual particle kind and count follow the gameplay weather (G.wx) in a match; the region's own look elsewhere
 function wxVis(){ const X=G.scene==='game'&&G.wx?WX[G.wx.k]:null; return (X&&X.vis)||(G.R&&G.R.weather); }
@@ -10561,6 +10569,7 @@ function grantRewards(){
   return G.rewarded;
 }
 function showEnd(){
+  liveClear();
   const r=G.result, s=G.stats, rw=grantRewards();
   const title=r.win?(G.M.team>1?'Squad victory':'Victory'):'#'+r.place;
   $('#eRes').textContent=title; $('#eRes').className='display res '+(r.win?'win':'lose');
@@ -10587,7 +10596,7 @@ function showEnd(){
   updateNavDot();
 }
 /* ================= toasts ================= */
-function toast(title,sub,kind){ const box=$('#toasts'); const el=document.createElement('div'); el.className='toast '+(kind||''); el.innerHTML='<div><b></b><small></small></div>'; el.querySelector('b').textContent=title; el.querySelector('small').textContent=sub||''; box.appendChild(el); setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); },350); },2800); }
+function toast(title,sub,kind,ms){ const box=$('#toasts'); const el=document.createElement('div'); el.className='toast '+(kind||''); el.innerHTML='<div><b></b><small></small></div>'; el.querySelector('b').textContent=title; el.querySelector('small').textContent=sub||''; box.appendChild(el); setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); },350); },ms||2800); }
 
 /* ================= navigation ================= */
 const META=['menu','loadout','pass','quests','store','profile'];
@@ -10629,7 +10638,18 @@ function wakeVideo(){ if('wakeLock' in navigator||WAKE.vid) return; try{
 document.addEventListener('visibilitychange',wakeSync);
 document.addEventListener('pointerdown',()=>{ wakeVideo(); wakeSync(); },{passive:true}); // a user gesture: allowed to start the fallback video
 setInterval(wakeSync,2000);
-function toMenu(){ ffStop(); if(TUT.on) tutStop(); show('#tutEnd',false); show('#hud',false); show('#end',false); show('#wend',false); G.over=true; G.turnRes=null; G.watch=null; G.paused=false; setupMenuScene(); go('menu'); }
+/* match breadcrumb: while an offline match runs, a small record says so (and whether the app was on screen). If the app
+   starts and finds it, the match never finished: with the app on screen at the time, iOS closed it (almost always memory),
+   so say so once instead of the match silently vanishing. Cleared at every normal end of a match. */
+const LIVE_KEY='stormfall_live';
+function liveMark(){ if(G.watch||NET.on) return; try{ localStorage.setItem(LIVE_KEY,JSON.stringify({m:PROF.mode,r:G.round|0,t:Date.now(),v:!document.hidden})); }catch(e){} }
+function liveClear(){ try{ localStorage.removeItem(LIVE_KEY); }catch(e){} }
+function liveBoot(){ let o=null; try{ o=JSON.parse(localStorage.getItem(LIVE_KEY)||'null'); }catch(e){} liveClear(); if(!o||Date.now()-o.t>6*3600e3) return;
+  try{ PROF.crash=(PROF.crash|0)+1; saveProf(); }catch(e){}
+  if(o.v) setTimeout(()=>toast('Your last match was cut off','The phone closed the game mid-match (usually low memory). Closing other apps can help.','',7000),1500); }
+setInterval(()=>{ if(G.scene==='game'&&!G.over&&!G.watch&&localStorage.getItem(LIVE_KEY)) liveMark(); },5000);
+document.addEventListener('visibilitychange',()=>{ if(G.scene==='game'&&!G.over&&!G.watch&&localStorage.getItem(LIVE_KEY)) liveMark(); });
+function toMenu(){ liveClear(); ffStop(); if(TUT.on) tutStop(); show('#tutEnd',false); show('#hud',false); show('#end',false); show('#wend',false); G.over=true; G.turnRes=null; G.watch=null; G.paused=false; setupMenuScene(); go('menu'); }
 function refreshMenu(){
   LO=sanitize(LO);
   const li=lvlInfo(); $('#mLvlN').textContent=li.l; $('#mXp').style.width=(li.cur/li.need*100)+'%'; $('#mXpT').textContent=li.cur+' / '+li.need+' XP';
@@ -10656,7 +10676,7 @@ async function startMatch(daily){
   G.daily=dk?{key:dk}:null; if(dk) dailyMark(dk);
   recStart('off',{seed:pre.seed,region:pre.region,mode:mk,slots:pre.slots,lo,rp:pre.rp,lv:pre.lv,tm:G.tm,daily:dk||undefined,mut:pre.mut,zd:pre.zd});
   await mapRoulette(G.region); if(G.matchId!==mid) return;
-  show('#hud',true); updateHUD(); runMatch();
+  show('#hud',true); updateHUD(); liveMark(); runMatch();
 }
 /* ================= map roulette =================
    Visual only: card order uses Math.random and the landing card is the region setupMatch already built, so it never
@@ -11088,6 +11108,9 @@ function renderModeSel(){
   show('#msJoin',MS.friends);
   msSelect(MS.sel,'jump');
 }
+// drop the mode cards and their thumbnails (rebuilt the next time the menu opens)
+function msRelease(){ cancelAnimationFrame(MS.praf); for(const k in MS.art) cvFree(MS.art[k]); MS.art={}; MS.html=''; MS.painted=null;
+  const tr=$('#msTrack'); if(tr){ tr.querySelectorAll('canvas').forEach(cvFree); tr.innerHTML=''; } }
 // paint one card's thumbnail straight into its canvas (once per built card), spread over frames so opening the menu stays smooth
 function msPaint(k){ if(!MS.painted||MS.painted.has(k)) return; const el=$('#msTrack [data-msk="'+k+'"]'); if(!el) return; MS.painted.add(k);
   try{ el.querySelector('canvas').getContext('2d').drawImage(msThumb(k),0,0); }catch(e){ console.warn(e); } }
@@ -11833,7 +11856,7 @@ function setupTutorial(){
   G.intel={}; G.noise=[]; G.round=1; G.over=false; G.playerDead=false; G.spec=null; G.speed=1; G.rewarded=null; G.result=null; G.place=0; G.busy=true; G.mode='idle'; G.reach=null; G.pending=-1; G.turnRes=null; G.paused=false; G.turnMax=0;
   G.stats={shots:0,hits:0,grazes:0,dmg:0,kills:0,rounds:0,crates:0,drops:0,owHits:0,highHits:0,nadeHits:0,revives:0}; G.cstat=cstatNew(); G.cctx=null;
   G.reveals=[]; G.sensors=[]; G.lkp=new Map(); G.cues=[]; G.groundDirty=false;
-  G.scene='game'; computeVis(); buildGround(); G.bg=null; initWeather();
+  G.scene='game'; computeVis(); buildGround(); G.bg=cvFree(G.bg); initWeather();
 }
 function tutStart(){
   if(NET.on){ if(!confirm('Leave the online room and start the tutorial?')) return; netLeave(); }
@@ -12848,7 +12871,7 @@ function paApply(){
   const s=paSet(), de=document.documentElement, lv=gfxLevel(), L=PA_LV[lv];
   // graphics: render scale, sprite / ground budgets, weather density (only rebuilt when the level changes)
   if(PA.applied!==lv){ const first=PA.applied===null; PA.applied=lv; RC.budget=L.spr;
-    if(!first){ try{ G.bg=null; resize(); initWeather(); if(G.grid&&G.ground) buildGround(); }catch(e){} } }
+    if(!first){ try{ G.bg=cvFree(G.bg); resize(); initWeather(); if(G.grid&&G.ground) buildGround(); }catch(e){} } }
   // colour-blind palette
   const P=PA_PAL[s.cb]; if(P){ de.dataset.cb=s.cb; de.style.setProperty('--ok',P.good); de.style.setProperty('--hostile',P.bad); de.style.setProperty('--pa-warn',P.warn); de.style.setProperty('--pa-ally',P.ally); }
   else { delete de.dataset.cb; for(const k of ['--ok','--hostile','--pa-warn','--pa-ally']) de.style.removeProperty(k); }
@@ -14881,7 +14904,7 @@ function zsEnd(){ const S=G.zs, win=!!S.won; if(G.over) return; G.over=true; G.t
 function zsLines(r,s){ const S=G.zs, L=[['Waves survived ×'+S.cleared,S.cleared*40],['Zombies taken down ×'+s.kills,s.kills*ZS.cr],['Damage dealt ('+s.dmg+')',Math.round(s.dmg/2)],['Rounds survived ('+s.rounds+')',s.rounds]];
   if(r.win) L.push(['Extraction bonus',300]); if(s.revives) L.push(['Revives ×'+s.revives,s.revives*25]); return L; }
 function zsXp(r,s){ return G.zs.cleared*80+s.kills*ZS.xp+s.dmg+s.rounds*4+s.revives*40+s.drops*60+(r.win?400:0); }
-function zsEndScreen(){ const S=G.zs, s=G.stats, V=G.zsv||{my:{}}, reg=G.R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
+function zsEndScreen(){ liveClear(); const S=G.zs, s=G.stats, V=G.zsv||{my:{}}, reg=G.R.name.toLowerCase().replace(/\b\w/g,m=>m.toUpperCase());
   $('#eRes').textContent=S.won?'Extracted':'Wave '+Math.max(1,S.wave); $('#eRes').className='display res '+(S.won?'win':'lose');
   $('#eSub').textContent=(S.won?'You survived all '+ZS.waves+' waves':'Overrun in wave '+Math.max(1,S.wave)+' · '+S.cleared+' wave'+(S.cleared===1?'':'s')+' survived')+' in '+reg+', Survival ('+DIFFS[S.d].name+' horde'+(S.n>1?', squad of '+S.n:'')+').'+mutTxt();
   const acc=s.shots?Math.round(s.hits/s.shots*100)+'%':'—', by=ZT_KEYS.filter(k=>V.my[k]).map(k=>V.my[k]+' '+ZT[k].name.toLowerCase()+(V.my[k]>1&&k!=='boss'?'s':'')).join(' · ');
@@ -15013,7 +15036,7 @@ window.__stormfall={G,setupMatch,runMatch,onAction,pFire,pMove,pThrow,enterTarge
 
 /* ================= boot ================= */
 { const st=document.createElement('style'); st.id='bannerCss'; st.textContent=plateCssText(); document.head.appendChild(st); } // name plate banners from BANNERS
-applySettings(); refreshQuests(); resize(); setupMenuScene(); go('menu'); cloudBoot(); socialBoot();
+applySettings(); refreshQuests(); resize(); setupMenuScene(); go('menu'); cloudBoot(); socialBoot(); liveBoot();
 if(!PROF.seenBrief){ howButtons(); show('#how',true); }
 requestAnimationFrame(t=>{ lastT=t; frame(t); });
 })();
