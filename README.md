@@ -113,7 +113,7 @@ levels 3, 6, 9, 12 and 15, some of them new actions) and its own weapons, armor 
 | Specialist | drone support | a deployable combat drone with its own AP and model actions |
 | Engineer | fortification | **Deploy Turret** (1 AP, cooldown 4): a sentry up to 3 tiles away, 5 HP, 3 shots over 3 rounds, one reaction shot at each enemy that moves in its sight · **Build Cover** (1 AP, cooldown 2): half cover (6 HP) or full cover (4 HP) on an adjacent tile · **Repair** (1 AP, cooldown 2): +3 shield to you or an ally, or 3 HP to a turret or drone. SMG, shotgun, slug gun or carbine |
 | Medic | combat support | **Heal Field** (1 AP, cooldown 4): allies starting a turn in it heal 1 HP for 2 rounds · **Revive Beam** (1 AP, cooldown 3): revive from 3 tiles · **Adrenaline** (1 AP, cooldown 5): +1 AP next turn for you or an ally. Passive: revives cost 1 AP and give 4 HP; regenerates 1 HP a turn. Carbine (or SMG / rifle), pistol sidearm |
-| Recon | intel and traps, +2 sight | **Wall Scan** (free, cooldown 4): reveals everything within 6 tiles through walls for the team until the end of next round · **Trip Mine** (1 AP, cooldown 2, two out): hidden from other teams; 3–4 damage, stops the move and costs the victim 1 AP next turn · **Mark Target** (free, cooldown 2): the team gets +15 aim against it until the end of next round. Marksman DMR or the suppressed Hush SMG |
+| Recon | intel and traps, +2 sight | **Wall Scan** (free, cooldown 4): reveals everything within 6 tiles through walls for the team until the end of next round · **Trip Mine** (1 AP, cooldown 2, two out): hidden from other teams; 3–4 damage, stops the move and costs the victim 1 AP next turn · **Mark Target** (free, cooldown 2): the team gets +15 aim against it until the end of next round. Marksman DMR, the suppressed Hush SMG or the Specter Gauss |
 
 Engineer, Medic and Recon abilities are lockstep commands like every other action (`{k:'kit',...}`, perk actions
 `{k:'act',...}`), validated again when they run. Turrets are drone-like entities (they can be shot, blown up, zapped
@@ -146,8 +146,15 @@ Loadout card shows both. Mk II / III upgrades add the same bonuses to every weap
 | Marksman DMR | marksman | Braced: +5 aim and +5% crit if you have not moved this turn |
 | Vanguard SR-7 | tracker | +10 aim against the last enemy you hit with it |
 | Longshot Railgun | long-range killer | +25% crit at 8+ tiles (needs both AP) |
-| Specter Gauss | cover buster | cover counts one step less: full as half, half as none (needs both AP) |
+| Specter Gauss | cover buster | cover counts one step less: full as half, half as none (needs both AP; Recon) |
 | Goliath AM-50 | heavy sniper | ignores shields and armor; +3 damage to drones, turrets and objects (needs both AP) |
+| Nightjar Crossbow | silent hunter | Pinning bolt: a hit halves the target's mobility through its next turn. Silent; one bolt, re-cocked for free at the start of every turn (no reloads) |
+| Rhino Double Rifle | stopper | Both barrels: within 5 tiles, with both barrels loaded, a shot fires both for +3 damage (2 rounds) |
+
+The Sharpshooter carries the Railgun, DMR, Carbine, SR-7, AM-50, Nightjar Crossbow (level 9) and Rhino Double Rifle
+(level 13); the Specter Gauss moved to the Recon, where Wall Scan finds the targets it shoots through cover (with
+the Recon's lower aim it lost its −5 aim and part of its close-range penalty). Saved
+loadouts with a weapon the class no longer carries fall back to the class's first weapon.
 
 Sidearms: the P9 pistol carries 4 rounds, the Whisper is silent, and a Machete hit makes the target bleed.
 Balance is checked with AI-vs-AI duels (1v1 and 2v2, mixed maps and ranges): every weapon wins roughly 43–58% overall
