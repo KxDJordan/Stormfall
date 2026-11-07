@@ -142,7 +142,8 @@ Loadout card shows both. Mk II / III upgrades add the same bonuses to every weap
 | Rhino Double Rifle | stopper | Both barrels: within 5 tiles, with both barrels loaded, a shot fires both for +3 damage (2 rounds) |
 
 The Sharpshooter carries the Railgun, DMR, Carbine, SR-7, AM-50, Nightjar Crossbow (level 9) and Rhino Double Rifle
-(level 13); the Specter Gauss moved to the Recon, where Wall Scan finds the targets it shoots through cover. Saved
+(level 13); the Specter Gauss moved to the Recon, where Wall Scan finds the targets it shoots through cover (with
+the Recon's lower aim it lost its −5 aim and part of its close-range penalty). Saved
 loadouts with a weapon the class no longer carries fall back to the class's first weapon.
 
 Sidearms: the P9 pistol carries 4 rounds, the Whisper is silent, and a Machete hit makes the target bleed.
