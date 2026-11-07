@@ -2285,6 +2285,19 @@ const SFX={ac:null,on:true,nb:null,
   hum(f0,f1,dur,gain,type,delay,fq){ if(!this.on||!this.ac) return; try{ const a=this.ac,t=a.currentTime+(delay||0); const o=a.createOscillator(); o.type=type||'sawtooth'; o.frequency.setValueAtTime(f0,t); o.frequency.linearRampToValueAtTime(Math.max(20,f1),t+dur); const g=a.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(gain,t+dur*.45); g.gain.linearRampToValueAtTime(0.0001,t+dur); let n=o; if(fq){ const f=a.createBiquadFilter(); f.type='lowpass'; f.frequency.value=fq; o.connect(f); n=f; } n.connect(g); g.connect(a.destination); o.start(t); o.stop(t+dur+0.05); }catch(e){} }
 };
 
+/* audio power: a running AudioContext keeps the phone's audio hardware awake even in silence, so it is suspended once the
+   last scheduled sound has ended (and while the app is hidden) and resumed by the next sound or touch. Sounds keep their
+   timing: while suspended the context clock stands still, so a sound asked for then starts when the context resumes. */
+SFX.end=0;
+for(const [k,di,de] of [['noise',0,4],['tone',2,5],['hum',2,5]]){ const f=SFX[k]; SFX[k]=function(){ const a=this.ac;
+  if(a&&this.on){ if(document.hidden) return; // nobody hears it (and a suspended context would play it late, on return)
+    this.end=Math.max(this.end,performance.now()+((+arguments[di]||0)+(+arguments[de]||0))*1000); if(a.state==='suspended') try{ a.resume().catch(()=>{}); }catch(e){} }
+  return f.apply(this,arguments); }; }
+function sfxNap(){ const a=SFX.ac; if(!a||a.state!=='running') return; if(document.hidden||performance.now()>SFX.end+4000) try{ a.suspend().catch(()=>{}); }catch(e){} }
+setInterval(sfxNap,2000);
+document.addEventListener('visibilitychange',sfxNap);
+document.addEventListener('pointerdown',()=>{ const a=SFX.ac; if(a&&a.state==='suspended'&&SFX.on) try{ a.resume().catch(()=>{}); SFX.end=Math.max(SFX.end,performance.now()); }catch(e){} },{capture:true,passive:true}); // a gesture: always allowed to start audio
+
 /* ================= state ================= */
 /* Map size is per match (setMapSize, from the mode in setupMatch: Solo / Duos / Quick 40x40, Trios 48x48, Quads 56x56), so
    MW / MH / CX are reassigned and every subsystem reads them live. Anything sized by the map (G.vis, G.seen, the LOS cache,
@@ -6142,7 +6155,7 @@ function drawWorld(c){
   RC.made=0; RC.fr++; if(RC.last.size>6000) RC.last.clear();
   const hw=VW/2/cam.z+48, hh=VH/2/cam.z+48, vx0=cam.x-hw, vx1=cam.x+hw, vy0=cam.y-hh, vy1=cam.y+hh+60;
   const onScreen=(x,y,w,h)=>x<vx1&&x+w>vx0&&y<vy1&&y+h>vy0;
-  if(G.ground){ const src=(G.gScale>=1.5&&DPR*cam.z<G.gScale*0.6&&ghNeed())||G.ground; c.drawImage(src,-GOX,-GOY,G.ground.width/G.gScale,G.ground.height/G.gScale);
+  if(G.ground){ if(!RC.glOn){ const src=gSrc(); c.drawImage(src,-GOX,-GOY,G.ground.width/G.gScale,G.ground.height/G.gScale); } // (RC.glOn: already in the cached layer, gLayer)
     if((G.groundHalf||RC.ghb)&&performance.now()-RC.ghT>20000) ghFree(); }
   if(G.region==='lavalab') lavaGlow(c,t); else if(G.region==='caldera') ventGlow(c,t);
   G.zDraw=true;
@@ -6211,6 +6224,23 @@ function drawWorld(c){
   drawTeamPings(c);
   c.restore();
 }
+function gSrc(){ return (G.gScale>=1.5&&DPR*G.cam.z<G.gScale*0.6&&ghNeed())||G.ground; }
+/* resting camera: the backdrop and the scaled ground blit (the biggest fill of a frame) are kept as one screen-sized layer,
+   copied 1:1 while the camera stays put (it lands exactly on its target, see update). Built once the camera has rested for a
+   frame; any pan, zoom, shake, terrain change or resize redraws it the normal way. Same pixels, same draw order. */
+function gLayer(c){
+  const cam=G.cam, L=RC.gl||(RC.gl={cv:null,k:null,x:0,y:0,z:0,px:NaN,py:NaN,pz:NaN});
+  RC.glOn=false;
+  if(G.scene!=='game'||!G.ground||!G.grid||cam.shake>0){ if(L.cv){ L.cv=cvFree(L.cv); L.k=null; } return false; }
+  const tol=1e-6, near=(x,y,z)=>Math.abs(cam.x-x)*cam.z<tol&&Math.abs(cam.y-y)*cam.z<tol&&Math.abs(cam.z-z)*Math.max(VW,VH)<tol;
+  const src=gSrc(), w=cv.width, h=cv.height;
+  const ok=L.cv&&L.k&&L.k[0]===G.ground&&L.k[1]===src&&L.k[2]===G.bg&&L.k[3]===(RC.gver|0)&&L.k[4]===w&&L.k[5]===h&&L.k[6]===G.gScale&&near(L.x,L.y,L.z);
+  if(!ok){ const rest=near(L.px,L.py,L.pz); L.px=cam.x; L.py=cam.y; L.pz=cam.z; if(!rest) return false;
+    if(!L.cv) L.cv=document.createElement('canvas'); if(L.cv.width!==w||L.cv.height!==h){ L.cv.width=w; L.cv.height=h; }
+    const g=L.cv.getContext('2d'); g.setTransform(DPR,0,0,DPR,0,0); g.drawImage(G.bg,0,0,VW,VH);
+    g.save(); g.translate(VW/2,VH/2); g.scale(cam.z,cam.z); g.translate(-cam.x,-cam.y); g.drawImage(src,-GOX,-GOY,G.ground.width/G.gScale,G.ground.height/G.gScale); g.restore();
+    L.k=[G.ground,src,G.bg,RC.gver|0,w,h,G.gScale]; L.x=cam.x; L.y=cam.y; L.z=cam.z; }
+  c.setTransform(1,0,0,1,0,0); c.drawImage(L.cv,0,0); c.setTransform(DPR,0,0,DPR,0,0); RC.glOn=true; return true; }
 // ground overlays re-applied on top of a platform's sprite (fog shade is already baked into the sprite)
 function platOverlay(c,x,y,i){
   const st=G.storm; if(st&&Math.hypot(x+.5-st.cx,y+.5-st.cy)>st.r){ c.beginPath(); tilePath(c,x,y); c.fillStyle=C(G.R.storm,1,.22+0.06*Math.sin(G.time*2)); c.fill(); }
@@ -6644,7 +6674,7 @@ function drawWeather(c){
 // colour grade + vignette (+ desert haze) baked into one low-res texture: one blit instead of three full-screen gradient fills
 function overlayTex(){
   const key=VW+'x'+VH+'x'+DPR+G.region; if(RC.ov&&RC.ovKey===key) return RC.ov; RC.ovKey=key;
-  const w=Math.ceil(VW*DPR), h=Math.ceil(VH*DPR), o=RC.ov||document.createElement('canvas'); o.width=w; o.height=h; const g=o.getContext('2d');
+  const w=Math.ceil(VW/2), h=Math.ceil(VH/2), o=RC.ov||document.createElement('canvas'); o.width=w; o.height=h; const g=o.getContext('2d'); // smooth gradients only: half CSS resolution, stretched (5 MB -> 0.1 MB at 2x)
   g.fillStyle=G.R.grade; g.fillRect(0,0,w,h);
   const hz={desert:[220,120,60,.12],jungle:[200,240,210,.13],docks:[190,210,230,.1],refinery:[255,110,40,.13],bazaar:[255,236,200,.14],quarry:[210,204,190,.12],marsh:[170,210,180,.16],lavalab:[255,90,30,.15],monastery:[255,226,206,.12],metro:[255,210,150,.08],airfield:[255,250,236,.16],drowned:[150,170,190,.14],caldera:[214,232,255,.14]}[G.region];
   if(hz){ const d=g.createLinearGradient(0,h*.5,0,h); d.addColorStop(0,C(hz,1,0)); d.addColorStop(1,C(hz,1,hz[3])); g.fillStyle=d; g.fillRect(0,0,w,h); }
@@ -6657,7 +6687,7 @@ function render(){
   const c=ctx; c.setTransform(DPR,0,0,DPR,0,0);
   if(!G.bg) buildBg();
   if(G.groundDirty&&G.grid){ const r=G.groundDirty; G.groundDirty=false; buildGround(r===true?null:r); } // terrain changed in the sim: rebuild the ground cache once per frame at most
-  c.drawImage(G.bg,0,0,VW,VH);
+  if(!gLayer(c)) c.drawImage(G.bg,0,0,VW,VH);
   if(G.grid) drawWorld(c);
   if(G.grid) drawCueArrows(c);
   drawWeather(c);
@@ -6700,6 +6730,9 @@ function update(dt){
   else if(G.spec&&G.spec.follow&&G.spec.follow.alive&&!G.over){ const p=unitScreen(G.spec.follow); cam.tx=p[0]; cam.ty=p[1]-10; }
   const f=1-Math.exp(-dt*5);
   cam.x+=(cam.tx-cam.x)*f; cam.y+=(cam.ty-cam.y)*f; cam.z+=(cam.tz-cam.z)*f;
+  // land exactly on the target once within a twentieth of a pixel (the glide is exponential and would never quite arrive),
+  // so a resting camera is really at rest and its frames can reuse cached layers (gLayer)
+  if(Math.abs(cam.tx-cam.x)*cam.z<.05) cam.x=cam.tx; if(Math.abs(cam.ty-cam.y)*cam.z<.05) cam.y=cam.ty; if(Math.abs(cam.tz-cam.z)*Math.max(VW,VH)<.05) cam.z=cam.tz;
   const lim=[-MH*TW/2,MW*TW/2,0,(MW+MH)*TH/2]; cam.x=clamp(cam.x,lim[0],lim[1]); cam.y=clamp(cam.y,lim[2],lim[3]); cam.tx=clamp(cam.tx,lim[0],lim[1]); cam.ty=clamp(cam.ty,lim[2],lim[3]);
   const w=wxVis();
   for(const d of G.weather){ if(w==='rain'){ d.y+=dt*(700+d.s*400); d.x-=dt*(200+d.s*100); } else if(w==='spray'){ d.y+=dt*(420+d.s*240); d.x-=dt*(380+d.s*160); } else if(w==='snow'){ d.y+=dt*(30+d.s*60); d.x+=dt*(Math.sin(G.time+d.v*10)*25+30); } else if(w==='ash'){ d.y+=dt*(18+d.s*30); d.x+=dt*(Math.sin(G.time*0.8+d.v*10)*16+14); }
@@ -6711,16 +6744,16 @@ function update(dt){
 let lastT=0, mmT=0, pvF=false;
 function frame(now){
   const dt=Math.min(0.05,Math.max(0,(now-lastT)/1000)); lastT=now;
-  update(dt); updateLKP(); render();
+  update(dt); updateLKP(); if(!paCovered()) render(); // an opaque menu screen hides the backdrop scene: do not draw it
   if(G.scene==='game'){ mmT-=dt; if(mmT<=0){ mmT=0.15; drawMinimap(); updateTurnOrder(); updateClocks(); if(G.watch&&G.playerDead) fillSpec(); } }
   if(!$('#loadout').classList.contains('hidden')) { drawPreview(); drawMfAnim(); }
   // menu previews animate: operative card, and the store tiles on screen (every other frame)
   if(!$('#menu').classList.contains('hidden')) drawOpCard();
   if(TUT.on) tutTick();
-  if(!$('#pass').classList.contains('hidden')&&(pvF=!pvF)) passAnim();
-  if(!$('#profile').classList.contains('hidden')&&(pvF=!pvF)) { prsAnim('#profile canvas[data-prw],#profile canvas[data-pm]'); prcAnim(); } // class prestige finishes and cosmetics
-  if(!$('#store').classList.contains('hidden')&&(pvF=!pvF)) document.querySelectorAll('#stGrid canvas[data-pv],#stGrid canvas[data-set]').forEach(cv2=>{ const r=cv2.getBoundingClientRect(); if(r.bottom>0&&r.top<VH) (cv2.dataset.set?drawSetPreview(cv2):drawCosPreview(cv2)); });
-  requestAnimationFrame(frame);
+  if(!$('#pass').classList.contains('hidden')&&(PA.iv>25||(pvF=!pvF))) passAnim();
+  if(!$('#profile').classList.contains('hidden')&&(PA.iv>25||(pvF=!pvF))) { prsAnim('#profile canvas[data-prw],#profile canvas[data-pm]'); prcAnim(); } // class prestige finishes and cosmetics
+  if(!$('#store').classList.contains('hidden')&&(PA.iv>25||(pvF=!pvF))) document.querySelectorAll('#stGrid canvas[data-pv],#stGrid canvas[data-set]').forEach(cv2=>{ const r=cv2.getBoundingClientRect(); if(r.bottom>0&&r.top<VH) (cv2.dataset.set?drawSetPreview(cv2):drawCosPreview(cv2)); });
+  // the next frame is scheduled by the pacing wrapper (paSched, battery section)
 }
 
 /* ================= camera helpers ================= */
@@ -10767,7 +10800,7 @@ function wakeVideo(){ if('wakeLock' in navigator||WAKE.vid) return; try{
     const cv2=document.createElement('canvas'); cv2.width=cv2.height=2; const g=cv2.getContext('2d'); g.fillRect(0,0,2,2);
     if(!cv2.captureStream) return; const v=document.createElement('video'); v.muted=true; v.loop=true; v.setAttribute('playsinline',''); v.setAttribute('muted','');
     v.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0'; v.srcObject=cv2.captureStream(1); document.body.appendChild(v); WAKE.vid=v;
-    setInterval(()=>{ g.fillStyle=g.fillStyle==='#000000'?'#010101':'#000000'; g.fillRect(0,0,2,2); },1000); }catch(e){} }
+    setInterval(()=>{ if(!WAKE.want) return; g.fillStyle=g.fillStyle==='#000000'?'#010101':'#000000'; g.fillRect(0,0,2,2); },1000); }catch(e){} } // paused in menus (wakeSync)
 document.addEventListener('visibilitychange',wakeSync);
 document.addEventListener('pointerdown',()=>{ wakeVideo(); wakeSync(); },{passive:true}); // a user gesture: allowed to start the fallback video
 setInterval(wakeSync,2000);
@@ -12849,7 +12882,7 @@ function socInvite(c){
   SOC.invd[c]=Date.now()+SOC_TTL; renderFriends(); }
 function socBadge(){ const n=(SOCS.list?SOCS.list.inc.length:0)+socInvLive().length, txt=n>9?'9+':String(n);
   for(const b of [$('#bFriends'),document.querySelector('#wrRoom .frinv')]){ if(!b) continue; let d=b.querySelector('.frdot');
-    if(!n){ if(d) d.remove(); continue; } if(!d){ d=document.createElement('i'); d.className='frdot'; b.appendChild(d); } d.textContent=txt; } }
+    if(!n){ if(d) d.remove(); continue; } if(!d){ d=document.createElement('i'); d.className='frdot'; b.appendChild(d); } if(d.textContent!==txt) d.textContent=txt; } }
 
 /* --- hooks for other screens --- */
 // the online waiting room's Invite friends button (renderLobby); empty without a backend
@@ -12989,7 +13022,7 @@ const PA_LV={
   balanced:{name:'Balanced',   dpr:1.5,pm:.6, pc:320,fxc:60, wx:.6, fly:1,shadow:1,glow:1,kfx:1,mm:.25,gpx:8e6, gsc:1.5,fade:2,spr:8e6},
   perf:    {name:'Performance',dpr:1,  pm:.3, pc:140,fxc:28, wx:.3, fly:0,shadow:0,glow:0,kfx:0,mm:.5, gpx:4e6, gsc:1,  fade:4,spr:5e6}};
 const PA_ORDER=['perf','balanced','high'];
-const PA={fn:0,lastF:0,idle:false,idleTO:0,lastIn:performance.now(),sF:[],sR:[],slowN:0,evals:0,applied:null,mmd:{},stepT:{},srRes:null,srHp:null,srMid:-1,srT:0,arm:null,armT:0,pass:null,holdT:0,caps:[],motionRules:null,fontsDone:false};
+const PA={fn:0,lastF:0,iv:1000/60,slowTO:0,cov:null,covF:-1,idle:false,idleTO:0,lastIn:performance.now(),sF:[],sR:[],slowN:0,evals:0,applied:null,mmd:{},stepT:{},srRes:null,srHp:null,srMid:-1,srT:0,arm:null,armT:0,pass:null,holdT:0,caps:[],motionRules:null,fontsDone:false};
 function paSet(){ try{ return PROF.settings; }catch(e){ return {}; } }
 function paPick(v,ok,d){ return ok.includes(v)?v:d; }
 function gfxLevel(){ const s=paSet(), g=s.gfx; if(g==='high'||g==='balanced'||g==='perf') return g; return PA_LV[s.gfxA]?s.gfxA:'high'; }
@@ -13053,7 +13086,7 @@ const PA_applySettings=applySettings; applySettings=function(){ PA_applySettings
 
 /* ---------- graphics levers on existing functions (wrappers: no change to their code) ---------- */
 const PA_initWeather=initWeather; initWeather=function(){ PA_initWeather.apply(this,arguments); const m=perf.L().wx; if(m<1) G.weather.length=Math.round(G.weather.length*m); };
-const PA_buildGround=buildGround; buildGround=function(rect){ const d=DPR; if(!rect) DPR=Math.min(DPR,perf.L().gsc); try{ return PA_buildGround.apply(this,arguments); } finally { DPR=d; } };
+const PA_buildGround=buildGround; buildGround=function(rect){ const d=DPR; RC.gver=(RC.gver|0)+1; if(!rect) DPR=Math.min(DPR,perf.L().gsc); try{ return PA_buildGround.apply(this,arguments); } finally { DPR=d; } };
 const PA_FX_KEEP={nade:1,pod:1,kfx:1};
 const PA_addFx=addFx; addFx=function(f){ const r=PA_addFx.apply(this,arguments);
   if(f&&!f.res&&!PA_FX_KEEP[f.type]){ const cap=perf.L().fxc; if(cap<1e8){ let n=0; for(const q of G.fx) if(!q.hid) n++; if(n>cap) f.hid=1; }
@@ -13100,8 +13133,10 @@ const PA_fillTargetPanel=fillTargetPanel; fillTargetPanel=function(){ const r=PA
 function paQ(a,f){ a=a.slice().sort((x,y)=>x-y); return a[Math.min(a.length-1,Math.floor(a.length*f))]||0; }
 function paAuto(dt,rt){
   if(!perf.auto()||document.hidden||dt<=0||dt>2000) return;
-  PA.sF.push(dt); PA.sR.push(rt); PA.sT=(PA.sT||0)+dt; if(PA.sF.length<90&&!(PA.sT>=3000&&PA.sF.length>=6)) return; PA.sT=0;
-  const tgt=perf.fps30()?1000/30:1000/60, f75=paQ(PA.sF,.75), r75=paQ(PA.sR,.75); PA.sF=[]; PA.sR=[]; PA.evals++;
+  if(PA.iv>40||PA.ivP!==PA.iv){ PA.ivP=PA.iv; return; } // slow menu ticks, and the first frame after a pacing change, say nothing about speed
+  // frame gaps against the paced rate; draw time against the full rate (as before pacing)
+  PA.sF.push(dt/PA.iv); PA.sR.push(rt/(perf.fps30()?1000/30:1000/60)); PA.sT=(PA.sT||0)+dt; if(PA.sF.length<90&&!(PA.sT>=3000&&PA.sF.length>=6)) return; PA.sT=0;
+  const tgt=1, f75=paQ(PA.sF,.75), r75=paQ(PA.sR,.75); PA.sF=[]; PA.sR=[]; PA.evals++; // samples are ratios (see above)
   const cur=PA_ORDER.indexOf(gfxLevel()), slow=f75>tgt*1.55||r75>tgt*.85;
   let to=cur;
   if(slow){ PA.slowN++; if(cur>0&&PA.slowN>=(PA.evals<=2?1:2)){ to=cur-1; PA.slowN=0; } }
@@ -13115,19 +13150,46 @@ function paBusy(){ if(TUT.on||FF.on||G.busy&&G.scene==='game'&&!paNetWait()) ret
   if(G.scene==='game'){ const c=G.cam; if(Math.abs(c.tx-c.x)>.5||Math.abs(c.ty-c.y)>.5||Math.abs(c.tz-c.z)>.002) return true; }
   return false; }
 function paIdleOk(now){ return perf.idle()&&!PA.noIdle&&now-PA.lastIn>(G.scene==='game'?8000:15000)&&!paBusy(); }
-function paWake(){ PA.lastIn=performance.now(); if(!PA.idle) return; PA.idle=false; clearTimeout(PA.idleTO); lastT=performance.now(); PA.lastF=0; requestAnimationFrame(frame); }
+function paWake(){ PA.lastIn=performance.now(); if(PA.slowTO){ clearTimeout(PA.slowTO); PA.slowTO=0; PA.lastP=0; paReq(); } if(!PA.idle) return; PA.idle=false; clearTimeout(PA.idleTO); lastT=performance.now(); PA.lastF=0; paReq(); }
 function paIdleTick(){ if(!PA.idle) return; const now=performance.now(); let left=Math.min(1,(now-PA.idleAt)/1000); PA.idleAt=now;
   try{ while(left>1e-4){ const d=Math.min(.05,left); update(d); left-=d; } if(G.scene==='game'){ updateTurnOrder(); updateClocks(); } }catch(e){}
   lastT=now; if(!paIdleOk(now)){ paWake(); return; } PA.idleTO=setTimeout(paIdleTick,250); }
+/* frame pacing (battery / heat): the full 60 fps only while something moves fast or you touch the screen. Calm scenes
+   (idle breathing, weather, water, the storm edge pulse, the menu backdrop's slow camera drift) draw at 30 fps, and a menu
+   screen that hides the backdrop skips the world entirely (its small previews run at 30 fps, or the loop ticks 4x a second
+   when nothing on it animates). Any touch wakes it to full rate at once (paWake). Battery saver off: always 60. */
+const PA_COV_ANIM={loadout:1,pass:1,profile:1,store:1};
+function paCovered(){ if(G.scene!=='menu') return false; if(PA.covF!==PA.fn){ PA.covF=PA.fn; PA.cov=document.querySelector('.screen.sub:not(.hidden)'); } return !!PA.cov; }
+// fast motion: walking / sliding operatives, shots and blasts, quick particles, a camera glide or zoom of more than ~2 px a
+// frame at 30 fps. Slow drift (smoke, floating damage numbers, ping rings, a camera settling) looks the same at 30 fps.
+function paMotion(){ if(TUT.on||FF.on||G.fly) return true;
+  if(G.tweens.length||G.fx.length) return true;
+  const c=G.cam, z=c.z||1, v=60/z; // 60 screen px per second, in world px
+  if(Math.hypot(c.tx-c.x,c.ty-c.y)*5>v||Math.abs(c.tz-c.z)>.01) return true;
+  for(const q of G.parts) if(q.vx*q.vx+q.vy*q.vy+q.vz*q.vz>v*v) return true;
+  return false; }
+function paInterval(now){
+  if(G.scene!=='game'){ if(paCovered()) return PA_COV_ANIM[PA.cov.id]?1000/30:250; return perf.idle()||perf.fps30()?1000/30:1000/60; }
+  if(perf.fps30()) return 1000/30;
+  if(!perf.idle()||now-PA.lastIn<1200||paMotion()) return 1000/60;
+  return 1000/30; }
+// one frame request at a time; longer waits run on a timer and then ask for one animation frame (an empty animation-frame
+// callback still costs the browser a whole frame). The timer aims a little before the due vsync, so the frame lands on it.
+function paReq(){ if(!PA.raf) PA.raf=requestAnimationFrame(t=>{ PA.raf=0; frame(t); }); }
+function paSched(ms){ clearTimeout(PA.slowTO); PA.slowTO=0; if(ms<14){ paReq(); return; } PA.slowTO=setTimeout(()=>{ PA.slowTO=0; paReq(); },ms-6); }
 const PA_frame=frame; frame=function(now){
   if(PA.idle) return; // a stale callback after the loop went idle
-  if(perf.fps30()&&PA.lastF&&now-PA.lastF<1000/30-4){ requestAnimationFrame(frame); return; }
-  const dt=PA.lastF?now-PA.lastF:0; PA.lastF=now; PA.fn++;
-  const t0=performance.now(); PA_frame.apply(this,arguments); const rt=performance.now()-t0;
-  if(mmT===0.15){ const m=perf.L().mm; if(m>0.15) mmT=m; } // minimap / turn order redraw rate
-  paAuto(dt,rt);
-  if(paIdleOk(performance.now())){ PA.idle=true; PA.idleAt=performance.now(); PA.idleTO=setTimeout(paIdleTick,250); } };
-for(const ev of ['pointerdown','touchstart','keydown','wheel','mousemove']) window.addEventListener(ev,paWake,{capture:true,passive:true});
+  PA.covF=-1; const iv=paInterval(now), t0=performance.now();
+  if(PA.lastP&&t0-PA.lastP<iv-7){ paSched(iv-(t0-PA.lastP)); return; } // early (some browsers run a late request at once, on the last vsync's time)
+  PA.lastP=t0; PA.iv=iv; const dt=PA.lastF?now-PA.lastF:0; PA.lastF=now; PA.fn++;
+  let rt=0;
+  try{ PA_frame.apply(this,arguments); rt=performance.now()-t0;
+    if(mmT===0.15){ const m=perf.L().mm; if(m>0.15) mmT=m; } // minimap / turn order redraw rate
+    paAuto(dt,rt); }
+  finally{ const t1=performance.now();
+    if(paIdleOk(t1)){ PA.idle=true; PA.idleAt=t1; PA.idleTO=setTimeout(paIdleTick,250); }
+    else paSched(paInterval(t1)-(t1-t0)); } }; // due one interval after this frame started
+for(const ev of ['pointerdown','touchstart','touchmove','pointermove','keydown','wheel','mousemove']) window.addEventListener(ev,paWake,{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) paWake(); });
 
 /* ---------- reduced motion, screen reader polling ---------- */
@@ -13188,8 +13250,8 @@ function paTog(k,label,sub,on){ return '<div class="setrow"><div>'+label+(sub?'<
 function paRows(){ const s=paSet(), g=PA_LV[s.gfx]?s.gfx:'auto';
   return '<div class="pa-h">Graphics</div>'
     +paSeg('gfx','Quality',g==='auto'?'Auto: '+PA_LV[gfxLevel()].name+' (measured on this device)':'Performance: lower resolution, fewer particles and glows, simpler flyover',[['auto','Auto'],['high','High'],['balanced','Bal.'],['perf','Perf.']],g,'pa4')
-    +paTog('fps30','30 fps cap','Smoother on hot phones, saves battery',!!s.fps30)
-    +paTog('idle','Battery saver','Pause the animation when nothing moves and you are idle',perf.idle())
+    +paTog('idle','Battery saver','Calm scenes and menus draw at 30 fps; the animation pauses when nothing moves and you are idle',perf.idle())
+    +paTog('fps30','30 fps cap','Also while things move and you touch the screen: coolest, least smooth',!!s.fps30)
     +'<div class="pa-h">Accessibility</div>'
     +paSeg('cb','Colour vision','Team colours, rings, health bars, hit chance, storm, minimap',[['off','Off'],['deut','Deut.'],['prot','Prot.'],['trit','Trit.']],PA_PAL[s.cb]?s.cb:'off','pa4')
     +paTog('shapes','Ally / enemy markers','Shapes over operatives, so colour is not the only cue',a11y.shapes())
