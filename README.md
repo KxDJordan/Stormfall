@@ -154,7 +154,7 @@ bar plate that every player sees.
 | Ascended form | Stats | Trait |
 |---------------|-------|-------|
 | Ranger | +5 aim | Long Lunge: Blade Strike reaches 1 tile farther |
-| Sharpshooter | +1 HP | Ghillie Shroud: while it has neither moved nor shot since the start of its last turn, enemies see and target it only within 6 tiles. Drawn in a full ghillie suit |
+| Sharpshooter | +1 HP | Ghillie Shroud: while it has neither moved nor shot since the start of its last turn, enemies see and target it only within 6 tiles, and AI enemies lose track of it unless they spot it again. While hidden it is drawn see-through on your side. Drawn in a full ghillie suit |
 | Grenadier | +1 HP, +1 armor | Siege Plating: damaging grenades blast 0.5 tiles wider. Drawn bulkier, with domed pauldrons and a grenade bandolier |
 | Specialist | +1 HP, +5 aim | Overclocked Protocol: Combat Protocol is ready a turn sooner (cooldown −1) and zaps for +1 damage; every zap jams its target (disoriented: −20 aim on its next turn, overwatch broken) and marks it (the team gets +10 aim against it until the end of next round) |
 | Engineer | +1 HP, +5 aim | Rapid Sentries: Deploy Turret is ready a turn sooner (cooldown −1) and turrets carry one more reaction shot |

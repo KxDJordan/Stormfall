@@ -4892,7 +4892,7 @@ function drawSoldier(c,o){
   if(useSec) primLow=false; if(primLow){ W=[1.2,-5.4,.8]; }
   // ---------- draw ----------
   c.save(); c.translate(o.x,o.y); c.scale(SCL,SCL);
-  if(!o.noShadow){ const sw=(dead>0?19:15)*(1-.45*(o.drop||0)), sx=bx*fs*.5; c.globalAlpha=.55; c.drawImage(softTex([0,0,0]),sx-sw,1-sw*.42,sw*2,sw*.84); c.globalAlpha=1; c.fillStyle='rgba(0,0,0,.26)'; c.beginPath(); c.ellipse(sx,.3,sw*.55,sw*.22,0,0,Math.PI*2); c.fill(); }
+  if(!o.noShadow){ const sw=(dead>0?19:15)*(1-.45*(o.drop||0)), sx=bx*fs*.5; const sga=c.globalAlpha; c.globalAlpha=.55*sga; c.drawImage(softTex([0,0,0]),sx-sw,1-sw*.42,sw*2,sw*.84); c.globalAlpha=sga; c.fillStyle='rgba(0,0,0,.26)'; c.beginPath(); c.ellipse(sx,.3,sw*.55,sw*.22,0,0,Math.PI*2); c.fill(); }
   c.scale(fs*spin,1);
   // dropped primary lies on the ground in front when downed or dead
   if(dn>.5||dead>.25){ const k=dead>0?sstep((dead-.15)/.45):1; drawWpn(c,wid,PF,vis,lerp(4,dead>0?-(o.deadDir||1)*-9:6.5,k),lerp(-10,-1.5,k),lerp(.8,.06,k)); }
@@ -5412,7 +5412,7 @@ function drawUnit(c,u){
     c.globalCompositeOperation='source-over'; c.lineCap='butt';
     for(let i=0;i<tr.length-1;i+=4){ const a=Math.max(0,1-(t-tr[i][2])*3.2)*.35; if(a<=.02) continue; c.globalAlpha=a; drawSoldier(c,soldierOf(u,tr[i][0],tr[i][1],true)); c.globalAlpha=1; } }
   if(u.inf&&u.alive&&u.drop<=0) infAura(c,u,p,t); // Infected: sickly glow and spores (visual)
-  c.save(); if(!u.alive) c.globalAlpha=Math.max(.38,.92-Math.max(0,(u.vDead||0)-1.1)*.4); else if(u.drop>0) c.globalAlpha=1-u.drop*0.3;
+  c.save(); if(!u.alive) c.globalAlpha=Math.max(.38,.92-Math.max(0,(u.vDead||0)-1.1)*.4); else if(u.drop>0) c.globalAlpha=1-u.drop*0.3; else if(ghVeil(u)) c.globalAlpha=.45+.08*Math.sin(t*2.4+u.ph); // Ghillie Shroud active: drawn see-through
   const KB=!u.alive&&u.vKfx&&KFX[u.vKfx]; if(KB) kfxBody(c,KB,p[0],p[1],u.vDead||0,soldierOf(u,p[0],p[1]),u.vKfxDn); else drawSoldier(c,soldierOf(u,p[0],p[1]));
   if(u.st&&G.scene==='game') stDrawFx(c,u,p,t); // status effects on the body
   c.restore();
@@ -8364,6 +8364,7 @@ function teamDiff(team){ return (G.teamDiff&&G.teamDiff[team])||DIFFS.veteran; }
 function knownThreats(u){
   const m=updateIntel(u.team), out=[], D=teamDiff(u.team); out.fresh=new Set();
   for(const [id,e] of m){ const t=G.units.find(z=>z.id===id); if(!t||!standing(t)){ m.delete(id); continue; } if(e.r<G.round-D.mem) continue;
+    if(ghCloaked(t)&&!(e.seen&&e.r===G.round)) continue; // Ghillie Shroud: no tracking from memory, only what the team sees (or reveals) now
     const ghost=e.x===t.x&&e.y===t.y?t:Object.assign({},t,{x:e.x,y:e.y}); if(Math.hypot(ghost.x-u.x,ghost.y-u.y)<=D.range){ out.push(ghost); if(e.seen&&e.r===G.round) out.fresh.add(id); } }
   return out;
 }
@@ -9952,7 +9953,7 @@ for(const cls of Object.keys(CLASSES)){ const P=PRC[cls]||(PRC[cls]={th:'gild',p
    prestige theme, see PRC), the world HP bar and the HUD HP row get a themed plate (ascPlate / .ascp). */
 const ASC={
   ranger:{name:'Ascended Ranger',aim:5,reach:1,trait:'Long Lunge',td:'Blade Strike reaches 1 tile farther.'},
-  sharpshooter:{name:'Ascended Sharpshooter',hp:1,gh:6,trait:'Ghillie Shroud',td:'While you have neither moved nor shot since the start of your last turn, enemies can only see and target you within 6 tiles.'},
+  sharpshooter:{name:'Ascended Sharpshooter',hp:1,gh:6,trait:'Ghillie Shroud',td:'While you have neither moved nor shot since the start of your last turn, enemies can only see and target you within 6 tiles, and AI enemies lose track of you. You show see-through while hidden.'},
   grenadier:{name:'Ascended Grenadier',hp:1,armor:1,blast:.5,trait:'Siege Plating',td:'+1 armor, and your damaging grenades blast 0.5 tiles wider.'},
   specialist:{name:'Ascended Specialist',hp:1,aim:5,zcd:1,zdmg:1,zdis:1,zmark:1,trait:'Overclocked Protocol',td:'Combat Protocol is ready a turn sooner and zaps for +1 damage. Every zap jams its target (−20 aim on its next turn, overwatch broken) and marks it: your team gets +10 aim against it until the end of next round.'},
   engineer:{name:'Ascended Engineer',hp:1,aim:5,tcd:1,tshots:1,trait:'Rapid Sentries',td:'Deploy Turret is ready a turn sooner, and your turrets carry one more reaction shot.'},
@@ -9979,6 +9980,11 @@ function ascHash(add){ if(!G.units.some(u=>u.asc)) return; add(0x4153); for(cons
 // team (the drone mark: +DRONE.markAim aim, until the end of next round). Both are existing, hashed unit state.
 function ascZapMark(u,t,anim){ const A=ASC.specialist; if(!ascT(u,'specialist')||!t||t.drone||!standing(t)) return; if(A.zdis){ t.disorient=Math.max(t.disorient,1); t.overwatch=false; if(anim) floatText(t,'JAMMED',[255,179,64],15); } if(!A.zmark) return; t.mark={team:u.team,until:G.round+1};
   if(anim) later(300,()=>floatText(t,'UPLINK MARK +'+DRONE.markAim+' AIM',[255,214,90],15)); }
+// Ghillie Shroud is up: an ascended Sharpshooter that has neither moved nor shot since its turn began (enemies see it only within ASC.sharpshooter.gh)
+function ghCloaked(u){ return !!u&&ascT(u,'sharpshooter')&&!u.moved&&!u.ghT&&!u.drone&&standing(u); }
+// on screen (visual only): your own side's shrouded Sharpshooter is drawn see-through while no enemy you can see has eyes on it; spectators see every hidden one
+function ghVeil(u){ if(G.scene!=='game'||!ghCloaked(u)) return false; if(!G.fullVis&&!(G.player&&u.team===G.player.team)) return false;
+  return !G.units.some(e=>standing(e)&&isEnemy(u,e)&&shouldShow(e)&&canSee(e,u))&&!G.drones.some(d=>d.alive&&d.team!==u.team&&tileShown(Math.round(d.x),Math.round(d.y))&&canSee(d,u)); }
 function ascSightCap(b,r){ return ascT(b,'sharpshooter')&&!b.moved&&!b.ghT&&!b.drone?Math.min(ASC.sharpshooter.gh,r):r; } // canSee
 function ascUtil(u,U){ return ascT(u,'grenadier')&&U&&U.dmg&&U.radius?Object.assign({},U,{radius:U.radius+ASC.grenadier.blast}):U; } // doThrow and the throw preview
 { const f=mySpec; mySpec=function(){ const s=f.apply(this,arguments); s.asc=ascLocal(LO.cls)&&!ascNoDaily?1:0; return s; }; }
@@ -10878,7 +10884,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=41, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=42, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
