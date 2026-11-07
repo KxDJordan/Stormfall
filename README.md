@@ -111,6 +111,38 @@ and jammed, and see for their team); walls are ordinary breakable cover; mines a
 for spectators and replays). AI operatives use every ability from their team's knowledge only, and the AI loadout pool
 includes all seven classes. An Infected operative loses its class abilities; Melee only switches turrets off.
 
+### Weapons
+
+Every primary (prestige weapons aside) has a role and one trait, so none is just a bigger version of another; the
+Loadout card shows both. Mk II / III upgrades add the same bonuses to every weapon.
+
+| Weapon | Role | Trait |
+|--------|------|-------|
+| Pulse Rifle | all-rounder | Steady: overwatch and return fire take no reaction penalty |
+| Lynx Carbine | skirmisher | Snap shot: +10 aim on a shot after moving |
+| Wasp SMG | rusher | a shot costs 1 AP and never ends the turn: shoot twice, or shoot and move on |
+| Hush SMG | infiltrator | silent, and nobody can return fire on it |
+| Needler | attrition | 30% chance a hit makes the target bleed (a crit always does) |
+| Breacher Shotgun | breacher | Spread: within 3 tiles a miss still grazes for half damage |
+| Saiga Drum | brawler | Knockback: a hit within 3 tiles pushes the target a tile back, out of its cover |
+| Slug Gun | finisher | +2 damage against targets at half HP or less |
+| Kodiak Lever-Action | gunslinger | a crit gives back 1 AP, once a turn |
+| Volt Caster | point blank | Arc lock: never misses within 2 tiles (ignores armor) |
+| Tesla Arc Rifle | disruptor | a hit shocks the target: −15 aim, no overwatch or hunker (ignores armor) |
+| Hailstorm Cannon | demolition | Splash: a hit deals 2 damage to other enemies next to the target |
+| Tempest Minigun | suppressor | hit or miss, the target gets −15 aim through its next turn; −10 aim on a shot after moving |
+| Warden Burst Rifle | cover shredder | every shot at a target in cover also hits the cover for 2 damage |
+| Thunderclap Launcher | blinder | a hit disorients (−20 aim) and breaks overwatch |
+| Marksman DMR | marksman | Braced: +5 aim and +5% crit if you have not moved this turn |
+| Vanguard SR-7 | tracker | +10 aim against the last enemy you hit with it |
+| Longshot Railgun | long-range killer | +25% crit at 8+ tiles (needs both AP) |
+| Specter Gauss | cover buster | cover counts one step less: full as half, half as none (needs both AP) |
+| Goliath AM-50 | heavy sniper | ignores shields and armor; +3 damage to drones, turrets and objects (needs both AP) |
+
+Sidearms: the P9 pistol carries 4 rounds, the Whisper is silent, and a Machete hit makes the target bleed.
+Balance is checked with AI-vs-AI duels (1v1 and 2v2, mixed maps and ranges): every weapon wins roughly 43–58% overall
+and has ranges where it is the best pick.
+
 ### Class prestige and ascended forms
 
 Every match's XP also levels the class you played (up to class level 20). At level 20 a class can be prestiged
