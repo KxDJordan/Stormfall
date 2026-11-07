@@ -65,9 +65,19 @@ heard and shows a yellow "?". One that sees you locks on (red "!"): it tracks yo
 round you instead of queueing, go round choke points, and feed on a downed squadmate first (each bite takes a turn off
 its bleed-out). During a wave a zombie with no lead homes in on the nearest squad member within a couple of rounds;
 quiet play stops the lock-on and the pack calls, and Noise Makers still pull zombies away. Types:
-Walker (the bulk), Runner (fast, fragile), Brute (smashes doors and cover in its way), Screamer (calls every zombie
-on the map to what it found), Bloater (bursts into a poison cloud through the hazards gas system) and an
-Abomination boss every 5th wave. A closed door holds the others back for a couple of rounds while they bang it open.
+Walker (the bulk), Runner (fast, fragile), Brute (smashes doors and cover in its way, shoves on a hit), Screamer (calls
+every zombie on the map to what it found), Bloater (bursts into a poison cloud through the hazards gas system), Strangler
+(from wave 3: a tongue that drags you in) and an Abomination boss every 5th wave (shoves two tiles).
+**Climbing.** Zombies climb walls and building sides without a ladder, so rooftops only buy time. Climbing up costs extra
+movement per level: 1 for Runners and Stranglers, 2 for Walkers and Screamers, 3 for Brutes, Bloaters and the
+Abomination; dropping off a ledge costs 1. A climb that costs more than a zombie's whole movement takes its whole turn
+from the foot of the wall (a Brute needs a turn to scale a building). Climbs are animated as a clamber up the face.
+**Shoves and drags.** A Brute's claw hit shoves its target one tile straight back, the Abomination's two: out of cover,
+off a ledge, into the horde. The map edge, walls, cover, closed doors, higher ground or anyone in the way stops it, with a
+slam for 1 damage. A Strangler with a squad member in sight 2–3 tiles away lashes its tongue (every other round, rolled
+like a claw): 1 damage and a drag up to 2 tiles toward it (around a corner if the straight line is blocked), which can
+pull you off a rooftop. A fall of two levels or more costs 2 HP (3 from a two-story roof). Being moved ends overwatch and
+hunkering; hazards and crates on the landing tile work as for a step; downed squadmates are never moved. A closed door holds the others back for a couple of rounds while they bang it open.
 Toxic barrels and power boxes are always on the map, for luring the horde into gas and live current.
 Each operative starts with a barricade and a Noise Maker. A breather after each wave brings crates, +8 HP, a barricade
 charge and eliminated squadmates back. Clear wave 10 to extract. The horde acts as one NPC turn after the squad's turns.
