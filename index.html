@@ -433,6 +433,7 @@ body.sheet-open .nav{display:none}
 .card .t{font-weight:700;font-size:15.5px;line-height:1.3;padding-right:16px}
 .card .d{color:var(--muted);font-size:12.5px;margin-top:4px;line-height:1.45}
 .card .d .opt{color:var(--text);font-weight:600}
+.card .d .wrole{color:var(--amber);font-weight:700}
 .card .d .ob{display:block;margin-top:4px;color:var(--signal);font-size:12px}
 .card .cd{margin:8px 0 0;font-size:12.5px;line-height:1.45;color:var(--text2)}
 .card.sel{border-color:var(--signal);background:linear-gradient(180deg,rgba(63,210,255,.14),rgba(63,210,255,.03))}
@@ -1545,8 +1546,9 @@ html.pa-rm .toast,html.pa-rm .toast.lvl,html.pa-rm .toast.lvl::after,html.pa-rm 
       <li>Fuel barrels, oil drums, fuel and coolant tanks and blasting charges explode when destroyed, hurting everyone nearby and setting off other explosives in the blast. Shoot them when an enemy hides next to one.</li>
       <li>Return fire: an operative in full cover from its attacker shoots back once per enemy turn (reaction shot, −15 aim, 1 ammo) if it survives, can see the shooter and has ammo. Not while downed, disoriented, hunkered or on overwatch. Flank to avoid it.</li>
       <li>Information: gunfire and explosions out of sight within 14 tiles of your team show as ripples, edge arrows and minimap pings, and enemies leave a “?” marker where you last saw, heard or sensed them, fading over 2 rounds. The Scout Drone reveals an area until the end of next round; the Motion Sensor pings enemies that move near it for 4 rounds.</li>
-      <li>Grenades and other throwables cost 1 AP. Shooting or throwing a grenade before you move leaves 1 AP for a move; attacking after a move, overwatch and hunker end your turn. The railgun and gauss rifle need both AP.</li>
+      <li>Grenades and other throwables cost 1 AP and keep your turn going. Shooting before you move leaves 1 AP for a move; shooting after a move, overwatch and hunker end your turn (the SMG’s Run and gun excepted). The railgun, gauss rifle and AM-50 need both AP.</li>
       <li id="howRange">Every weapon has an optimal range where its aim is best.</li>
+      <li id="howTraits">Every weapon has a role and one trait, shown on its Loadout card.</li>
       <li>Every operative carries a secondary. Knives, axes and blades strike an adjacent enemy (the machete and Monoblade dash a few tiles to reach one); throwing weapons can also be thrown a few tiles, a limited number of times per match; pistols have their own magazine and range. Secondary attacks follow the shooting rules: before moving they cost 1 AP and leave a move, after moving (or after a dash) they end your turn.</li>
       <li>At levels 3, 6, 9, 12 and 15 your class unlocks a perk tier. Pick one of two class perks per tier in Loadout and change them between matches; some are new actions with cooldowns. The separate Perk slot works with any class.</li>
       <li>Class prestige: at class level 20 you can prestige a class (Profile → Prestige) for a rank I–V, tokens, prestige weapons and cosmetics. Prestige I also unlocks that class’s <b>ascended form</b>, a stronger version with one trait: Ranger +5 aim, Blade Strike reaches 1 tile farther · Sharpshooter +1 HP and a ghillie shroud (while it has neither moved nor shot since its last turn began, enemies only see it within 6 tiles) · Grenadier +1 HP, +1 armor, grenades blast 0.5 tiles wider · Specialist +1 HP, +5 aim, Combat Protocol is ready a turn sooner, zaps for +1 and jams and marks its target (−20 aim for it, +10 team aim against it) · Engineer +1 HP, +5 aim, Deploy Turret is ready a turn sooner and turrets carry one more reaction shot · Medic +1 HP, revives give 2 more HP · Recon +1 HP, +5 aim, Wall Scan +2 tiles. It has its own look and a themed health bar plate everyone can see. Switch it on or off in Loadout; it is off in Ranked and the daily challenge, and the AI never plays it.</li>
@@ -1673,34 +1675,64 @@ Object.assign(CLASSES,{
    dropping by `fall` per tile. range(d) is built from rt, and the loadout text, optimal band and bars are all derived
    from range(), so they cannot drift from what hitInfo uses. */
 const WEAPONS={
-  rifle:{name:'M-17 Pulse Rifle',short:'Rifle',dmg:[3,5],clip:4,crit:10,critDmg:2,aim:0,fx:'burst',rt:[[4,5],[9,0],[10,-10]],fall:5,desc:'All-rounder that stays steady out to 9 tiles.'},
-  shotgun:{name:'Breacher Shotgun',short:'Shotgun',dmg:[4,6],clip:4,crit:20,critDmg:2,aim:0,fx:'pellet',rt:[[4,20],[5,0]],fall:15,desc:'Brutal up close, falls off hard past 4 tiles.'},
-  sniper:{name:'Longshot Railgun',short:'Railgun',dmg:[5,7],clip:3,crit:20,critDmg:3,aim:0,fx:'beam',heavy:true,rt:[[3,-30],[6,-5],[99,5]],desc:'Hard-hitting long gun; clumsy up close.'},
-  dmr:{name:'Marksman DMR',short:'DMR',dmg:[3,5],clip:4,crit:15,critDmg:2,aim:5,fx:'single',rt:[[2,-10],[4,-5],[6,0],[99,5]],desc:'Precise at mid to long range, and you can move and shoot.'},
-  cannon:{name:'Hailstorm Cannon',short:'Cannon',dmg:[4,7],clip:3,crit:10,critDmg:2,aim:-5,fx:'heavy',rt:[[7,0],[8,-10]],fall:5,desc:'Hits hard anywhere inside 7 tiles; small magazine.'},
-  smg:{name:'Wasp SMG',short:'SMG',dmg:[3,4],clip:5,crit:15,critDmg:2,aim:5,mob:1,fx:'burst',rt:[[4,10],[7,0]],fall:7,desc:'Light and quick: accurate on the move up close.'},
-  carbine:{name:'Lynx Carbine',short:'Carbine',dmg:[3,4],clip:5,crit:10,critDmg:2,aim:5,fx:'burst',rt:[[2,0],[7,5],[10,0]],fall:5,desc:'Mid-range accuracy and a deep magazine for lighter hits.'},
-  slug:{name:'Bulldog Slug Gun',short:'Slug Gun',dmg:[4,6],clip:3,crit:10,critDmg:2,aim:-5,fx:'single',rt:[[6,10],[7,0]],fall:10,desc:'A shotgun that reaches: even accuracy out to 6 tiles.'},
-  minigun:{name:'Tempest Minigun',short:'Minigun',dmg:[4,5],clip:6,crit:5,critDmg:2,aim:-5,mob:-1,fx:'heavy',rt:[[6,10],[9,0]],fall:5,desc:'Huge drum and steady damage, but it slows you down. Feeds Hail of Bullets.'},
-  gauss:{name:'Specter Gauss Rifle',short:'Gauss',dmg:[6,8],clip:2,crit:25,critDmg:3,aim:-5,fx:'beam',heavy:true,rt:[[4,-35],[7,-5],[99,10]],desc:'Heaviest hitter at long range; two-round magazine.'},
-  volt:{name:'Volt Caster',short:'Volt',dmg:[3,5],clip:3,crit:0,critDmg:2,aim:10,pierce:true,fx:'beam',rt:[[3,10],[6,0]],fall:15,desc:'Arc bolts that ignore armor, with very short reach.'}
+  rifle:{name:'M-17 Pulse Rifle',short:'Rifle',dmg:[3,5],clip:4,crit:10,critDmg:2,aim:0,fx:'burst',tr:'steady',rt:[[4,5],[9,0],[10,-10]],fall:5,desc:'All-rounder that stays steady out to 9 tiles.'},
+  shotgun:{name:'Breacher Shotgun',short:'Shotgun',dmg:[4,6],clip:4,crit:15,critDmg:2,aim:0,fx:'pellet',tr:'spread',rt:[[4,20],[5,0]],fall:15,desc:'Brutal up close, falls off hard past 4 tiles.'},
+  sniper:{name:'Longshot Railgun',short:'Railgun',dmg:[5,7],clip:3,crit:20,critDmg:3,aim:0,fx:'beam',heavy:true,tr:'lethal',rt:[[3,-30],[6,0],[99,5]],desc:'Hard-hitting long gun; clumsy up close.'},
+  dmr:{name:'Marksman DMR',short:'DMR',dmg:[3,4],clip:4,crit:15,critDmg:2,aim:0,fx:'single',tr:'braced',rt:[[2,-10],[4,-5],[6,0],[99,5]],desc:'Precise at mid to long range. Shoot before you move.'},
+  cannon:{name:'Hailstorm Cannon',short:'Cannon',dmg:[3,5],clip:3,crit:10,critDmg:2,aim:-5,fx:'heavy',tr:'splash',rt:[[7,0],[8,-10]],fall:5,desc:'Explosive shells inside 7 tiles; small magazine.'},
+  smg:{name:'Wasp SMG',short:'SMG',dmg:[2,4],clip:6,crit:15,critDmg:2,aim:5,mob:1,fx:'burst',tr:'rng',rt:[[4,10],[7,0]],fall:7,desc:'Light and quick: spray, move, spray again.'},
+  carbine:{name:'Lynx Carbine',short:'Carbine',dmg:[3,4],clip:5,crit:10,critDmg:2,aim:0,fx:'burst',tr:'snap',rt:[[2,0],[7,5],[10,0]],fall:5,desc:'Mid-range gun for shooting on the move.'},
+  slug:{name:'Bulldog Slug Gun',short:'Slug Gun',dmg:[3,5],clip:4,crit:10,critDmg:2,aim:-5,fx:'single',tr:'finish',rt:[[6,10],[7,0]],fall:10,desc:'Even accuracy out to 6 tiles; finishes off the wounded.'},
+  minigun:{name:'Tempest Minigun',short:'Minigun',dmg:[4,5],clip:6,crit:5,critDmg:2,aim:-5,fx:'heavy',tr:'supp',rt:[[6,10],[9,0]],fall:5,desc:'Huge drum that pins enemies down; clumsy on the move. Feeds Hail of Bullets.'},
+  gauss:{name:'Specter Gauss Rifle',short:'Gauss',dmg:[6,8],clip:2,crit:20,critDmg:3,aim:-5,fx:'beam',heavy:true,tr:'pen',rt:[[4,-35],[7,-5],[99,10]],desc:'Long-range slugs that punch through cover; two-round magazine.'},
+  volt:{name:'Volt Caster',short:'Volt',dmg:[3,5],clip:3,crit:0,critDmg:2,aim:10,pierce:true,fx:'beam',tr:'lock',rt:[[3,10],[6,0]],fall:15,desc:'Arc bolts that ignore armor, with very short reach.'}
 };
 /* ----- armory expansion: more primaries (2 per original class), wired into the class lists below ----- */
 Object.assign(WEAPONS,{
-  lever:{name:'Kodiak Lever-Action',short:'Lever',dmg:[3,5],clip:3,crit:25,critDmg:3,aim:0,fx:'single',rt:[[3,10],[6,5],[8,0]],fall:8,desc:'Cowboy rifle: steady out to 6 tiles and vicious crits.'},
-  drum:{name:'Saiga Drum Shotgun',short:'Drum',dmg:[3,5],clip:6,crit:15,critDmg:2,aim:0,fx:'pellet',rt:[[3,20],[4,5]],fall:15,desc:'A deep drum of buckshot for brawls inside 4 tiles; lighter pellets than the Breacher.'},
-  semidmr:{name:'Vanguard SR-7',short:'SR-7',dmg:[3,4],clip:5,crit:10,critDmg:2,aim:0,fx:'burst',rt:[[2,-5],[9,5],[99,0]],desc:'Semi-auto marksman rifle: deep magazine, even accuracy from 3 to 9 tiles, and you can move and shoot.'},
-  amr:{name:'Goliath AM-50',short:'AM-50',dmg:[6,8],clip:1,crit:10,critDmg:2,aim:-5,mob:-1,pierce:true,fx:'single',heavy:true,rt:[[4,-30],[8,0],[99,5]],desc:'Anti-materiel rifle: one armor-piercing round per reload. Heavy and slow.'},
-  burstr:{name:'Warden Burst Rifle',short:'Warden',dmg:[4,5],clip:3,crit:10,critDmg:2,aim:-5,fx:'burst',rt:[[5,10],[8,5],[9,0]],fall:6,desc:'Three-round bursts that hit harder than the Pulse Rifle, with a smaller magazine.'},
-  flashl:{name:'Thunderclap Launcher',short:'Thunderclap',dmg:[2,4],clip:3,crit:0,critDmg:0,aim:0,fx:'single',flash:true,trc:[255,246,200],rt:[[6,5],[8,0]],fall:10,desc:'Flash shells: light damage, but a hit disorients the target (−20 aim for its next turn) and breaks its overwatch.'},
-  flech:{name:'Needler Flechette SMG',short:'Needler',dmg:[2,3],clip:6,crit:20,critDmg:2,aim:5,mob:1,pierce:true,fx:'burst',rt:[[4,10],[6,0]],fall:8,desc:'Steel darts that ignore armor; quick on the move, weak past 6 tiles.'},
-  arcr:{name:'Tesla Arc Rifle',short:'Arc Rifle',dmg:[3,4],clip:4,crit:5,critDmg:2,aim:5,pierce:true,fx:'beam',arcfx:true,rt:[[5,5],[8,0]],fall:10,desc:'A longer-reaching arc weapon than the Volt Caster: armor-piercing bolts out to 8 tiles, lighter hits.'}
+  lever:{name:'Kodiak Lever-Action',short:'Lever',dmg:[3,5],clip:3,crit:15,critDmg:3,aim:0,fx:'single',tr:'lever',rt:[[3,10],[6,0]],fall:8,desc:'Cowboy rifle: steady out to 6 tiles and vicious crits.'},
+  drum:{name:'Saiga Drum Shotgun',short:'Drum',dmg:[3,6],clip:6,crit:20,critDmg:2,aim:0,fx:'pellet',tr:'knock',rt:[[4,20],[5,5]],fall:15,desc:'A deep drum of buckshot for brawls inside 4 tiles.'},
+  semidmr:{name:'Vanguard SR-7',short:'SR-7',dmg:[3,5],clip:5,crit:10,critDmg:2,aim:0,fx:'burst',tr:'track',rt:[[2,-5],[9,5],[99,0]],desc:'Semi-auto marksman rifle: deep magazine and even accuracy from 3 to 9 tiles.'},
+  amr:{name:'Goliath AM-50',short:'AM-50',dmg:[6,9],clip:3,crit:10,critDmg:2,aim:-5,pierce:true,fx:'single',heavy:true,tr:'amat',rt:[[3,-25],[7,0],[99,10]],desc:'Anti-materiel rifle: huge armor-piercing rounds, three per magazine.'},
+  burstr:{name:'Warden Burst Rifle',short:'Warden',dmg:[3,5],clip:4,crit:10,critDmg:2,aim:-5,fx:'burst',tr:'shred',rt:[[5,10],[8,5],[9,0]],fall:6,desc:'Three-round bursts that chew through cover.'},
+  flashl:{name:'Thunderclap Launcher',short:'Thunderclap',dmg:[3,4],clip:4,crit:0,critDmg:0,aim:5,fx:'single',flash:true,tr:'dazzle',trc:[255,246,200],rt:[[6,10],[8,0]],fall:10,desc:'Flash shells: light damage that blinds.'},
+  flech:{name:'Needler Flechette SMG',short:'Needler',dmg:[2,4],clip:6,crit:20,critDmg:2,aim:5,mob:1,fx:'burst',tr:'bleed',rt:[[4,10],[6,0]],fall:8,desc:'Steel darts that leave wounds; quick on the move, weak past 6 tiles.'},
+  arcr:{name:'Tesla Arc Rifle',short:'Arc Rifle',dmg:[3,4],clip:4,crit:5,critDmg:2,aim:5,pierce:true,fx:'beam',arcfx:true,tr:'shock',rt:[[5,5],[8,0]],fall:10,desc:'Armor-piercing arc bolts out to 8 tiles that jolt the target.'}
 });
 CLASSES.ranger.weapons.push('lever','drum'); CLASSES.sharpshooter.weapons.push('semidmr','amr'); CLASSES.grenadier.weapons.push('burstr','flashl'); CLASSES.specialist.weapons.push('flech','arcr');
 function rangeFn(rt,fall){ return d=>{ for(const s of rt) if(d<=s[0]) return s[1]; const l=rt[rt.length-1]; return l[1]-(fall||0)*(d-l[0]); }; }
 for(const k in WEAPONS){ WEAPONS[k].id=k; WEAPONS[k].range=rangeFn(WEAPONS[k].rt,WEAPONS[k].fall); }
 // Recon's suppressed SMG (an integrally suppressed Wasp: silent, so no noise, intel ripple or Blackout muzzle flash)
-WEAPONS.wsmg={name:'Hush SMG',short:'Hush SMG',dmg:[2,4],clip:5,crit:15,critDmg:2,aim:5,mob:1,fx:'burst',silent:true,noAtt:['barrel'],rt:[[4,10],[7,0]],fall:7,desc:'Integrally suppressed: quiet, light and accurate up close.',id:'wsmg'}; WEAPONS.wsmg.range=rangeFn(WEAPONS.wsmg.rt,WEAPONS.wsmg.fall);
+WEAPONS.wsmg={name:'Hush SMG',short:'Hush SMG',dmg:[2,4],clip:5,crit:20,critDmg:2,aim:5,mob:1,fx:'burst',silent:true,tr:'hush',noAtt:['barrel'],rt:[[4,10],[7,0]],fall:7,desc:'Integrally suppressed: quiet, light and accurate up close.',id:'wsmg'}; WEAPONS.wsmg.range=rangeFn(WEAPONS.wsmg.rt,WEAPONS.wsmg.fall);
+/* Weapon traits: every non-prestige primary has one (w.tr), so no gun is just a bigger version of another. The numbers
+   live in TRN; the sim hooks are in hitInfo (aim, crit, cover, grazes), fireShot (trShotDmg / trAfterShot), the fire
+   command and aiExecute (Run and gun), returnFire (Hush), shotCover / shootObj (Shredder, Anti-materiel) and unitTurn
+   (Suppressed wears off). Seeded RNG only (Bleed); trHash adds the new unit state only when present. Prestige weapons
+   take their base weapon's trait (prwReg, by shape) on top of their own effect (w.px), so they stay that weapon plus more. */
+const TRN={snap:10,braced:5,bracedCrit:5,track:10,supp:15,suppMov:10,lethalD:8,lethalCrit:25,spreadD:3,lockD:2,knockD:3,finish:2,bleedP:30,splashR:1.5,splashDmg:2,shred:2,amat:3};
+const WTRAIT={
+  steady:{role:'All-rounder',name:'Steady',txt:'Overwatch and return fire take no reaction penalty.'},
+  snap:{role:'Skirmisher',name:'Snap shot',txt:'+'+TRN.snap+' aim on a shot after moving.'},
+  rng:{role:'Rusher',name:'Run and gun',txt:'A shot costs 1 AP and never ends your turn: shoot twice, or shoot and move on.'},
+  hush:{role:'Infiltrator',name:'Hush',txt:'Silent, and nobody can return fire on it.'},
+  bleed:{role:'Attrition',name:'Bleed',txt:TRN.bleedP+'% chance a hit makes the target bleed; a crit always does.'},
+  spread:{role:'Breacher',name:'Spread',txt:'Within '+TRN.spreadD+' tiles a miss still grazes for half damage.'},
+  knock:{role:'Brawler',name:'Knockback',txt:'A hit within '+TRN.knockD+' tiles knocks the target back a tile, out of its cover.'},
+  finish:{role:'Finisher',name:'Man-stopper',txt:'+'+TRN.finish+' damage against targets at half HP or less.'},
+  lock:{role:'Point blank',name:'Arc lock',txt:'Never misses within '+TRN.lockD+' tiles.'},
+  shock:{role:'Disruptor',name:'Shock',txt:'A hit shocks the target: −15 aim, and no overwatch or hunker.'},
+  splash:{role:'Demolition',name:'Splash',txt:'A hit also deals '+TRN.splashDmg+' damage to other enemies next to the target.'},
+  supp:{role:'Suppressor',name:'Suppression',txt:'Hit or miss, the target is suppressed: −'+TRN.supp+' aim through its next turn. −'+TRN.suppMov+' aim on a shot after moving.'},
+  shred:{role:'Cover shredder',name:'Shredder',txt:'Every shot at a target in cover also hits the cover for '+TRN.shred+' damage.'},
+  dazzle:{role:'Blinder',name:'Flash shells',txt:'A hit disorients the target (−20 aim for its next turn) and breaks its overwatch.'},
+  lethal:{role:'Long-range killer',name:'Lethal range',txt:'+'+TRN.lethalCrit+'% crit chance at '+TRN.lethalD+' tiles or more.'},
+  pen:{role:'Cover buster',name:'Through cover',txt:'Cover protects one step less: full cover counts as half, half as none.'},
+  amat:{role:'Heavy sniper',name:'Anti-materiel',txt:'Ignores shields and armor; +'+TRN.amat+' damage to drones, turrets and objects.'},
+  braced:{role:'Marksman',name:'Braced',txt:'+'+TRN.braced+' aim and +'+TRN.bracedCrit+'% crit if you have not moved this turn.'},
+  track:{role:'Tracker',name:'Tracking',txt:'+'+TRN.track+' aim against the last enemy you hit with it.'},
+  lever:{role:'Gunslinger',name:'Quick lever',txt:'A crit gives back 1 AP, once a turn.'}
+};
+// loadout card line: "Role · Trait: what it does" ('' for a weapon without a trait)
+function wRoleHtml(w){ const T=w&&WTRAIT[w.tr]; return T?'<b class="wrole">'+T.role+'</b> · '+T.name+': '+T.txt+'<br>':''; }
 const ARMORS={
   light:{name:'Spider Suit',short:'Light',look:'light',hp:1,mob:1,def:10,armor:0,note:'Quick and hard to pin down.'},
   medium:{name:'Predator Armor',short:'Medium',look:'medium',hp:3,mob:0,def:0,armor:0,note:'Plain, dependable plating.'},
@@ -1731,7 +1763,7 @@ function bandTxt(b){ return (b.hi>=RANGE_MAX?b.lo+'+':b.lo===b.hi?''+b.lo:b.lo+'
 function rangeTxt(w){ const out=[]; let from=1; for(const s of w.rt){ const to=s[0]; out.push((to>=99?from+'+':from===to?''+from:from+'–'+to)+' '+sgn(s[1]+w.aim)); from=to+1; if(to>=99) break; } if(w.fall) out.push('then −'+w.fall+'/tile'); return out.join(' · '); }
 // average hit chance against an exposed target with no defense across each range band, for a shooter with this aim
 function bandHit(w,aim){ return RANGE_BANDS.map(b=>{ let s=0; for(let d=b[1];d<=b[2];d++) s+=clamp(Math.round(aim+w.aim+w.range(d)),0,100); return [b[0]+' '+b[1]+'–'+b[2],Math.round(s/(b[2]-b[1]+1))]; }); }
-function weaponTraits(w){ const t=[]; if(w.heavy) t.push('Needs both AP: cannot move and fire'); if(w.mob||w.amob) t.push(sgn((w.mob||0)+(w.amob||0))+' mobility'); if(w.pierce) t.push('Ignores armor'); return t; }
+function weaponTraits(w){ const t=[]; if(w.heavy) t.push('Needs both AP: cannot move and fire'); if(w.mob||w.amob) t.push(sgn((w.mob||0)+(w.amob||0))+' mobility'); if(w.pierce&&w.tr!=='amat') t.push('Ignores armor'); return t; }
 const SMOKE_SIGHT=2.5, SMOKE_NEAR=2.01; // smoke: sight inside a cloud, and how close you can still see into one
 const UTILS={
   frag:{name:'Frag Grenade',short:'Frag',charges:2,range:8,radius:1.6,dmg:[3,4],note:'Knocks cover down a stage and sets off explosives.'},
@@ -1817,10 +1849,10 @@ Object.assign(ABIL,{
    Attacks follow the primary-shot AP rule: before moving 1 AP (then only a move), after moving or a dash it ends the turn. */
 const SECONDARIES={
   knife:{name:'Combat Knife',short:'Knife',type:'melee',dmg:[2,4],acc:90,crit:15,critDmg:2,desc:'Quiet and quick. Strikes an adjacent enemy.'},
-  pistol:{name:'P9 Sidearm',short:'Pistol',type:'pistol',dmg:[2,3],clip:3,crit:10,critDmg:1,aim:0,fx:'single',rt:[[3,10],[6,0]],fall:8,desc:'Backup gun for an empty magazine, or for after you have moved with a heavy rifle.'},
+  pistol:{name:'P9 Sidearm',short:'Pistol',type:'pistol',dmg:[2,3],clip:4,crit:10,critDmg:1,aim:0,fx:'single',rt:[[3,10],[6,0]],fall:8,desc:'Backup gun for an empty magazine, or for after you have moved with a heavy rifle.'},
   tknife:{name:'Throwing Knives',short:'Knives',type:'thrown',dmg:[2,3],acc:90,crit:15,critDmg:2,range:5,uses:3,aim:0,rt:[[2,15],[4,5],[5,-5]],desc:'Stab up close or throw them. Silent.'},
-  silencer:{name:'Whisper Pistol',short:'Whisper',type:'pistol',dmg:[2,4],clip:3,crit:10,critDmg:1,aim:5,fx:'single',silent:true,rt:[[4,5],[7,0]],fall:8,desc:'Suppressed: its shots make no noise for enemies to track.'},
-  machete:{name:'Jungle Machete',short:'Machete',type:'melee',dmg:[3,5],acc:85,crit:15,critDmg:2,dash:3,desc:'Dash in and hack at an enemy.'},
+  silencer:{name:'Whisper Pistol',short:'Whisper',type:'pistol',dmg:[2,4],clip:3,crit:10,critDmg:1,aim:0,fx:'single',silent:true,rt:[[4,5],[7,0]],fall:8,desc:'Suppressed: its shots make no noise for enemies to track.'},
+  machete:{name:'Jungle Machete',short:'Machete',type:'melee',dmg:[3,5],acc:85,crit:15,critDmg:2,dash:3,bleed:true,desc:'Dash in and hack at an enemy: a hit makes it bleed.'},
   hatchet:{name:'Tomahawk',short:'Tomahawk',type:'thrown',dmg:[3,5],acc:85,crit:10,critDmg:2,range:6,uses:2,aim:-5,rt:[[3,10],[5,0],[6,-10]],desc:'Heavy chop up close, or throw it.'},
   baton:{name:'Shock Baton',short:'Baton',type:'melee',dmg:[2,3],acc:90,crit:0,critDmg:0,pierce:true,stun:true,desc:'An electric jolt for an adjacent enemy.'},
   magnum:{name:'Ironclad Magnum',short:'Magnum',type:'pistol',dmg:[3,5],clip:2,crit:20,critDmg:2,aim:0,fx:'single',rt:[[2,0],[6,5],[8,-5]],fall:10,desc:'Hand cannon: two rounds, big hits.'},
@@ -1931,15 +1963,15 @@ const ROMAN=['','I','II','III','IV','V'];
 const PRW_DEF={
   p_aurum:{cls:'ranger',rk:1,shape:'shotgun',pf:'p_gild',trc:[255,206,90],tag:'Aurum',w:{name:'Aurum Breacher',short:'Aurum',dmg:[5,7],clip:5,crit:30,critDmg:2,aim:5,fx:'pellet',rt:[[4,20],[6,5]],fall:12,desc:'Prestige weapon. A gilded Breacher, Mk III grade, with one more tile of reach.'}},
   p_reaver:{cls:'ranger',rk:3,shape:'lever',pf:'p_ember',trc:[255,84,60],tag:'Reaver',w:{name:'Reaver Lever-Action',short:'Reaver',dmg:[4,6],clip:4,crit:35,critDmg:3,aim:5,fx:'single',rt:[[3,10],[7,5],[9,0]],fall:8,desc:'Prestige weapon. An ember-forged lever gun: brutal crits, steady out to 7 tiles.'}},
-  p_halo:{cls:'sharpshooter',rk:1,shape:'sniper',pf:'p_gild',trc:[255,232,150],tag:'Halo',w:{name:'Halo Railgun',short:'Halo',dmg:[6,8],clip:4,crit:30,critDmg:3,aim:5,fx:'beam',heavy:true,rt:[[3,-25],[6,-5],[99,5]],desc:'Prestige weapon. A gilded railgun, Mk III grade, a little less clumsy up close.'}},
-  p_seraph:{cls:'sharpshooter',rk:3,shape:'amr',pf:'p_void',trc:[196,120,255],tag:'Seraph',w:{name:'Seraph AM-50',short:'Seraph',dmg:[7,9],clip:2,crit:20,critDmg:2,aim:0,mob:-1,pierce:true,fx:'single',heavy:true,noAtt:['mag'],rt:[[4,-25],[8,0],[99,5]],desc:'Prestige weapon. A void-black anti-materiel rifle with a two-round magazine. Ignores armor.'}},
+  p_halo:{cls:'sharpshooter',rk:1,shape:'sniper',pf:'p_gild',trc:[255,232,150],tag:'Halo',w:{name:'Halo Railgun',short:'Halo',dmg:[6,8],clip:4,crit:30,critDmg:3,aim:5,fx:'beam',heavy:true,rt:[[3,-25],[6,0],[99,5]],desc:'Prestige weapon. A gilded railgun, Mk III grade, a little less clumsy up close.'}},
+  p_seraph:{cls:'sharpshooter',rk:3,shape:'amr',pf:'p_void',trc:[196,120,255],tag:'Seraph',w:{name:'Seraph AM-50',short:'Seraph',dmg:[7,10],clip:4,crit:25,critDmg:2,aim:0,pierce:true,fx:'single',heavy:true,noAtt:['mag'],rt:[[3,-20],[7,0],[99,10]],desc:'Prestige weapon. A void-black anti-materiel rifle, Mk III grade, a little less clumsy up close. Ignores armor.'}},
   p_sunfire:{cls:'grenadier',rk:1,shape:'cannon',pf:'p_gild',trc:[255,170,60],tag:'Sunfire',w:{name:'Sunfire Cannon',short:'Sunfire',dmg:[5,8],clip:4,crit:20,critDmg:2,aim:0,fx:'heavy',rt:[[7,0],[9,-5]],fall:5,desc:'Prestige weapon. A gilded Hailstorm, Mk III grade, that reaches 2 tiles farther.'}},
-  p_maelstrom:{cls:'grenadier',rk:3,shape:'minigun',pf:'p_void',trc:[170,110,255],tag:'Maelstrom',w:{name:'Maelstrom Minigun',short:'Maelstrom',dmg:[5,6],clip:7,crit:15,critDmg:2,aim:0,fx:'heavy',rt:[[6,10],[9,0]],fall:5,desc:'Prestige weapon. A void-forged minigun that does not slow you down.'}},
+  p_maelstrom:{cls:'grenadier',rk:3,shape:'minigun',pf:'p_void',trc:[170,110,255],tag:'Maelstrom',w:{name:'Maelstrom Minigun',short:'Maelstrom',dmg:[5,6],clip:7,crit:15,critDmg:2,aim:0,fx:'heavy',rt:[[6,10],[9,0]],fall:5,desc:'Prestige weapon. A void-forged minigun that keeps its aim on the move.'}},
   p_aurora:{cls:'specialist',rk:1,shape:'volt',pf:'p_aurora',trc:[120,255,200],tag:'Aurora',w:{name:'Aurora Caster',short:'Aurora',dmg:[4,6],clip:4,crit:10,critDmg:2,aim:15,pierce:true,fx:'beam',arcfx:true,noAtt:['barrel'],rt:[[3,10],[7,0]],fall:15,desc:'Prestige weapon. A Volt Caster, Mk III grade, whose aurora bolts reach a tile farther.'}},
-  p_wraith:{cls:'specialist',rk:3,shape:'flech',pf:'p_ember',trc:[255,90,150],tag:'Wraith',w:{name:'Wraith Needler',short:'Wraith',dmg:[3,4],clip:7,crit:30,critDmg:2,aim:10,mob:1,pierce:true,fx:'burst',rt:[[4,10],[7,0]],fall:8,desc:'Prestige weapon. Ember-lit darts, Mk III grade, that carry a tile farther.'}}
+  p_wraith:{cls:'specialist',rk:3,shape:'flech',pf:'p_ember',trc:[255,90,150],tag:'Wraith',w:{name:'Wraith Needler',short:'Wraith',dmg:[3,5],clip:7,crit:30,critDmg:2,aim:10,mob:1,pierce:true,fx:'burst',rt:[[4,10],[7,0]],fall:8,desc:'Prestige weapon. Ember-lit darts, Mk III grade, that carry a tile farther.'}}
 };
 const PRW={};
-function prwReg(k,P){ const w=JSON.parse(JSON.stringify(P.w)); w.id=k; w.prw=true; w.range=rangeFn(w.rt,w.fall); WEAPONS[k]=w; PRW[k]=P; if(!CLASSES[P.cls].weapons.includes(k)) CLASSES[P.cls].weapons.push(k); }
+function prwReg(k,P){ const w=JSON.parse(JSON.stringify(P.w)); w.id=k; w.prw=true; if(!w.tr&&WEAPONS[P.shape]&&WEAPONS[P.shape].tr) w.tr=WEAPONS[P.shape].tr; /* the base weapon's trait */ w.range=rangeFn(w.rt,w.fall); WEAPONS[k]=w; PRW[k]=P; if(!CLASSES[P.cls].weapons.includes(k)) CLASSES[P.cls].weapons.push(k); }
 // idempotent: registers the hand-made weapons, then gilded variants for any class that still has none (run again later in case classes were added after this point)
 function prsGen(){
   for(const k in PRW_DEF) if(!PRW[k]&&CLASSES[PRW_DEF[k].cls]) prwReg(k,PRW_DEF[k]);
@@ -1955,19 +1987,19 @@ prsGen();
    RNG only); the same key picks its tracer and impact style (pxTrail / pxImpact, visual only). Same rules as PRW_DEF: rank-gated,
    never in the AI pool, validated online by prwOk. Registered after prsGen so the gilded variants stay as they were. */
 const PRW_DEF2={
-  p_carom:{cls:'ranger',rk:2,shape:'slug',pf:'p_gild',trc:[255,222,130],tag:'Carom',w:{name:'Carom Slug Gun',short:'Carom',dmg:[4,7],clip:4,crit:20,critDmg:2,aim:0,fx:'single',px:'ricochet',rt:[[6,10],[7,0]],fall:10,desc:'Prestige weapon. Ricochet: a miss against a target in cover can glance off it (35%) and still hit for half damage. One less minimum damage than a Mk III Slug Gun.'}},
-  p_thorn:{cls:'ranger',rk:4,shape:'drum',pf:'p_ember',trc:[255,60,96],tag:'Bloodthorn',w:{name:'Bloodthorn Drum',short:'Bloodthorn',dmg:[4,5],clip:6,crit:25,critDmg:2,aim:5,fx:'pellet',px:'leech',rt:[[3,20],[4,5]],fall:15,desc:'Prestige weapon. Lifesteal: every hit heals you 1 HP, a takedown 3. One less max damage and round than a Mk III Drum.'}},
+  p_carom:{cls:'ranger',rk:2,shape:'slug',pf:'p_gild',trc:[255,222,130],tag:'Carom',w:{name:'Carom Slug Gun',short:'Carom',dmg:[4,7],clip:4,crit:20,critDmg:2,aim:0,fx:'single',px:'ricochet',rt:[[6,10],[7,0]],fall:10,desc:'Prestige weapon. Ricochet: a miss against a target in cover can glance off it (35%) and still hit for half damage. One less round than a Mk III Slug Gun.'}},
+  p_thorn:{cls:'ranger',rk:4,shape:'drum',pf:'p_ember',trc:[255,60,96],tag:'Bloodthorn',w:{name:'Bloodthorn Drum',short:'Bloodthorn',dmg:[4,5],clip:6,crit:25,critDmg:2,aim:5,fx:'pellet',px:'leech',rt:[[3,20],[4,5]],fall:15,desc:'Prestige weapon. Lifesteal: every hit heals you 1 HP, a takedown 3. Lighter than a Mk III Drum, with one less round.'}},
   p_lancet:{cls:'sharpshooter',rk:2,shape:'sniper',pf:'p_aurora',trc:[150,236,255],tag:'Lancet',w:{name:'Lancet Railgun',short:'Lancet',dmg:[6,8],clip:3,crit:25,critDmg:3,aim:5,fx:'beam',heavy:true,px:'overpen',rt:[[3,-30],[6,-5],[99,5]],desc:'Prestige weapon. Overpenetration: a hit punches through to the first enemy up to 4 tiles behind the target for half damage. One less round than a Mk III Railgun.'}},
-  p_vigil:{cls:'sharpshooter',rk:4,shape:'semidmr',pf:'p_gild',trc:[255,238,170],tag:'Vigil',w:{name:'Vigil SR-9',short:'Vigil',dmg:[4,5],clip:5,crit:20,critDmg:2,aim:5,fx:'burst',px:'mark',rt:[[2,-5],[9,5],[99,0]],desc:'Prestige weapon. Spotter rounds: a hit marks the target, giving your whole team +10 aim against it until the end of next round. One less round than a Mk III SR-7.'}},
-  p_quake:{cls:'grenadier',rk:2,shape:'cannon',pf:'p_ember',trc:[255,150,70],tag:'Quake',w:{name:'Quake Cannon',short:'Quake',dmg:[4,7],clip:4,crit:15,critDmg:2,aim:0,fx:'heavy',px:'quake',rt:[[7,0],[8,-10]],fall:5,desc:'Prestige weapon. Concussive shells: every shot, hit or miss, knocks the cover between you and the target down a stage. Less damage and crit than a Mk III Cannon.'}},
-  p_cinder:{cls:'grenadier',rk:4,shape:'minigun',pf:'p_ember',trc:[255,112,36],tag:'Cinderstorm',w:{name:'Cinderstorm Minigun',short:'Cinderstorm',dmg:[4,6],clip:7,crit:20,critDmg:1,aim:0,mob:-1,fx:'heavy',px:'scorch',rt:[[6,10],[9,0]],fall:5,desc:'Prestige weapon. Incendiary crits: a critical hit sets the target Burning. Crits add +1 instead of +2, one less min damage than a Mk III Minigun.'}},
+  p_vigil:{cls:'sharpshooter',rk:4,shape:'semidmr',pf:'p_gild',trc:[255,238,170],tag:'Vigil',w:{name:'Vigil SR-9',short:'Vigil',dmg:[4,5],clip:5,crit:20,critDmg:2,aim:5,fx:'burst',px:'mark',rt:[[2,-5],[9,5],[99,0]],desc:'Prestige weapon. Spotter rounds: a hit marks the target, giving your whole team +10 aim against it until the end of next round. One less max damage and round than a Mk III SR-7.'}},
+  p_quake:{cls:'grenadier',rk:2,shape:'cannon',pf:'p_ember',trc:[255,150,70],tag:'Quake',w:{name:'Quake Cannon',short:'Quake',dmg:[4,7],clip:4,crit:15,critDmg:2,aim:0,fx:'heavy',px:'quake',rt:[[7,0],[8,-10]],fall:5,desc:'Prestige weapon. Concussive shells: every shot, hit or miss, knocks the cover between you and the target down a stage. Less crit than a Mk III Cannon.'}},
+  p_cinder:{cls:'grenadier',rk:4,shape:'minigun',pf:'p_ember',trc:[255,112,36],tag:'Cinderstorm',w:{name:'Cinderstorm Minigun',short:'Cinderstorm',dmg:[4,6],clip:7,crit:20,critDmg:1,aim:0,mob:-1,fx:'heavy',px:'scorch',rt:[[6,10],[9,0]],fall:5,desc:'Prestige weapon. Incendiary crits: a critical hit sets the target Burning. Crits add +1 instead of +2, one less min damage than a Mk III Minigun, and it slows you.'}},
   p_tempest:{cls:'specialist',rk:2,shape:'arcr',pf:'p_aurora',trc:[140,220,255],tag:'Tempest',w:{name:'Tempest Arc Rifle',short:'Tempest',dmg:[3,5],clip:4,crit:10,critDmg:2,aim:10,pierce:true,fx:'beam',arcfx:true,px:'chain',noAtt:['ammo'],rt:[[5,5],[8,0]],fall:10,desc:'Prestige weapon. Chain arc: a hit jumps to the nearest other enemy within 3 tiles of the target for 2 armor-piercing damage. Ignores armor. A little lighter than a Mk III Arc Rifle.'}},
   p_perpetua:{cls:'specialist',rk:4,shape:'flech',pf:'p_void',trc:[200,150,255],tag:'Perpetua',w:{name:'Perpetua Needler',short:'Perpetua',dmg:[3,4],clip:4,crit:25,critDmg:2,aim:10,mob:1,pierce:true,fx:'burst',px:'recharge',rt:[[4,10],[6,0]],fall:8,desc:'Prestige weapon. Self-charging magazine: regains a round at the start of each of your turns. Ignores armor. Only 4 rounds.'}},
   p_rampart:{cls:'engineer',rk:2,shape:'slug',pf:'p_gild',trc:[255,190,90],tag:'Rampart',w:{name:'Rampart Foam Gun',short:'Rampart',dmg:[4,6],clip:4,crit:15,critDmg:2,aim:0,fx:'single',px:'foam',rt:[[6,10],[7,0]],fall:10,desc:'Prestige weapon. Quick-set foam: once a turn, shooting from the open sets a half-cover foam barricade (2 HP) on the empty tile beside you toward the target. Less damage than a Mk III Slug Gun.'}},
   p_breaker:{cls:'engineer',rk:4,shape:'smg',pf:'p_aurora',trc:[110,200,255],tag:'Breaker',w:{name:'Breaker SMG',short:'Breaker',dmg:[3,5],clip:6,crit:15,critDmg:2,aim:10,mob:1,fx:'burst',px:'breaker',rt:[[4,10],[7,0]],fall:7,desc:'Prestige weapon. Shield breaker: hits strip shields 50% faster and deal +1 to drones and turrets. Less damage and crit than a Mk III SMG.'}},
   p_lifeline:{cls:'medic',rk:2,shape:'carbine',pf:'p_aurora',trc:[120,255,170],tag:'Lifeline',w:{name:'Lifeline Carbine',short:'Lifeline',dmg:[3,5],clip:6,crit:15,critDmg:2,aim:10,fx:'burst',px:'mend',rt:[[2,0],[7,5],[10,0]],fall:5,desc:'Prestige weapon. Healing splash: each hit heals you and every ally within 2 tiles of you 1 HP. Less damage than a Mk III Carbine.'}},
   p_aegis:{cls:'medic',rk:4,shape:'rifle',pf:'p_gild',trc:[130,210,255],tag:'Aegis',w:{name:'Aegis Pulse Rifle',short:'Aegis',dmg:[4,5],clip:5,crit:15,critDmg:2,aim:5,fx:'burst',px:'ward',rt:[[4,5],[9,0],[10,-10]],fall:5,desc:'Prestige weapon. Ward link: each hit gives the most hurt ally within 4 tiles (you included) +1 shield, up to 2. Less damage than a Mk III Pulse Rifle.'}},
-  p_tracer:{cls:'recon',rk:2,shape:'dmr',pf:'p_void',trc:[255,90,200],tag:'Tracer',w:{name:'Tracer DMR',short:'Tracer',dmg:[4,5],clip:5,crit:20,critDmg:2,aim:10,fx:'single',px:'trace',rt:[[2,-10],[4,-5],[6,0],[99,5]],desc:'Prestige weapon. Tracer rounds: a hit tags the target, showing your team where it is through walls until the end of next round. One less max damage than a Mk III DMR.'}},
+  p_tracer:{cls:'recon',rk:2,shape:'dmr',pf:'p_void',trc:[255,90,200],tag:'Tracer',w:{name:'Tracer DMR',short:'Tracer',dmg:[4,5],clip:5,crit:20,critDmg:2,aim:10,fx:'single',px:'trace',rt:[[2,-10],[4,-5],[6,0],[99,5]],desc:'Prestige weapon. Tracer rounds: a hit tags the target, showing your team where it is through walls until the end of next round. More aim and less crit than a Mk III DMR.'}},
   p_ghost:{cls:'recon',rk:4,shape:'wsmg',late:1,pf:'p_void',trc:[170,190,255],tag:'Ghostline',w:{name:'Ghostline SMG',short:'Ghostline',dmg:[3,4],clip:5,crit:20,critDmg:2,aim:5,mob:1,fx:'burst',silent:true,noAtt:['barrel'],px:'ambush',rt:[[4,10],[7,0]],fall:7,desc:'Prestige weapon. Ambush: +15 aim and +15% crit against a target that cannot see you. Suppressed. Less damage than a Mk III Hush SMG.'}}
 };
 for(const k in PRW_DEF2) if(!PRW[k]&&CLASSES[PRW_DEF2[k].cls]) prwReg(k,PRW_DEF2[k]);
@@ -6681,7 +6713,13 @@ function hitInfo(a,t,o){
   if(ha>ht){ const hg=hasP(a,'s_eagle')?25:15; aim+=hg; mods.push(['high ground',hg]); } else if(ha<ht){ aim-=10; mods.push(['shooting uphill',-10]); }
   if(a.disorient>0){ aim-=20; mods.push(['disoriented',-20]); }
   if(a.st) aim+=stAim(a,mods); // status effects (Chilled, Frozen, Shocked)
-  if(o.reaction&&!(hasP(a,'r_guard')&&d<=5.01)){ aim-=15; mods.push(['reaction shot',-15]); }
+  const tr=prim?W.tr:null; // weapon trait (primaries only; see WTRAIT)
+  if(o.reaction&&!(hasP(a,'r_guard')&&d<=5.01)&&tr!=='steady'){ aim-=15; mods.push(['reaction shot',-15]); }
+  if(a.supp>0){ aim-=TRN.supp; mods.push(['suppressed',-TRN.supp]); }
+  if(tr==='supp'&&!W.prw&&(a.moved||o.fx!=null)&&!o.reaction){ aim-=TRN.suppMov; mods.push(['minigun on the move',-TRN.suppMov]); }
+  if(tr==='snap'&&(a.moved||o.fx!=null)&&!o.reaction){ aim+=TRN.snap; mods.push(['snap shot',TRN.snap]); }
+  if(tr==='braced'&&!a.moved&&!o.reaction&&o.fx==null){ aim+=TRN.braced; mods.push(['braced',TRN.braced]); }
+  if(tr==='track'&&a.trkT===t.id&&!t.drone){ aim+=TRN.track; mods.push(['tracking',TRN.track]); }
   if(o.deadeye){ const p=hasP(a,'s_dead')?5:15; aim-=p; mods.push(['deadeye',-p]); }
   if(o.aimMod){ aim+=o.aimMod; mods.push([o.aimLbl||'ability',o.aimMod]); }
   if(a.diff&&a.diff.aim){ aim+=a.diff.aim; mods.push([a.diff.name.toLowerCase()+' AI',a.diff.aim]); }
@@ -6703,13 +6741,19 @@ function hitInfo(a,t,o){
   if(t.slip){ def+=15; mods.push(['slippery',-15]); }
   if(wx.fogDef&&d>=wx.fogD-0.01){ def+=wx.fogDef; mods.push(['fog',-wx.fogDef]); }
   const lowpro=cov===1&&hasP(t,'s_lowpro'); if(lowpro) cov=2;
-  if(cov===1){ def+=20; mods.push(['half cover',-20]); } else if(cov===2){ def+=40; mods.push([lowpro?'low profile (full cover)':'full cover',-40]); }
+  const pc=tr==='pen'&&cov>0?cov-1:cov; // Gauss: cover protects one step less (crit still reads the real cover)
+  if(pc===1){ def+=20; mods.push([cov===2?'full cover (shot through)':'half cover',-20]); } else if(pc===2){ def+=40; mods.push([lowpro?'low profile (full cover)':'full cover',-40]); } else if(cov){ mods.push(['half cover (shot through)',0]); }
   if(t.hunker&&cov){ def+=20; mods.push(['hunkered',-20]); }
   if(smokeOnLine(ax,ay,t.x,t.y)){ def+=UTILS.smoke.smokeDef; mods.push(['through smoke',-UTILS.smoke.smokeDef]); } // any shot whose line crosses a cloud
   let hit=clamp(Math.round(aim-def),0,100);
-  let crit=W.crit+(cov===0?(over?20:fs.flanked?FLANK.crit:40):0)+(prim&&hasP(a,'s_vital')?15:0)+(W.px?pxCrit(a,t,W,ax,ay):0); if(t.hunker) crit=0; crit=clamp(crit,0,100);
+  if(tr==='lock'&&d<=TRN.lockD+0.01&&!t.drone){ hit=100; mods.push(['arc lock',0]); } // Volt Caster: point blank never misses
+  let crit=W.crit+(cov===0?(over?20:fs.flanked?FLANK.crit:40):0)+(prim&&hasP(a,'s_vital')?15:0)+(W.px?pxCrit(a,t,W,ax,ay):0);
+  if(tr==='lethal'&&Math.round(d)>=TRN.lethalD) crit+=TRN.lethalCrit; else if(tr==='braced'&&!a.moved&&!o.reaction&&o.fx==null) crit+=TRN.bracedCrit;
+  if(t.hunker) crit=0; crit=clamp(crit,0,100);
   if(t.downed){ hit=100; crit=0; }
-  const full=hit>=100?100:Math.max(0,hit-5), graze=(hit>=100||hit<=0)?0:Math.min(100,hit+10)-full;
+  const full=hit>=100?100:Math.max(0,hit-5);
+  let graze=(hit>=100||hit<=0)?0:Math.min(100,hit+10)-full;
+  if(tr==='spread'&&d<=TRN.spreadD+0.01&&full<100){ graze=100-full; } // Breacher: a miss up close still grazes
   return {hit,crit,cov,d,mods,aim:a.aim,full,graze,any:full+graze,elevAdv:ha>ht,over,flank:fs.flanked};
 }
 function rollDmg(r){ return ri(r[0],r[1]); }
@@ -6728,7 +6772,7 @@ function applyDamage(t,d,src,o){
   if(t.rupt&&src&&src!==t) d+=t.rupt; // Rupture (Grenadier perk): +1 damage from every hit
   d+=kitDmg(t,src); // Takedown (Recon perk): marked enemies take +1
   let dmg=o.pierce?d:Math.max(1,d-t.armor); const total=dmg; let abs=0;
-  if(t.shield>0){ abs=Math.min(t.shield,dmg); t.shield-=abs; dmg-=abs; }
+  if(t.shield>0&&!o.noShield){ abs=Math.min(t.shield,dmg); t.shield-=abs; dmg-=abs; }
   t.hp-=dmg; t.flash=0.3; cst(t,'dmgTaken',dmg);
   if(src&&src.isPlayer&&isEnemy(src,t)) G.stats.dmg+=total;
   if(ms){ ms.dmg+=total; if(t.hp<=0) ms.kills++; }
@@ -6803,15 +6847,17 @@ async function fireShot(a,t,o){
     if(prim&&!o.reaction&&hasP(a,'g_holo')) t.holo={team:a.team,until:G.round+1};
     if(W.amk) d=amDmg(W,t,d); // ammo mods: armor-piercing, hollow-point, shock against drones
     if(prim&&W.px) d=pxDmg(a,t,W,d,anim); // class prestige: Breaker SMG
-    applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how||(prim?prwTag(W.id):undefined),pierce:!!W.pierce||(prim&&hasP(a,'g_shred')),wid:W.id});
+    if(prim&&W.tr) d=trShotDmg(W,t,d); // weapon traits: Man-stopper, Anti-materiel
+    applyDamage(t,d,a,{crit,graze:res==='graze',anim,how:o.how||(prim?prwTag(W.id):undefined),pierce:!!W.pierce||(prim&&hasP(a,'g_shred')),noShield:prim&&W.tr==='amat',wid:W.id});
     if(W.flash&&standing(t)&&!t.drone){ t.disorient=Math.max(t.disorient,1); t.overwatch=false; if(anim) floatText(t,'DAZZLED',[255,240,170],16); } } // Thunderclap flash shells
   else if(anim) floatText(t,'MISSED',[200,210,220],20);
   if(hit&&W.amk) await amHit(a,t,W,res,crit); // ammo mods: status effects
   if(prim&&W.px) await pxShot(a,t,W,res,crit,info,anim,up0); // class prestige weapon effects
+  if(prim&&W.tr) await trAfterShot(a,t,W,res,crit,info,anim,o); // weapon traits (Bleed, Knockback, Shock, Splash, Suppression, Shredder, Tracking, Quick lever)
   // a miss at a target behind destructible cover hits the cover instead (thrown blades excepted)
   if(!hit&&info.cov>0&&!info.over&&W.fx!=='throw'&&!(prim&&W.px==='quake')) await shotCover(a,t,W,anim); // (the Quake Cannon knocks it down a stage instead)
   if(anim) await wait(t.alive?650:1000);
-  if(!o.reaction) await returnFire(t,a);
+  if(!o.reaction&&!(prim&&W.tr==='hush')) await returnFire(t,a); // the Hush SMG draws no return fire
   return hit;
 }
 const FXDUR={burst:330,pellet:140,beam:160,single:140,heavy:440,throw:420};
@@ -6944,7 +6990,7 @@ function meleeInfo(a,t,S){ const mods=[]; let hit=S.acc;
   if(a.disorient>0){ hit-=20; mods.push(['disoriented',-20]); }
   hit=clamp(hit,0,100); let crit=clamp(S.crit||0,0,100); if(t.downed){ hit=100; crit=0; }
   const b=hasP(a,'r_reaper')?2:0;
-  return {hit,full:hit,graze:0,any:hit,crit,mods,cov:-1,dmg:[S.dmg[0]+b,S.dmg[1]+b],critDmg:S.critDmg||0,pierce:!!S.pierce,stun:!!S.stun,base:S.acc}; }
+  return {hit,full:hit,graze:0,any:hit,crit,mods,cov:-1,dmg:[S.dmg[0]+b,S.dmg[1]+b],critDmg:S.critDmg||0,pierce:!!S.pierce,stun:!!S.stun,bleed:!!S.bleed,base:S.acc}; }
 async function doMelee(u,t,M,o){
   o=o||{}; if(!standing(u)||!t.alive||G.over) return false;
   const anim=shouldShow(u)||shouldShow(t); faceTo(u,t.x,t.y);
@@ -6952,7 +6998,8 @@ async function doMelee(u,t,M,o){
   if(u.isPlayer) G.stats.shots++;
   const hit=t.downed||RNG()*100<M.hit;
   if(hit){ if(u.isPlayer) G.stats.hits++; const crit=!t.downed&&RNG()*100<M.crit; applyDamage(t,ri(M.dmg[0],M.dmg[1])+(crit?M.critDmg:0),u,{crit,anim,how:o.how||'blade',pierce:M.pierce});
-    if(M.stun&&standing(t)){ t.disorient=Math.max(t.disorient,2); t.overwatch=false; if(anim) floatText(t,'DISORIENTED',[255,179,64],16); } }
+    if(M.stun&&standing(t)){ t.disorient=Math.max(t.disorient,2); t.overwatch=false; if(anim) floatText(t,'DISORIENTED',[255,179,64],16); }
+    if(M.bleed&&standing(t)&&!t.drone) addStatus(t,'bleed',0,u); } // Machete
   else if(anim) floatText(t,'MISSED',[200,210,220],20);
   if(anim) await wait(t.alive?600:1000);
   return hit;
@@ -7313,14 +7360,14 @@ async function shootObj(u,x,y){
   const T=tileDummy(x,y), anim=shouldShow(u)||tileShown(x,y), kind=u.W.fx;
   if(anim){ focusMid(u,T); floatText(u,'SHOOT '+TERR[o.kind].name.toUpperCase(),[255,190,80],16); await wait(380); shotFX(u,T,true,kind); await wait(FXDUR[kind]||150); }
   if(!u.W.silent){ makeNoise(u); if(G.M.night) boFlash(u); }
-  await damageTerr(x,y,rollDmg(u.W.dmg),u,anim);
+  await damageTerr(x,y,rollDmg(u.W.dmg)+(u.W.tr==='amat'?TRN.amat:0),u,anim); // Anti-materiel: +3 to objects
   afterAttack(u,tk0,true);
   if(anim) await wait(450);
 }
 // a missed shot at a unit behind destructible cover hits the cover: it takes half the weapon's minimum damage (rounded up)
 async function shotCover(a,t,W,anim){
   const c=coverCell(t.x,t.y,a.x,a.y); if(!c) return; const o=cell(c[0],c[1]); if(!shootable(o)) return;
-  await damageTerr(c[0],c[1],Math.ceil(W.dmg[0]/2),a,anim);
+  await damageTerr(c[0],c[1],Math.ceil(W.dmg[0]/2)+(W.tr==='shred'&&!W.sec?TRN.shred:0)+(W.tr==='amat'&&!W.sec?TRN.amat:0),a,anim);
 }
 
 /* ================= return fire ================= */
@@ -8037,6 +8084,7 @@ async function unitTurn(u,mid){
   if(u.isPlayer&&!G.autoPlayer) await playerTurn(u); else if(u.net) await netTurn(u,mid);
   else { if(u.isPlayer&&u.human&&standing(u)&&(u.ap>0||dCanAct(u))&&!G.over&&!(G.gm&&G.gm.halt)){ u.human=false; clkTurn(u,false); } await aiTurn(u,mid); }
   if(u.disorient>0) u.disorient--;
+  if(u.supp>0) u.supp--; // Suppressed (Minigun) lasts through the target's next turn
   if(u.st||u.stMob) stEnd(u); // status effects count down
 }
 
@@ -8130,7 +8178,8 @@ async function execCmd0(u,c){
     if(k==='slash'){ await doBlade(u,t,c.path); return; }
     const o={}; if(k==='deadeye'){ o.deadeye=true; o.label='DEADEYE'; u.cd.deadeye=abilCd(u,'deadeye'); } if(k==='hail'){ o.guaranteed=true; o.ammoCost=2; o.fxk='heavy'; o.label='HAIL OF BULLETS'; u.cd.hail=abilCd(u,'hail'); if(hasP(u,'g_hail')) o.bonus=1; }
     // shooting before moving keeps 1 AP for a move (not another action); heavy weapons and shots after moving end the turn
-    if(u.moved||u.W.heavy||k==='hail') u.ap=0; else { u.ap=Math.max(0,u.ap-1); u.shot=true; }
+    if(u.W.tr==='rng'&&k==='shoot') u.ap=Math.max(0,u.ap-1); // Run and gun (SMG): 1 AP, and every option stays open
+    else if(u.moved||u.W.heavy||k==='hail') u.ap=0; else { u.ap=Math.max(0,u.ap-1); u.shot=true; }
     const tk0=u.tk||0; await fireShot(u,t,o); afterAttack(u,tk0,true); }
   else if(c.k==='sec'){ await secAttack(u,findAny(c.t),c); }   // secondary weapon: {k:'sec',t,path?,free?}
   else if(c.k==='act'){ await doActive(u,c); }              // class perk active: {k:'act',a,t?}
@@ -8388,7 +8437,7 @@ function aiBestAttack(u){
   const vis=visibleEnemies(u), avg=(u.W.dmg[0]+u.W.dmg[1])/2;
   const canFire=u.ammo>0&&(!u.W.heavy||u.ap>=2);
   for(const t of vis){ const eff=t.downed?0.5:t.hp+t.shield;
-    if(canFire){ const h=hitInfo(u,t); const kb=avg>=eff?h.any/6:0; res.push({k:'shoot',t,hit:h.any,score:(h.full+h.graze*0.5)*(avg+h.crit/100*2)/10+kb});
+    if(canFire){ const h=hitInfo(u,t), ta=trAvg(u,t), kb=ta>=eff?h.any/6:0; res.push({k:'shoot',t,hit:h.any,score:(h.full+h.graze*0.5)*(ta+h.crit/100*u.W.critDmg)/10+kb+trAtkVal(u,t,h)});
       if(u.cls==='sharpshooter'&&!u.cd.deadeye&&!t.downed){ const h2=hitInfo(u,t,{deadeye:true}); res.push({k:'deadeye',t,hit:h2.any,score:(h2.full+h2.graze*0.5)*avg*1.5/10+(avg*1.5>=eff?h2.any/6:0)}); }
       if(u.cls==='grenadier'&&!u.cd.hail&&u.ammo>=2&&!t.downed) res.push({k:'hail',t,hit:100,score:avg*9+(avg>=eff?14:0)}); }
 
@@ -8423,7 +8472,7 @@ function aiBestAttack(u){
   if(!opts.length) return null;
   opts.sort((a,b)=>b.score-a.score); return opts[0];
 }
-function rfPen(u,t){ if(!rfReady(t,u)) return 0; const h=hitInfo(t,u,{reaction:true}), ad=(t.W.dmg[0]+t.W.dmg[1])/2, avg=(u.W.dmg[0]+u.W.dmg[1])/2;
+function rfPen(u,t){ if(u.W.tr==='hush'||!rfReady(t,u)) return 0; const h=hitInfo(t,u,{reaction:true}), ad=(t.W.dmg[0]+t.W.dmg[1])/2, avg=(u.W.dmg[0]+u.W.dmg[1])/2;
   return (h.full+h.graze*0.5)/100*ad*4*(avg>=t.hp+t.shield?0.5:1); }
 // expected value of a secondary attack option from secTargets (same shape as the primary-shot score)
 function secScore(u,s){ const si=secInfo(u,s.t,s.mode), avg=(si.dmg[0]+si.dmg[1])/2, eff=s.t.downed?0.5:s.t.hp+s.t.shield;
@@ -8431,7 +8480,7 @@ function secScore(u,s){ const si=secInfo(u,s.t,s.mode), avg=(si.dmg[0]+si.dmg[1]
 async function aiExecute(u,a){
   if(await sqPeek(u,a,true)) return; // tactical layer: a shot before moving keeps the last AP for a move back into cover
   const tk0=u.tk||0;
-  if(a.k==='shoot'){ u.ap=0; await fireShot(u,a.t,{}); afterAttack(u,tk0,true); }
+  if(a.k==='shoot'){ u.ap=u.W.tr==='rng'?Math.max(0,u.ap-1):0; await fireShot(u,a.t,{}); afterAttack(u,tk0,true); } // Run and gun keeps the other AP
   else if(a.k==='deadeye'){ u.ap=0; u.cd.deadeye=abilCd(u,'deadeye'); await fireShot(u,a.t,{deadeye:true,label:'DEADEYE'}); afterAttack(u,tk0,true); }
   else if(a.k==='hail'){ u.ap=0; u.cd.hail=abilCd(u,'hail'); await fireShot(u,a.t,{guaranteed:true,ammoCost:2,fxk:'heavy',label:'HAIL OF BULLETS',bonus:hasP(u,'g_hail')?1:0}); afterAttack(u,tk0,true); }
   else if(a.k==='zap'){ await execCmd(u,{k:'drone',a:'zap',t:a.t.id}); }
@@ -9028,7 +9077,7 @@ function fillTargetPanel(){
   const covTxt=t.downed?'<span style="color:#5dff9a">Downed: guaranteed</span>':cov===-1?'':cov===-2?'<span style="color:#5dff9a">Shooting over cover</span>':cov===2?'<span class="warn">Full cover</span>':cov===1?'<span class="warn">Half cover</span>':fl?'<span class="flk">FLANKED · +'+FLANK.aim+' aim, +'+FLANK.crit+' crit</span>':'<span style="color:#5dff9a">No cover</span>';
   $('#tRow').innerHTML=(gr?'<span>Full '+full+'% · Graze '+gr+'%</span>':'')+'<span>Crit '+crit+'%</span><span>Damage '+dmg+'</span>'+covTxt+(t.armor?'<span>Armor 1</span>':'');
   if((k==='shoot'||k==='deadeye'||k==='rapid'||k==='rupt'||k==='hail')&&rfReady(t,u)) note=(note?note+' ':'')+'In full cover: '+t.name+' will return fire.';
-  $('#tMods').textContent=(mods.length?(aimTxt+mods.map(m=>(m[1]>0?'+':'')+m[1]+' '+m[0]).join(', ')+'.'+(gr?' Grazes deal half damage.':'')):(ABIL[k]?ABIL[k].desc:ACTS[k]?ACTS[k].desc:''))+(note?' '+note:'');
+  $('#tMods').textContent=(mods.length?(aimTxt+mods.map(m=>(m[1]?(m[1]>0?'+':'')+m[1]+' ':'')+m[0]).join(', ')+'.'+(gr?' Grazes deal half damage.':'')):(ABIL[k]?ABIL[k].desc:ACTS[k]?ACTS[k].desc:''))+(note?' '+note:'');
   const chipHit=q=>k==='shoot'||k==='deadeye'||k==='rapid'?hitInfo(u,q,{deadeye:k==='deadeye',aimMod:k==='rapid'?-15:0}).any+'%':(k==='sec'||k==='hands')&&G.secMap&&G.secMap.get(q)?secInfo(u,q,G.secMap.get(q).mode).any+'%':'';
   $('#tChips').innerHTML=G.targets.length>1?G.targets.map((q,i)=>'<button class="tchip'+(i===G.tIdx?' sel':'')+'" data-ti="'+i+'">'+(q===u?'You':q.drone?q.name+(q.tur?' turret':' drone'):q.name)+' '+chipHit(q)+'</button>').join(''):'';
   const q0=(k==='sec'||k==='hands')&&G.secMap&&G.secMap.get(t);
@@ -10057,7 +10106,7 @@ function renderPrestige(){ const el=$('#prsBody'); if(!el) return; const cls=CLA
   for(let r=1;r<=PRS.ranks;r++){ const rw=[PRS.tok[r-1]+' tokens'].concat(ws.filter(k=>PRW[k].rk===r).map(k=>WEAPONS[k].name)); if(r===1) rw.push('“'+TITLES['t_pr1_'+cls].name+'” title'); if(r===PRS.ranks) rw.push('“'+TITLES['t_pr5_'+cls].name+'” title'); rw.push(ROMAN[r]+' name plate emblem'); if(r===1&&ASC[cls]) rw.push(ASC[cls].name+' (ascended form)'); for(const e of prcList(cls)) if(e.rk===r) rw.push(prcName(e));
     h+='<div class="trow'+(I.rk>=r?' got':r===I.rk+1?' next':'')+'"><b class="prm r'+r+'">'+ROMAN[r]+'</b><span>'+rw.map(esc).join(', ')+'</span></div>'; }
   h+='</div>'+ascTabHtml(cls,I.rk)+'<h3 class="prsws">Prestige weapons <small>'+esc(C.name)+' only · own finish, tracers and kill feed tag</small></h3>'+ws.map(k=>{ const W=WEAPONS[k], P=PRW[k], ok=I.rk>=P.rk, eq=LO.cls===cls&&LO.weapon===k;
-    return '<div class="prwrow'+(ok?'':' lock')+'"><canvas data-prw="'+k+'" width="240" height="84" aria-hidden="true"></canvas><div><b>'+esc(W.name)+'</b><small>'+W.dmg[0]+'–'+W.dmg[1]+' dmg · '+W.clip+' rounds · '+W.crit+'% crit · optimal '+bandTxt(optBand(W))+(W.pierce?' · ignores armor':'')+(W.heavy?' · needs both AP':'')+(W.mob?' · '+sgn(W.mob)+' mobility':'')+'</small><small>'+esc(W.desc)+'</small><small class="'+(ok?'ok':'')+'">'+(ok?'Unlocked':'Unlocks at Prestige '+ROMAN[P.rk])+'</small></div>'
+    return '<div class="prwrow'+(ok?'':' lock')+'"><canvas data-prw="'+k+'" width="240" height="84" aria-hidden="true"></canvas><div><b>'+esc(W.name)+'</b><small>'+W.dmg[0]+'–'+W.dmg[1]+' dmg · '+W.clip+' rounds · '+W.crit+'% crit · optimal '+bandTxt(optBand(W))+(W.pierce?' · ignores armor':'')+(W.heavy?' · needs both AP':'')+(W.mob?' · '+sgn(W.mob)+' mobility':'')+(WTRAIT[W.tr]?' · '+WTRAIT[W.tr].name:'')+'</small><small>'+esc(W.desc)+'</small><small class="'+(ok?'ok':'')+'">'+(ok?'Unlocked':'Unlocks at Prestige '+ROMAN[P.rk])+'</small></div>'
       +(ok?'<button class="btn sm" data-prseq="'+k+'"'+(eq?' disabled':'')+'>'+(eq?'Equipped':'Equip')+'</button>':'')+'</div>'; }).join('');
   h+=prcHtml(cls,I.rk);
   el.innerHTML=h; el.querySelectorAll('canvas[data-prw]').forEach(cv2=>wpnOn(cv2,cv2.dataset.prw,'default')); el.querySelectorAll('canvas[data-pv]').forEach(drawCosPreview); el.querySelectorAll('canvas[data-ascpv]').forEach(ascPreview);
@@ -10134,6 +10183,49 @@ function pxTurn(u){ if(!standing(u)||u.ammo>=u.W.clip) return false; u.ammo++; i
 function pxVis(v){ if(!G.player) return; for(const u of G.units){ const r=u.trk; if(r&&r.team===G.player.team&&G.round<=r.until&&standing(u)) v[idx(u.x,u.y)]=1; } }
 function pxHash(add){ const on=u=>u.pmk||u.trk||u.pxR!=null; if(!G.units.some(on)) return; add(0x5058);
   for(const u of G.units){ if(!on(u)) continue; add(u.id); add(u.pmk?u.pmk.team*1000+u.pmk.until:-1); add(u.trk?u.trk.team*1000+u.trk.until:-1); add(u.pxR==null?-1:u.pxR); } }
+/* ================= weapon traits: sim (WTRAIT / TRN) =================
+   Unit state (hashed by trHash only while present): supp (Suppressed: turns left, worn off in unitTurn), trkT (SR-7:
+   id of the last enemy it hit), lvR (Lever: round its crit refund was used). */
+// fireShot, before the damage: Man-stopper (wounded targets) and Anti-materiel (drones and turrets)
+function trShotDmg(W,t,d){ const k=W.tr;
+  if(k==='finish'&&!t.drone&&!t.downed&&t.hp*2<=t.maxHp) return d+TRN.finish;
+  if(k==='amat'&&t.drone) return d+TRN.amat;
+  return d; }
+// AI: the damage a primary shot would do on average (with the trait's bonus)
+function trAvg(u,t){ const W=u.W; return trShotDmg(W,t,(W.dmg[0]+W.dmg[1])/2); }
+// AI: the value of a trait's side effect on top of the damage (same scale as aiBestAttack's scores)
+function trAtkVal(u,t,h){ const k=u.W.tr; if(!k||t.drone||t.downed) return 0; const p=(h.full+h.graze*0.5)/100;
+  if(k==='supp') return t.supp>0?2:8;
+  if(k==='shock'||k==='dazzle') return p*(6+(t.overwatch?10:0)+(t.hunker&&k==='shock'?6:0));
+  if(k==='bleed') return hasStatus(t,'bleed')?0:p*6;
+  if(k==='knock') return h.d<=TRN.knockD+0.01&&h.cov?p*8:0;
+  if(k==='splash'){ let n=0; for(const v of G.units) if(v!==t&&standing(v)&&!v.drone&&isEnemy(u,v)&&inBlast(v,t.x,t.y,TRN.splashR)) n++; return p*n*TRN.splashDmg*10; }
+  if(k==='track') return u.trkT===t.id?0:p*3;
+  return 0; }
+// fireShot, after the shot (hit or miss). Seeded RNG only.
+async function trAfterShot(a,t,W,res,crit,info,anim,o){ const k=W.tr, hit=res!=='miss', foe=standing(t)&&!t.drone&&!t.infDown;
+  if(k==='track'){ if(hit&&!t.drone) a.trkT=t.id; return; }
+  if(k==='supp'){ if(!foe) return; t.supp=Math.max(t.supp|0,1); if(anim) floatText(t,'SUPPRESSED',[255,200,120],16); return; }
+  if(k==='shock'){ if(hit&&foe) addStatus(t,'shock',1,a); return; }
+  if(k==='bleed'){ if(hit&&foe&&!hasStatus(t,'bleed')&&(crit||RNG()*100<TRN.bleedP)) addStatus(t,'bleed',0,a); return; }
+  if(k==='lever'){ if(crit&&!o.reaction&&standing(a)&&a.lvR!==G.round){ a.lvR=G.round; a.ap+=1; a.shot=false; if(anim||shouldShow(a)) floatText(a,'QUICK LEVER +1 AP',[93,255,154],16); } return; }
+  if(k==='shred'){ if(!hit||!info.cov||info.over||!t.alive) return; const c=coverCell(t.x,t.y,a.x,a.y); if(c&&shootable(cell(c[0],c[1]))) await damageTerr(c[0],c[1],TRN.shred,a,anim); return; }
+  if(k==='splash'){ if(!hit) return; for(const v of G.units.slice()){ if(v===t||!standing(v)||v.infDown||!isEnemy(a,v)||!inBlast(v,t.x,t.y,TRN.splashR)) continue; const sh=anim||shouldShow(v);
+      if(sh) floatText(v,'SPLASH',[255,170,90],15); applyDamage(v,TRN.splashDmg,a,{anim:sh,how:'splash',wid:W.id}); if(G.over) return; } return; }
+  if(k==='knock'){ if(hit&&foe&&info.d<=TRN.knockD+0.01) await trKnock(a,t,anim); return; }
+}
+// Knockback: one tile straight away from the shooter (8 directions), onto open ground on the same level that nobody holds
+function trKnock(a,t,anim){ const dx=Math.sign(t.x-a.x), dy=Math.sign(t.y-a.y); if(!dx&&!dy) return;
+  const nx=t.x+dx, ny=t.y+dy, L=lvAt(t.x,t.y);
+  if(!inMap(nx,ny)||G.grid[idx(nx,ny)]||lvAt(nx,ny)!==L||unitAt(nx,ny)||(G.drones||[]).some(d=>d.alive&&d.tur&&d.x===nx&&d.y===ny)) return;
+  if(dx&&dy&&(cornerBlk(t.x,ny,L)||cornerBlk(nx,t.y,L))) return;
+  const fx=t.rx, fy=t.ry, fz=t.rz; t.x=nx; t.y=ny; t.hunker=false;
+  if(anim){ t.rx=fx; t.ry=fy; t.rz=fz; G.tweens.push({u:t,fx,fy,tx:nx,ty:ny,fz,tz:ez(nx,ny),t:0,dur:.16}); floatText(t,'KNOCKED BACK',[255,200,120],16); } else placeUnit(t,nx,ny);
+  if(t.team===(G.player&&G.player.team)) computeVis();
+  if(t.st||hzOn()) hzStep(t); // pushed into a hazard
+  if(anim) return wait(180); }
+function trHash(add){ const on=u=>u.supp>0||u.trkT!=null||u.lvR!=null; if(!G.units.some(on)) return; add(0x5452);
+  for(const u of G.units){ if(!on(u)) continue; add(u.id); add(u.supp|0); add(u.trkT==null?-1:u.trkT); add(u.lvR==null?-1:u.lvR); } }
 /* ----- visuals ----- */
 function pxStar(c,x,y,r,col,a,rot){ if(a<=0) return; c.fillStyle=C(col,1,a); c.beginPath(); for(let i=0;i<8;i++){ const an=(rot||0)+i*Math.PI/4, rr=i%2?r*.28:r; c.lineTo(x+Math.cos(an)*rr,y+Math.sin(an)*rr); } c.closePath(); c.fill(); }
 function pxHex(c,x,y,r,rot){ c.beginPath(); for(let i=0;i<6;i++){ const an=rot+i*Math.PI/3; c.lineTo(x+Math.cos(an)*r,y+Math.sin(an)*r); } c.closePath(); }
@@ -10620,6 +10712,7 @@ function updateNavDot(){ const d=$('#qDot'); if(d) d.classList.toggle('hidden',!
 $('#nav').addEventListener('click',e=>{ const b=e.target.closest('[data-nav]'); if(!b) return; SFX.init(); SFX.click(); buzz(6); go(b.dataset.nav); });
 
 /* ================= lobby ================= */
+$('#howTraits').textContent='Every weapon has a role and one trait, shown on its Loadout card, so none is just a bigger version of another: '+Object.keys(WEAPONS).filter(k=>WEAPONS[k].tr&&!PRW[k]).map(k=>WEAPONS[k].short+' ('+WTRAIT[WEAPONS[k].tr].name+')').join(', ')+'.';
 $('#howRange').textContent='Every weapon has an optimal range where its aim is best and falls off outside it: '+Object.keys(WEAPONS).map(k=>WEAPONS[k].short+' '+bandTxt(optBand(WEAPONS[k]))).join(', ')+'. Each loadout card lists aim by range.';
 let LO=loadLO();
 function loadLO(){ try{ const s=JSON.parse(localStorage.getItem('stormfall_loadout')||'null'); if(s) return sanitize(s); }catch(e){} return sanitize({name:'NOMAD',cls:'ranger',weapon:'shotgun',armor:'light',utils:['frag','medkit']}); }
@@ -10754,7 +10847,7 @@ function mapRoulette(rk){
    human commands cross the network; AI operatives are simulated identically on every client.
    If a guest drops, their operative turns into AI on everyone's screen. If the host drops, each guest
    finishes the match on their own with the other humans played by AI. */
-const PROTO=40, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PROTO=41, CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /* Matchmaking (signaling only; matches run browser-to-browser): the game's own backend when there is one (cloudflare/:
    a PeerJS-compatible server at <api>/api/peerjs), else the free public PeerJS server. If our server cannot be reached,
    hosts fall back to the public one, and joiners who cannot find a room on ours look for it there too.
@@ -11394,7 +11487,7 @@ function slotRow(pick,kick,val,meta,tags,extra,img){ return '<button class="slot
 // ---- card builders (picker sheet content)
 function clsCards(){ return Object.keys(CLASSES).map(k=>{ const c=CLASSES[k]; return '<button class="card'+(k===draft.cls?' sel':'')+'" data-cls="'+k+'"><div class="t">'+c.name+'</div><div class="d">'+c.tag+' · '+ABIL[c.ability].name+'</div>'+bars([['Aim',(c.aim-55)*4],['HP',(c.hp-4)*16],['Move',(c.mob-3)*25]])+'<p class="cd">'+c.desc+'</p></button>'; }).join(''); }
 function wpCards(aimNow){ const Cl=CLASSES[draft.cls]; return Cl.weapons.map(k=>{ const ok=wOwned(k), w=ok?applyAtt(effWeapon(k),attIds(draft.att&&draft.att[k],k)):Object.assign({},WEAPONS[k]), mk=ok?weaponMk(k):1, nx=mk<3?UNLOCK_LVL[(mk===1?'mk2_':'mk3_')+k]:0, ob=optBand(w), tr=weaponTraits(w);
-    return '<button class="card'+(PRW[k]?' prwc':'')+(k===draft.weapon?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-wp="'+k+'"':PRW[k]?'data-prlock="'+k+'"':'data-lock="'+UNLOCK_LVL['w_'+k]+'"')+'>'+wpvHtml(k)+'<div class="t">'+w.name+mkTxt(mk)+gearTag('w_'+k,ok)+'</div><div class="d">'+w.dmg[0]+'–'+w.dmg[1]+' dmg (crit +'+w.critDmg+'), '+w.clip+' rounds, '+w.crit+'% crit<br><b class="opt">Optimal '+bandTxt(ob)+' ('+sgn(ob.mod)+' aim)</b><br>Aim by range: '+rangeTxt(w)+(tr.length?'<br>'+tr.join('. ')+'.':'')+(w.att&&w.att.length?'<br>With '+w.att.map(id=>ATTACH[id].name).join(', ')+'.':'')+'<br>'+w.desc+'</div>'+bars(bandHit(w,aimNow),true)
+    return '<button class="card'+(PRW[k]?' prwc':'')+(k===draft.weapon?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-wp="'+k+'"':PRW[k]?'data-prlock="'+k+'"':'data-lock="'+UNLOCK_LVL['w_'+k]+'"')+'>'+wpvHtml(k)+'<div class="t">'+w.name+mkTxt(mk)+gearTag('w_'+k,ok)+'</div><div class="d">'+wRoleHtml(w)+w.dmg[0]+'–'+w.dmg[1]+' dmg (crit +'+w.critDmg+'), '+w.clip+' rounds, '+w.crit+'% crit<br><b class="opt">Optimal '+bandTxt(ob)+' ('+sgn(ob.mod)+' aim)</b><br>Aim by range: '+rangeTxt(w)+(tr.length?'<br>'+tr.join('. ')+'.':'')+(w.att&&w.att.length?'<br>With '+w.att.map(id=>ATTACH[id].name).join(', ')+'.':'')+'<br>'+w.desc+'</div>'+bars(bandHit(w,aimNow),true)
       +(ok?(nx?'<div class="lk">Mk '+(mk===1?'II':'III')+' at level '+nx+'</div>':''):'<div class="lk">'+(PRW[k]?'Unlocks at '+CLASSES[PRW[k].cls].name+' Prestige '+ROMAN[PRW[k].rk]:'Unlocks at level '+UNLOCK_LVL['w_'+k])+'</div>')+mastHtml(k)+'</button>'; }).join(''); }
 function secCards(aimNow){ const Cl=CLASSES[draft.cls]; return Cl.secs.map(k=>{ const ok=sOwned(k), S=pistolWith(k,ok?attIds(draft.att&&draft.att[k],k):[]);
     return '<button class="card'+(k===draft.sec?' sel':'')+(ok?'':' lock')+'" '+(ok?'data-sec="'+k+'"':'data-lock="'+UNLOCK_LVL['s_'+k]+'"')+'>'+wpvHtml(k)+'<div class="t">'+S.name+gearTag('s_'+k,ok)+'</div><div class="d">'+secDesc(S)+'<br>'+S.desc+'</div>'+bars(secBars(S,aimNow),true)
@@ -11426,7 +11519,7 @@ function renderLoadout(){
     const sm=S.type==='pistol'?S.dmg[0]+'–'+S.dmg[1]+' dmg · '+S.clip+' rounds · optimal '+bandTxt(optBand(S.W)):S.type==='thrown'?'Melee or throw '+S.range+' tiles · '+S.uses+' per match':'Melee · '+S.acc+'% base hit'+(S.dash?' · dash '+S.dash:'');
     const nAtt=Object.keys((draft.att&&draft.att[draft.weapon])||{}).length;
     h+='<div class="grp"><h3>Operative</h3>'+slotRow('cls','Class',Cl.name,Cl.tag+' · '+ABIL[Cl.ability].name)+ascLoRow(draft.cls)+'</div>';
-    h+='<div class="grp"><h3>Weapons</h3>'+slotRow('weapon','Primary',W.name+mkTxt(mk),W.dmg[0]+'–'+W.dmg[1]+' dmg · '+W.clip+' rounds · optimal '+bandTxt(ob),(nAtt?'<span class="tg">'+nAtt+' att</span>':'')+mBadge(draft.weapon),'',wpvHtml(draft.weapon,'sm'))
+    h+='<div class="grp"><h3>Weapons</h3>'+slotRow('weapon','Primary',W.name+mkTxt(mk),(WTRAIT[W.tr]?WTRAIT[W.tr].role+' · '+WTRAIT[W.tr].name+' · ':'')+W.dmg[0]+'–'+W.dmg[1]+' dmg · '+W.clip+' rounds · optimal '+bandTxt(ob),(nAtt?'<span class="tg">'+nAtt+' att</span>':'')+mBadge(draft.weapon),'',wpvHtml(draft.weapon,'sm'))
       +slotRow('sec','Secondary',S.name,sm,isPistol(draft.sec)?mBadge(draft.sec):'','',wpvHtml(draft.sec,'sm'))+'</div>';
     h+='<div class="grp"><h3>Protection and kit</h3>'+slotRow('armor','Armor',A.name,A.short+' · '+A.desc+(own('ar_'+draft.armor)?' · +1 HP lining':''))
       +slotRow('util','Utilities · '+draft.utils.length+' of '+utilSlots(),draft.utils.map(k=>UTILS[k].name+' ×'+utCharges(k)).join(' + '),own('pouch')?'':'Third slot at level '+UNLOCK_LVL.pouch)+'</div>';
@@ -11938,20 +12031,20 @@ async function tutRun(mid){
   await wait(500); if(!go_()) return;
   // overwatch: the runner crosses your sight on the enemy turn
   await tutFresh(mid); TUT.allow=['ow'];
-  await coach({key:'ow',t:'Overwatch',b:'Ends your turn on watch: the first enemy that moves where you can see takes a <em>reaction shot</em> (−15 aim). Tap <em>Overwatch</em>.',at:'#actions [data-act="ow"]'});
+  await coach({key:'ow',t:'Overwatch',b:'Ends your turn on watch: the first enemy that moves where you can see takes a <em>reaction shot</em>. Tap <em>Overwatch</em>.',at:'#actions [data-act="ow"]'});
   if(!await tutWait(()=>tutDid('ow'),mid)) return;
   TUT.enemy=true; await tutClose(mid); if(!go_()) return;
   coach({key:'ow',t:'Enemy turn',b:'Something moves on your left…'});
   G.turnU=D2; updateTurnOrder(); turnTag(D2.name+' · enemy turn','enemy'); await wait(700); if(!go_()) return;
   D2.ap=2; D2.moved=false; await execCmd(D2,{k:'move',path:TY.run.map(p=>p.slice()),ap:1}); if(!go_()) return; await wait(700); if(!go_()) return;
   G.turnU=null; P.overwatch=false; focusOn(D2.x,D2.y); updateHUD();
-  await coach({key:'owhit',t:'Reaction shot',b:'Your overwatch fired the moment the runner stepped into view. Reaction shots take −15 aim, so cover still matters for both sides.',unit:D2,next:1}); if(!go_()) return;
+  await coach({key:'owhit',t:'Reaction shot',b:'Your overwatch fired the moment the runner stepped into view. Reaction shots usually take −15 aim; your Pulse Rifle is <em>Steady</em> and skips that. Every weapon has a trait like this (see Loadout).',unit:D2,next:1}); if(!go_()) return;
   // return fire
   G.turnU=D1; updateTurnOrder(); turnTag(D1.name+' · enemy turn','enemy'); focusMid(P,D1);
   coach({key:'rf',t:'Enemy turn',b:'The dummy shoots at you. You are in <em>full cover</em> from it.',unit:D1}); await wait(1100); if(!go_()) return;
   D1.ap=2; D1.ammo=D1.W.clip; D1.disorient=0; await execCmd(D1,{k:'fire',kind:'shoot',t:P.id}); if(!go_()) return; await wait(500); if(!go_()) return;
   G.turnU=null; updateHUD();
-  await coach({key:'rf',t:'Return fire',b:'In full cover from a shooter that can see you, you <em>fire back automatically</em>, once per enemy turn (−15 aim). Enemies in full cover do the same: flank them or break their cover first.',unit:P,next:1}); if(!go_()) return;
+  await coach({key:'rf',t:'Return fire',b:'In full cover from a shooter that can see you, you <em>fire back automatically</em>, once per enemy turn (a reaction shot). Enemies in full cover do the same: flank them or break their cover first.',unit:P,next:1}); if(!go_()) return;
   // grenades and destructible cover
   await tutFresh(mid); P.utils[0].ch=Math.max(1,P.utils[0].ch); updateHUD(); focusMid(P,D1); TUT.allow=['u0','throw'];
   await coach({key:'nade',t:'Grenades',b:'Throwables cost 1 AP, ignore cover and <em>knock it down a stage</em>. Tap <em>Frag</em>.',at:'#actions [data-act="u0"]'});
@@ -12134,6 +12227,7 @@ function simHash(){ let h=0x811c9dc5; const add=v=>{ v=v|0; h=Math.imul(h^(v&255
   if(G.M.inf||G.M.night||mutBits()) modeHash(add); // Infection / Blackout / mutator state (only when active: other hashes unchanged)
   hzHash(add); // hazards and status effects (only when present: other hashes unchanged)
   pxHash(add); // class prestige weapon effects (only when present: other hashes unchanged)
+  trHash(add); // weapon traits (only when present)
   ascHash(add); // ascended forms (only when present)
   return h>>>0; }
 function roundHash(){ const h=simHash(); G.hlog.push(h); if(NET.host&&!G.watch) NET.round=G.round; if(REC&&REC.mid===G.matchId) REC.h.push(h); if(G.watch&&G.watch.kind==='replay') replayCheck(h); }
@@ -13399,7 +13493,7 @@ function kitFillTarget(u,t,k){ const X=ABIL[k]||ACTS[k];
   else if(k==='adren'){ hit='+1'; lbl='AP next turn'; row=hasP(u,'m_serum')?'<span>+2 shield now</span>':''; }
   else if(k==='purge'){ hit='+2'; lbl='HP, cured'; }
   else if(k==='tmark'){ hit='+'+KITN.mark; lbl='team aim against it'; row='<span>Until the end of next round</span><span>Free action</span>'; }
-  else if(k==='called'){ const h=hitInfo(u,t,{aimMod:20,aimLbl:'called shot'}); hit=h.any+'%'; lbl='Called Shot · chance to hit'; row='<span>Damage '+(u.W.dmg[0]+1)+'–'+(u.W.dmg[1]+1)+'</span><span>Crit '+h.crit+'%</span>'; note='Aim '+u.aim+' '+h.mods.map(m=>(m[1]>0?'+':'')+m[1]+' '+m[0]).join(', ')+'.'; }
+  else if(k==='called'){ const h=hitInfo(u,t,{aimMod:20,aimLbl:'called shot'}); hit=h.any+'%'; lbl='Called Shot · chance to hit'; row='<span>Damage '+(u.W.dmg[0]+1)+'–'+(u.W.dmg[1]+1)+'</span><span>Crit '+h.crit+'%</span>'; note='Aim '+u.aim+' '+h.mods.map(m=>(m[1]?(m[1]>0?'+':'')+m[1]+' ':'')+m[0]).join(', ')+'.'; }
   $('#tHit').textContent=hit; $('#tHitL').textContent=lbl; $('#tRow').innerHTML=row; $('#tMods').textContent=note;
   $('#tChips').innerHTML=G.targets.length>1?G.targets.map((q,i)=>'<button class="tchip'+(i===G.tIdx?' sel':'')+'" data-ti="'+i+'">'+kName(q,u)+'</button>').join(''):'';
   const fb=$('#tFire'); fb.textContent=X.short||'Go'; fb.classList.remove('off'); }
